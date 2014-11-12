@@ -153,7 +153,7 @@ typedef struct {
 	uint8 var_C5;
 	uint8 pad_C6[2];
 	uint32 var_C8;
-	uint8 var_CC;
+	uint8 scream_sound_id;			// 0xCC
 	uint8 var_CD;
 	union {
 		uint8 var_CE;
@@ -258,6 +258,7 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 int sub_6DAB4C(rct_vehicle *vehicle, int *outStation);
 bool sub_6DD365(rct_vehicle *vehicle);
 rct_ride_type_vehicle *vehicle_get_vehicle_entry(rct_vehicle *vehicle);
+int vehicle_get_total_num_peeps(rct_vehicle *vehicle);
 
 /** Helper macro until rides are stored in this module. */
 #define GET_VEHICLE(sprite_index) &(g_sprite_list[sprite_index].vehicle)
