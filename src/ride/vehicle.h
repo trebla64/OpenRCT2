@@ -111,7 +111,9 @@ typedef struct {
 	uint8 vehicle_type;				// 0x31
 	rct_vehicle_colour colours;		// 0x32
 	uint16 var_34;
-	sint16 var_36;
+	// >>2 to remove rotation and have just
+	// track_elem_type
+	uint16 track_type;				// 0x36	
 	uint16 track_x;					// 0x38
 	uint16 track_y;					// 0x3A
 	uint16 track_z;					// 0x3C
