@@ -2241,6 +2241,7 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 		ride->broken_car = scenario_rand() % ride->num_cars_per_train;
 
 		// Set flag on broken car
+<<<<<<< 7df41928a6879e225a092c0e861413819bd589e9
 		vehicle = GET_VEHICLE(ride->vehicles[ride->broken_vehicle]);
 		for (i = ride->broken_car; i > 0; i--) {
 			if (vehicle->next_vehicle_on_train == (uint16)0xFFFFFFFF) {
@@ -2253,6 +2254,12 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 		}
 		if (vehicle != NULL)
 			vehicle->var_48 |= 0x100;
+=======
+		vehicle = &(g_sprite_list[ride->vehicles[ride->broken_vehicle]].vehicle);
+		for (i = ride->broken_car; i > 0; i--)
+			vehicle = &(g_sprite_list[vehicle->next_vehicle_on_train].vehicle);
+		vehicle->update_flags |= VEHICLE_UPDATE_FLAG_BROKEN_CAR;
+>>>>>>> Refactor
 		break;
 	case BREAKDOWN_VEHICLE_MALFUNCTION:
 		// Choose a random train
@@ -2260,8 +2267,13 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 		ride->broken_car = 0;
 
 		// Set flag on broken train, first car
+<<<<<<< 7df41928a6879e225a092c0e861413819bd589e9
 		vehicle = GET_VEHICLE(ride->vehicles[ride->broken_vehicle]);
 		vehicle->var_48 |= 0x200;
+=======
+		vehicle = &(g_sprite_list[ride->vehicles[ride->broken_vehicle]].vehicle);
+		vehicle->update_flags |= VEHICLE_UPDATE_FLAG_BROKEN_TRAIN;
+>>>>>>> Refactor
 		break;
 	case BREAKDOWN_BRAKES_FAILURE:
 		// Original code generates a random number but does not use it

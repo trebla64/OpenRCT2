@@ -530,7 +530,7 @@ static int sub_6D6A2C(rct_vehicle* vehicle){
 			continue;
 		}
 
-		if (vehicle->var_48 & (1 << 8) &&
+		if (vehicle->update_flags & VEHICLE_UPDATE_FLAG_BROKEN_CAR &&
 			vehicle->var_B5 != 0xFF &&
 			(
 			ride->breakdown_reason_pending == BREAKDOWN_RESTRAINTS_STUCK_CLOSED ||
@@ -585,7 +585,7 @@ static void vehicle_update_measurements(rct_vehicle *vehicle)
 		ride->lifecycle_flags |= RIDE_LIFECYCLE_TESTED;
 		ride->lifecycle_flags |= RIDE_LIFECYCLE_NO_RAW_STATS;
 		ride->lifecycle_flags &= ~RIDE_LIFECYCLE_TEST_IN_PROGRESS;
-		vehicle->var_48 &= ~(1 << 5);
+		vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_TESTING;
 		window_invalidate_by_number(WC_RIDE, vehicle->ride);
 		return;
 	}
@@ -652,7 +652,7 @@ static void vehicle_update_measurements(rct_vehicle *vehicle)
 			return;
 
 		uint16 track_elem_type = vehicle->track_type / 4;
-		if (track_elem_type == TRACK_ELEM_POWERED_LIFT || !(vehicle->var_48 & (1 << 0))){
+		if (track_elem_type == TRACK_ELEM_POWERED_LIFT || !(vehicle->update_flags & VEHICLE_UPDATE_FLAG_0)){
 			if (!(ride->testing_flags & RIDE_TESTING_POWERED_LIFT)){
 				ride->testing_flags |= RIDE_TESTING_POWERED_LIFT;
 				if (ride->drops + 64 < 0xFF){
@@ -951,7 +951,7 @@ static void vehicle_update(rct_vehicle *vehicle)
 	rct_ride_type_vehicle* vehicleEntry = &rideEntry->vehicles[vehicle->vehicle_type];
 
 	ride = GET_RIDE(vehicle->ride);
-	if (vehicle->var_48 & 0x20)
+	if (vehicle->update_flags & VEHICLE_UPDATE_FLAG_TESTING)
 		vehicle_update_measurements(vehicle);
 
 	RCT2_GLOBAL(0x00F64E34, uint8) = 255;
@@ -964,7 +964,7 @@ static void vehicle_update(rct_vehicle *vehicle)
 					vehicle->velocity <= 0x20000
 				)
 			) {
-				vehicle->var_48 |= 0x80;
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_15;
 			}
 		}
 	}
@@ -1155,7 +1155,7 @@ static void train_ready_to_depart(rct_vehicle* vehicle, uint8 num_peeps_on_train
 
 	if (ride->status == RIDE_STATUS_OPEN &&
 		!(ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN) &&
-		!(vehicle->var_48 & (1<<4))){
+		!(vehicle->update_flags & VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART)){
 		return;
 	}
 
@@ -1230,7 +1230,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 		if (vehicle->var_C0 != 0xFFFF)
 			vehicle->var_C0++;
 
-		vehicle->var_48 &= ~(1 << 4);
+		vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 
 		// 0xF64E31, 0xF64E32, 0xF64E33
 		uint8 num_peeps_on_train = 0, num_used_seats_on_train = 0, num_seats_on_train = 0;
@@ -1269,7 +1269,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 			}
 			if (ride->depart_flags & RIDE_DEPART_WAIT_FOR_MAXIMUM_LENGTH){
 				if (ride->max_waiting_time * 32 < vehicle->var_C0){
-					vehicle->var_48 |= (1 << 4);
+					vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 					train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 					return;
 				}
@@ -1291,7 +1291,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 				if (train->status == VEHICLE_STATUS_UNLOADING_PASSENGERS ||
 					train->status == VEHICLE_STATUS_MOVING_TO_END_OF_STATION){
 					if (train->current_station == vehicle->current_station){
-						vehicle->var_48 |= (1 << 4);
+						vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 						train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 						return;
 					}
@@ -1303,7 +1303,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 			ride->depart_flags & RIDE_DEPART_WAIT_FOR_LOAD){
 
 			if (num_peeps_on_train == num_seats_on_train){
-				vehicle->var_48 |= (1 << 4);
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 				train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 				return;
 			}
@@ -1316,7 +1316,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 
 			uint8 three_quater_seats = (3 * num_seats_on_train) / 4;
 			if (three_quater_seats != 0 && num_peeps_on_train >= three_quater_seats){
-				vehicle->var_48 |= (1 << 4);
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 				train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 				return;
 			}
@@ -1327,7 +1327,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 			}
 
 			if (num_seats_on_train / 2 != 0 && num_peeps_on_train >= num_seats_on_train / 2){
-				vehicle->var_48 |= (1 << 4);
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 				train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 				return;
 			}
@@ -1338,24 +1338,24 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 			}
 
 			if (num_seats_on_train / 4 != 0 && num_peeps_on_train >= num_seats_on_train / 4){
-				vehicle->var_48 |= (1 << 4);
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 				train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 				return;
 			}
 
 			if (load == 0){
-				vehicle->var_48 |= (1 << 4);
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 				train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 				return;
 			}
 
 			if (num_peeps_on_train != 0){
-				vehicle->var_48 |= (1 << 4);
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 			}				
 			train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 			return;
 		}
-		vehicle->var_48 |= (1 << 4);
+		vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 		train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 		return;
 	}
@@ -1366,10 +1366,10 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 	vehicle->velocity = 0;
 	vehicle->status = VEHICLE_STATUS_WAITING_TO_DEPART;
 	vehicle->var_51 = 0;
-	vehicle->var_48 &= ~(1 << 2);
+	vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_WAIT_ON_ADJACENT;
 
 	if (ride->depart_flags & RIDE_DEPART_SYNCHRONISE_WITH_ADJACENT_STATIONS){
-		vehicle->var_48 |= (1 << 2);
+		vehicle->update_flags |= VEHICLE_UPDATE_FLAG_WAIT_ON_ADJACENT;
 	}
 
 	vehicle_invalidate_window(vehicle);
