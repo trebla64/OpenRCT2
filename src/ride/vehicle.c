@@ -1016,7 +1016,7 @@ static void vehicle_update(rct_vehicle *vehicle)
 					vehicle->velocity <= 0x20000
 				)
 			) {
-				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_15;
+				vehicle->update_flags |= VEHICLE_UPDATE_FLAG_7;
 			}
 		}
 	}
