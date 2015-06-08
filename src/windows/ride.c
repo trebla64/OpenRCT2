@@ -3467,11 +3467,11 @@ static void window_ride_maintenance_dropdown(rct_window *w, int widgetIndex, int
 			case BREAKDOWN_DOORS_STUCK_CLOSED:
 			case BREAKDOWN_DOORS_STUCK_OPEN:
 				vehicle = &(g_sprite_list[ride->vehicles[ride->broken_vehicle]].vehicle);
-				vehicle->var_48 &= ~0x100;
+				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_BROKEN_CAR;
 				break;
 			case BREAKDOWN_VEHICLE_MALFUNCTION:
 				vehicle = &(g_sprite_list[ride->vehicles[ride->broken_vehicle]].vehicle);
-				vehicle->var_48 &= ~0x200;
+				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_BROKEN_TRAIN;
 				break;
 			}
 			ride->lifecycle_flags &= ~(RIDE_LIFECYCLE_BREAKDOWN_PENDING | RIDE_LIFECYCLE_BROKEN_DOWN);
