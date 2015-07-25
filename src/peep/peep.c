@@ -6664,6 +6664,23 @@ rct_map_element* get_banner_on_path(rct_map_element *path_element){
 	return NULL;
 }
 
+static bool is_valid_path_z_and_direction(rct_map_element *mapElement, int currentZ, int currentDirection)
+{
+	if (footpath_element_is_sloped(mapElement)) {
+		int slopeDirection = footpath_element_get_slope_direction(mapElement);
+		if (slopeDirection == currentDirection) {
+			if (currentZ != mapElement->base_height) return false;
+		} else {
+			slopeDirection ^= 2;
+			if (slopeDirection != currentDirection) return false;
+			if (currentZ != mapElement->base_height + 2) return false;
+		}
+	} else {
+		if (currentZ != mapElement->base_height) return false;
+	}
+	return true;
+}
+
 /**
  * 
  *  rct2: 0x00694BAE
@@ -6683,19 +6700,7 @@ static uint8 sub_694BAE(sint16 x, sint16 y, sint16 z, rct_map_element *mapElemen
 	nextMapElement = map_get_first_element_at(x, y);
 	do {
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_PATH) continue;
-		
-		if (footpath_element_is_sloped(nextMapElement)) {
-			int slopeDirection = footpath_element_get_slope_direction(nextMapElement);
-			if (slopeDirection == chosenDirection) {
-				if (z != nextMapElement->base_height) continue;
-			} else {
-				slopeDirection ^= 2;
-				if (slopeDirection != chosenDirection) continue;
-				if (z != nextMapElement->base_height + 2) continue;
-			}
-		} else {
-			if (z != nextMapElement->base_height) continue;
-		}
+		if (!is_valid_path_z_and_direction(nextMapElement, z, chosenDirection)) continue;
 
 		if (!(nextMapElement->type & 2)) return 6;
 
@@ -6705,16 +6710,109 @@ static uint8 sub_694BAE(sint16 x, sint16 y, sint16 z, rct_map_element *mapElemen
 	return 0;
 }
 
-/* rct2: 0x006949A4 */
-static uint8 sub_6949A4(sint16 x, sint16 y, sint16 z, rct_map_element *map_element, uint8 chosen_direction){
-	uint32 eax, ebx, ecx, edx, esi, edi, ebp;
-	eax = x;
-	ecx = y;
-	edx = z;
-	edi = (int)map_element;
-	ebp = chosen_direction;
-	RCT2_CALLFUNC_X(0x006949A4, &eax, &ebx, &ecx, &edx, &esi, &edi, &ebp);
-	return eax & 0xFF;
+/**
+ *
+ *  rct2: 0x006949B9
+ */
+static uint8 loc_6949B9(
+	sint16 x, sint16 y, sint16 z, rct_map_element *inputMapElement, uint8 chosenDirection, uint8 *outRideIndex,
+	int level
+) {
+	rct_map_element *mapElement;
+	int direction;
+
+	if (level > 25) return 5;
+
+	x += TileDirectionDelta[chosenDirection].x;
+	y += TileDirectionDelta[chosenDirection].y;
+	mapElement = map_get_first_element_at(x, y);
+	do {
+		if (mapElement->flags & MAP_ELEMENT_FLAG_GHOST) continue;
+
+		switch (map_element_get_type(mapElement)) {
+		case MAP_ELEMENT_TYPE_TRACK:
+			if (z != mapElement->base_height) continue;
+			int rideIndex = inputMapElement->properties.path.ride_index;
+			rct_ride *ride = GET_RIDE(rideIndex);
+			if (RCT2_GLOBAL(0x0097CF40 + (ride->type * 8), uint32) & 0x20000) {
+				*outRideIndex = rideIndex;
+				return 2;
+			}
+			break;
+		case MAP_ELEMENT_TYPE_ENTRANCE:
+			if (z != mapElement->base_height) continue;
+			switch (mapElement->properties.entrance.type) {
+			case ENTRANCE_TYPE_RIDE_ENTRANCE:
+				direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
+				if (direction == chosenDirection) {
+					*outRideIndex = mapElement->properties.entrance.ride_index;
+					return 2;
+				}
+				break;
+			case ENTRANCE_TYPE_RIDE_EXIT:
+				direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
+				if (direction == chosenDirection) {
+					*outRideIndex = mapElement->properties.entrance.ride_index;
+					return 1;
+				}
+				break;
+			case ENTRANCE_TYPE_PARK_ENTRANCE:
+				return 4;
+			}
+			break;
+		case MAP_ELEMENT_TYPE_PATH:
+			if (!is_valid_path_z_and_direction(mapElement, z, chosenDirection)) continue;
+			if (!(mapElement->type & 2)) return 6;
+
+			uint8 edges = mapElement->properties.path.edges;
+			rct_map_element *bannerElement = get_banner_on_path(mapElement);
+			if (bannerElement != NULL) {
+				do {
+					edges &= bannerElement->properties.banner.flags;
+				} while ((bannerElement = get_banner_on_path(bannerElement)) != NULL);
+			}
+			edges &= 0x0F;
+			edges &= ~(1 << (chosenDirection ^ 2));
+			z = mapElement->base_height;
+
+			for (direction = 0; direction < 4; direction++) {
+				if (!(edges & (1 << direction))) continue;
+
+				edges &= ~(1 << direction);
+				if (edges != 0) return 3;
+
+				if (footpath_element_is_sloped(mapElement)) {
+					if (footpath_element_get_slope_direction(mapElement) == direction) {
+						z += 2;
+					}
+				}
+				return loc_6949B9(x, y, z, mapElement, direction, outRideIndex, level + 1);
+			}
+		}
+	} while (!map_element_is_last_for_tile(mapElement++));
+
+	return 0;
+}
+
+/**
+ * Returns:
+ *   0 - dead end?
+ *   1 - ride exit
+ *   2 - ride entrance
+ *   4 - park entrance / exit
+ *   5 - search limit reached
+ *   6 - (path->type & 2)?
+ *  rct2: 0x006949A4
+ */
+static uint8 sub_6949A4(sint16 x, sint16 y, sint16 z, rct_map_element *inputMapElement, uint8 chosenDirection, uint8 *outRideIndex)
+{
+	if (footpath_element_is_sloped(inputMapElement)) {
+		if (footpath_element_get_slope_direction(inputMapElement) == chosenDirection) {
+			z += 2;
+		}
+	}
+
+	return loc_6949B9(x, y, z, inputMapElement, chosenDirection, outRideIndex, 0);
 }
 
 /* rct2: 0x00694C35 */
@@ -6805,7 +6903,8 @@ static int guest_path_finding(rct_peep* peep){
 				if (!(adjustedEdges & (1 << chosenDirection)))
 					continue;
 				
-				uint8 al = sub_6949A4(peep->next_x, peep->next_y, peep->next_z, mapElement, chosenDirection);
+				uint8 rideIndex;
+				uint8 al = sub_6949A4(peep->next_x, peep->next_y, peep->next_z, mapElement, chosenDirection, &rideIndex);
 				if (al == 6 || al <= 1){
 					adjustedEdges &= ~(1 << chosenDirection);
 				}
