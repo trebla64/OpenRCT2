@@ -2241,7 +2241,6 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 		ride->broken_car = scenario_rand() % ride->num_cars_per_train;
 
 		// Set flag on broken car
-<<<<<<< 7df41928a6879e225a092c0e861413819bd589e9
 		vehicle = GET_VEHICLE(ride->vehicles[ride->broken_vehicle]);
 		for (i = ride->broken_car; i > 0; i--) {
 			if (vehicle->next_vehicle_on_train == (uint16)0xFFFFFFFF) {
@@ -2253,13 +2252,7 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 			}
 		}
 		if (vehicle != NULL)
-			vehicle->var_48 |= 0x100;
-=======
-		vehicle = &(g_sprite_list[ride->vehicles[ride->broken_vehicle]].vehicle);
-		for (i = ride->broken_car; i > 0; i--)
-			vehicle = &(g_sprite_list[vehicle->next_vehicle_on_train].vehicle);
-		vehicle->update_flags |= VEHICLE_UPDATE_FLAG_BROKEN_CAR;
->>>>>>> Refactor
+			vehicle->update_flags |= VEHICLE_UPDATE_FLAG_BROKEN_CAR;
 		break;
 	case BREAKDOWN_VEHICLE_MALFUNCTION:
 		// Choose a random train
@@ -2267,13 +2260,8 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 		ride->broken_car = 0;
 
 		// Set flag on broken train, first car
-<<<<<<< 7df41928a6879e225a092c0e861413819bd589e9
 		vehicle = GET_VEHICLE(ride->vehicles[ride->broken_vehicle]);
-		vehicle->var_48 |= 0x200;
-=======
-		vehicle = &(g_sprite_list[ride->vehicles[ride->broken_vehicle]].vehicle);
 		vehicle->update_flags |= VEHICLE_UPDATE_FLAG_BROKEN_TRAIN;
->>>>>>> Refactor
 		break;
 	case BREAKDOWN_BRAKES_FAILURE:
 		// Original code generates a random number but does not use it
@@ -5320,7 +5308,7 @@ foundRideEntry:
 		ride->station_starts[i] = 0xFFFF;
 		ride->entrances[i] = 0xFFFF;
 		ride->exits[i] = 0xFFFF;
-		ride->var_066[i] = 255;
+		ride->train_at_station[i] = 255;
 		ride->queue_time[i] = 0;
 	}
 
@@ -5869,6 +5857,8 @@ void increment_turn_count_1_element(rct_ride* ride, uint8 type){
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return;
 	}
 	uint16 value = (*turn_count & TURN_MASK_1_ELEMENT) + 1;
 	*turn_count &= ~TURN_MASK_1_ELEMENT;
@@ -5890,6 +5880,8 @@ void increment_turn_count_2_elements(rct_ride* ride, uint8 type){
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return;
 	}
 	uint16 value = (*turn_count & TURN_MASK_2_ELEMENTS) + 0x20;
 	*turn_count &= ~TURN_MASK_2_ELEMENTS;
@@ -5911,6 +5903,8 @@ void increment_turn_count_3_elements(rct_ride* ride, uint8 type){
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return;
 	}
 	uint16 value = (*turn_count & TURN_MASK_3_ELEMENTS) + 0x100;
 	*turn_count &= ~TURN_MASK_3_ELEMENTS;
@@ -5931,6 +5925,8 @@ void increment_turn_count_4_plus_elements(rct_ride* ride, uint8 type){
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return;
 	}
 	uint16 value = (*turn_count & TURN_MASK_4_PLUS_ELEMENTS) + 0x800;
 	*turn_count &= ~TURN_MASK_4_PLUS_ELEMENTS;
@@ -5952,6 +5948,8 @@ int get_turn_count_1_element(rct_ride* ride, uint8 type) {
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return 0;
 	}
 
 	return (*turn_count) & TURN_MASK_1_ELEMENT;
@@ -5969,6 +5967,8 @@ int get_turn_count_2_elements(rct_ride* ride, uint8 type) {
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return 0;
 	}
 
 	return ((*turn_count) & TURN_MASK_2_ELEMENTS) >> 5;
@@ -5986,6 +5986,8 @@ int get_turn_count_3_elements(rct_ride* ride, uint8 type) {
 	case 2:
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return 0;
 	}
 
 	return ((*turn_count) & TURN_MASK_3_ELEMENTS) >> 8;
@@ -6000,6 +6002,8 @@ int get_turn_count_4_plus_elements(rct_ride* ride, uint8 type) {
 	case 2:		
 		turn_count = &ride->turn_count_sloped;
 		break;
+	default:
+		return 0;
 	}
 
 	return ((*turn_count) & TURN_MASK_4_PLUS_ELEMENTS) >> 11;
@@ -6464,8 +6468,13 @@ void invalidate_test_results(int rideIndex)
 		for (int i = 0; i < ride->num_vehicles; i++) {
 			uint16 spriteIndex = ride->vehicles[i];
 			if (spriteIndex != SPRITE_INDEX_NULL) {
+<<<<<<< 7d2a109e600e2bc2df3d8827020969375c589167
 				rct_vehicle *vehicle = GET_VEHICLE(spriteIndex);
 				vehicle->var_48 &= ~(1 << 5);
+=======
+				rct_vehicle *vehicle = &(g_sprite_list[spriteIndex].vehicle);
+				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_TESTING;
+>>>>>>> Fix merge mistakes
 			}
 		}
 	}
@@ -6492,10 +6501,17 @@ void ride_fix_breakdown(int rideIndex, int reliabilityIncreaseFactor)
 		for (int i = 0; i < ride->num_vehicles; i++) {
 			spriteIndex = ride->vehicles[i];
 			while (spriteIndex != SPRITE_INDEX_NULL) {
+<<<<<<< 7d2a109e600e2bc2df3d8827020969375c589167
 				vehicle = GET_VEHICLE(spriteIndex);
 				vehicle->var_48 &= ~(1 << 7);
 				vehicle->var_48 &= ~(1 << 8);
 				vehicle->var_48 &= ~(1 << 9);
+=======
+				vehicle = &(g_sprite_list[spriteIndex].vehicle);
+				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_7;
+				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_BROKEN_CAR;
+				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_BROKEN_TRAIN;
+>>>>>>> Fix merge mistakes
 				spriteIndex = vehicle->next_vehicle_on_train;
 			}
 		}
