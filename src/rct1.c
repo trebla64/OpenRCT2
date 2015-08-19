@@ -2033,6 +2033,8 @@ static void rct1_import_map_elements(rct1_s4 *s4)
 
 static void rct1_import_ride(rct1_s4 *s4, rct_ride *dst, rct1_ride *src)
 {
+	int gameVersion = sawyercoding_detect_rct1_version(s4->game_version) & FILE_VERSION_MASK;
+
 	rct_ride_type *rideEntry;
 
 	memset(dst, 0, sizeof(rct_ride));
@@ -2101,7 +2103,7 @@ static void rct1_import_ride(rct1_s4 *s4, rct_ride *dst, rct1_ride *src)
 
 	// Colours
 	dst->colour_scheme_type = src->colour_scheme;
-	if (s4->game_version == 108166) {
+	if (gameVersion == FILE_VERSION_RCT1) {
 		dst->track_colour_main[0] = RCT1ColourConversionTable[src->track_primary_colour];
 		dst->track_colour_additional[0] = RCT1ColourConversionTable[src->track_secondary_colour];
 		dst->track_colour_supports[0] = RCT1ColourConversionTable[src->track_support_colour];
@@ -2112,9 +2114,16 @@ static void rct1_import_ride(rct1_s4 *s4, rct_ride *dst, rct1_ride *src)
 			dst->track_colour_supports[i] = RCT1ColourConversionTable[src->track_colour_supports[i]];
 		}
 	}
-	for (int i = 0; i < 12; i++) {
-		dst->vehicle_colours[i].body_colour = RCT1ColourConversionTable[src->vehicle_colours[i].body];
-		dst->vehicle_colours[i].trim_colour = RCT1ColourConversionTable[src->vehicle_colours[i].trim];
+
+	if(gameVersion < FILE_VERSION_RCT1_LL && dst->type == RIDE_TYPE_MERRY_GO_ROUND) {
+		// The merry-go-round in pre-LL versions was always yellow with red
+		dst->vehicle_colours[0].body_colour = 18;
+		dst->vehicle_colours[0].trim_colour = 28;
+	} else {
+		for (int i = 0; i < 12; i++) {
+			dst->vehicle_colours[i].body_colour = RCT1ColourConversionTable[src->vehicle_colours[i].body];
+			dst->vehicle_colours[i].trim_colour = RCT1ColourConversionTable[src->vehicle_colours[i].trim];
+		}
 	}
 
 	// Maintenance
