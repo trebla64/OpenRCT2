@@ -516,7 +516,7 @@ static int vehicle_close_restraints(rct_vehicle* vehicle){
 			}
 			vehicle->var_B5 -= 20;
 		}		
-		invalidate_sprite((rct_sprite*)vehicle);
+		invalidate_sprite_2((rct_sprite*)vehicle);
 		ebp++;
 	} while ((vehicle_id = vehicle->next_vehicle_on_train) != 0xFFFF);
 
@@ -562,7 +562,7 @@ static int vehicle_open_restraints(rct_vehicle* vehicle){
 			vehicle->var_BA += value;
 			vehicle->var_B6 -= value;
 
-			invalidate_sprite((rct_sprite*)vehicle);
+			invalidate_sprite_2((rct_sprite*)vehicle);
 			continue;
 		}
 
@@ -573,7 +573,7 @@ static int vehicle_open_restraints(rct_vehicle* vehicle){
 				vehicle->var_C8 = vehicle->var_C8 + 0x3333 - 0xFFFF;
 				vehicle->var_C5++;
 				vehicle->var_C5 &= 7;
-				invalidate_sprite((rct_sprite*)vehicle);
+				invalidate_sprite_2((rct_sprite*)vehicle);
 			}
 			else{
 				vehicle->var_C8 += 0x3333;
@@ -615,7 +615,7 @@ static int vehicle_open_restraints(rct_vehicle* vehicle){
 				continue;
 			}
 			vehicle->var_B5 += 20;
-			invalidate_sprite((rct_sprite*)vehicle);
+			invalidate_sprite_2((rct_sprite*)vehicle);
 			ebp++;
 		}
 
@@ -1275,7 +1275,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 		vehicle->var_51 = 1;
 		vehicle->var_C0 = 0;
 
-		invalidate_sprite((rct_sprite*)vehicle);
+		invalidate_sprite_2((rct_sprite*)vehicle);
 		return;
 	}
 	else if (vehicle->var_51 == 1){
@@ -1764,7 +1764,7 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 	sprite_move(16, 16, z, (rct_sprite*)current);
 	current->track_type = (TRACK_ELEM_CABLE_LIFT_HILL << 2) | (current->sprite_direction >> 3);
 	current->var_34 = 164;
-	current->var_48 = 2;
+	current->update_flags = VEHICLE_UPDATE_FLAG_1;
 	current->status = VEHICLE_STATUS_MOVING_TO_END_OF_STATION;
 	current->var_51 = 0;
 	current->num_peeps = 0;
