@@ -482,8 +482,9 @@ void vehicle_set_map_toolbar(rct_vehicle *vehicle)
 
 	ride = GET_RIDE(vehicle->ride);
 
-	while (vehicle->var_01 != 0)
+	while (vehicle->is_child) {
 		vehicle = &(g_sprite_list[vehicle->prev_vehicle_on_train].vehicle);
+	}
 
 	for (vehicleIndex = 0; vehicleIndex < 32; vehicleIndex++)
 		if (ride->vehicles[vehicleIndex] == vehicle->sprite_index)
@@ -542,7 +543,7 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 		move_sprite_to_list((rct_sprite*)current, SPRITE_LINKEDLIST_OFFSET_VEHICLE);
 		ride->cable_lift = current->sprite_index;
 	}
-	current->var_01 = head ? 0 : 1;
+	current->is_child = head ? 0 : 1;
 	current->var_44 = var_44;
 	current->var_24 = var_24;
 	current->sprite_width = 10;

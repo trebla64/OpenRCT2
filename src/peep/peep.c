@@ -2321,7 +2321,7 @@ void peep_update_ride_sub_state_7(rct_peep* peep){
 
 		if (!(RCT2_ADDRESS(RCT2_ADDRESS_RIDE_FLAGS, uint32)[ride->type * 2] & RIDE_TYPE_FLAG_16)){
 
-			for (; vehicle->var_01 != 0; vehicle = GET_VEHICLE(vehicle->prev_vehicle_on_train)){
+			for (; vehicle->is_child; vehicle = GET_VEHICLE(vehicle->prev_vehicle_on_train)){
 				uint16 eax = vehicle->var_36 / 4;
 				if (eax == 0 || eax > 3)
 					continue;
