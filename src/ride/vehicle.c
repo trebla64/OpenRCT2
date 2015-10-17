@@ -591,3 +591,17 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 	current->next_free_seat = 0;
 	return current;
 }
+
+/**
+ *
+ *  rct2: 0x006DAB4C
+ */
+int sub_6DAB4C(rct_vehicle *vehicle)
+{
+	registers regs;
+	regs.esi = (int)vehicle;
+
+	RCT2_CALLFUNC_Y(0x006DAB4C, &regs);
+
+	return regs.eax;
+}
