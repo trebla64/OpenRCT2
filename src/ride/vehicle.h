@@ -108,10 +108,14 @@ typedef struct {
 		uint8 var_CE;
 		uint8 num_laps;				// 0xCE
 	};
-	uint8 pad_CF[0x06];
+	uint8 pad_CF[0x04];
+	uint8 var_D3;
+	uint8 var_D4;
 	uint8 var_D5;
 	uint8 ride_subtype;				// 0xD6
 	uint8 colours_extended;			// 0xD7
+	uint8 var_D8;
+	uint8 var_D9;
 } rct_vehicle;
 
 enum {

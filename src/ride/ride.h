@@ -81,7 +81,7 @@ typedef struct{
 	uint32 var_04;				// 0x04 , 0x1E
 	uint16 var_08;				// 0x08 , 0x22
 	sint8 var_0A;				// 0x0A , 0x24
-	uint8 pad_0B;
+	uint8 var_0B;				// 0x0B , 0x25
 	uint16 var_0C;				// 0x0C , 0x26
 	uint8 var_0E;				// 0x0E , 0x28
 	uint8 var_0F;				// 0x0F , 0x29

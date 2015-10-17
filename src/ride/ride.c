@@ -4156,13 +4156,484 @@ static int sub_69ED9E()
 	return max(0, miscSpriteCount + unkCount - 300);
 }
 
+const rct_xy16 word_9A3AB4[4] = {
+	{   0,   0 },
+	{   0, -96 },
+	{ -96, -96 },
+	{ -96,   0 },
+};
+
+/**
+ *
+ *  rct2: 0x006DD365
+ */
+static bool sub_6DD365()
+{
+
+}
+
+/**
+ *
+ *  rct2: 0x006DD90D
+ */
+rct_vehicle *vehicle_create_car(int rideIndex, int vehicleEntryIndex, rct_vehicle *lastVehicle)
+{
+	registers regs;
+
+	rct_ride *ride = GET_RIDE(rideIndex);
+	rct_ride_type *rideEntry = GET_RIDE_ENTRY(ride->subtype);
+	rct_ride_type_vehicle *vehicleEntry = &rideEntry->vehicles[vehicleEntryIndex];
+
+	rct_vehicle *vehicle = (rct_vehicle*)create_sprite(1);
+	vehicle->sprite_identifier = SPRITE_IDENTIFIER_VEHICLE;
+	vehicle->ride = rideIndex;
+	vehicle->ride_subtype = ride->subtype;
+
+	if (lastVehicle == NULL) {
+		move_sprite_to_list((rct_sprite*)vehicle, SPRITE_LINKEDLIST_OFFSET_VEHICLE);
+
+		// Add head of train to ride
+		int vehicleIndex = -1;
+		do {
+			vehicleIndex++;
+		} while (ride->vehicles[vehicleIndex] != 0xFFFF);
+		ride->vehicles[vehicleIndex] = vehicle->sprite_index;
+	}
+
+	vehicle->vehicle_type = vehicleEntryIndex;
+	vehicle->var_01 = 0;
+	if (regs.ebp != -1) {
+		vehicle->var_01 = 1;
+	}
+
+	vehicle->var_44 = ror32(vehicleEntry->var_04, 10) & 0xFFFF;
+	regs.edx = vehicleEntry->var_04 >> 1;
+	regs.ebx -= regs.edx;
+	vehicle->var_24 = regs.ebx;
+	if (vehicleEntry->var_14 & 0x4000) {
+		regs.ebx -= regs.edx;
+	}
+
+	// loc_6DD9A5:
+	vehicle->sprite_width = vehicleEntry->var_0E;
+	vehicle->sprite_height_negative = vehicleEntry->var_0F;
+	vehicle->sprite_height_positive = vehicleEntry->var_10;
+	vehicle->var_46 = vehicleEntry->var_08;
+	vehicle->num_seats = vehicleEntry->var_0B;
+	vehicle->speed = vehicleEntry->var_5C;
+	vehicle->var_C3 = vehicleEntry->pad_5B;
+	vehicle->velocity = 0;
+	vehicle->var_2C = 0;
+	vehicle->var_4A = 0;
+	vehicle->var_4C = 0;
+	vehicle->var_4E = 0;
+	vehicle->var_B5 = 0;
+	vehicle->var_BA = 0;
+	vehicle->var_B6 = 0;
+	vehicle->var_B8 = 0;
+	vehicle->sound1_id = 0;
+	vehicle->sound2_id = 0;
+	vehicle->var_24 = 0xFFFF;
+	vehicle->var_C4 = 0;
+	vehicle->var_C5 = 0;
+	vehicle->var_C8 = 0;
+	vehicle->var_CC = 255;
+	vehicle->var_1F = 0;
+	vehicle->var_20 = 0;
+	vehicle->var_D9 = 4;
+	vehicle->var_D8 = 4;
+	for (int i = 0; i < 32; i++) {
+		vehicle->peep[i] = SPRITE_INDEX_NULL;
+	}
+
+	if (vehicleEntry->var_14 & 0x8000) {
+		// loc_6DDCA4:
+		vehicle->var_CD = 0;
+		direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
+		x += word_9A3AB4[direction].x;
+		y += word_9A3AB4[direction].y;
+		vehicle->var_38 = x;
+		vehicle->var_3A = y;
+		vehicle->var_3C = mapElement->base_height * 8;
+		vehicle->current_station = (mapElement->properties.track.sequence & 0x70) << 4;
+		regs.ecx = [esp + 8];
+		regs.eax = regs.ecx;
+
+		regs.ax = RCT2_GLOBAL(0x0097D21A + (regs.eax * 8), sint16);
+		regs.dx += regs.ax;
+
+		regs.ax = mapElement->properties.track.type << 2;
+		vehicle->var_36 = regs.ax;
+		vehicle->var_34 = 0;
+		vehicle->status = 0;
+		vehicle->var_51 = 0;
+		vehicle->var_48 = 0;
+
+		// loc_6DDD26:
+		do {
+			regs.al = scenario_rand() & 0x1E;
+			vehicle->sprite_direction = regs.al;
+			regs.eax = (regs.eax >> 5) & 0xFF;
+			regs.cx += regs.ax;
+			regs.eax = (regs.eax >> 16) & 0xFF;
+			regs.ax += regs.bp;
+		} while (sub_6DD365());
+
+		sprite_move(x, y, z, (rct_sprite*)vehicle);
+	} else {
+		regs.dl = 0;
+		if (vehicleEntry->var_14 & 0x1000) {
+			regs.dl = 1;
+		}
+
+		if (vehicleEntry->var_14 & 0x4000) {
+			regs.dl = 5;
+			if (!([esp + 9] & 1)) {
+				regs.dl = 6;
+			}
+		}
+		if (vehicleEntry->var_12 & 8) {
+			regs.dl = 9;
+			vehicle->var_D3 = 0;
+			vehicle->var_D4 = 0;
+			vehicle->var_D5 = 0;
+		}
+		if (vehicleEntry->var_12 & 0x10) {
+			if (vehicle->var_01 == 0) {
+				regs.dl = 15;
+			}
+		}
+		if (vehicleEntry->var_12 & 0x20) {
+			regs.dl = 16;
+		}
+		vehicle->var_CD = regs.dl;
+
+		int dword_F64DF0 = regs.eax;
+		vehicle->var_38 = x;
+		vehicle->var_3A = y;
+
+		direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
+		vehicle->sprite_direction = direction << 3;
+
+		if (ride->type == RIDE_TYPE_SPACE_RINGS) {
+			regs.edx = 4;
+		} else {
+			if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_16)) {
+				if (RCT2_GLOBAL(0x0097CC68 + (ride->type * 2), uint8) != 119) {
+					if (RCT2_GLOBAL(0x0097CC68 + (ride->type * 2), uint8) != 95) {
+						if (ride->type == RIDE_TYPE_ENTERPRISE) {
+							regs.edx += 5;
+						} else {
+							regs.edx = 4;
+						}
+					}
+				}
+			}
+		}
+
+		x += RCT2_GLOBAL(0x009A2A60 + (regs.edx * 4), sint16);
+		y += RCT2_GLOBAL(0x009A2A60 + (regs.edx * 4), sint16);
+		vehicle->var_3C = mapElement->base_height * 8;
+
+		vehicle->current_station = (mapElement->properties.track.sequence & 0x70) >> 4;
+		regs.ecx = [esp + 8];
+		regs.eax = regs.ecx;
+		z += RCT2_GLOBAL(0x0097D21A + (ride->type * 8), uint8);
+
+		sprite_move(x, y, z, (rct_sprite*)vehicle);
+		regs.ax = mapElement->properties.track.type << 2;
+		regs.dl = vehicle->sprite_direction >> 3;
+		regs.al = regs.dl;
+		vehicle->var_36 = regs.ax;
+		vehicle->var_34 = 31;
+		regs.edx = dword_F64DF0;
+		if (vehicleEntry->var_12 & 8) {
+			vehicle->var_34 = 15;
+		}
+		vehicle->var_48 = 2;
+		if (vehicleEntry->var_12 & 0x40) {
+			if (mapElement->properties.track.colour & 4) {
+				vehicle->var_48 |= 0x800;
+			}
+		}
+		vehicle->status = 0;
+		vehicle->var_51 = 0;
+	}
+
+	// loc_6DDD5E:
+	vehicle->num_peeps = 0;
+	vehicle->next_free_seat = 0;
+	if (lastVehicle == NULL) {
+		vehicle->prev_vehicle_on_train = SPRITE_INDEX_NULL;
+	} else {
+		vehicle->prev_vehicle_on_train = lastVehicle->sprite_index;
+		lastVehicle->next_vehicle_on_train = vehicle->sprite_index;
+		lastVehicle->next_or_first_vehicle_on_train = vehicle->sprite_index;
+	}
+	return vehicle;
+}
+
 /**
  *
  *  rct2: 0x006DD84C
  */
-int ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element, int isApplying)
+void vehicle_create_train(int rideIndex)
 {
-	return RCT2_CALLPROC_X(0x006DD84C, element->x, isApplying, element->y, rideIndex, (int)ride, (int)element->element, 0) & 0x100;
+	rct_ride *ride = GET_RIDE(rideIndex);
+
+	uint8 trainLayout[42];
+	ride_entry_get_train_layout(ride->subtype, ride->num_cars_per_train, &trainLayout);
+
+	rct_vehicle *head = NULL;
+	rct_vehicle *tail = NULL;
+	for (int carIndex = 0; carIndex < ride->num_cars_per_train; carIndex++) {
+		tail = vehicle_create_car(rideIndex, trainLayout[carIndex], tail);
+		if (carIndex == 0) {
+			head = tail;
+		}
+	}
+	tail->next_vehicle_on_train = SPRITE_INDEX_NULL;
+	tail->next_or_first_vehicle_on_train = head->sprite_index;
+}
+
+rct_ride_type_vehicle *vehicle_get_vehicle_entry(rct_vehicle *vehicle)
+{
+	rct_ride_type *rideEntry = GET_RIDE_ENTRY(vehicle->ride_subtype);
+	return &rideEntry->vehicles[vehicle->vehicle_type];
+}
+
+void vehicle_unset_var_48_b1(rct_vehicle *head)
+{
+	uint16 spriteIndex;
+	rct_vehicle *vehicle = head;
+	while (true) {
+		vehicle->var_48 &= ~(1 << 1);
+		spriteIndex = vehicle->next_vehicle_on_train;
+		if (spriteIndex == SPRITE_INDEX_NULL) {
+			break;
+		}
+		vehicle = &(g_sprite_list[spriteIndex].vehicle);
+	}
+}
+
+/**
+ *
+ *  rct2: 0x006DD84C
+ */
+bool ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element, int isApplying)
+{
+	// return RCT2_CALLPROC_X(0x006DD84C, element->x, isApplying, element->y, rideIndex, (int)ride, (int)element->element, 0) & 0x100;
+
+	ride_update_max_vehicles(rideIndex);
+	if (ride->subtype == 0xFF) {
+		return true;
+	}
+
+	// Check if there are enough free sprite slots for all the vehicles
+	int totalCars = ride->num_vehicles * ride->num_cars_per_train;
+	if (totalCars > sub_69ED9E()) {
+		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_UNABLE_TO_CREATE_ENOUGH_VEHICLES;
+		return false;
+	}
+
+	if (!isApplying) {
+		return true;
+	}
+
+	rct_map_element *mapElement = element->element;
+	int x = element->x;
+	int y = element->y;
+	int z = element->element->base_height;
+	int direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
+
+	// 
+	if (ride->mode == RIDE_MODE_STATION_TO_STATION) {
+		x = element->x - TileDirectionDelta[direction].x;
+		y = element->y - TileDirectionDelta[direction].y;
+
+		mapElement = map_get_first_element_at(x, y);
+		do {
+			if (mapElement->base_height != z) continue;
+			if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
+			break;
+		} while (!map_element_is_last_for_tile(mapElement++));
+
+		z = mapElement->base_height;
+		direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
+	}
+
+	registers regs;
+
+	// loc_6DD8D2:
+	short word_F64E26 = -1;
+	regs.ch = ride->num_vehicles;
+	regs.ebx = 0;
+
+	for (int vehicleIndex = 0; vehicleIndex < ride->num_vehicles; vehicleIndex++) {
+		// loc_6DD8EA:
+		if (ride_is_block_sectioned(ride)) {
+			regs.ebx = 0;
+		}
+
+		vehicle_create_train(rideIndex);
+	}
+
+// 006DDDD0:
+	ride->lifecycle_flags |= RIDE_LIFECYCLE_ON_TRACK;
+	for (int i = 0; i < 4; i++) {
+		ride->station_depart[i] = (ride->station_depart[i] & 0x80) | 1;
+	}
+
+	if (ride_is_block_sectioned(ride)) {
+		goto loc_6DDE9E;
+	}
+	
+	if (ride->type == RIDE_TYPE_SPACE_RINGS || ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_16)) {
+		goto loc_6DDE99;
+	}
+
+	for (int i = 0; i < ride->num_vehicles; i++) {
+		rct_vehicle *vehicle = ride->vehicles[i];
+
+		rct_ride_type *rideType = vehicle->vehicle_type;
+		rct_ride_type_vehicle *vehicleEntry = vehicle_get_vehicle_entry(vehicle);
+
+		if (!(vehicleEntry->var_14 & 0x8000)) {
+			sub_6DAB4C();
+		}
+
+		vehicle_unset_var_48_b1(vehicle);
+	}
+
+loc_6DDE9E:
+	{
+		rct_vehicle *vehicle = ride->vehicles[0];
+		x = vehicle->var_38;
+		y = vehicle->var_3A;
+		z = vehicle->var_3C;
+		mapElement = map_get_first_element_at(x, y);
+		do {
+			if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
+			if (mapElement->base_height != z) continue;
+
+			break;
+		} while (!map_element_is_last_for_tile(mapElement++));
+
+		x = vehicle->var_38;
+		y = vehicle->var_3A;
+
+		track_begin_end trackBeginEnd;
+		while (track_block_get_previous(x, y, mapElement, &trackBeginEnd)) {
+			int x2 = trackBeginEnd.begin_x;
+			int y2 = trackBeginEnd.begin_y;
+			if (trackBeginEnd.begin_x == x &&
+				trackBeginEnd.begin_y == y &&
+				trackBeginEnd.begin_element == mapElement
+			) {
+				goto loc_6DDF99;
+			}
+			
+			rct_map_element *trackElement = mapElement;
+			int trackType = trackElement->properties.track.type;
+			switch (trackType) {
+			case TRACK_ELEM_25_DEG_UP_TO_FLAT:
+			case TRACK_ELEM_60_DEG_UP_TO_FLAT:
+			case TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT:
+			case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
+				// loc_6DDF52
+				if (trackElement->type & 0x80) {
+					if (trackType == TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT ||
+						trackType == TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT
+					) {
+						goto loc_6DDF61;
+					} else {
+						goto loc_6DDF9C;
+					}
+				}
+				break;
+
+			case TRACK_ELEM_END_STATION:
+			case TRACK_ELEM_CABLE_LIFT_HILL:
+			case 216:
+				goto loc_6DDF9C;
+				break;
+			}
+
+		loc_6DDF61:
+			mapElement = map_get_first_element_at(x, y);
+			do {
+				if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
+				if (mapElement->base_height != z) continue;
+				if ((mapElement->properties.track.sequence & 0x0F) != 0) continue;
+				if (mapElement->properties.track.type == trackType)
+				break;
+			} while (!map_element_is_last_for_tile(mapElement));
+
+			goto loc_6DDF9C;
+
+		loc_6DDF99:
+			mapElement = [esp];
+		}
+	}
+
+loc_6DDF9C:
+	regs.edi = regs.esi;
+	regs.ch = ride->num_vehicles;
+	regs.ebx = 0;
+	for (int i = 0; i < ride->num_vehicles; i++) {
+		rct_vehicle *vehicle = &(g_sprite_list[ride->vehicles[i]].vehicle);
+		if (i == 0) {
+			sub_6DAB4C();
+			vehicle_unset_var_48_b1(vehicle);
+			continue;
+		}
+
+		while (true) {
+			mapElement->flags |= (1 << 5);
+			dword_F64E2D = 0;
+
+			while (true) {
+				vehicle->velocity = 0;
+				vehicle->var_2C = 0;
+				vehicle->var_4A = 0;
+				vehicle->var_24 += 13962;
+
+				uint16 spriteIndex = vehicle->next_or_first_vehicle_on_train;
+				if (spriteIndex == SPRITE_INDEX_NULL) {
+					break;
+				}
+				vehicle = &(g_sprite_list[spriteIndex].vehicle);
+			}
+
+			vehicle = &(g_sprite_list[ride->vehicles[i]].vehicle);
+			sub_6DAB4C();
+
+			dword_F64E2D++;
+			if (dword_F64E2D <= 20000 && (regs.eax & 0x400)) {
+				continue;
+			}
+			break;
+		}
+
+		mapElement->flags |= (1 << 5);
+		while (true) {
+			vehicle->var_48 &= ~(1 << 1);
+			vehicle->status = VEHICLE_STATUS_TRAVELLING;
+			regs.ax = vehicle->var_36 >> 2;
+			if (regs.al == 1) {
+				vehicle->status = VEHICLE_STATUS_MOVING_TO_END_OF_STATION;
+			}
+
+			uint16 spriteIndex = vehicle->next_vehicle_on_train;
+			if (spriteIndex == SPRITE_INDEX_NULL) {
+				break;
+			}
+			vehicle = &(g_sprite_list[spriteIndex].vehicle);
+		}
+	}
+
+	ride_update_vehicle_colours(rideIndex);
+	return true;
 }
 
 /**
@@ -4547,9 +5018,10 @@ int ride_is_valid_for_test(int rideIndex, int goingToBeOpen, int isApplying)
 	if (
 		!ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_13) &&
 		!(ride->lifecycle_flags & RIDE_LIFECYCLE_ON_TRACK)
-		) {
-		if (ride_create_vehicles(ride, rideIndex, &trackElement, isApplying))
+	) {
+		if (!ride_create_vehicles(ride, rideIndex, &trackElement, isApplying)) {
 			return 0;
+		}
 	}
 
 	if (
@@ -4671,8 +5143,9 @@ int ride_is_valid_for_open(int rideIndex, int goingToBeOpen, int isApplying)
 		!ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_13) &&
 		!(ride->lifecycle_flags & RIDE_LIFECYCLE_ON_TRACK)
 	) {
-		if (ride_create_vehicles(ride, rideIndex, &trackElement, isApplying))
+		if (!ride_create_vehicles(ride, rideIndex, &trackElement, isApplying)) {
 			return 0;
+		}
 	}
 
 	if (
