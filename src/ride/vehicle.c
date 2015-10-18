@@ -483,7 +483,7 @@ void vehicle_set_map_toolbar(rct_vehicle *vehicle)
 	ride = GET_RIDE(vehicle->ride);
 
 	while (vehicle->is_child) {
-		vehicle = &(g_sprite_list[vehicle->prev_vehicle_on_train].vehicle);
+		vehicle = GET_VEHICLE(vehicle->prev_vehicle_on_ride);
 	}
 
 	for (vehicleIndex = 0; vehicleIndex < 32; vehicleIndex++)
@@ -508,7 +508,7 @@ rct_vehicle *vehicle_get_head(rct_vehicle *vehicle)
 	rct_vehicle *prevVehicle;
 
 	for (;;) {
-		prevVehicle = &(g_sprite_list[vehicle->prev_vehicle_on_train].vehicle);
+		prevVehicle = GET_VEHICLE(vehicle->prev_vehicle_on_ride);
 		if (prevVehicle->next_vehicle_on_train == SPRITE_INDEX_NULL)
 			break;
 

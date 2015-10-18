@@ -108,7 +108,7 @@ typedef struct{
 	uint8 no_seating_rows;			// 0x54 , 0x6E
 	uint8 pad_55[0x5];
 	uint8 var_5A;					// 0x5A , 0x74
-	uint8 pad_5B;					// 0x5B , 0x75
+	uint8 var_5B;					// 0x5B , 0x75
 	uint8 speed;					// 0x5C , 0x76
 	uint8 var_5D;					// 0x5D , 0x77
 	uint8 pad_5E[0x2];

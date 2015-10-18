@@ -70,8 +70,13 @@ typedef struct {
 	// z related
 	uint16 var_3C;
 	uint16 next_vehicle_on_train;	// 0x3E
-	uint16 prev_vehicle_on_train;	// 0x40
-	uint16 next_or_first_vehicle_on_train;	// 0x42
+
+	// The previous vehicle on the same train or the last vehicle on the previous or only train.
+	uint16 prev_vehicle_on_ride;	// 0x40
+
+	// The next vehicle on the same train or the first vehicle on the next or only train
+	uint16 next_vehicle_on_ride;	// 0x42
+
 	uint16 var_44;
 	uint16 var_46;
 	uint16 var_48;
@@ -117,6 +122,11 @@ typedef struct {
 	uint8 var_D8;
 	uint8 var_D9;
 } rct_vehicle;
+
+typedef struct {
+	rct_vehicle *head;
+	rct_vehicle *tail;
+} train_ref;
 
 enum {
 	VEHICLE_STATUS_MOVING_TO_END_OF_STATION,

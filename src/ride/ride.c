@@ -4179,22 +4179,27 @@ static bool sub_6DD365(rct_vehicle *vehicle)
  *
  *  rct2: 0x006DD90D
  */
-rct_vehicle *vehicle_create_car(int rideIndex, int vehicleEntryIndex, rct_vehicle *lastVehicle, int x, int y, int z, rct_map_element *mapElement)
-{
+rct_vehicle *vehicle_create_car(
+	int rideIndex,
+	int vehicleEntryIndex,
+	int carIndex,
+	int x,
+	int y,
+	int z,
+	rct_map_element *mapElement
+) {
 	registers regs;
 
 	rct_ride *ride = GET_RIDE(rideIndex);
 	rct_ride_type *rideEntry = GET_RIDE_ENTRY(ride->subtype);
 	rct_ride_type_vehicle *vehicleEntry = &rideEntry->vehicles[vehicleEntryIndex];
 
-	int vehicleIndex = 0;
-
 	rct_vehicle *vehicle = (rct_vehicle*)create_sprite(1);
 	vehicle->sprite_identifier = SPRITE_IDENTIFIER_VEHICLE;
 	vehicle->ride = rideIndex;
 	vehicle->ride_subtype = ride->subtype;
 
-	if (lastVehicle == NULL) {
+	if (carIndex == 0) {
 		move_sprite_to_list((rct_sprite*)vehicle, SPRITE_LINKEDLIST_OFFSET_VEHICLE);
 
 		// Add head of train to ride
@@ -4206,10 +4211,10 @@ rct_vehicle *vehicle_create_car(int rideIndex, int vehicleEntryIndex, rct_vehicl
 	}
 
 	vehicle->vehicle_type = vehicleEntryIndex;
-	vehicle->is_child = lastVehicle == NULL ? 0 : 1;
+	vehicle->is_child = carIndex == 0 ? 0 : 1;
 	vehicle->var_44 = ror32(vehicleEntry->var_04, 10) & 0xFFFF;
 	regs.edx = vehicleEntry->var_04 >> 1;
-	regs.ebx = vehicleIndex - regs.edx;
+	regs.ebx = carIndex - regs.edx;
 	vehicle->var_24 = regs.ebx;
 	if (vehicleEntry->var_14 & 0x4000) {
 		regs.ebx -= regs.edx;
@@ -4222,7 +4227,7 @@ rct_vehicle *vehicle_create_car(int rideIndex, int vehicleEntryIndex, rct_vehicl
 	vehicle->var_46 = vehicleEntry->var_08;
 	vehicle->num_seats = vehicleEntry->num_seats;
 	vehicle->speed = vehicleEntry->speed;
-	vehicle->var_C3 = vehicleEntry->pad_5B;
+	vehicle->var_C3 = vehicleEntry->var_5B;
 	vehicle->velocity = 0;
 	vehicle->var_2C = 0;
 	vehicle->var_4A = 0;
@@ -4365,13 +4370,6 @@ rct_vehicle *vehicle_create_car(int rideIndex, int vehicleEntryIndex, rct_vehicl
 	// loc_6DDD5E:
 	vehicle->num_peeps = 0;
 	vehicle->next_free_seat = 0;
-	if (lastVehicle == NULL) {
-		vehicle->prev_vehicle_on_train = SPRITE_INDEX_NULL;
-	} else {
-		vehicle->prev_vehicle_on_train = lastVehicle->sprite_index;
-		lastVehicle->next_vehicle_on_train = vehicle->sprite_index;
-		lastVehicle->next_or_first_vehicle_on_train = vehicle->sprite_index;
-	}
 	return vehicle;
 }
 
@@ -4379,23 +4377,52 @@ rct_vehicle *vehicle_create_car(int rideIndex, int vehicleEntryIndex, rct_vehicl
  *
  *  rct2: 0x006DD84C
  */
-void vehicle_create_train(int rideIndex, int x, int y, int z, rct_map_element *mapElement)
+train_ref vehicle_create_train(int rideIndex, int x, int y, int z, rct_map_element *mapElement)
 {
 	rct_ride *ride = GET_RIDE(rideIndex);
 
 	uint8 trainLayout[42];
 	ride_entry_get_train_layout(ride->subtype, ride->num_cars_per_train, trainLayout);
 
-	rct_vehicle *head = NULL;
-	rct_vehicle *tail = NULL;
+	train_ref train = { NULL, NULL };
 	for (int carIndex = 0; carIndex < ride->num_cars_per_train; carIndex++) {
-		tail = vehicle_create_car(rideIndex, trainLayout[carIndex], tail, x, y, z, mapElement);
+		rct_vehicle *car = vehicle_create_car(rideIndex, trainLayout[carIndex], carIndex, x, y, z, mapElement);
 		if (carIndex == 0) {
-			head = tail;
+			train.head = car;
+		} else {
+			// Link the previous car with this car
+			train.tail->next_vehicle_on_train = car->sprite_index;
+			train.tail->next_vehicle_on_ride = car->sprite_index;
+			car->prev_vehicle_on_ride = train.tail->sprite_index;
 		}
+		train.tail = car;
 	}
-	tail->next_vehicle_on_train = SPRITE_INDEX_NULL;
-	tail->next_or_first_vehicle_on_train = head->sprite_index;
+	return train;
+}
+
+void vehicle_create_trains(int rideIndex, int x, int y, int z, rct_map_element *mapElement)
+{
+	rct_ride *ride = GET_RIDE(rideIndex);
+	train_ref firstTrain, lastTrain;
+
+	for (int vehicleIndex = 0; vehicleIndex < ride->num_vehicles; vehicleIndex++) {
+		if (ride_is_block_sectioned(ride)) {
+			// regs.ebx = 0;
+		}
+		train_ref train = vehicle_create_train(rideIndex, x, y, z, mapElement);
+		if (vehicleIndex == 0) {
+			firstTrain = train;
+		} else {
+			// Link the end of the previous train with the front of this train
+			lastTrain.tail->next_vehicle_on_ride = train.head->sprite_index;
+			train.head->prev_vehicle_on_ride = lastTrain.tail->sprite_index;
+		}
+		lastTrain = train;
+	}
+
+	// Link the first train and last train together
+	firstTrain.head->prev_vehicle_on_ride = lastTrain.tail->sprite_index;
+	lastTrain.tail->next_vehicle_on_ride = firstTrain.head->sprite_index;
 }
 
 rct_ride_type_vehicle *vehicle_get_vehicle_entry(rct_vehicle *vehicle)
@@ -4581,15 +4608,8 @@ bool ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element
 		direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
 	}
 
-	registers regs;
-
-	// Create trains
-	for (int vehicleIndex = 0; vehicleIndex < ride->num_vehicles; vehicleIndex++) {
-		if (ride_is_block_sectioned(ride)) {
-			regs.ebx = 0;
-		}
-		vehicle_create_train(rideIndex, x, y, z, mapElement);
-	}
+	vehicle_create_trains(rideIndex, x, y, z, mapElement);
+	return true;
 
 	// Initialise station departs
 // 006DDDD0:
@@ -4782,13 +4802,13 @@ bool ride_create_cable_lift(int rideIndex, bool isApplying)
 			head = current;
 		} else {
 			tail->next_vehicle_on_train = current->sprite_index;
-			tail->next_or_first_vehicle_on_train = current->sprite_index;
-			current->prev_vehicle_on_train = tail->sprite_index;
+			tail->next_vehicle_on_ride = current->sprite_index;
+			current->prev_vehicle_on_ride = tail->sprite_index;
 		}
 		tail = current;
 	}
-	head->prev_vehicle_on_train = tail->sprite_index;
-	tail->next_or_first_vehicle_on_train = head->sprite_index;
+	head->prev_vehicle_on_ride = tail->sprite_index;
+	tail->next_vehicle_on_ride = head->sprite_index;
 
 	ride->lifecycle_flags |= RIDE_LIFECYCLE_CABLE_LIFT;
 	sub_6DEF56(head);
