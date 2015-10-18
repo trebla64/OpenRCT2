@@ -575,11 +575,11 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 	}
 	current->var_CD = 0;
 	current->sprite_direction = direction << 3;
-	current->var_38 = x;
-	current->var_3A = y;
+	current->track_x = x;
+	current->track_y = y;
 
 	z = z * 8;
-	current->var_3C = z;
+	current->track_z = z;
 	z += RCT2_GLOBAL(0x0097D21A + (ride->type * 8), uint8);
 
 	sprite_move(16, 16, z, (rct_sprite*)current);
@@ -605,4 +605,16 @@ int sub_6DAB4C(rct_vehicle *vehicle)
 	RCT2_CALLFUNC_Y(0x006DAB4C, &regs);
 
 	return regs.eax;
+}
+
+/**
+ *
+ *  rct2: 0x006DD365
+ */
+bool sub_6DD365(rct_vehicle *vehicle)
+{
+	registers regs;
+	regs.esi = (int)vehicle;
+
+	return RCT2_CALLFUNC_Y(0x006DD365, &regs) & 0x100;
 }

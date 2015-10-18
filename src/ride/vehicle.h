@@ -63,12 +63,9 @@ typedef struct {
 	rct_vehicle_colour colours;		// 0x32
 	uint16 var_34;
 	sint16 var_36;
-	//x related
-	uint16 var_38;
-	// y related
-	uint16 var_3A;
-	// z related
-	uint16 var_3C;
+	uint16 track_x;					// 0x38
+	uint16 track_y;					// 0x3A
+	uint16 track_z;					// 0x3C
 	uint16 next_vehicle_on_train;	// 0x3E
 
 	// The previous vehicle on the same train or the last vehicle on the previous or only train.
@@ -210,6 +207,7 @@ rct_vehicle *vehicle_get_head(rct_vehicle *vehicle);
 void sub_6DEF56(rct_vehicle *cableLift);
 rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int direction, uint16 var_44, uint32 var_24, bool head);
 int sub_6DAB4C(rct_vehicle *vehicle);
+bool sub_6DD365(rct_vehicle *vehicle);
 
 /** Helper macro until rides are stored in this module. */
 #define GET_VEHICLE(sprite_index) &(g_sprite_list[sprite_index].vehicle)

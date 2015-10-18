@@ -2326,11 +2326,11 @@ void peep_update_ride_sub_state_7(rct_peep* peep){
 				if (eax == 0 || eax > 3)
 					continue;
 
-				rct_map_element* inner_map = map_get_first_element_at(vehicle->var_38 / 32, vehicle->var_3A / 32);
+				rct_map_element* inner_map = map_get_first_element_at(vehicle->track_x / 32, vehicle->track_y / 32);
 				for (;; inner_map++){
 					if (map_element_get_type(inner_map) != MAP_ELEMENT_TYPE_TRACK)
 						continue;
-					if (inner_map->base_height == vehicle->var_3C / 8)
+					if (inner_map->base_height == vehicle->track_z / 8)
 						break;
 				}
 

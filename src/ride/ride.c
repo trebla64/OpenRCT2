@@ -1448,7 +1448,7 @@ void ride_construction_set_default_next_piece()
 		// Set track slope and lift hill
 		_currentTrackSlopeEnd = slope;
 		_previousTrackSlopeEnd = slope;
-		_currentTrackLiftHill = (mapElement->type & 0x80) != 0;
+		_currentTrackLiftHill = track_element_is_lift_hill(mapElement);
 		break;
 	}
 }
@@ -4177,18 +4177,6 @@ const rct_xy16 word_9A2A60[] = {
 
 /**
  *
- *  rct2: 0x006DD365
- */
-static bool sub_6DD365(rct_vehicle *vehicle)
-{
-	registers regs;
-	regs.esi = (int)vehicle;
-
-	return RCT2_CALLFUNC_Y(0x006DD365, &regs) & 0x100;
-}
-
-/**
- *
  *  rct2: 0x006DD90D
  */
 rct_vehicle *vehicle_create_car(
@@ -4260,9 +4248,9 @@ rct_vehicle *vehicle_create_car(
 		*x += word_9A3AB4[direction].x;
 		*y += word_9A3AB4[direction].y;
 		z = mapElement->base_height * 8;
-		vehicle->var_38 = *x;
-		vehicle->var_3A = *y;
-		vehicle->var_3C = z;
+		vehicle->track_x = *x;
+		vehicle->track_y = *y;
+		vehicle->track_z = z;
 		vehicle->current_station = (mapElement->properties.track.sequence & 0x70) << 4;
 		
 		z += RCT2_GLOBAL(0x0097D21A + (ride->type * 8), sint8);
@@ -4312,8 +4300,8 @@ rct_vehicle *vehicle_create_car(
 		}
 		vehicle->var_CD = regs.dl;
 
-		vehicle->var_38 = *x;
-		vehicle->var_3A = *y;
+		vehicle->track_x = *x;
+		vehicle->track_y = *y;
 
 		int direction = mapElement->type & MAP_ELEMENT_DIRECTION_MASK;
 		vehicle->sprite_direction = direction << 3;
@@ -4336,7 +4324,7 @@ rct_vehicle *vehicle_create_car(
 
 		*x += word_9A2A60[regs.dl].x;
 		*y += word_9A2A60[regs.dl].y;
-		vehicle->var_3C = mapElement->base_height * 8;
+		vehicle->track_z = mapElement->base_height * 8;
 
 		vehicle->current_station = (mapElement->properties.track.sequence & 0x70) >> 4;
 		z = mapElement->base_height * 8;
@@ -4452,65 +4440,71 @@ void vehicle_unset_var_48_b1(rct_vehicle *head)
  *
  *  rct2: 0x006DDE9E
  */
-void loc_6DDE9E(rct_ride *ride)
+void ride_create_vehicles_find_first_block(rct_ride *ride, rct_xy_element *outXYElement)
 {
 	rct_vehicle *vehicle = GET_VEHICLE(ride->vehicles[0]);
-	int x = vehicle->var_38;
-	int y = vehicle->var_3A;
-	int z = vehicle->var_3C;
-	rct_map_element *mapElement = map_get_first_element_at(x >> 5, y >> 5);
-	do {
-		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
-		if (mapElement->base_height != z) continue;
+	int firstX = vehicle->track_x;
+	int firstY = vehicle->track_y;
+	int firstZ = vehicle->track_z;
+	rct_map_element *firstElement = map_get_track_element_at(firstX, firstY, firstZ / 8);
 
-		break;
-	} while (!map_element_is_last_for_tile(mapElement++));
+	assert(firstElement != NULL);
 
-	x = vehicle->var_38;
-	y = vehicle->var_3A;
-	rct_map_element *trackElement = mapElement;
-
+	int x = firstX;
+	int y = firstY;
+	int z = firstZ;
+	rct_map_element *trackElement = firstElement;
 	track_begin_end trackBeginEnd;
 	while (track_block_get_previous(x, y, trackElement, &trackBeginEnd)) {
-		int x2 = trackBeginEnd.begin_x;
-		int y2 = trackBeginEnd.begin_y;
-		if (trackBeginEnd.begin_x == x &&
-			trackBeginEnd.begin_y == y &&
-			trackBeginEnd.begin_element == trackElement
-		) {
-			continue;
+		x = trackBeginEnd.begin_x;
+		y = trackBeginEnd.begin_y;
+		trackElement = trackBeginEnd.begin_element;
+		if (x == firstX && y == firstY && trackElement == firstElement) {
+			break;
 		}
-			
+
 		int trackType = trackElement->properties.track.type;
 		switch (trackType) {
 		case TRACK_ELEM_25_DEG_UP_TO_FLAT:
 		case TRACK_ELEM_60_DEG_UP_TO_FLAT:
-		case TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT:
-		case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
-			// loc_6DDF52
-			if (trackElement->type & 0x80) {
-				if (trackType == TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT ||
-					trackType == TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT
-				) {
-					mapElement = map_get_first_element_at(x >> 5, y >> 5);
-					do {
-						if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
-						if (mapElement->base_height != z) continue;
-						if ((mapElement->properties.track.sequence & 0x0F) != 0) continue;
-						if (mapElement->properties.track.type != trackType) continue;
-						break;
-					} while (!map_element_is_last_for_tile(mapElement));
-				}
+			if (track_element_is_lift_hill(trackElement)) {
+				outXYElement->x = x;
+				outXYElement->y = y;
+				outXYElement->element = trackElement;
 				return;
 			}
 			break;
+		case TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT:
+		case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
+			if (track_element_is_lift_hill(trackElement)) {
+				rct_map_element *mapElement = map_get_first_element_at(x >> 5, y >> 5);
+				do {
+					if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
+					if (mapElement->base_height != z) continue;
+					if ((mapElement->properties.track.sequence & 0x0F) != 0) continue;
+					if (mapElement->properties.track.type != trackType) continue;
+					break;
+				} while (!map_element_is_last_for_tile(mapElement));
 
+				outXYElement->x = x;
+				outXYElement->y = y;
+				outXYElement->element = mapElement;
+				return;
+			}
+			break;
 		case TRACK_ELEM_END_STATION:
 		case TRACK_ELEM_CABLE_LIFT_HILL:
 		case 216:
+			outXYElement->x = x;
+			outXYElement->y = y;
+			outXYElement->element = trackElement;
 			return;
 		}
 	}
+
+	outXYElement->x = firstX;
+	outXYElement->y = firstY;
+	outXYElement->element = firstElement;
 }
 
 /**
@@ -4625,7 +4619,11 @@ bool ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element
 
 	// 
 	if (ride->type != RIDE_TYPE_SPACE_RINGS && !ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_16)) {
-		if (!ride_is_block_sectioned(ride)) {
+		if (ride_is_block_sectioned(ride)) {
+			rct_xy_element firstBlock;
+			ride_create_vehicles_find_first_block(ride, &firstBlock);
+			loc_6DDF9C(ride, firstBlock.element);
+		} else {
 			for (int i = 0; i < ride->num_vehicles; i++) {
 				rct_vehicle *vehicle = GET_VEHICLE(ride->vehicles[i]);
 
@@ -4639,9 +4637,6 @@ bool ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element
 				vehicle_unset_var_48_b1(vehicle);
 			}
 		}
-
-		loc_6DDE9E(ride);
-		loc_6DDF9C(ride, mapElement);
 	}
 	ride_update_vehicle_colours(rideIndex);
 	return true;
