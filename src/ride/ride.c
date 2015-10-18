@@ -4224,10 +4224,10 @@ rct_vehicle *vehicle_create_car(
 	vehicle->sprite_width = vehicleEntry->sprite_width;
 	vehicle->sprite_height_negative = vehicleEntry->sprite_height_negative;
 	vehicle->sprite_height_positive = vehicleEntry->sprite_height_positive;
-	vehicle->var_46 = vehicleEntry->var_08;
+	vehicle->friction = vehicleEntry->car_friction;
 	vehicle->num_seats = vehicleEntry->num_seats;
-	vehicle->speed = vehicleEntry->speed;
-	vehicle->var_C3 = vehicleEntry->var_5B;
+	vehicle->speed = vehicleEntry->powered_max_speed;
+	vehicle->acceleration = vehicleEntry->powered_acceleration;
 	vehicle->velocity = 0;
 	vehicle->var_2C = 0;
 	vehicle->var_4A = 0;
@@ -4239,7 +4239,7 @@ rct_vehicle *vehicle_create_car(
 	vehicle->var_B8 = 0;
 	vehicle->sound1_id = 0;
 	vehicle->sound2_id = 0;
-	vehicle->var_24 = 0xFFFF;
+	vehicle->next_vehicle_on_train = SPRITE_INDEX_NULL;
 	vehicle->var_C4 = 0;
 	vehicle->var_C5 = 0;
 	vehicle->var_C8 = 0;
@@ -6883,7 +6883,7 @@ void ride_update_max_vehicles(int rideIndex)
 			for (int i = 0; i < numCars; i++) {
 				vehicleEntry = &rideEntry->vehicles[trainLayout[i]];
 				trainLength += vehicleEntry->var_04;
-				totalFriction += vehicleEntry->var_08;
+				totalFriction += vehicleEntry->car_friction;
 			}
 
 			if (trainLength <= stationLength && totalFriction <= maxFriction) {
@@ -6935,7 +6935,7 @@ void ride_update_max_vehicles(int rideIndex)
 			} else {
 				ride_entry_get_train_layout(ride->subtype, newCarsPerTrain, trainLayout);
 				vehicleEntry = &rideEntry->vehicles[trainLayout[0]];
-				int speed = vehicleEntry->speed;
+				int speed = vehicleEntry->powered_max_speed;
 
 				int totalSpacing = 0;
 				for (int i = 0; i < newCarsPerTrain; i++) {

@@ -138,7 +138,7 @@ int sub_6BC2F3(rct_vehicle* vehicle)
 	int result = 0;
 	rct_vehicle* vehicle_temp = vehicle;
 	do {
-		result += vehicle_temp->var_46;
+		result += vehicle_temp->friction;
 	} while (vehicle_temp->next_vehicle_on_train != (uint16)-1 && (vehicle_temp = GET_VEHICLE(vehicle_temp->next_vehicle_on_train)));
 	sint32 v4 = vehicle->velocity;
 	if (v4 < 0) {
@@ -549,10 +549,10 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 	current->sprite_width = 10;
 	current->sprite_height_negative = 10;
 	current->sprite_height_positive = 10;
-	current->var_46 = 100;
+	current->friction = 100;
 	current->num_seats = 0;
 	current->speed = 20;
-	current->var_C3 = 80;
+	current->acceleration = 80;
 	current->velocity = 0;
 	current->var_2C = 0;
 	current->var_4A = 0;

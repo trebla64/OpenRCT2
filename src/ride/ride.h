@@ -75,14 +75,14 @@ typedef struct {
  * size: 0x65
  */
 typedef struct{
-	uint16 var_00;					// 0x00 , 0x1A
+	uint16 rotation_frame_mask;		// 0x00 , 0x1A
 	uint8 var_02;					// 0x02 , 0x1C
 	uint8 var_03;					// 0x03 , 0x1D
 	uint32 var_04;					// 0x04 , 0x1E
-	uint16 var_08;					// 0x08 , 0x22
-	sint8 var_0A;					// 0x0A , 0x24
+	uint16 car_friction;			// 0x08 , 0x22
+	sint8 tab_height;				// 0x0A , 0x24
 	uint8 num_seats;				// 0x0B , 0x25
-	uint16 var_0C;					// 0x0C , 0x26
+	uint16 sprite_flags;			// 0x0C , 0x26
 	uint8 sprite_width;				// 0x0E , 0x28
 	uint8 sprite_height_negative;	// 0x0F , 0x29
 	uint8 sprite_height_positive;	// 0x10 , 0x2A
@@ -106,13 +106,16 @@ typedef struct{
 	uint32 var_4C;					// 0x4C , 0x66
 	uint32 no_vehicle_images;		// 0x50 , 0x6A
 	uint8 no_seating_rows;			// 0x54 , 0x6E
-	uint8 pad_55[0x5];
+	uint8 spinning_inertia;			// 0x55 , 0x6F
+	uint8 spinning_friction;		// 0x56 , 0x70
+	uint8 pad_57[0x3];
 	uint8 var_5A;					// 0x5A , 0x74
-	uint8 var_5B;					// 0x5B , 0x75
-	uint8 speed;					// 0x5C , 0x76
-	uint8 var_5D;					// 0x5D , 0x77
-	uint8 pad_5E[0x2];
-	uint8 var_60;					// 0x60 , 0x7A
+	uint8 powered_acceleration;		// 0x5B , 0x75
+	uint8 powered_max_speed;		// 0x5C , 0x76
+	uint8 car_visual;				// 0x5D , 0x77
+	uint8 pad_5E;
+	uint8 draw_order;
+	uint8 special_frames;			// 0x60 , 0x7A
 	sint8* peep_loading_positions;	// 0x61 , 0x7B
 } rct_ride_type_vehicle;
 

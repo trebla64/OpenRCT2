@@ -2245,7 +2245,7 @@ static void peep_update_ride_sub_state_5(rct_peep* peep){
 		vehicle->num_peeps++;
 		ride->var_120++;
 
-		vehicle->var_46 += seated_peep->var_41;
+		vehicle->friction += seated_peep->var_41;
 		invalidate_sprite_2((rct_sprite*)seated_peep);
 		sprite_move(0x8000, 0, 0, (rct_sprite*)seated_peep);
 
@@ -2260,7 +2260,7 @@ static void peep_update_ride_sub_state_5(rct_peep* peep){
 	vehicle->num_peeps++;
 	ride->var_120++;
 
-	vehicle->var_46 += peep->var_41;
+	vehicle->friction += peep->var_41;
 	invalidate_sprite_2((rct_sprite*)vehicle);
 
 	invalidate_sprite_2((rct_sprite*)peep);
@@ -2300,7 +2300,7 @@ void peep_update_ride_sub_state_7(rct_peep* peep){
 	peep->action_sprite_image_offset = 0;
 
 	vehicle->num_peeps--;
-	vehicle->var_46 -= peep->var_41;
+	vehicle->friction -= peep->var_41;
 	invalidate_sprite_2((rct_sprite*)vehicle);
 
 	peep->current_ride_station = ride_station;
