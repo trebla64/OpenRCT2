@@ -4199,17 +4199,6 @@ rct_vehicle *vehicle_create_car(
 	vehicle->ride = rideIndex;
 	vehicle->ride_subtype = ride->subtype;
 
-	if (carIndex == 0) {
-		move_sprite_to_list((rct_sprite*)vehicle, SPRITE_LINKEDLIST_OFFSET_VEHICLE);
-
-		// Add head of train to ride
-		int vehicleIndex = -1;
-		do {
-			vehicleIndex++;
-		} while (ride->vehicles[vehicleIndex] != 0xFFFF);
-		ride->vehicles[vehicleIndex] = vehicle->sprite_index;
-	}
-
 	vehicle->vehicle_type = vehicleEntryIndex;
 	vehicle->is_child = carIndex == 0 ? 0 : 1;
 	vehicle->var_44 = ror32(vehicleEntry->var_04, 10) & 0xFFFF;
@@ -4418,6 +4407,15 @@ void vehicle_create_trains(int rideIndex, int x, int y, int z, rct_map_element *
 			train.head->prev_vehicle_on_ride = lastTrain.tail->sprite_index;
 		}
 		lastTrain = train;
+
+		// Add train to ride vehicle list
+		move_sprite_to_list((rct_sprite*)train.head, SPRITE_LINKEDLIST_OFFSET_VEHICLE);
+		for (int i = 0; i < 32; i++) {
+			if (ride->vehicles[i] == SPRITE_INDEX_NULL) {
+				ride->vehicles[i] = train.head->sprite_index;
+				break;
+			}
+		}
 	}
 
 	// Link the first train and last train together
