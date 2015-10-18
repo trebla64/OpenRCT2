@@ -4307,26 +4307,26 @@ rct_vehicle *vehicle_create_car(
 		vehicle->sprite_direction = direction << 3;
 
 		if (ride->type == RIDE_TYPE_SPACE_RINGS) {
-			regs.edx = 4;
+			direction = 4;
 		} else {
 			if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_16)) {
 				if (RCT2_GLOBAL(0x0097CC68 + (ride->type * 2), uint8) != 119) {
 					if (RCT2_GLOBAL(0x0097CC68 + (ride->type * 2), uint8) != 95) {
 						if (ride->type == RIDE_TYPE_ENTERPRISE) {
-							regs.edx += 5;
+							direction += 5;
 						} else {
-							regs.edx = 4;
+							direction = 4;
 						}
 					}
 				}
 			}
 		}
 
-		*x += word_9A2A60[regs.dl].x;
-		*y += word_9A2A60[regs.dl].y;
+		*x += word_9A2A60[direction].x;
+		*y += word_9A2A60[direction].y;
 		vehicle->track_z = mapElement->base_height * 8;
 
-		vehicle->current_station = (mapElement->properties.track.sequence & 0x70) >> 4;
+		vehicle->current_station = map_get_station(mapElement);
 		z = mapElement->base_height * 8;
 		z += RCT2_GLOBAL(0x0097D21A + (ride->type * 8), uint8);
 
@@ -4519,7 +4519,7 @@ void loc_6DDF9C(rct_ride *ride, rct_map_element *mapElement)
 	for (int i = 0; i < ride->num_vehicles; i++) {
 		train = GET_VEHICLE(ride->vehicles[i]);
 		if (i == 0) {
-			sub_6DAB4C(train);
+			sub_6DAB4C(train, NULL);
 			vehicle_unset_var_48_b1(train);
 			continue;
 		}
@@ -4539,7 +4539,7 @@ void loc_6DDF9C(rct_ride *ride, rct_map_element *mapElement)
 				}
 				car = GET_VEHICLE(spriteIndex);
 			}
-		} while (sub_6DAB4C(train) & 0x400);
+		} while (sub_6DAB4C(train, NULL) & 0x400);
 
 		mapElement->flags |= (1 << 5);
 		car = train;
@@ -4631,7 +4631,7 @@ bool ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element
 				rct_ride_type_vehicle *vehicleEntry = vehicle_get_vehicle_entry(vehicle);
 
 				if (!(vehicleEntry->var_14 & 0x8000)) {
-					sub_6DAB4C(vehicle);
+					sub_6DAB4C(vehicle, NULL);
 				}
 
 				vehicle_unset_var_48_b1(vehicle);
