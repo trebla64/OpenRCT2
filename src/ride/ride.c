@@ -4167,7 +4167,7 @@ void vehicle_unset_var_48_b1(rct_vehicle *head)
 	uint16 spriteIndex;
 	rct_vehicle *vehicle = head;
 	while (true) {
-		vehicle->var_48 &= ~(1 << 1);
+		vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_1;
 		spriteIndex = vehicle->next_vehicle_on_train;
 		if (spriteIndex == SPRITE_INDEX_NULL) {
 			break;
@@ -4284,10 +4284,10 @@ void loc_6DDF9C(rct_ride *ride, rct_map_element *mapElement)
 		mapElement->flags |= (1 << 5);
 		car = train;
 		while (true) {
-			car->var_48 &= ~(1 << 1);
+			car->update_flags &= ~VEHICLE_UPDATE_FLAG_1;
 			car->status = VEHICLE_STATUS_TRAVELLING;
-			regs.ax = car->var_36 >> 2;
-			if (regs.al == 1) {
+			regs.ax = car->track_type >> 2;
+			if (regs.al == TRACK_ELEM_END_STATION) {
 				car->status = VEHICLE_STATUS_MOVING_TO_END_OF_STATION;
 			}
 
@@ -6468,13 +6468,8 @@ void invalidate_test_results(int rideIndex)
 		for (int i = 0; i < ride->num_vehicles; i++) {
 			uint16 spriteIndex = ride->vehicles[i];
 			if (spriteIndex != SPRITE_INDEX_NULL) {
-<<<<<<< 7d2a109e600e2bc2df3d8827020969375c589167
 				rct_vehicle *vehicle = GET_VEHICLE(spriteIndex);
-				vehicle->var_48 &= ~(1 << 5);
-=======
-				rct_vehicle *vehicle = &(g_sprite_list[spriteIndex].vehicle);
 				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_TESTING;
->>>>>>> Fix merge mistakes
 			}
 		}
 	}
@@ -6501,17 +6496,10 @@ void ride_fix_breakdown(int rideIndex, int reliabilityIncreaseFactor)
 		for (int i = 0; i < ride->num_vehicles; i++) {
 			spriteIndex = ride->vehicles[i];
 			while (spriteIndex != SPRITE_INDEX_NULL) {
-<<<<<<< 7d2a109e600e2bc2df3d8827020969375c589167
 				vehicle = GET_VEHICLE(spriteIndex);
-				vehicle->var_48 &= ~(1 << 7);
-				vehicle->var_48 &= ~(1 << 8);
-				vehicle->var_48 &= ~(1 << 9);
-=======
-				vehicle = &(g_sprite_list[spriteIndex].vehicle);
 				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_7;
 				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_BROKEN_CAR;
 				vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_BROKEN_TRAIN;
->>>>>>> Fix merge mistakes
 				spriteIndex = vehicle->next_vehicle_on_train;
 			}
 		}
@@ -6692,7 +6680,7 @@ void ride_update_max_vehicles(int rideIndex)
 			for (int i = 0; i < numCars; i++) {
 				vehicleEntry = &rideEntry->vehicles[trainLayout[i]];
 				trainLength += vehicleEntry->spacing;
-				totalFriction += vehicleEntry->friction;
+				totalFriction += vehicleEntry->car_friction;
 			}
 
 			if (trainLength <= stationLength && totalFriction <= maxFriction) {

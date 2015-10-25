@@ -37,7 +37,7 @@ typedef struct {
 	uint16 rotation_frame_mask;		// 0x00 , 0x1A
 	uint8 var_02;					// 0x02 , 0x1C
 	uint8 var_03;					// 0x03 , 0x1D
-	uint32 var_04;					// 0x04 , 0x1E
+	uint32 spacing;					// 0x04 , 0x1E
 	uint16 car_friction;			// 0x08 , 0x22
 	sint8 tab_height;				// 0x0A , 0x24
 	uint8 num_seats;				// 0x0B , 0x25
@@ -67,7 +67,9 @@ typedef struct {
 	uint8 no_seating_rows;			// 0x54 , 0x6E
 	uint8 spinning_inertia;			// 0x55 , 0x6F
 	uint8 spinning_friction;		// 0x56 , 0x70
-	uint8 pad_57[0x3];
+	uint8 var_57;					// 0x57 , 0x71
+	uint8 pad_58;
+	uint8 sound_range;				// 0x59 , 0x73
 	uint8 var_5A;					// 0x5A , 0x74
 	uint8 powered_acceleration;		// 0x5B , 0x75
 	uint8 powered_max_speed;		// 0x5C , 0x76
