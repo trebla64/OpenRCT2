@@ -4724,8 +4724,10 @@ static void peep_update_walking(rct_peep* peep){
 			}
 			else{
 				uint8 pos_extr = 0;
-				for (int container = peep_empty_container_extra_flag(peep); pos_extr < 32; pos_extr++)if (container&(1 << pos_extr))break;
-				peep->item_extra_flags &= ~(1 << pos_extr);
+				for (int container = peep_empty_container_extra_flag(peep); pos_extr < 32; pos_extr++)
+					if (container & (1u << pos_extr))
+						break;
+				peep->item_extra_flags &= ~(1u << pos_extr);
 				bp = RCT2_ADDRESS(0x97EFE8, uint8)[pos_extr];
 			}
 
@@ -6589,7 +6591,7 @@ static int peep_interact_with_shop(rct_peep* peep, sint16 x, sint16 y, rct_map_e
 
 /* rct2: 0x0069524E */
 static int peep_move_one_tile(uint8 direction, rct_peep* peep){
-	assert(direction <= 7);
+	assert(direction <= 3);
 	sint16 x = peep->next_x;
 	sint16 y = peep->next_y;
 	x += TileDirectionDelta[direction].x;
@@ -6620,10 +6622,9 @@ static int guest_surface_path_finding(rct_peep* peep){
 	if (!fence_in_the_way(x, y, z, z + 4, randDirection)){
 		x += TileDirectionDelta[randDirection].x;
 		y += TileDirectionDelta[randDirection].y;
-		randDirection ^= (1 << 1);
+		uint8 backwardsDirection = randDirection ^ (1 << 1);
 
-		if (!fence_in_the_way(x, y, z, z + 4, randDirection)){
-			randDirection ^= (1 << 1);
+		if (!fence_in_the_way(x, y, z, z + 4, backwardsDirection)){
 			if (!map_surface_is_blocked(x, y)){
 				return peep_move_one_tile(randDirection, peep);
 			}
@@ -6637,13 +6638,14 @@ static int guest_surface_path_finding(rct_peep* peep){
 	}
 	randDirection &= 3;
 
+	x = peep->next_x;
+	y = peep->next_y;
 	if (!fence_in_the_way(x, y, z, z + 4, randDirection)){
 		x += TileDirectionDelta[randDirection].x;
 		y += TileDirectionDelta[randDirection].y;
-		randDirection ^= (1 << 1);
+		uint8 backwardsDirection = randDirection ^ (1 << 1);
 
-		if (!fence_in_the_way(x, y, z, z + 4, randDirection)){
-			randDirection ^= (1 << 1);
+		if (!fence_in_the_way(x, y, z, z + 4, backwardsDirection)){
 			if (!map_surface_is_blocked(x, y)){
 				return peep_move_one_tile(randDirection, peep);
 			}
@@ -6653,13 +6655,14 @@ static int guest_surface_path_finding(rct_peep* peep){
 	randDirection -= 2;
 	randDirection &= 3;
 
+	x = peep->next_x;
+	y = peep->next_y;
 	if (!fence_in_the_way(x, y, z, z + 4, randDirection)){
 		x += TileDirectionDelta[randDirection].x;
 		y += TileDirectionDelta[randDirection].y;
-		randDirection ^= (1 << 1);
+		uint8 backwardsDirection = randDirection ^ (1 << 1);
 
-		if (!fence_in_the_way(x, y, z, z + 4, randDirection)){
-			randDirection ^= (1 << 1);
+		if (!fence_in_the_way(x, y, z, z + 4, backwardsDirection)){
 			if (!map_surface_is_blocked(x, y)){
 				return peep_move_one_tile(randDirection, peep);
 			}
@@ -6670,6 +6673,7 @@ static int guest_surface_path_finding(rct_peep* peep){
 	if (rand_backwards){
 		randDirection += 2;
 	}
+	randDirection &= 3;
 	return peep_move_one_tile(randDirection, peep);
 }
 
@@ -8035,9 +8039,9 @@ loc_69B221:
 	// The peep has now decided to buy the item (or, specifically, has not been
 	// dissuaded so far).
 	if (shopItem >= 32)
-		peep->item_extra_flags |= (1 << (shopItem - 32));
+		peep->item_extra_flags |= (1u << (shopItem - 32));
 	else
-		peep->item_standard_flags |= (1 << shopItem);
+		peep->item_standard_flags |= (1u << shopItem);
 
 	if (shopItem == SHOP_ITEM_TSHIRT)
 		peep->tshirt_colour = ride->track_colour_main[0];
