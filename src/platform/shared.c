@@ -426,6 +426,7 @@ void platform_process_messages()
 	gCursorState.middle &= ~CURSOR_CHANGED;
 	gCursorState.right &= ~CURSOR_CHANGED;
 	gCursorState.old = 0;
+	gCursorState.touch = false;
 
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
@@ -511,6 +512,50 @@ void platform_process_messages()
 				break;
 			}
 			break;
+// Apple sends touchscreen events for trackpads, so ignore these events on OS X
+#ifndef __MACOSX__
+		case SDL_FINGERMOTION:
+			RCT2_GLOBAL(0x0142406C, int) = (int)(e.tfinger.x * _screenBufferWidth);
+			RCT2_GLOBAL(0x01424070, int) = (int)(e.tfinger.y * _screenBufferHeight);
+
+			gCursorState.x = (int)(e.tfinger.x * _screenBufferWidth);
+			gCursorState.y = (int)(e.tfinger.y * _screenBufferHeight);
+			break;
+		case SDL_FINGERDOWN:
+			RCT2_GLOBAL(0x01424318, int) = (int)(e.tfinger.x * _screenBufferWidth);
+			RCT2_GLOBAL(0x0142431C, int) = (int)(e.tfinger.y * _screenBufferHeight);
+
+			gCursorState.touchIsDouble = (!gCursorState.touchIsDouble
+										  && e.tfinger.timestamp - gCursorState.touchDownTimestamp < TOUCH_DOUBLE_TIMEOUT);
+
+			if (gCursorState.touchIsDouble) {
+				store_mouse_input(3);
+				gCursorState.right = CURSOR_PRESSED;
+				gCursorState.old = 2;
+			} else {
+				store_mouse_input(1);
+				gCursorState.left = CURSOR_PRESSED;
+				gCursorState.old = 1;
+			}
+			gCursorState.touch = true;
+			gCursorState.touchDownTimestamp = e.tfinger.timestamp;
+			break;
+		case SDL_FINGERUP:
+			RCT2_GLOBAL(0x01424318, int) = (int)(e.tfinger.x * _screenBufferWidth);
+			RCT2_GLOBAL(0x0142431C, int) = (int)(e.tfinger.y * _screenBufferHeight);
+
+			if (gCursorState.touchIsDouble) {
+				store_mouse_input(4);
+				gCursorState.left = CURSOR_RELEASED;
+				gCursorState.old = 4;
+			} else {
+				store_mouse_input(2);
+				gCursorState.left = CURSOR_RELEASED;
+				gCursorState.old = 3;
+			}
+			gCursorState.touch = true;
+			break;
+#endif
 		case SDL_KEYDOWN:
 			if (gTextInputCompositionActive) break;
 
