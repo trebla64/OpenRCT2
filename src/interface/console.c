@@ -573,7 +573,7 @@ static int cc_set(const utf8 **argv, int argc)
 			console_execute_silent("get max_loan");
 		}
 		else if (strcmp(argv[0], "guest_initial_cash") == 0 && invalidArguments(&invalidArgs, double_valid[0])) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GUEST_INITIAL_CASH, money16) = clamp(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100), MONEY(0, 0), MONEY(15000, 0));
+			RCT2_GLOBAL(RCT2_ADDRESS_GUEST_INITIAL_CASH, money16) = clamp(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100), MONEY(0, 0), MONEY(1000, 0));
 			console_execute_silent("get guest_initial_cash");
 		}
 		else if (strcmp(argv[0], "guest_initial_happiness") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
@@ -633,11 +633,11 @@ static int cc_set(const utf8 **argv, int argc)
 			console_execute_silent("get park_open");
 		}
 		else if (strcmp(argv[0], "land_rights_cost") == 0 && invalidArguments(&invalidArgs, double_valid[0])) {
-			RCT2_GLOBAL(RCT2_ADDRESS_LAND_COST, money16) = clamp(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100), MONEY(0, 0), MONEY(15000, 0));
+			RCT2_GLOBAL(RCT2_ADDRESS_LAND_COST, money16) = clamp(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100), MONEY(0, 0), MONEY(200, 0));
 			console_execute_silent("get land_rights_cost");
 		}
 		else if (strcmp(argv[0], "construction_rights_cost") == 0 && invalidArguments(&invalidArgs, double_valid[0])) {
-			RCT2_GLOBAL(RCT2_ADDRESS_CONSTRUCTION_RIGHTS_COST, money16) = clamp(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100), MONEY(0, 0), MONEY(15000, 0));
+			RCT2_GLOBAL(RCT2_ADDRESS_CONSTRUCTION_RIGHTS_COST, money16) = clamp(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100), MONEY(0, 0), MONEY(200, 0));
 			console_execute_silent("get construction_rights_cost");
 		}
 		else if (strcmp(argv[0], "climate") == 0) {
@@ -746,9 +746,9 @@ static void editor_load_selected_objects_console()
 
 static int cc_load_object(const utf8 **argv, int argc) {
 	if (argc > 0) {
-		utf8 path[260];
+		utf8 path[MAX_PATH];
 
-		subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), argv[0]);
+		substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), argv[0]);
 		// Require pointer to start of filename
 		utf8* last_char = path + strlen(path);
 		strcat(path, ".DAT\0");
@@ -1045,8 +1045,10 @@ void console_execute_silent(const utf8 *src)
 		return;
 
 	// Aliases for hiding the console
-	if(strcmp(argv[0],"quit") == 0 || strcmp(argv[0],"exit") == 0)
-		argv[0]="hide";
+	if(strcmp(argv[0],"quit") == 0 || strcmp(argv[0],"exit") == 0) {
+		free(argv[0]);
+		argv[0] = _strdup("hide");
+	}
 
 	bool validCommand = false;
 	for (int i = 0; i < countof(console_command_table); i++) {

@@ -272,7 +272,7 @@ static void window_land_dropdown(rct_window *w, int widgetIndex, int dropdownInd
 
 		type = (dropdownIndex == -1) ?
 			_selectedFloorTexture :
-			*((uint32*)&gDropdownItemsArgs[dropdownIndex]) - SPR_FLOOR_TEXTURE_GRASS;
+			(uint32)gDropdownItemsArgs[dropdownIndex] - SPR_FLOOR_TEXTURE_GRASS;
 
 		if (RCT2_GLOBAL(RCT2_ADDRESS_SELECTED_TERRAIN_SURFACE, uint8) == type) {
 			RCT2_GLOBAL(RCT2_ADDRESS_SELECTED_TERRAIN_SURFACE, uint8) = 255;
@@ -288,7 +288,7 @@ static void window_land_dropdown(rct_window *w, int widgetIndex, int dropdownInd
 
 		type = (dropdownIndex == -1) ?
 			_selectedWallTexture :
-			*((uint32*)&gDropdownItemsArgs[dropdownIndex]) - SPR_WALL_TEXTURE_ROCK;
+			(uint32)gDropdownItemsArgs[dropdownIndex] - SPR_WALL_TEXTURE_ROCK;
 
 		if (RCT2_GLOBAL(RCT2_ADDRESS_SELECTED_TERRAIN_EDGE, uint8) == type) {
 			RCT2_GLOBAL(RCT2_ADDRESS_SELECTED_TERRAIN_EDGE, uint8) = 255;
@@ -321,8 +321,8 @@ static void window_land_textinput(rct_window *w, int widgetIndex, char *text)
 
 static void window_land_inputsize(rct_window *w)
 {
-	((uint16*)TextInputDescriptionArgs)[0] = MINIMUM_TOOL_SIZE;
-	((uint16*)TextInputDescriptionArgs)[1] = MAXIMUM_TOOL_SIZE;
+	TextInputDescriptionArgs[0] = MINIMUM_TOOL_SIZE;
+	TextInputDescriptionArgs[1] = MAXIMUM_TOOL_SIZE;
 	window_text_input_open(w, WIDX_PREVIEW, 5128, 5129, STR_NONE, STR_NONE, 3);
 }
 
@@ -408,6 +408,6 @@ static void window_land_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (price != 0 && !(RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32) & PARK_FLAGS_NO_MONEY)) {
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, sint32) = price;
-		gfx_draw_string_centred(dpi, 986, x, y, 0, (void*)0x013CE952);
+		gfx_draw_string_centred(dpi, 986, x, y, 0, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS);
 	}
 }

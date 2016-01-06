@@ -31,7 +31,7 @@ typedef struct {
 } rct_map_element_surface_properties;
 
 typedef struct {
-	uint8 type; //4
+	uint8 type; //4 0xF0 Path type, 0x08 Unknown/Unused, 0x04 Set when path is diagonal, 0x03 Rotation
 	uint8 additions; //5
 	uint8 edges; //6
 	union {
@@ -121,7 +121,10 @@ enum {
 	MAP_ELEMENT_TYPE_ENTRANCE = (4 << 2),
 	MAP_ELEMENT_TYPE_FENCE = (5 << 2),
 	MAP_ELEMENT_TYPE_SCENERY_MULTIPLE = (6 << 2),
-	MAP_ELEMENT_TYPE_BANNER = (7 << 2)
+	MAP_ELEMENT_TYPE_BANNER = (7 << 2),
+	// The corrupt element type is used for skipping drawing other following
+	// elements on a given tile.
+	MAP_ELEMENT_TYPE_CORRUPT = (8 << 2),
 };
 
 enum {

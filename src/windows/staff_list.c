@@ -181,7 +181,7 @@ void window_staff_list_open()
 void window_staff_list_cancel_tools(rct_window *w) {
 	int toolWindowClassification = RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass);
 	int toolWindowNumber = RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER, rct_windownumber);
-	if (RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE)
+	if (gInputFlags & INPUT_FLAG_TOOL_ACTIVE)
 		if (w->classification == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) && w->number == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER, rct_windownumber))
 			tool_cancel();
 }
@@ -310,10 +310,10 @@ void window_staff_list_update(rct_window *w)
 		RCT2_GLOBAL(RCT2_ADDRESS_WINDOW_MAP_FLASHING_FLAGS, uint16) |= (1 << 2);
 		FOR_ALL_PEEPS(spriteIndex, peep) {
 			if (peep->type == PEEP_TYPE_STAFF) {
-				peep->var_0C &= ~0x200;
+				peep->list_flags &= ~(PEEP_LIST_FLAGS_FLASHING);
 
 				if (peep->staff_type == RCT2_GLOBAL(RCT2_ADDRESS_WINDOW_STAFF_LIST_SELECTED_TAB, uint8)) {
-					peep->var_0C |= 0x200;
+					peep->list_flags |= PEEP_LIST_FLAGS_FLASHING;
 				}
 			}
 		}
@@ -591,7 +591,7 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (!(RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32) & PARK_FLAGS_NO_MONEY)) {
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = RCT2_ADDRESS(0x00992A00, uint16)[selectedTab];
-		gfx_draw_string_left(dpi, 1858, (void*)0x013CE952, 0, w->x + 0xA5, w->y + 0x20);
+		gfx_draw_string_left(dpi, 1858, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, w->x + 0xA5, w->y + 0x20);
 	}
 
 	if (selectedTab < 3) {
@@ -605,9 +605,9 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	}
 
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = _window_staff_list_selected_type_count;
-	RCT2_GLOBAL(0x013CE952 + 2, uint16) = staffTypeStringId;
+	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint16) = staffTypeStringId;
 
-	gfx_draw_string_left(dpi, STR_STAFF_LIST_COUNTER, (void*)0x013CE952, 0, w->x + 4, window_staff_list_widgets[WIDX_STAFF_LIST_LIST].bottom + w->y + 2);
+	gfx_draw_string_left(dpi, STR_STAFF_LIST_COUNTER, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, w->x + 4, window_staff_list_widgets[WIDX_STAFF_LIST_LIST].bottom + w->y + 2);
 }
 
 /**
@@ -641,13 +641,13 @@ void window_staff_list_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int sc
 				}
 
 				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-				RCT2_GLOBAL(0x013CE952 + 2, uint32) = peep->id;
-				gfx_draw_string_left_clipped(dpi, format, (void*)0x013CE952, 0, 0, y - 1, 107);
+				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
+				gfx_draw_string_left_clipped(dpi, format, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, 0, y - 1, 107);
 
 				get_arguments_from_action(peep, &argument_1, &argument_2);
 				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = argument_1;
-				RCT2_GLOBAL(0x013CE952 + 4, uint32) = argument_2;
-				gfx_draw_string_left_clipped(dpi, format, (void*)0x013CE952, 0, 175, y - 1, 305);
+				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32) = argument_2;
+				gfx_draw_string_left_clipped(dpi, format, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, 175, y - 1, 305);
 
 				// True if a patrol path is set for the worker
 				if (RCT2_ADDRESS(RCT2_ADDRESS_STAFF_MODE_ARRAY, uint8)[peep->staff_id] & 2) {

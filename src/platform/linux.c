@@ -24,6 +24,7 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include "../util/util.h"
+#include "fontconfig/fontconfig.h"
 
 // See http://syprog.blogspot.ru/2011/12/listing-loaded-shared-objects-in-linux.html
 struct lmap {
@@ -56,8 +57,8 @@ void platform_get_exe_path(utf8 *outPath)
 	}
 	int exeDelimiterIndex = (int)(exeDelimiter - exePath);
 
+	exePath[exeDelimiterIndex] = '\0';
 	safe_strncpy(outPath, exePath, exeDelimiterIndex + 1);
-	outPath[exeDelimiterIndex] = '\0';
 }
 
 bool platform_check_steam_overlay_attached() {
@@ -98,7 +99,7 @@ void platform_posix_sub_user_data_path(char *buffer, const char *homedir, const 
 			exit(-1);
 			return;
 		}
-		
+
 		strncat(buffer, homedir, MAX_PATH - 1);
 		strncat(buffer, separator, MAX_PATH - strnlen(buffer, MAX_PATH) - 1);
 		strncat(buffer, ".config", MAX_PATH - strnlen(buffer, MAX_PATH) - 1);
@@ -121,11 +122,17 @@ void platform_posix_sub_user_data_path(char *buffer, const char *homedir, const 
  */
 void platform_posix_sub_resolve_openrct_data_path(utf8 *out) {
 	static const utf8 *searchLocations[] = {
+		"../share/openrct2",
+#ifdef ORCT2_RESOURCE_DIR
+		// defined in CMakeLists.txt
+		ORCT2_RESOURCE_DIR,
+#endif // ORCT2_RESOURCE_DIR
 		"/var/lib/openrct2",
 		"/usr/share/openrct2",
 	};
 	for (size_t i = 0; i < countof(searchLocations); i++)
 	{
+		log_verbose("Looking for OpenRCT2 data in %s", searchLocations[i]);
 		if (platform_directory_exists(searchLocations[i]))
 		{
 			out[0] = '\0';
@@ -155,6 +162,48 @@ int platform_open_common_file_dialog(int type, utf8 *title, utf8 *filename, utf8
 {
 	STUB();
 	return 0;
+}
+
+bool platform_get_font_path(TTFFontDescriptor *font, utf8 *buffer)
+{
+	assert(buffer != NULL);
+	assert(font != NULL);
+
+	log_verbose("Looking for font %s with FontConfig.", font->font_name);
+	FcConfig* config = FcInitLoadConfigAndFonts();
+	if (!config)
+	{
+		log_error("Failed to initialize FontConfig library");
+		FcFini();
+		return false;
+	}
+	FcPattern* pat = FcNameParse((const FcChar8*) font->font_name);
+
+	FcConfigSubstitute(config, pat, FcMatchPattern);
+	FcDefaultSubstitute(pat);
+
+	bool found = false;
+	FcResult result = FcResultNoMatch;
+	FcPattern* match = FcFontMatch(config, pat, &result);
+
+	if (match)
+	{
+		FcChar8* filename = NULL;
+		if (FcPatternGetString(match, FC_FILE, 0, &filename) == FcResultMatch)
+		{
+			found = true;
+			safe_strncpy(buffer, (utf8*) filename, MAX_PATH);
+			log_verbose("FontConfig provided font %s", filename);
+		}
+		FcPatternDestroy(match);
+	} else {
+		log_warning("Failed to find required font.");
+	}
+
+	FcPatternDestroy(pat);
+	FcConfigDestroy(config);
+	FcFini();
+	return found;
 }
 
 #endif

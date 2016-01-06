@@ -15,9 +15,9 @@ fi
 # keep in sync with version in install.sh
 if [[ $(uname -s) == "Darwin" ]]; then
 	# keep in sync with version in Xcode project
-	sha256sum=2cec3958352477fbb876a5b6398722077084b5ff7e95a7d3cd67492abf5012fc
+	sha256sum=6562ce9e1f37f125e3345bfd8b961777800436bf607b30dc7c964e0e6991ad2c
 else
-	sha256sum=69ff98c9544838fb16384bc78af9dc1c452b9d01d919e43f5fec686d02c9bdd8
+	sha256sum=31c5e19d9f794bd5f0e75f20c2b4c3c4664d736b0a4d50c8cde14a9a9007b62d
 fi
 libVFile="./libversion"
 libdir="./lib"
@@ -52,7 +52,7 @@ if [[ "$needsdownload" = "true" ]]; then
 	if [[ -d $cachedir/orctlibs ]]; then
 		rm -rf $cachedir/orctlibs
 	fi
-	./install.sh
+	scripts/linux/install.sh
 fi
 
 pushd build
@@ -62,10 +62,12 @@ pushd build
 		PARENT=$(readlink -f ../)
 		chmod a+rwx $(pwd)
 		chmod g+s $(pwd)
-		docker run -u travis -v $PARENT:/work/openrct2 -w /work/openrct2/build -i -t openrct2/openrct2:32bit-only bash -c "cmake ../ $OPENRCT2_CMAKE_OPTS && make"
+		# CMAKE and MAKE opts from environment
+		docker run -u travis -v $PARENT:/work/openrct2 -w /work/openrct2/build -i -t openrct2/openrct2:32bit-only bash -c "cmake ../ $OPENRCT2_CMAKE_OPTS && make $OPENRCT_MAKE_OPTS"
 	else
 		cmake -DCMAKE_BUILD_TYPE=Debug $OPENRCT2_CMAKE_OPTS ..
-		make
+		# NOT the same variable as above
+		make $OPENRCT2_MAKE_OPTS
 	fi
 popd
 
@@ -86,8 +88,10 @@ if [[ $TARGET == "linux" ]] || [[ $TARGET == "docker32" ]]; then
 fi
 
 if [[ -z "$DISABLE_G2_BUILD" ]]; then
-    echo Building: data/g2.dat
-    ./build_g2.sh > /dev/null 2>&1
+    echo Building: g2.dat
+	pushd build
+	    make g2
+	popd
 fi
 
 if [[ $TARGET == "windows" ]]; then

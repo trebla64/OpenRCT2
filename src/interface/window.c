@@ -41,7 +41,7 @@
 
 rct_window* g_window_list = RCT2_ADDRESS(RCT2_ADDRESS_WINDOW_LIST, rct_window);
 
-uint8 TextInputDescriptionArgs[8];
+uint16 TextInputDescriptionArgs[4];
 widget_identifier gCurrentTextBox = { { 255, 0 }, 0 };
 char gTextBoxInput[512] = { 0 };
 int gMaxTextBoxInputLength = 0;
@@ -150,11 +150,9 @@ void window_dispatch_update_all()
 	rct_window *w;
 
 	RCT2_GLOBAL(0x01423604, sint32)++;
-	//RCT2_GLOBAL(RCT2_ADDRESS_TOOLTIP_NOT_SHOWN_TICKS, sint16)++;
+	// gTooltipNotShownTicks++;
 	for (w = RCT2_LAST_WINDOW; w >= g_window_list; w--)
 		window_event_update_call(w);
-
-	RCT2_CALLPROC_EBPSAFE(0x006EE411);	// handle_text_input
 }
 
 void window_update_all_viewports()
@@ -308,7 +306,7 @@ static void window_all_wheel_input()
 		return;
 
 	// Check window cursor is over
-	if (!(RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_5)) {
+	if (!(gInputFlags & INPUT_FLAG_5)) {
 		w = window_find_from_point(gCursorState.x, gCursorState.y);
 		if (w != NULL) {
 			// Check if main window
@@ -1460,16 +1458,6 @@ void window_zoom_out(rct_window *w)
 }
 
 /**
- *
- *  rct2: 0x006EE308
- * DEPRECIATED please use the new text_input window.
- */
-void window_show_textinput(rct_window *w, int widgetIndex, uint16 title, uint16 text, int value)
-{
-	RCT2_CALLPROC_X(0x006EE308, title, text, value, widgetIndex, (int)w, 0, 0);
-}
-
-/**
  * Draws a window that is in the specified region.
  *  rct2: 0x006E756C
  * left (ax)
@@ -1739,7 +1727,7 @@ void window_set_resize(rct_window *w, int minWidth, int minHeight, int maxWidth,
  */
 int tool_set(rct_window *w, int widgetIndex, int tool)
 {
-	if (RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE) {
+	if (gInputFlags & INPUT_FLAG_TOOL_ACTIVE) {
 		if (
 			w->classification == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) &&
 			w->number == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER, rct_windownumber) &&
@@ -1752,8 +1740,8 @@ int tool_set(rct_window *w, int widgetIndex, int tool)
 		}
 	}
 
-	RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) |= INPUT_FLAG_TOOL_ACTIVE;
-	RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) &= ~INPUT_FLAG_6;
+	gInputFlags |= INPUT_FLAG_TOOL_ACTIVE;
+	gInputFlags &= ~INPUT_FLAG_6;
 	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TOOL, uint8) = tool;
 	RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) = w->classification;
 	RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER, rct_windownumber) = w->number;
@@ -1769,8 +1757,8 @@ void tool_cancel()
 {
 	rct_window *w;
 
-	if (RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE) {
-		RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) &= ~INPUT_FLAG_TOOL_ACTIVE;
+	if (gInputFlags & INPUT_FLAG_TOOL_ACTIVE) {
+		gInputFlags &= ~INPUT_FLAG_TOOL_ACTIVE;
 
 		map_invalidate_selection_rect();
 		map_invalidate_map_selection_tiles();
@@ -1778,7 +1766,7 @@ void tool_cancel()
 		// Reset map selection
 		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) = 0;
 
-		if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, sint16) >= 0) {
+		if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) != 0xFFFF) {
 			// Invalidate tool widget
 			widget_invalidate_by_number(
 				RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass),
@@ -2424,15 +2412,7 @@ void textinput_cancel()
 	// Close the new text input window
 	window_close_by_class(WC_TEXTINPUT);
 
-	// The following code is only necessary for the old Windows text input dialog. In theory this isn't used anymore, but can
-	// still be triggered via original code paths.
-#ifdef _WIN32
-	RCT2_CALLPROC_EBPSAFE(0x0040701D);
-#else
-	log_warning("there should be something called here (0x0040701D)");
-#endif // _WIN32
 	if (RCT2_GLOBAL(RCT2_ADDRESS_TEXTINPUT_WINDOWCLASS, uint8) != 255) {
-		RCT2_CALLPROC_EBPSAFE(0x006EE4E2);
 		w = window_find_by_number(
 			RCT2_GLOBAL(RCT2_ADDRESS_TEXTINPUT_WINDOWCLASS, rct_windowclass),
 			RCT2_GLOBAL(RCT2_ADDRESS_TEXTINPUT_WINDOWNUMBER, rct_windownumber)

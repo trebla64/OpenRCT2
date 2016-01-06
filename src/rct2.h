@@ -111,30 +111,14 @@ typedef utf16* utf16string;
 #pragma pack(1)
 #endif
 
-#define OPENRCT2_NAME				"OpenRCT2"
-#define OPENRCT2_VERSION			"0.0.4"
-#define OPENRCT2_ARCHITECTURE		"x86"
-#ifdef _WIN32
-	#define OPENRCT2_PLATFORM		"Windows"
-#endif // _WIN32
-#ifdef __linux__
-	#define OPENRCT2_PLATFORM		"Linux"
-#endif
-#if defined(__APPLE__) && defined(__MACH__)
-	#define OPENRCT2_PLATFORM		"OS X"
-#endif
-#ifndef OPENRCT2_PLATFORM
-	#error Unknown platform!
-#endif
-#define OPENRCT2_TIMESTAMP			__DATE__ " " __TIME__
+#include "version.h"
 
-// The following constants are for automated build servers
-#define OPENRCT2_BUILD_NUMBER		""
-#define OPENRCT2_BUILD_SERVER		""
-#define OPENRCT2_BRANCH				"develop"
-#define OPENRCT2_COMMIT_SHA1		""
-#define OPENRCT2_COMMIT_SHA1_SHORT	""
 #define OPENRCT2_MASTER_SERVER_URL	"https://servers.openrct2.website"
+
+// Time (represented as number of 100-nanosecond intervals since 0001-01-01T00:00:00Z)
+typedef uint64 datetime64;
+
+#define DATETIME64_MIN ((datetime64)0)
 
 // Represent fixed point numbers. dp = decimal point
 typedef uint8 fixed8_1dp;
@@ -160,9 +144,6 @@ typedef fixed32_1dp money32;
 
 #define MONEY_FREE						MONEY(0,00)
 #define MONEY32_UNDEFINED				((money32)0x80000000)
-#ifndef MAX_PATH
-#define MAX_PATH 260
-#endif
 
 typedef void (EMPTY_ARGS_VOID_POINTER)();
 typedef unsigned short rct_string_id;
@@ -315,7 +296,7 @@ int rct2_init();
 void rct2_update();
 void rct2_draw();
 void rct2_endupdate();
-void subsitute_path(char *dest, const char *path, const char *filename);
+void substitute_path(char *dest, const char *path, const char *filename);
 int check_mutex();
 int check_file_paths();
 int check_file_path(int pathId);

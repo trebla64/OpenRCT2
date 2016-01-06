@@ -92,6 +92,10 @@ void openrct2_write_full_version_info(utf8 *buffer, size_t bufferSize)
 	if (!str_is_null_or_empty(OPENRCT2_BUILD_SERVER)) {
 		sprintf(strchr(buffer, 0), " provided by %s", OPENRCT2_BUILD_SERVER);
 	}
+
+#if DEBUG
+	sprintf(strchr(buffer, 0), " (DEBUG)");
+#endif
 }
 
 static void openrct2_copy_files_over(const utf8 *originalDirectory, const utf8 *newDirectory, const utf8 *extension)
@@ -199,7 +203,7 @@ bool openrct2_initialise()
 	gOpenRCT2ShowChangelog = true;
 	if (gConfigGeneral.last_run_version != NULL && (strcmp(gConfigGeneral.last_run_version, OPENRCT2_VERSION) == 0))
 		gOpenRCT2ShowChangelog = false;
-	gConfigGeneral.last_run_version = OPENRCT2_VERSION;
+	gConfigGeneral.last_run_version = strndup(OPENRCT2_VERSION, strlen(OPENRCT2_VERSION));
 	config_save_default();
 
 	// TODO add configuration option to allow multiple instances

@@ -22,6 +22,7 @@
 #include "../audio/audio.h"
 #include "../config.h"
 #include "../editor.h"
+#include "../input.h"
 #include "../scenario.h"
 #include "../sprites.h"
 #include "../localisation/localisation.h"
@@ -332,7 +333,7 @@ static int show_save_scenario_dialog(char *resultPath)
 
 
 	format_string(title, STR_SAVE_SCENARIO, NULL);
-	subsitute_path(filename, RCT2_ADDRESS(RCT2_ADDRESS_SCENARIOS_PATH, char), s6Info->name);
+	substitute_path(filename, RCT2_ADDRESS(RCT2_ADDRESS_SCENARIOS_PATH, char), s6Info->name);
 	strcat(filename, ".SC6");
 	format_string(filterName, STR_RCT2_SCENARIO_FILE, NULL);
 
@@ -375,7 +376,7 @@ void window_editor_bottom_toolbar_jump_forward_to_save_scenario()
 	s6Info->editor_step = 255;
 
 	// Ensure path has .SC6 extension
-	path_set_extension(path, ".SC6");
+	path_append_extension(path, ".SC6");
 
 	// Save the scenario
 	parkFlagsBackup = RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32);
@@ -535,10 +536,11 @@ void window_editor_bottom_toolbar_paint(rct_window *w, rct_drawpixelinfo *dpi)
 				window_editor_bottom_toolbar_widgets[WIDX_PREVIOUS_IMAGE].top + 6 + w->y, 0);
 
 			int textColour = w->colours[1] & 0x7F;
-
-			if (RCT2_GLOBAL(RCT2_ADDRESS_CURSOR_OVER_WINDOWCLASS, uint8) == WC_BOTTOM_TOOLBAR &&
-				RCT2_GLOBAL(RCT2_ADDRESS_CURSOR_OVER_WIDGETINDEX, uint8) == WIDX_PREVIOUS_STEP_BUTTON)
+			if (gHoverWidget.window_classification == WC_BOTTOM_TOOLBAR &&
+				gHoverWidget.widget_index == WIDX_PREVIOUS_STEP_BUTTON
+			) {
 				textColour = 2;
+			}
 
 			short textX = (window_editor_bottom_toolbar_widgets[WIDX_PREVIOUS_IMAGE].left + 30 +
 				window_editor_bottom_toolbar_widgets[WIDX_PREVIOUS_IMAGE].right) / 2 + w->x;
@@ -559,9 +561,11 @@ void window_editor_bottom_toolbar_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 			int textColour = w->colours[1] & 0x7F;
 
-			if (RCT2_GLOBAL(RCT2_ADDRESS_CURSOR_OVER_WINDOWCLASS, uint8) == WC_BOTTOM_TOOLBAR &&
-				RCT2_GLOBAL(RCT2_ADDRESS_CURSOR_OVER_WIDGETINDEX, uint8) == WIDX_NEXT_STEP_BUTTON)
+			if (gHoverWidget.window_classification == WC_BOTTOM_TOOLBAR &&
+				gHoverWidget.widget_index == WIDX_NEXT_STEP_BUTTON
+			) {
 				textColour = 2;
+			}
 
 			short textX = (window_editor_bottom_toolbar_widgets[WIDX_NEXT_IMAGE].left +
 				window_editor_bottom_toolbar_widgets[WIDX_NEXT_IMAGE].right - 30) / 2 + w->x;

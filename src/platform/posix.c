@@ -36,6 +36,7 @@
 #include <dirent.h>
 #include <fnmatch.h>
 #include <locale.h>
+#include <sys/time.h>
 #include <time.h>
 
 // The name of the mutex used to prevent multiple instances of the game from running
@@ -50,10 +51,6 @@ utf8 _openrctDataDirectoryPath[MAX_PATH] = { 0 };
  */
 int main(int argc, const char **argv)
 {
-	//RCT2_GLOBAL(RCT2_ADDRESS_HINSTANCE, HINSTANCE) = hInstance;
-	//RCT2_GLOBAL(RCT2_ADDRESS_CMDLINE, LPSTR) = lpCmdLine;
-
-	STUB();
 	int run_game = cmdline_run(argv, argc);
 	if (run_game == 1)
 	{
@@ -372,7 +369,7 @@ int platform_enumerate_directories_begin(const utf8 *directory)
 	char *npattern = malloc(length+1);
 	int converted;
 	converted = wcstombs(npattern, wpattern, length);
-	npattern[length] = '\0';
+	npattern[length - 1] = '\0';
 	if (converted == MAX_PATH) {
 		log_warning("truncated string %s", npattern);
 	}
@@ -503,8 +500,8 @@ bool platform_file_move(const utf8 *srcPath, const utf8 *dstPath)
 
 bool platform_file_delete(const utf8 *path)
 {
-	STUB();
-	return 0;
+	int ret = unlink(path);
+	return ret == 0;
 }
 
 wchar_t *regular_to_wchar(const char* src)
@@ -602,14 +599,17 @@ void platform_resolve_openrct_data_path()
 
 	strncat(buffer, separator, MAX_PATH - strnlen(buffer, MAX_PATH) - 1);
 	strncat(buffer, "data", MAX_PATH - strnlen(buffer, MAX_PATH) - 1);
+	log_verbose("Looking for OpenRCT2 data in %s", buffer);
 	if (platform_directory_exists(buffer))
 	{
 		_openrctDataDirectoryPath[0] = '\0';
 		safe_strncpy(_openrctDataDirectoryPath, buffer, MAX_PATH);
+		log_verbose("Found OpenRCT2 data in %s", _openrctDataDirectoryPath);
 		return;
 	}
-	
+
 	platform_posix_sub_resolve_openrct_data_path(_openrctDataDirectoryPath);
+	log_verbose("Trying to use OpenRCT2 data in %s", _openrctDataDirectoryPath);
 }
 
 void platform_get_user_directory(utf8 *outPath, const utf8 *subDirectory)
@@ -752,6 +752,22 @@ uint8 platform_get_locale_temperature_format(){
 		}
 	}
 	return TEMPERATURE_FORMAT_C;
+}
+
+datetime64 platform_get_datetime_now_utc()
+{
+	const datetime64 epochAsTicks = 621355968000000000;
+
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	uint64 utcEpoch = tv.tv_sec;
+
+	// Epoch starts from: 1970-01-01T00:00:00Z
+	// Convert to ticks from 0001-01-01T00:00:00Z
+	uint64 utcEpochTicks = (uint64)tv.tv_sec * 10000000ULL + tv.tv_usec * 10;
+	datetime64 utcNow = epochAsTicks + utcEpochTicks;
+	return utcNow;
 }
 
 #endif

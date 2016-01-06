@@ -488,9 +488,9 @@ void window_scenery_open()
  */
 bool window_scenery_is_scenery_tool_active() {
 	int toolWindowClassification = RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass);
-	int toolWidgetIndex = RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, rct_windownumber);
+	int toolWidgetIndex = RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16);
 
-	if (RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE)
+	if (gInputFlags & INPUT_FLAG_TOOL_ACTIVE)
 		if (toolWindowClassification == WC_TOP_TOOLBAR && toolWidgetIndex == 9) // 9 is WIDX_SCENERY
 			return true;
 
@@ -693,7 +693,7 @@ static void window_scenery_update(rct_window *w)
 			if (widgetIndex >= WIDX_SCENERY_TAB_CONTENT_PANEL) {
 				w->scenery.hover_counter++;
 				if (w->scenery.hover_counter < 8) {
-					if (RCT2_GLOBAL(RCT2_ADDRESS_INPUT_STATE, sint8) != INPUT_STATE_SCROLL_LEFT) {
+					if (gInputState != INPUT_STATE_SCROLL_LEFT) {
 						w->min_width = WINDOW_SCENERY_WIDTH;
 						w->max_width = WINDOW_SCENERY_WIDTH;
 						w->min_height = WINDOW_SCENERY_HEIGHT;
@@ -713,7 +713,7 @@ static void window_scenery_update(rct_window *w)
 		}
 	} else {
 		w->scenery.hover_counter = 0;
-		if (RCT2_GLOBAL(RCT2_ADDRESS_INPUT_STATE, sint8) != INPUT_STATE_SCROLL_LEFT) {
+		if (gInputState != INPUT_STATE_SCROLL_LEFT) {
 			w->min_width = WINDOW_SCENERY_WIDTH;
 			w->max_width = WINDOW_SCENERY_WIDTH;
 			w->min_height = WINDOW_SCENERY_HEIGHT;
@@ -1031,12 +1031,12 @@ void window_scenery_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (!(RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32) & PARK_FLAGS_NO_MONEY)) {
 		// -14
-		gfx_draw_string_right(dpi, STR_COST_LABEL, (void*)0x013CE952, 0,
+		gfx_draw_string_right(dpi, STR_COST_LABEL, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0,
 			w->x + w->width - 0x1A, w->y + w->height - 13);
 	}
 
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = sceneryEntry->name;
-	gfx_draw_string_left_clipped(dpi, 0x4A7, (void*)0x013CE952, 0,
+	gfx_draw_string_left_clipped(dpi, 0x4A7, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0,
 		w->x + 3, w->y + w->height - 13, w->width - 19);
 }
 

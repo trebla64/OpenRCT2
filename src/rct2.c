@@ -29,6 +29,7 @@
 #include "drawing/drawing.h"
 #include "editor.h"
 #include "game.h"
+#include "input.h"
 #include "interface/chat.h"
 #include "interface/console.h"
 #include "interface/viewport.h"
@@ -92,7 +93,7 @@ int rct2_init()
 
 	config_reset_shortcut_keys();
 	config_shortcut_keys_load();
-	RCT2_GLOBAL(RCT2_ADDRESS_PLACE_OBJECT_MODIFIER, uint8) = 0;
+	gInputPlaceObjectModifier = PLACE_OBJECT_MODIFIER_NONE;
 	// config_load();
 
 	object_list_load();
@@ -195,7 +196,7 @@ int rct2_init_directories()
 	return 1;
 }
 
-void subsitute_path(char *dest, const char *path, const char *filename)
+void substitute_path(char *dest, const char *path, const char *filename)
 {
 	while (*path != '*') {
 		*dest++ = *path++;
@@ -437,9 +438,6 @@ void rct2_update_2()
 	RCT2_GLOBAL(RCT2_ADDRESS_LAST_TICK_COUNT, sint32) = tick;
 	if (RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) == 0)
 		RCT2_GLOBAL(RCT2_ADDRESS_PALETTE_EFFECT_FRAME_NO, sint32) += tick2;
-
-	if (RCT2_GLOBAL(RCT2_ADDRESS_ON_TUTORIAL, uint8) != 0)
-		RCT2_GLOBAL(RCT2_ADDRESS_TICKS_SINCE_LAST_UPDATE, sint16) = 31;
 
 	// TODO: screenshot countdown process
 

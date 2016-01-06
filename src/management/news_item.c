@@ -301,7 +301,7 @@ void news_item_get_subject_location(int type, int subject, int *x, int *y, int *
 void news_item_add_to_queue(uint8 type, rct_string_id string_id, uint32 assoc)
 {
 	utf8 *buffer = (char*)0x0141EF68;
-	void *args = (void*)0x013CE952;
+	void *args = (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS;
 
 	format_string(buffer, string_id, args); // overflows possible?
 	news_item_add_to_queue_raw(type, buffer, assoc);
@@ -379,7 +379,7 @@ void news_item_open_subject(int type, int subject)
 			if (window != NULL) {
 				window_invalidate(window);
 				if (!tool_set(window, 9, 0)) {
-					RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) |= INPUT_FLAG_6;
+					gInputFlags |= INPUT_FLAG_6;
 					window_scenery_open();
 				}
 			}

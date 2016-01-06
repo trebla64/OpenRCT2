@@ -128,6 +128,11 @@ enum {
 	SORT_DATE_DESCENDING,
 };
 
+enum {
+	SCENARIO_SELECT_MODE_DIFFICULTY,
+	SCENARIO_SELECT_MODE_ORIGIN,
+};
+
 typedef struct {
 	uint8 play_intro;
 	uint8 confirmation_prompt;
@@ -171,6 +176,10 @@ typedef struct {
 	float window_scale;
 	uint8 show_fps;
 	uint8 trap_cursor;
+	uint8 auto_open_shops;
+	uint8 scenario_select_mode;
+	uint8 scenario_unlocking_enabled;
+	uint8 scenario_hide_mega_park;
 } general_configuration;
 
 typedef struct {
@@ -227,6 +236,26 @@ typedef struct {
 	utf8string provider_email;
 	utf8string provider_website;
 } network_configuration;
+
+typedef struct {
+	bool park_award;
+	bool park_marketing_campaign_finished;
+	bool park_warnings;
+	bool park_rating_warnings;
+	bool ride_broken_down;
+	bool ride_crashed;
+	bool ride_warnings;
+	bool ride_researched;
+	bool guest_warnings;
+	bool guest_lost;
+	bool guest_left_park;
+	bool guest_queuing_for_ride;
+	bool guest_on_ride;
+	bool guest_left_ride;
+	bool guest_bought_item;
+	bool guest_used_facility;
+	bool guest_died;
+} notification_configuration;
 
 typedef struct theme_window {
 	uint8 colours[6];
@@ -302,6 +331,7 @@ extern sound_configuration gConfigSound;
 extern cheat_configuration gConfigCheat;
 extern twitch_configuration gConfigTwitch;
 extern network_configuration gConfigNetwork;
+extern notification_configuration gConfigNotifications;
 extern themes_configuration gConfigThemes;
 extern title_sequences_configuration gConfigTitleSequences;
 

@@ -242,7 +242,11 @@ void platform_draw()
 					if (pitch == (width * 2) + padding) {
 						uint16 *dst = pixels;
 						for (int y = height; y > 0; y--) {
-							for (int x = width; x > 0; x--) { *dst++ = *(uint16 *)(&gPaletteHWMapped[*src++]); }
+							for (int x = width; x > 0; x--) {
+								const uint8 lower = *(uint8 *)(&gPaletteHWMapped[*src++]);
+								const uint8 upper = *(uint8 *)(&gPaletteHWMapped[*src++]);
+								*dst++ = (lower << 8) | upper;
+							}
 							dst = (uint16*)(((uint8 *)dst) + padding);
 						}
 					}
@@ -443,7 +447,7 @@ void platform_process_messages()
 					SDL_RestoreWindow(gWindow);
 					SDL_MaximizeWindow(gWindow);
 				}
-				if (SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+				if ((SDL_GetWindowFlags(gWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP) {
 					SDL_RestoreWindow(gWindow);
 					SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
 				}

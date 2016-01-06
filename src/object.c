@@ -59,7 +59,7 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 	char path[MAX_PATH];
 	SDL_RWops* rw;
 
-	subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), (char*)installedObject + 16);
+	substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), (char*)installedObject + 16);
 
 	log_verbose("loading object, %s", path);
 
@@ -93,11 +93,13 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 	}
 	SDL_RWclose(rw);
 
-
+	int calculatedChecksum=object_calculate_checksum(&openedEntry, chunk, *chunkSize);
 
 	// Calculate and check checksum
-	if (object_calculate_checksum(&openedEntry, chunk, *chunkSize) != openedEntry.checksum) {
-		log_error("Object Load failed due to checksum failure.");
+	if (calculatedChecksum != openedEntry.checksum) {
+		char buffer[100];
+		sprintf(buffer, "Object Load failed due to checksum failure: calculated checksum %d, object says %d.", calculatedChecksum, (int)openedEntry.checksum);
+		log_error(buffer);
 		RCT2_GLOBAL(0x00F42BD9, uint8) = 2;
 		rct2_free(chunk);
 		return 0;
@@ -233,7 +235,7 @@ int object_load_packed(SDL_RWops* rw)
 	}
 
 	if (object_calculate_checksum(&entry, chunk, chunkSize) != entry.checksum){
-		log_error("Checksum missmatch from packed object: %.8s", entry.name);
+		log_error("Checksum mismatch from packed object: %.8s", entry.name);
 		rct2_free(chunk);
 		return 0;
 	}
@@ -296,7 +298,7 @@ int object_load_packed(SDL_RWops* rw)
 			objectPath[i] = '\0';
 	}
 
-	subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), objectPath);
+	substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), objectPath);
 	// Require pointer to start of filename
 	char* last_char = path + strlen(path);
 	strcat(path, ".DAT");
@@ -306,7 +308,7 @@ int object_load_packed(SDL_RWops* rw)
 	for (; platform_file_exists(path);){
 		for (char* curr_char = last_char - 1;; --curr_char){
 			if (*curr_char == '\\'){
-				subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), "00000000.DAT");
+				substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), "00000000.DAT");
 				char* last_char = path + strlen(path);
 				break;
 			}
@@ -355,20 +357,18 @@ void object_unload(rct_object_entry *entry)
 int object_entry_compare(const rct_object_entry *a, const rct_object_entry *b)
 {
 	// If an official object don't bother checking checksum
-	if (a->flags & 0xF0) {
+	if ((a->flags & 0xF0) || (b->flags & 0xF0)) {
 		if ((a->flags & 0x0F) != (b->flags & 0x0F))
 			return 0;
-		if (*((uint32*)a->name) != *((uint32*)b->name))
-			return 0;
-		if (*((uint32*)(&a->name[4])) != *((uint32*)(&b->name[4])))
+		int match = memcmp(a->name, b->name, 8);
+		if (match)
 			return 0;
 	}
 	else {
 		if (a->flags != b->flags)
 			return 0;
-		if (*((uint32*)a->name) != *((uint32*)b->name))
-			return 0;
-		if (*((uint32*)(&a->name[4])) != *((uint32*)(&b->name[4])))
+		int match = memcmp(a->name, b->name, 8);
+		if (match)
 			return 0;
 		if (a->checksum != b->checksum)
 			return 0;
@@ -379,23 +379,20 @@ int object_entry_compare(const rct_object_entry *a, const rct_object_entry *b)
 
 int object_calculate_checksum(const rct_object_entry *entry, const uint8 *data, int dataLength)
 {
-	int i;
-	const char *eee = (char*)entry;
-	int checksum = 0xF369A75B;
-	char *ccc = (char*)&checksum;
+	const uint8 *entryBytePtr = (uint8*)entry;
 
-	*ccc ^= eee[0];
+	uint32 checksum = 0xF369A75B;
+	checksum ^= entryBytePtr[0];
 	checksum = rol32(checksum, 11);
-	for (i = 4; i < 12; i++) {
-		*ccc ^= eee[i];
+	for (int i = 4; i < 12; i++) {
+		checksum ^= entryBytePtr[i];
 		checksum = rol32(checksum, 11);
 	}
-	for (i = 0; i < dataLength; i++) {
-		*ccc ^= data[i];
+	for (int i = 0; i < dataLength; i++) {
+		checksum ^= data[i];
 		checksum = rol32(checksum, 11);
 	}
-
-	return checksum;
+	return (int)checksum;
 }
 
 /**
@@ -1536,7 +1533,7 @@ int object_get_scenario_text(rct_object_entry *entry)
 
 	char path[MAX_PATH];
 	char *objectPath = (char*)installedObject + 16;
-	subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), objectPath);
+	substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), objectPath);
 
 	rct_object_entry openedEntry;
 	SDL_RWops* rw = SDL_RWFromFile(path, "rb");
@@ -1574,7 +1571,7 @@ int object_get_scenario_text(rct_object_entry *entry)
 
 			if (object_paint(openedEntry.flags & 0x0F, 2, 0, 0, 0, (int)chunk, 0, 0)) {
 				// This is impossible for STEX entries to fail.
-				log_error("Opened object failed paitn test.");
+				log_error("Opened object failed paint test.");
 				RCT2_GLOBAL(0x00F42BD9, uint8) = 3;
 				free(chunk);
 				return 0;

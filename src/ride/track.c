@@ -439,7 +439,7 @@ void track_load_list(ride_list_item item)
 			if (new_file_pointer > new_track_file + 0x3FF00)break;
 
 			char path[MAX_PATH];
-			subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), enumFileInfo.path);
+			substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), enumFileInfo.path);
 
 			rct_track_td6* loaded_track = load_track_design(path);
 			if (loaded_track){
@@ -2269,7 +2269,7 @@ rct_track_design *track_get_info(int index, uint8** preview)
 		RCT2_ADDRESS(RCT2_ADDRESS_TRACK_DESIGN_INDEX_CACHE, uint32)[i] = index;
 
 		char track_path[MAX_PATH] = { 0 };
-		subsitute_path(track_path, (char*)RCT2_ADDRESS_TRACKS_PATH, (char *)trackDesignList + (index * 128));
+		substitute_path(track_path, (char*)RCT2_ADDRESS_TRACKS_PATH, (char *)trackDesignList + (index * 128));
 
 		rct_track_td6* loaded_track = NULL;
 
@@ -2324,13 +2324,13 @@ int track_rename(const char *text)
 	}
 
 	char new_path[MAX_PATH];
-	subsitute_path(new_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), text);
+	substitute_path(new_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), text);
 	strcat(new_path, ".TD6");
 
 	rct_window* w = window_find_by_class(WC_TRACK_DESIGN_LIST);
 
 	char old_path[MAX_PATH];
-	subsitute_path(old_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), &RCT2_ADDRESS(RCT2_ADDRESS_TRACK_LIST, char)[128 * w->track_list.var_482]);
+	substitute_path(old_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), &RCT2_ADDRESS(RCT2_ADDRESS_TRACK_LIST, char)[128 * w->track_list.var_482]);
 
 	if (!platform_file_move(old_path, new_path)) {
 		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_ANOTHER_FILE_EXISTS_WITH_NAME_OR_FILE_IS_WRITE_PROTECTED;
@@ -2359,7 +2359,7 @@ int track_delete()
 	rct_window* w = window_find_by_class(WC_TRACK_DESIGN_LIST);
 
 	char path[MAX_PATH];
-	subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), &RCT2_ADDRESS(RCT2_ADDRESS_TRACK_LIST, char)[128 * w->track_list.var_482]);
+	substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), &RCT2_ADDRESS(RCT2_ADDRESS_TRACK_LIST, char)[128 * w->track_list.var_482]);
 
 	if (!platform_file_delete(path)) {
 		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_FILE_IS_WRITE_PROTECTED_OR_LOCKED;
@@ -2694,7 +2694,7 @@ int tracked_ride_to_td6(uint8 rideIndex, rct_track_td6* track_design, uint8* tra
 	rct_xy_element trackElement;
 	track_begin_end trackBeginEnd;
 
-	if (sub_6CAF80(rideIndex, &trackElement) == 0){
+	if (!ride_try_get_origin_element(rideIndex, &trackElement)) {
 		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_TRACK_TOO_LARGE_OR_TOO_MUCH_SCENERY;
 		return 0;
 	}
@@ -3091,9 +3091,7 @@ int save_track_design(uint8 rideIndex){
 	format_string(track_name, ride->name, &ride->name_arguments);
 
 	char path[MAX_PATH];
-	subsitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), track_name);
-
-	strcat(path, ".TD6");
+	substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), track_name);
 
 	// Save track design
 	format_string(RCT2_ADDRESS(0x141ED68, char), 2306, NULL);
@@ -3118,7 +3116,7 @@ int save_track_design(uint8 rideIndex){
 		return 1;
 	}
 
-	path_set_extension(path, "TD6");
+	path_append_extension(path, "TD6");
 
 	save_track_to_file(RCT2_ADDRESS(0x009D8178, rct_track_td6), path);
 
@@ -3201,6 +3199,7 @@ void window_track_list_format_name(utf8 *dst, const utf8 *src, int colour, bool 
 {
 	const utf8 *ch;
 	int codepoint;
+	char *lastDot = strrchr(src, '.');
 
 	if (colour != 0) {
 		dst = utf8_write_codepoint(dst, colour);
@@ -3209,8 +3208,8 @@ void window_track_list_format_name(utf8 *dst, const utf8 *src, int colour, bool 
 	if (quotes) dst = utf8_write_codepoint(dst, FORMAT_OPENQUOTES);
 
 	ch = src;
-	while ((codepoint = utf8_get_next(ch, &ch)) != 0) {
-		if (codepoint == '.') break;
+	while (lastDot > ch) {
+		codepoint = utf8_get_next(ch, &ch);
 		dst = utf8_write_codepoint(dst, codepoint);
 	}
 
@@ -3238,7 +3237,7 @@ int install_track(char* source_path, char* dest_name){
 	strcat(track_name, ".TD4");
 
 	char dest_path[MAX_PATH];
-	subsitute_path(dest_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), track_name);
+	substitute_path(dest_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), track_name);
 
 	if (platform_file_exists(dest_path))
 		return 2;
@@ -3249,13 +3248,13 @@ int install_track(char* source_path, char* dest_name){
 	// Check if .TD6 file exists under that name
 	strcat(track_name, ".TD6");
 
-	subsitute_path(dest_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), track_name);
+	substitute_path(dest_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), track_name);
 
 	if (platform_file_exists(dest_path))
 		return 2;
 
 	// Set path for actual copy
-	subsitute_path(dest_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), dest_name);
+	substitute_path(dest_path, RCT2_ADDRESS(RCT2_ADDRESS_TRACKS_PATH, char), dest_name);
 
 	return platform_file_copy(source_path, dest_path, false);
 }
@@ -3308,6 +3307,14 @@ void game_command_place_track_design(int* eax, int* ebx, int* ecx, int* edx, int
 			return;
 		}
 		rideIndex = _edi & 0xFF;
+	}
+
+	rct_ride* ride = GET_RIDE(rideIndex);
+	if (ride->type == RIDE_TYPE_NULL)
+	{
+		log_warning("Invalid game command for track placement, ride id = %d", rideIndex);
+		*ebx = MONEY32_UNDEFINED;
+		return;
 	}
 
 	money32 cost = 0;
@@ -3366,7 +3373,6 @@ void game_command_place_track_design(int* eax, int* ebx, int* ecx, int* edx, int
 	if (num_circuits == 0) num_circuits = 1;
 	game_do_command(0, GAME_COMMAND_FLAG_APPLY | (num_circuits << 8), 0, rideIndex | (9 << 8), GAME_COMMAND_SET_RIDE_SETTING, 0, 0);
 
-	rct_ride* ride = GET_RIDE(rideIndex);
 
 	ride->lifecycle_flags |= RIDE_LIFECYCLE_NOT_CUSTOM_DESIGN;
 
@@ -4512,6 +4518,11 @@ money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 originY,
 
 	uint8 found = 0;
 	rct_map_element* mapElement = map_get_first_element_at(originX / 32, originY / 32);
+	if (mapElement == NULL)
+	{
+		log_warning("Invalid coordinates for track removal. x = %d, y = %d", originX, originY);
+		return MONEY32_UNDEFINED;
+	}
 	do{
 		if (mapElement->base_height * 8 != originZ)
 			continue;
@@ -4799,6 +4810,12 @@ void game_command_set_brakes_speed(int *eax, int *ebx, int *ecx, int *edx, int *
 	}
 
 	mapElement = map_get_first_element_at(x >> 5, y >> 5);
+	if (mapElement == NULL)
+	{
+		log_warning("Invalid game command for setting brakes speed. x = %d, y = %d", x, y);
+		*ebx = MONEY32_UNDEFINED;
+		return;
+	}
 	do {
 		if (mapElement->base_height * 8 != z)
 			continue;

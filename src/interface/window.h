@@ -27,11 +27,13 @@
 #include "../ride/ride.h"
 #include "../ride/vehicle.h"
 #include "../world/park.h"
+#include "../management/research.h"
+#include "../scenario.h"
 #include "colour.h"
 
 struct rct_window;
 union rct_window_event;
-extern uint8 TextInputDescriptionArgs[8];
+extern uint16 TextInputDescriptionArgs[4];
 extern char gTextBoxInput[512];
 extern int gMaxTextBoxInputLength;
 extern int gTextBoxFrameNo;
@@ -41,6 +43,7 @@ typedef void wndproc(struct rct_window*, union rct_window_event*);
 
 typedef uint8 rct_windowclass;
 typedef uint16 rct_windownumber;
+typedef sint16 rct_widgetindex;
 
 typedef struct {
 	rct_windowclass classification;
@@ -260,11 +263,23 @@ typedef struct rct_window {
 		error_variables error;
 	};
 	sint16 page;					// 0x48A
-	sint16 var_48C;
+	union {
+		sint16 picked_peep_old_x;   // 0x48C staff/guest window: peep x gets set to 0x8000 on pickup, this is the old value
+		sint16 var_48C;
+	};
 	uint16 frame_no;				// 0x48E updated every tic for motion in windows sprites
 	uint16 list_information_type;	// 0x490 0 for none, Used as current position of marquee in window_peep
-	sint16 var_492;
-	uint32 var_494;
+	union {
+		sint16 picked_peep_frame;   // 0x492 Animation frame of picked peep in staff window and guest window
+		sint16 var_492;
+	};
+	union {							// 0x494
+		uint32 highlighted_item;
+		uint16 ride_colour;
+		rct_research_item* research_item;
+		rct_object_entry* object_entry;
+		scenario_index_entry* highlighted_scenario;
+	};
 	uint8 var_498[0x14];
 	sint16 selected_tab;			// 0x4AC
 	sint16 var_4AE;
@@ -373,19 +388,6 @@ enum {
 };
 
 enum {
-	INPUT_STATE_RESET = 0,
-	INPUT_STATE_NORMAL = 1,
-	INPUT_STATE_WIDGET_PRESSED = 2,
-	INPUT_STATE_POSITIONING_WINDOW = 3,
-	INPUT_STATE_VIEWPORT_RIGHT = 4,
-	INPUT_STATE_DROPDOWN_ACTIVE = 5,
-	INPUT_STATE_VIEWPORT_LEFT = 6,
-	INPUT_STATE_SCROLL_LEFT = 7,
-	INPUT_STATE_RESIZING = 8,
-	INPUT_STATE_SCROLL_RIGHT = 9
-};
-
-enum {
 	WC_MAIN_WINDOW = 0,
 	WC_TOP_TOOLBAR = 1,
 	WC_BOTTOM_TOOLBAR = 2,
@@ -434,6 +436,7 @@ enum {
 	WC_TRACK_DELETE_PROMPT = 48,
 	WC_INSTALL_TRACK = 49,
 	WC_CLEAR_SCENERY = 50,
+	WC_NOTIFICATION_OPTIONS = 109,
 	WC_CHEATS = 110,
 	WC_RESEARCH = 111,
 	WC_VIEWPORT = 112,
@@ -627,6 +630,7 @@ void window_install_track_open(const char* path);
 void window_banner_open(rct_windownumber number);
 void window_sign_open(rct_windownumber number);
 void window_sign_small_open(rct_windownumber number);
+void window_news_options_open();
 void window_cheats_open();
 void window_player_list_open();
 void window_network_status_open(const char* text);

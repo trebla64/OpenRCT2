@@ -310,7 +310,7 @@ static void window_top_toolbar_mouseup(rct_window *w, int widgetIndex)
 		break;
 	case WIDX_SCENERY:
 		if (!tool_set(w, WIDX_SCENERY, 0)) {
-			RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) |= INPUT_FLAG_6;
+			gInputFlags |= INPUT_FLAG_6;
 			window_scenery_open();
 		}
 		break;
@@ -1008,11 +1008,10 @@ void sub_6E1F34(sint16 x, sint16 y, uint16 selected_scenery, sint16* grid_x, sin
 	if (type == 0 && !gCheatsDisableSupportLimits) {
 		RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_CTRL_PRESSED, uint8) = 0;
 		RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_SHIFT_PRESSED, uint8) = 0;
-	}
-	else{
-		if (RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_CTRL_PRESSED, uint8) == 0){
-			// CTRL pressed
-			if (RCT2_GLOBAL(RCT2_ADDRESS_PLACE_OBJECT_MODIFIER, uint8) & (1 << 1)){
+	} else {
+		if (RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_CTRL_PRESSED, uint8) == 0) {
+			if (gInputPlaceObjectModifier & PLACE_OBJECT_MODIFIER_COPY_Z) {
+				// CTRL pressed
 				rct_map_element* map_element;
 				uint16 flags =
 					VIEWPORT_INTERACTION_MASK_TERRAIN &
@@ -1029,17 +1028,16 @@ void sub_6E1F34(sint16 x, sint16 y, uint16 selected_scenery, sint16* grid_x, sin
 					RCT2_GLOBAL(RCT2_ADDRESS_CTRL_PRESS_Z_COORDINATE, uint16) = map_element->base_height * 8;
 				}
 			}
-		}
-		else{
-			// CTRL not pressed
-			if (!(RCT2_GLOBAL(RCT2_ADDRESS_PLACE_OBJECT_MODIFIER, uint8) & (1 << 1))){
+		} else {
+			if (!(gInputPlaceObjectModifier & PLACE_OBJECT_MODIFIER_COPY_Z)) {
+				// CTRL not pressed
 				RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_CTRL_PRESSED, uint8) = 0;
 			}
 		}
 
 		if (RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_SHIFT_PRESSED, uint8) == 0){
-			// SHIFT pressed
-			if (RCT2_GLOBAL(RCT2_ADDRESS_PLACE_OBJECT_MODIFIER, uint8) & (1 << 0)){
+			if (gInputPlaceObjectModifier & PLACE_OBJECT_MODIFIER_SHIFT_Z) {
+				// SHIFT pressed
 				RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_SHIFT_PRESSED, uint8) = 1;
 				RCT2_GLOBAL(RCT2_ADDRESS_SHIFT_PRESS_X_COORDINATE, uint16) = x;
 				RCT2_GLOBAL(RCT2_ADDRESS_SHIFT_PRESS_Y_COORDINATE, uint16) = y;
@@ -1047,15 +1045,14 @@ void sub_6E1F34(sint16 x, sint16 y, uint16 selected_scenery, sint16* grid_x, sin
 			}
 		}
 		else{
-			// SHIFT pressed
-			if (RCT2_GLOBAL(RCT2_ADDRESS_PLACE_OBJECT_MODIFIER, uint8) & (1 << 0)){
+			if (gInputPlaceObjectModifier & PLACE_OBJECT_MODIFIER_SHIFT_Z) {
+				// SHIFT pressed
 				RCT2_GLOBAL(RCT2_ADDRESS_SHIFT_PRESS_Z_VECTOR, sint16) =
 					(RCT2_GLOBAL(RCT2_ADDRESS_SHIFT_PRESS_Y_COORDINATE, sint16) - y + 4) & 0xFFF8;
 
 				x = RCT2_GLOBAL(RCT2_ADDRESS_SHIFT_PRESS_X_COORDINATE, sint16);
 				y = RCT2_GLOBAL(RCT2_ADDRESS_SHIFT_PRESS_Y_COORDINATE, sint16);
-			}
-			else{
+			} else {
 				// SHIFT not pressed
 				RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_TOOL_SHIFT_PRESSED, uint8) = 0;
 			}
@@ -3117,12 +3114,12 @@ void toggle_footpath_window()
  */
 void toggle_land_window(rct_window *topToolbar, int widgetIndex)
 {
-	if ((RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE) && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, uint8) == 1 && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == 7) {
+	if ((gInputFlags & INPUT_FLAG_TOOL_ACTIVE) && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) == WC_TOP_TOOLBAR && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == 7) {
 		tool_cancel();
 	} else {
 		show_gridlines();
 		tool_set(topToolbar, widgetIndex, 18);
-		RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) |= INPUT_FLAG_6;
+		gInputFlags |= INPUT_FLAG_6;
 		RCT2_GLOBAL(RCT2_ADDRESS_LAND_TOOL_SIZE, sint16) = 1;
 		window_land_open();
 	}
@@ -3134,12 +3131,12 @@ void toggle_land_window(rct_window *topToolbar, int widgetIndex)
  */
 void toggle_clear_scenery_window(rct_window *topToolbar, int widgetIndex)
 {
-	if ((RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE) && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, uint8) == 1 && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == 16) {
+	if ((gInputFlags & INPUT_FLAG_TOOL_ACTIVE) && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) == WC_TOP_TOOLBAR && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == 16) {
 		tool_cancel();
 	} else {
 		show_gridlines();
 		tool_set(topToolbar, widgetIndex, 12);
-		RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) |= INPUT_FLAG_6;
+		gInputFlags |= INPUT_FLAG_6;
 		RCT2_GLOBAL(RCT2_ADDRESS_LAND_TOOL_SIZE, sint16) = 2;
 		window_clear_scenery_open();
 	}
@@ -3151,12 +3148,12 @@ void toggle_clear_scenery_window(rct_window *topToolbar, int widgetIndex)
  */
 void toggle_water_window(rct_window *topToolbar, int widgetIndex)
 {
-	if ((RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE) && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, uint8) == 1 && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == 8) {
+	if ((gInputFlags & INPUT_FLAG_TOOL_ACTIVE) && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) == WC_TOP_TOOLBAR && RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == 8) {
 		tool_cancel();
 	} else {
 		show_gridlines();
 		tool_set(topToolbar, widgetIndex, 19);
-		RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) |= INPUT_FLAG_6;
+		gInputFlags |= INPUT_FLAG_6;
 		RCT2_GLOBAL(RCT2_ADDRESS_LAND_TOOL_SIZE, sint16) = 1;
 		window_water_open();
 	}
@@ -3168,11 +3165,11 @@ void toggle_water_window(rct_window *topToolbar, int widgetIndex)
  */
 bool land_tool_is_active()
 {
-	if (!(RCT2_GLOBAL(RCT2_ADDRESS_INPUT_FLAGS, uint32) & INPUT_FLAG_TOOL_ACTIVE))
+	if (!(gInputFlags & INPUT_FLAG_TOOL_ACTIVE))
 		return false;
 	if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) != WC_TOP_TOOLBAR)
 		return false;
-	if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, sint16) != WIDX_LAND)
+	if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) != WIDX_LAND)
 		return false;
 	return true;
 }

@@ -921,7 +921,7 @@ void Network::AdvertiseHeartbeat()
 	json_object_set_new(body, "players", json_integer(network_get_num_players()));
 
 	json_t *gameInfo = json_object();
-	json_object_set_new(gameInfo, "mapSize", json_integer(RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE, uint8) - 2));
+	json_object_set_new(gameInfo, "mapSize", json_integer(RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16)));
 	json_object_set_new(gameInfo, "day", json_integer(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONTH_TICKS, uint16)));
 	json_object_set_new(gameInfo, "month", json_integer(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONTH_YEAR, uint16)));
 	json_object_set_new(gameInfo, "guests", json_integer(RCT2_GLOBAL(RCT2_ADDRESS_GUESTS_IN_PARK, uint16)));
@@ -1415,8 +1415,11 @@ int Network::Server_Handle_GAMECMD(NetworkConnection& connection, NetworkPacket&
 	if (commandCommand != GAME_COMMAND_TOGGLE_PAUSE &&
 		commandCommand != GAME_COMMAND_LOAD_OR_QUIT
 	) {
-		Server_Send_GAMECMD(args[0], args[1], args[2], args[3], args[4], args[5], args[6], playerid, callback);
-		game_do_command(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+		// Run game command, and if it is successful send to clients
+		money32 cost = game_do_command(args[0], args[1] | GAME_COMMAND_FLAG_NETWORKED, args[2], args[3], args[4], args[5], args[6]);
+		if (cost != MONEY32_UNDEFINED) {
+			Server_Send_GAMECMD(args[0], args[1], args[2], args[3], args[4], args[5], args[6], playerid, callback);
+		}
 	}
 
 	return 1;

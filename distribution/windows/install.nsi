@@ -1,8 +1,8 @@
 # Version numbers to update
 !define /ifndef APPV_MAJOR 0
 !define /ifndef APPV_MINOR 0
-!define /ifndef APPV_MAINT 3
-!define /ifndef APPV_BUILD 1
+!define /ifndef APPV_MAINT 4
+!define /ifndef APPV_BUILD 0
 !define /ifndef APPV_EXTRA "-beta"
 
 !define APPNAME "OpenRCT2"   ; Define application name
@@ -111,13 +111,9 @@ Section "!OpenRCT2" Section1
 
     SetShellVarContext all
 
-    ; Copy language files
-    SetOutPath "$INSTDIR\data\language\"
-    File ${PATH_ROOT}data\language\*.txt
-
     ; Copy data files
     SetOutPath "$INSTDIR\data\"
-    File /r ${PATH_ROOT}data\*
+    File /r ${PATH_ROOT}bin\data\*
 
     ; Copy the rest of the stuff
     SetOutPath "$INSTDIR\"
@@ -125,12 +121,12 @@ Section "!OpenRCT2" Section1
 	; Copy curl ca file
 	File ..\..\curl-ca-bundle.crt
 
-    ; Copy curl ca file
-    File ..\..\curl-ca-bundle.crt
-
     ; Copy text files
     File ..\changelog.txt
     Push "$INSTDIR\changelog.txt"
+    Call unix2dos
+    File ..\known_issues.txt
+    Push "$INSTDIR\known_issues.txt"
     Call unix2dos
     File ..\..\licence.txt
     Push "$INSTDIR\licence.txt"
