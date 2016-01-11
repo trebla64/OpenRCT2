@@ -414,7 +414,7 @@ typedef struct {
 	uint16 next_y;					// 0x26
 	uint8 next_z;					// 0x28
 	uint8 next_var_29;				// 0x29
-	uint8 outside_of_park;          // 0x2A
+	uint8 outside_of_park;			// 0x2A
 	uint8 state;					// 0x2B
 	uint8 sub_state;				// 0x2C
 	uint8 sprite_type;				// 0x2D
@@ -507,8 +507,8 @@ typedef struct {
 	};
 	uint8 photo1_ride_ref;			// 0xC7
 	uint32 flags;					// 0xC8
-	rct_xyzd8 var_CC;
-	rct_xyzd8 var_D0[4];
+	rct_xyzd8 pathfind_goal;		// 0xCC
+	rct_xyzd8 pathfind_history[4];	// 0xD0
 	uint8 no_action_frame_no;		// 0xE0
 	// 0x3F Litter Count split into lots of 3 with time, 0xC0 Time since last recalc
 	uint8 litter_count;				// 0xE1

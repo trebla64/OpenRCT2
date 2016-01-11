@@ -1601,7 +1601,8 @@ static money32 map_set_land_height(int flags, int x, int y, int height, int styl
 	if(flags & GAME_COMMAND_FLAG_APPLY)
 	{
 		footpath_remove_litter(x, y, map_element_height(x, y));
-		map_remove_walls_at(x, y, height * 8 - 16, height * 8 + 32);
+		if(!gCheatsDisableClearanceChecks)
+			map_remove_walls_at(x, y, height * 8 - 16, height * 8 + 32);
 	}
 	RCT2_GLOBAL(0x9E2E18, money32) += MONEY(20, 0);
 
@@ -2498,7 +2499,8 @@ void game_command_set_water_height(int* eax, int* ebx, int* ecx, int* edx, int* 
 	if(*ebx & GAME_COMMAND_FLAG_APPLY){
 		int element_height = map_element_height(x, y);
 		footpath_remove_litter(x, y, element_height);
-		map_remove_walls_at_z(x, y, element_height);
+		if(!gCheatsDisableClearanceChecks)
+			map_remove_walls_at_z(x, y, element_height);
 	}
 
 	rct_map_element* map_element = map_get_surface_element_at(x / 32, y / 32);
@@ -5059,7 +5061,7 @@ void game_command_set_sign_style(int* eax, int* ebx, int* ecx, int* edx, int* es
 }
 
 /**
- * Gets the map element at x, y, z.
+ * Gets the track element at x, y, z.
  * @param x x units, not tiles.
  * @param y y units, not tiles.
  * @param z Base height.
@@ -5078,10 +5080,11 @@ rct_map_element *map_get_track_element_at(int x, int y, int z)
 }
 
 /**
- * Gets the map element at x, y, z.
+ * Gets the track element at x, y, z that is the given track type.
  * @param x x units, not tiles.
  * @param y y units, not tiles.
  * @param z Base height.
+ * @param trackType
  */
 rct_map_element *map_get_track_element_at_of_type(int x, int y, int z, int trackType)
 {
@@ -5090,6 +5093,29 @@ rct_map_element *map_get_track_element_at_of_type(int x, int y, int z, int track
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
 		if (mapElement->base_height != z) continue;
 		if (mapElement->properties.track.type != trackType) continue;
+
+		return mapElement;
+	} while (!map_element_is_last_for_tile(mapElement++));
+
+	return NULL;
+}
+
+/**
+ * Gets the track element at x, y, z that is the given track type and sequence.
+ * @param x x units, not tiles.
+ * @param y y units, not tiles.
+ * @param z Base height.
+ * @param trackType
+ * @param sequence
+ */
+rct_map_element *map_get_track_element_at_of_type_seq(int x, int y, int z, int trackType, int sequence)
+{
+	rct_map_element *mapElement = map_get_first_element_at(x >> 5, y >> 5);
+	do {
+		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
+		if (mapElement->base_height != z) continue;
+		if (mapElement->properties.track.type != trackType) continue;
+		if ((mapElement->properties.track.sequence & 0x0F) != sequence) continue;
 
 		return mapElement;
 	} while (!map_element_is_last_for_tile(mapElement++));

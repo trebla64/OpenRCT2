@@ -26,7 +26,6 @@
 #include <SDL_syswm.h>
 #include <sys/stat.h>
 #include "../addresses.h"
-#include "../cmdline.h"
 #include "../openrct2.h"
 #include "../localisation/language.h"
 #include "../localisation/currency.h"
@@ -94,7 +93,7 @@ __declspec(dllexport) int StartOpenRCT(HINSTANCE hInstance, HINSTANCE hPrevInsta
 	}
 	free(argv);
 
-	if (runGame) {
+	if (runGame == 1) {
 		openrct2_launch();
 	}
 
@@ -146,6 +145,11 @@ void platform_get_time(rct2_time *out_time)
 char platform_get_path_separator()
 {
 	return '\\';
+}
+
+const char *platform_get_new_line()
+{
+	return "\r\n";
 }
 
 bool platform_file_exists(const utf8 *path)

@@ -20,24 +20,23 @@
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 
-#include <libgen.h>
-#include <SDL_syswm.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <pwd.h>
-#include "../addresses.h"
-#include "../cmdline.h"
-#include "../openrct2.h"
-#include "../localisation/language.h"
-#include "../localisation/currency.h"
-#include "../config.h"
-#include "platform.h"
-#include "../util/util.h"
 #include <dirent.h>
+#include <errno.h>
 #include <fnmatch.h>
+#include <libgen.h>
 #include <locale.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <pwd.h>
 #include <time.h>
+#include <SDL_syswm.h>
+#include "../addresses.h"
+#include "../config.h"
+#include "../localisation/currency.h"
+#include "../localisation/language.h"
+#include "../openrct2.h"
+#include "../util/util.h"
+#include "platform.h"
 
 // The name of the mutex used to prevent multiple instances of the game from running
 #define SINGLE_INSTANCE_MUTEX_NAME "RollerCoaster Tycoon 2_GSKMUTEX"
@@ -89,6 +88,11 @@ void platform_get_time(rct2_time *out_time)
 char platform_get_path_separator()
 {
 	return '/';
+}
+
+const char *platform_get_new_line()
+{
+	return "\n";
 }
 
 bool platform_file_exists(const utf8 *path)
@@ -147,10 +151,10 @@ bool platform_ensure_directory_exists(const utf8 *path)
 	mode_t mask = getumask();
 
 	wchar_t *wPath = utf8_to_widechar(path);
-	int len = min(MAX_PATH, utf8_length(path));
+	int len = min(MAX_PATH - 1, utf8_length(path));
 	char buffer[MAX_PATH];
 	wcstombs(buffer, wPath, len);
-	buffer[len - 1] = '\0';
+	buffer[len] = '\0';
 	free(wPath);
 	log_verbose("%s", buffer);
 	const int result = mkdir(buffer, mask);

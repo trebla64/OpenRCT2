@@ -111,6 +111,35 @@ typedef utf16* utf16string;
 #pragma pack(1)
 #endif
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <unistd.h>
+#define STUB() log_warning("Function %s at %s:%d is a stub.\n", __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define _strcmpi _stricmp
+#define _stricmp(x, y) strcasecmp((x), (y))
+#define _strnicmp(x, y, n) strncasecmp((x), (y), (n))
+#define _strdup(x) strdup((x))
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define RCT2_ENDIANESS __ORDER_LITTLE_ENDIAN__
+#define LOBYTE(w) ((uint8_t)(w))
+#define HIBYTE(w) ((uint8_t)(((uint16_t)(w)>>8)&0xFF))
+#endif // __BYTE_ORDER__
+
+#ifndef RCT2_ENDIANESS
+#error Unknown endianess!
+#endif // RCT2_ENDIANESS
+
+#endif // defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+
+#if !(_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700)
+	char *strndup(const char *src, size_t size);
+#endif // !(POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700)
+
+// BSD and OS X has MAP_ANON instead of MAP_ANONYMOUS
+#ifndef MAP_ANONYMOUS
+	#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 #include "version.h"
 
 #define OPENRCT2_MASTER_SERVER_URL	"https://servers.openrct2.website"
@@ -225,77 +254,13 @@ enum {
 	PATH_ID_END
 };
 
-// rct2 @ 0x0097F67C
-static const char * const file_paths[] =
-{
-	"Data\\g1.dat",
-	"Data\\plugin.dat",
-	"Data\\css1.dat",
-	"Data\\css2.dat",
-	"Data\\css4.dat",
-	"Data\\css5.dat",
-	"Data\\css6.dat",
-	"Data\\css7.dat",
-	"Data\\css8.dat",
-	"Data\\css9.dat",
-	"Data\\css11.dat",
-	"Data\\css12.dat",
-	"Data\\css13.dat",
-	"Data\\css14.dat",
-	"Data\\css15.dat",
-	"Data\\css3.dat",
-	"Data\\css17.dat",
-	"Data\\css18.dat",
-	"Data\\css19.dat",
-	"Data\\css20.dat",
-	"Data\\css21.dat",
-	"Data\\css22.dat",
-	"Saved Games\\scores.dat",
-	"Data\\css23.dat",
-	"Data\\css24.dat",
-	"Data\\css25.dat",
-	"Data\\css26.dat",
-	"Data\\css27.dat",
-	"Data\\css28.dat",
-	"Data\\css29.dat",
-	"Data\\css30.dat",
-	"Data\\css31.dat",
-	"Data\\css32.dat",
-	"Data\\css33.dat",
-	"Data\\css34.dat",
-	"Data\\css35.dat",
-	"Data\\css36.dat",
-	"Data\\css37.dat",
-	"Data\\css38.dat",
-	"Data\\CUSTOM1.WAV",
-	"Data\\CUSTOM2.WAV",
-	"Data\\css39.dat",
-	"Data\\css40.dat",
-	"Data\\css41.dat",
-	"Scenarios\\Six Flags Magic Mountain.SC6",
-	"Data\\css42.dat",
-	"Data\\css43.dat",
-	"Data\\css44.dat",
-	"Data\\css45.dat",
-	"Data\\css46.dat",
-	"Data\\css50.dat"
-};
-
-// Files to check (rct2 @ 0x0097FB5A)
-static const struct file_to_check
-{
-	int pathId; // ID of file
-	unsigned int fileSize; // Expected size in bytes
-} files_to_check[] = {
-	{ PATH_ID_END,          0 }
-};
+extern const char * const RCT2FilePaths[PATH_ID_END];
 
 extern uint32 gCurrentDrawCount;
 
 int rct2_init();
 void rct2_update();
 void rct2_draw();
-void rct2_endupdate();
 void substitute_path(char *dest, const char *path, const char *filename);
 int check_mutex();
 int check_file_paths();
