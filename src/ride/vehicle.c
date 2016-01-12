@@ -2429,7 +2429,7 @@ static void vehicle_check_if_missing(rct_vehicle* vehicle) {
 
 	ride->lifecycle_flags |= RIDE_LIFECYCLE_11;
 
-	RCT2_GLOBAL(0x0013CE952, rct_string_id)
+	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id)
 		= RCT2_ADDRESS(0x0097C98E, rct_string_id)[ride->type * 4] + 6;
 
 	uint8 vehicleIndex = 0;
@@ -2437,10 +2437,10 @@ static void vehicle_check_if_missing(rct_vehicle* vehicle) {
 		if (ride->vehicles[vehicleIndex] == vehicle->sprite_index) break;
 
 	vehicleIndex++;
-	RCT2_GLOBAL(0x0013CE954, uint16) = vehicleIndex;
-	RCT2_GLOBAL(0x0013CE956, rct_string_id) = ride->name;
-	RCT2_GLOBAL(0x0013CE958, uint32) = ride->name_arguments;
-	RCT2_GLOBAL(0x0013CE95C, rct_string_id) =
+	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint16) = vehicleIndex;
+	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, rct_string_id) = ride->name;
+	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, uint32) = ride->name_arguments;
+	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 10, rct_string_id) =
 		RCT2_ADDRESS(0x0097C98E, rct_string_id)[ride->type * 4 + 2];
 
 	news_item_add_to_queue(NEWS_ITEM_RIDE, 2218, vehicle->ride);
@@ -3130,7 +3130,7 @@ static void vehicle_update_travelling_cable_lift(rct_vehicle* vehicle) {
 	}
 	int flags = vehicle_update_track_motion(vehicle, NULL);
 
-	if (flags & (1 << 11)) {
+	if (flags & VEHICLE_UPDATE_MOTION_TRACK_FLAG_11) {
 		vehicle->status = VEHICLE_STATUS_TRAVELLING;
 		vehicle_invalidate_window(vehicle);
 		vehicle->sub_state = 1;
@@ -3141,7 +3141,7 @@ static void vehicle_update_travelling_cable_lift(rct_vehicle* vehicle) {
 	if (vehicle->sub_state == 2)
 		return;
 
-	if (flags & (1 << 3) && vehicle->current_station == RCT2_GLOBAL(0x00F64E1C, uint8))
+	if (flags & VEHICLE_UPDATE_MOTION_TRACK_FLAG_3 && vehicle->current_station == RCT2_GLOBAL(0x00F64E1C, uint8))
 		return;
 
 	vehicle->sub_state = 2;
@@ -5427,6 +5427,10 @@ static void vehicle_update_block_breaks_open_previous_section(rct_vehicle *vehic
 		mapElement = trackBeginEnd.begin_element;
 	} while (!track_element_is_block_start(trackBeginEnd.begin_element));
 
+	// Get the start of the track block instead of the end
+	x = trackBeginEnd.begin_x;
+	y = trackBeginEnd.begin_y;
+	z = trackBeginEnd.begin_z;
 	mapElement = map_get_track_element_at(x, y, z >> 3);
 	if (mapElement == NULL) {
 		return;
