@@ -2553,8 +2553,8 @@ static void vehicle_update_crash_setup(rct_vehicle* vehicle) {
 		lastVehicle = trainVehicle;
 
 		trainVehicle->sub_state = 0;
-		int x = RCT2_ADDRESS(0x009A3AC4, sint16)[trainVehicle->sprite_direction * 2];
-		int	y = RCT2_ADDRESS(0x009A3AC6, sint16)[trainVehicle->sprite_direction * 2];
+		int x = RCT2_ADDRESS(0x009A3AC4, sint16)[trainVehicle->sprite_direction & 0xFE];
+		int	y = RCT2_ADDRESS(0x009A3AC6, sint16)[trainVehicle->sprite_direction & 0xFE];
 
 		int ecx = RCT2_ADDRESS(0x009A37E4, uint32)[trainVehicle->var_1F] >> 15;
 		x *= ecx;
@@ -4256,8 +4256,8 @@ static void vehicle_update_sound(rct_vehicle *vehicle)
 {
 	rct_ride *ride;
 	rct_ride_type *rideEntry;
-	// bl should be set before hand
-	uint8 bl = 255, dl = 255;
+	// frictionVolume (bl) should be set before hand
+	uint8 frictionVolume = 255, frictionId = 255;
 	// bh screamVolume should be set before hand
 	uint8 screamId, screamVolume = 255;
 	uint16 soundIdVolume;
@@ -4269,9 +4269,9 @@ static void vehicle_update_sound(rct_vehicle *vehicle)
 
 	int ecx = abs(vehicle->velocity) - 0x10000;
 	if (ecx >= 0) {
-		dl = vehicleEntry->var_57;
+		frictionId = vehicleEntry->friction_sound_id;
 		ecx >>= 15;
-		bl = min(208 + ecx & 0xFF, 255);
+		frictionVolume = min(208 + (ecx & 0xFF), 255);
 	}
 
 	switch (vehicleEntry->sound_range) {
@@ -4328,7 +4328,7 @@ static void vehicle_update_sound(rct_vehicle *vehicle)
 	}
 
 	// Friction sound
-	soundIdVolume = sub_6D7AC0(vehicle->sound1_id, vehicle->sound1_volume, dl, bl);
+	soundIdVolume = sub_6D7AC0(vehicle->sound1_id, vehicle->sound1_volume, frictionId, frictionVolume);
 	vehicle->sound1_id = soundIdVolume & 0xFF;
 	vehicle->sound1_volume = (soundIdVolume >> 8) & 0xFF;
 
@@ -7215,7 +7215,7 @@ loc_6DBA33:;
 	uint16 trackType = vehicle->track_type >> 2;
 	if (trackType == TRACK_ELEM_FLAT && ride->type == RIDE_TYPE_REVERSE_FREEFALL_COASTER) {
 		sint32 unkVelocity = RCT2_GLOBAL(0x00F64E08, sint32);
-		if (unkVelocity > 0xFFF80000) {
+		if (unkVelocity < -524288) {
 			unkVelocity = abs(unkVelocity);
 			vehicle->acceleration = unkVelocity * 2;
 		}

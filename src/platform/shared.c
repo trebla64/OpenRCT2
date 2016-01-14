@@ -29,6 +29,7 @@
 #include "../interface/keyboard_shortcut.h"
 #include "../interface/window.h"
 #include "../input.h"
+#include "../localisation/currency.h"
 #include "../localisation/localisation.h"
 #include "../openrct2.h"
 #include "../title.h"
@@ -795,6 +796,7 @@ static void platform_create_window()
 	}
 
 	SDL_SetWindowGrab(gWindow, gConfigGeneral.trap_cursor ? SDL_TRUE : SDL_FALSE);
+	SDL_SetWindowMinimumSize(gWindow, 720, 480);
 
 	// Set the update palette function pointer
 	RCT2_GLOBAL(0x009E2BE4, update_palette_func) = platform_update_palette;
@@ -1113,4 +1115,18 @@ void platform_set_cursor_position(int x, int y)
 unsigned int platform_get_ticks()
 {
 	return SDL_GetTicks();
+}
+
+uint8 platform_get_currency_value(const char *currCode) {
+	if (currCode == NULL || strlen(currCode) < 3) {
+			return CURRENCY_POUNDS;
+	}
+	
+	for (int currency = 0; currency < CURRENCY_END; ++currency) {
+		if (strncmp(currCode, CurrencyDescriptors[currency].isoCode, 3) == 0) {
+			return currency;
+		}
+	}
+	
+	return CURRENCY_POUNDS;
 }

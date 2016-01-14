@@ -68,7 +68,6 @@ int _finished;
 static struct { sint16 x, y, z; } _spritelocations1[MAX_SPRITES], _spritelocations2[MAX_SPRITES];
 
 static void openrct2_loop();
-static bool openrct2_setup_rct2_segment();
 static void openrct2_setup_rct2_hooks();
 
 void openrct2_write_full_version_info(utf8 *buffer, size_t bufferSize)
@@ -84,11 +83,8 @@ void openrct2_write_full_version_info(utf8 *buffer, size_t bufferSize)
 	if (!str_is_null_or_empty(OPENRCT2_BRANCH)) {
 		sprintf(strchr(buffer, 0), "-%s", OPENRCT2_BRANCH);
 	}
-	if (!str_is_null_or_empty(OPENRCT2_BUILD_NUMBER)) {
-		sprintf(strchr(buffer, 0), " build %s", OPENRCT2_BUILD_NUMBER);
-	}
 	if (!str_is_null_or_empty(OPENRCT2_COMMIT_SHA1_SHORT)) {
-		sprintf(strchr(buffer, 0), " (%s)", OPENRCT2_COMMIT_SHA1_SHORT);
+		sprintf(strchr(buffer, 0), " build %s", OPENRCT2_COMMIT_SHA1_SHORT);
 	}
 	if (!str_is_null_or_empty(OPENRCT2_BUILD_SERVER)) {
 		sprintf(strchr(buffer, 0), " provided by %s", OPENRCT2_BUILD_SERVER);
@@ -475,7 +471,7 @@ void openrct2_reset_object_tween_locations()
  * Loads RCT2's data model and remaps the addresses.
  * @returns true if the data integrity check succeeded, otherwise false.
  */
-static bool openrct2_setup_rct2_segment()
+bool openrct2_setup_rct2_segment()
 {
 	// OpenRCT2 on Linux and OS X is wired to have the original Windows PE sections loaded
 	// necessary. Windows does not need to do this as OpenRCT2 runs as a DLL loaded from the Windows PE.
