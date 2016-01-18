@@ -126,6 +126,13 @@ void rct2_quit()
 	window_save_prompt_open();
 }
 
+void rct2_dispose()
+{
+	gfx_unload_g2();
+	gfx_unload_g1();
+	object_unload_all();
+}
+
 int rct2_init()
 {
 	log_verbose("initialising game");
@@ -550,7 +557,7 @@ void get_system_info()
 	}
 
 	RCT2_GLOBAL(0x01423C1C, uint32) = (RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_CAP_BPP, sint32) >= 8);
-	if (RCT2_GLOBAL(RCT2_ADDRESS_OS_MAJOR_VERSION, uint32) < 4 || RCT2_GLOBAL(0x1423C10, sint32) < 4)
+	if (RCT2_GLOBAL(RCT2_ADDRESS_OS_MAJOR_VERSION, uint32) < 4 || RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_CAP_BPP, sint32) < 4)
 		RCT2_GLOBAL(0x1423C18, sint32) = 0;
 	else
 		RCT2_GLOBAL(0x1423C18, sint32) = 1;

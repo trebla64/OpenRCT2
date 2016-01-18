@@ -397,7 +397,7 @@ static void game_handle_input_mouse(int x, int y, int state)
 			break;
 		case MOUSE_STATE_LEFT_RELEASE:
 			gInputState = INPUT_STATE_RESET;
-			if (RCT2_GLOBAL(0x009DE52E, rct_windownumber) == w->number) {
+			if (_dragWidget.window_number == w->number) {
 				if ((gInputFlags & INPUT_FLAG_TOOL_ACTIVE)) {
 					w = window_find_by_number(
 						RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass),
@@ -1208,7 +1208,12 @@ void input_state_widget_pressed(int x, int y, int state, int widgetIndex, rct_wi
 			window_event_mouse_down_call(w, widgetIndex);
 		}
 
-		if (gInputFlags & INPUT_FLAG_WIDGET_PRESSED) return;
+		if (gInputFlags & INPUT_FLAG_WIDGET_PRESSED) {
+			if (gInputState == INPUT_STATE_DROPDOWN_ACTIVE) {
+				gDropdownHighlightedIndex = gDropdownDefaultIndex;
+			}
+			return;
+		}
 
 		gInputFlags |= INPUT_FLAG_WIDGET_PRESSED;
 		widget_invalidate_by_number(cursor_w_class, cursor_w_number, widgetIndex);
@@ -1257,6 +1262,12 @@ void input_state_widget_pressed(int x, int y, int state, int widgetIndex, rct_wi
 				gTooltipWidget.widget_index = cursor_widgetIndex;
 				gTooltipWidget.window_classification = cursor_w_class;
 				gTooltipWidget.window_number = cursor_w_number;
+
+				if (dropdown_index == -1) {
+					if (!dropdown_is_disabled(gDropdownDefaultIndex)) {
+						dropdown_index = gDropdownDefaultIndex;
+					}
+				}
 				window_event_dropdown_call(cursor_w, cursor_widgetIndex, dropdown_index);
 			}
 		dropdown_cleanup:
@@ -1300,12 +1311,17 @@ void input_state_widget_pressed(int x, int y, int state, int widgetIndex, rct_wi
 		return;
 	}
 
-	if (!w) return;
+	gDropdownHighlightedIndex = -1;
+	window_invalidate_by_class(WC_DROPDOWN);
+	if (w == NULL) {
+		return;
+	}
 
 	if (w->classification == WC_DROPDOWN){
 		int dropdown_index = dropdown_index_from_point(x, y, w);
-
-		if (dropdown_index == -1) return;
+		if (dropdown_index == -1) {
+			return;
+		}
 
 		if (gDropdownIsColour && gDropdownLastColourHover != dropdown_index) {
 			gDropdownLastColourHover = dropdown_index;

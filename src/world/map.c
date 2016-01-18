@@ -985,6 +985,8 @@ void game_command_set_scenery_colour(int* eax, int* ebx, int* ecx, int* edx, int
 	uint8 color1 = *ebp;
 	uint8 color2 = *ebp >> 8;
 	uint8 flags = *ebx & 0xFF;
+	// Note this function is passed type.
+	uint8 quadrant = ((*ebx >> 8) & 0xFF) >> 6;
 	int z = base_height * 8;
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_X, uint16) = x + 16;
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Y, uint16) = y + 16;
@@ -997,9 +999,8 @@ void game_command_set_scenery_colour(int* eax, int* ebx, int* ecx, int* edx, int
 		}
 	}
 
-	// Previously it would do a search for type of bh (set from calling function) instead of just small scenery
-	// Unsure if this was a mistake.
-	rct_map_element* map_element = map_get_small_scenery_element_at(x, y, base_height, scenery_type);
+	bool found = false;
+	rct_map_element *map_element = map_get_small_scenery_element_at(x, y, base_height, scenery_type, quadrant);
 
 	if (map_element == NULL) {
 		*ebx = 0;
@@ -1748,6 +1749,11 @@ money32 map_set_land_ownership(uint8 flags, sint16 x1, sint16 y1, sint16 x2, sin
 
 	RCT2_GLOBAL(0x009E2E28, uint8) = 0;
 
+	// Clamp to maximum addressable element to prevent long loop spamming the log
+	x1 = clamp(0, x1, RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16));
+	y1 = clamp(0, y1, RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16));
+	x2 = min(x2, RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16));
+	y2 = min(y2, RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16));
 	for (sint16 y = y1; y <= y2; y += 32) {
 		for (sint16 x = x1; x <= x2; x += 32) {
 			if (x > RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16))
@@ -1853,6 +1859,12 @@ money32 lower_land(int flags, int x, int y, int z, int ax, int ay, int bx, int b
 
 	if ((flags & GAME_COMMAND_FLAG_APPLY) && RCT2_GLOBAL(0x009A8C28, uint8) == 1) {
 		audio_play_sound_at_location(SOUND_PLACE_ITEM, x, y, z);
+	}
+
+	if (selectionType < 0 || selectionType >= 5)
+	{
+		log_warning("Improper selection type %d", selectionType);
+		return MONEY32_UNDEFINED;
 	}
 
 	uint8 max_height = 0;
@@ -2192,8 +2204,8 @@ money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int mapTop
 	// Cap bounds to map
 	mapLeft = max(mapLeft, 32);
 	mapTop = max(mapTop, 32);
-	mapRight = min(mapRight, 255 * 32);
-	mapBottom = min(mapBottom, 255 * 32);
+	mapRight = clamp(0, mapRight, 255 * 32);
+	mapBottom = clamp(0, mapBottom, 255 * 32);
 
 	int commandType;
 	int centreZ = map_element_height(centreX, centreY);
@@ -4359,11 +4371,13 @@ rct_map_element *map_get_fence_element_at(int x, int y, int z, int direction)
 	return NULL;
 }
 
-rct_map_element *map_get_small_scenery_element_at(int x, int y, int z, int type)
+rct_map_element *map_get_small_scenery_element_at(int x, int y, int z, int type, uint8 quadrant)
 {
 	rct_map_element *mapElement = map_get_first_element_at(x >> 5, y >> 5);
 	do {
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_SCENERY)
+			continue;
+		if (mapElement->type >> 6 != quadrant)
 			continue;
 		if (mapElement->base_height != z)
 			continue;
@@ -4657,7 +4671,7 @@ money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint8 direc
 	}
 
 	if (x <= 32 || y <= 32 || x >= (RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16) - 32) || y >= (RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16) - 32)) {
-		RCT2_GLOBAL(0x00141E9AC, rct_string_id) = 3215;
+		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = 3215;
 		return MONEY32_UNDEFINED;
 	}
 
@@ -4670,7 +4684,7 @@ money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint8 direc
 	}
 
 	if (entranceNum == -1) {
-		RCT2_GLOBAL(0x00141E9AC, rct_string_id) = 3227;
+		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = 3227;
 		return MONEY32_UNDEFINED;
 	}
 
