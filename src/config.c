@@ -20,6 +20,7 @@
 
 #include "addresses.h"
 #include "config.h"
+#include "interface/keyboard_shortcut.h"
 #include "interface/themes.h"
 #include "interface/title_sequences.h"
 #include "localisation/language.h"
@@ -253,6 +254,7 @@ config_property_definition _twitchDefinitions[] = {
 config_property_definition _networkDefinitions[] = {
 	{ offsetof(network_configuration, player_name),						"player_name",					CONFIG_VALUE_TYPE_STRING,		{.value_string = "Player" },	NULL					},
 	{ offsetof(network_configuration, default_port),					"default_port",					CONFIG_VALUE_TYPE_UINT32,		NETWORK_DEFAULT_PORT,			NULL					},
+	{ offsetof(network_configuration, default_password),				"default_password",				CONFIG_VALUE_TYPE_STRING,		{.value_string = NULL		},	NULL					},
 	{ offsetof(network_configuration, stay_connected),					"stay_connected",				CONFIG_VALUE_TYPE_BOOLEAN,		true,							NULL					},
 	{ offsetof(network_configuration, advertise),						"advertise",					CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
 	{ offsetof(network_configuration, maxplayers),						"maxplayers",					CONFIG_VALUE_TYPE_UINT8,		16,								NULL					},
@@ -966,6 +968,8 @@ static const uint16 _defaultShortcutKeys[SHORTCUT_COUNT] = {
 	SDL_SCANCODE_RIGHT,					// SHORTCUT_SCROLL_MAP_RIGHT
 	SDL_SCANCODE_C,						// SHORTCUT_OPEN_CHAT_WINDOW
 	PLATFORM_MODIFIER | SDL_SCANCODE_F10,	// SHORTCUT_QUICK_SAVE_GAME
+
+	SHORTCUT_UNDEFINED,					// SHORTCUT_SHOW_OPTIONS
 };
 
 #define SHORTCUT_FILE_VERSION 1
@@ -998,7 +1002,11 @@ bool config_shortcut_keys_load()
 	if (file != NULL) {
 		result = SDL_RWread(file, &version, sizeof(version), 1) == 1;
 		if (result && version == SHORTCUT_FILE_VERSION) {
-			result = SDL_RWread(file, gShortcutKeys, sizeof(gShortcutKeys), 1) == 1;
+			for (int i = 0; i < SHORTCUT_COUNT; i++) {
+				if (SDL_RWread(file, &gShortcutKeys[i], sizeof(uint16), 1) != 1) {
+					break;
+				}
+			}
 		} else {
 			result = false;
 		}
