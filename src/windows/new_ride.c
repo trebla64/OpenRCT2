@@ -254,6 +254,7 @@ static void window_new_ride_select(rct_window *w);
 
 static ride_list_item _lastTrackDesignCountRideType;
 static int _lastTrackDesignCount;
+static bool _trackSelectionByType;
 
 /**
 *
@@ -325,7 +326,7 @@ static void window_new_ride_populate_list()
 					continue;
 
 				// Ride entries
-				rct_ride_type *rideEntry = GET_RIDE_ENTRY(rideEntryIndex);
+				rct_ride_type *rideEntry = get_ride_entry(rideEntryIndex);
 
 				// Check if ride is in this category
 				if (!gConfigInterface.select_by_track_type && (currentCategory != rideEntry->category[0] && currentCategory != rideEntry->category[1]))
@@ -372,6 +373,7 @@ static void window_new_ride_populate_list()
 
 	nextListItem->type = 255;
 	nextListItem->entry_index = 255;
+	_trackSelectionByType = gConfigInterface.select_by_track_type;
 }
 
 /**
@@ -479,7 +481,7 @@ void window_new_ride_focus(ride_list_item rideItem)
 	if (w == NULL)
 		return;
 
-	rideType = GET_RIDE_ENTRY(rideItem.entry_index);
+	rideType = get_ride_entry(rideItem.entry_index);
 
 	if(!gConfigInterface.select_by_track_type)
 		window_new_ride_set_page(w, rideType->category[0]);
@@ -651,6 +653,11 @@ static void window_new_ride_update(rct_window *w)
 
 	if (w->new_ride.selected_ride_id != -1 && w->new_ride.selected_ride_countdown-- == 0)
 		window_new_ride_select(w);
+
+	if (_trackSelectionByType != gConfigInterface.select_by_track_type) {
+		window_new_ride_populate_list();
+		widget_invalidate(w, WIDX_RIDE_LIST);
+	}
 }
 
 /**
@@ -790,7 +797,7 @@ static void window_new_ride_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, i
 			gfx_fill_rect_inset(dpi, x, y, x + 115, y + 115, w->colours[1], 0x80 | flags);
 
 		// Draw ride image with feathered border
-		rideEntry = GET_RIDE_ENTRY(listItem->entry_index);
+		rideEntry = get_ride_entry(listItem->entry_index);
 		int image_id = rideEntry->images_offset;
 		if (listItem->type != rideEntry->ride_type[0]) {
 			image_id++;
@@ -860,7 +867,7 @@ static int get_num_track_designs(ride_list_item item)
  */
 static void window_new_ride_paint_ride_information(rct_window *w, rct_drawpixelinfo *dpi, ride_list_item item, int x, int y, int width)
 {
-	rct_ride_type *rideEntry = GET_RIDE_ENTRY(item.entry_index);
+	rct_ride_type *rideEntry = get_ride_entry(item.entry_index);
 
 	// Ride name and description
 	rct_string_id rideName = rideEntry->name;

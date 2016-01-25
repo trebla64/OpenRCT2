@@ -78,6 +78,7 @@ enum {
 	SHORTCUT_SCROLL_MAP_RIGHT,
 	SHORTCUT_OPEN_CHAT_WINDOW,
 	SHORTCUT_QUICK_SAVE_GAME,
+	SHORTCUT_SHOW_OPTIONS,
 
 	SHORTCUT_COUNT
 };
@@ -226,6 +227,7 @@ typedef struct {
 typedef struct {
 	utf8string player_name;
 	uint32 default_port;
+	utf8string default_password;
 	uint8 stay_connected;
 	uint8 advertise;
 	uint8 maxplayers;

@@ -618,6 +618,15 @@ void window_guest_overview_mouse_up(rct_window *w, int widgetIndex)
 		window_guest_set_page(w, widgetIndex - WIDX_TAB_1);
 		break;
 	case WIDX_PICKUP:
+		{ // remove this block when peep pick up is finally converted to a game command
+			int player = network_get_player_index(network_get_current_player_id());
+			if (player != -1) {
+				if (!network_can_perform_action(network_get_group_index(network_get_player_group(player)), 11/*Guest action*/)) {
+					window_error_open(STR_CANT_DO_THIS, STR_PERMISSION_DENIED);
+					return;
+				}
+			}
+		} //
 		if (!peep_can_be_picked_up(peep)) {
 			return;
 		}
@@ -1593,7 +1602,7 @@ void window_guest_rides_update(rct_window *w)
 		uint8 ride_id_bit = ride_id % 8;
 		uint8 ride_id_offset = ride_id / 8;
 		if (peep->rides_been_on[ride_id_offset] & (1 << ride_id_bit)){
-			rct_ride* ride = GET_RIDE(ride_id);
+			rct_ride* ride = get_ride(ride_id);
 			if (RCT2_ADDRESS(0x97C3AF, uint8)[ride->type] == 0){
 				w->list_item_positions[curr_list_position] = ride_id;
 				curr_list_position++;
@@ -1737,7 +1746,7 @@ void window_guest_rides_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int ride_string_id = 3094;
 	int ride_string_arguments = 0;
 	if (peep->favourite_ride != 0xFF){
-		rct_ride* ride = GET_RIDE(peep->favourite_ride);
+		rct_ride* ride = get_ride(peep->favourite_ride);
 		ride_string_arguments = ride->name_arguments;
 		ride_string_id = ride->name;
 	}
@@ -1772,7 +1781,7 @@ void window_guest_rides_scroll_paint(rct_window *w, rct_drawpixelinfo *dpi, int 
 			gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x2000031);
 			string_format = 1193;
 		}
-		rct_ride* ride = GET_RIDE(w->list_item_positions[list_index]);
+		rct_ride* ride = get_ride(w->list_item_positions[list_index]);
 
 		gfx_draw_string_left(dpi, string_format, (void*)&ride->name, 0, 0, y - 1);
 	}
@@ -2098,7 +2107,7 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 		RCT2_GLOBAL(args + 0, uint32) |= 0x20000000 | peep->balloon_colour << 19;
 		break;
 	case SHOP_ITEM_PHOTO:
-		ride = GET_RIDE(peep->photo1_ride_ref);
+		ride = get_ride(peep->photo1_ride_ref);
 		RCT2_GLOBAL(args + 6, uint16) = ride->name;
 		RCT2_GLOBAL(args + 8, uint32) = ride->name_arguments;
 		break;
@@ -2113,7 +2122,7 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 			RCT2_GLOBAL(args + 10, uint32) = RCT2_GLOBAL(RCT2_ADDRESS_PARK_NAME_ARGS, uint32);
 			break;
 		case VOUCHER_TYPE_RIDE_FREE:
-			ride = GET_RIDE(peep->voucher_arguments);
+			ride = get_ride(peep->voucher_arguments);
 			RCT2_GLOBAL(args + 6, uint16) = 2419;
 			RCT2_GLOBAL(args + 8, uint16) = ride->name;
 			RCT2_GLOBAL(args + 10, uint32) = ride->name_arguments;
@@ -2136,17 +2145,17 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 		RCT2_GLOBAL(args + 0, uint32) |= 0x20000000 | peep->tshirt_colour << 19;
 		break;
 	case SHOP_ITEM_PHOTO2:
-		ride = GET_RIDE(peep->photo2_ride_ref);
+		ride = get_ride(peep->photo2_ride_ref);
 		RCT2_GLOBAL(args + 6, uint16) = ride->name;
 		RCT2_GLOBAL(args + 8, uint32) = ride->name_arguments;
 		break;
 	case SHOP_ITEM_PHOTO3:
-		ride = GET_RIDE(peep->photo3_ride_ref);
+		ride = get_ride(peep->photo3_ride_ref);
 		RCT2_GLOBAL(args + 6, uint16) = ride->name;
 		RCT2_GLOBAL(args + 8, uint32) = ride->name_arguments;
 		break;
 	case SHOP_ITEM_PHOTO4:
-		ride = GET_RIDE(peep->photo4_ride_ref);
+		ride = get_ride(peep->photo4_ride_ref);
 		RCT2_GLOBAL(args + 6, uint16) = ride->name;
 		RCT2_GLOBAL(args + 8, uint32) = ride->name_arguments;
 		break;

@@ -302,7 +302,7 @@ money32 calculate_park_value()
 	// Sum ride values
 	result = 0;
 	for (i = 0; i < 255; i++) {
-		ride = &g_ride_list[i];
+		ride = get_ride(i);
 		result += calculate_ride_value(ride);
 	}
 
@@ -658,7 +658,7 @@ void park_set_open(int open)
  */
 void game_command_set_park_open(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* edi, int* ebp)
 {
-	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
+	if (!(*ebx & GAME_COMMAND_FLAG_APPLY)) {
 		*ebx = 0;
 		return;
 	}
