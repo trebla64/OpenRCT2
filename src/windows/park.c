@@ -39,6 +39,7 @@
 #include "../management/finance.h"
 #include "dropdown.h"
 #include "../interface/themes.h"
+#include "../cheats.h"
 
 enum WINDOW_PARK_PAGE {
 	WINDOW_PARK_PAGE_ENTRANCE,
@@ -689,10 +690,10 @@ static void window_park_entrance_mousedown(int widgetIndex, rct_window*w, rct_wi
 		);
 
 		if (park_is_open()) {
-			gDropdownHighlightedIndex = 0;
+			gDropdownDefaultIndex = 0;
 			dropdown_set_checked(1, true);
 		} else {
-			gDropdownHighlightedIndex = 1;
+			gDropdownDefaultIndex = 1;
 			dropdown_set_checked(0, true);
 		}
 	}
@@ -1458,7 +1459,7 @@ static void window_park_price_invalidate(rct_window *w)
 
 	// If the entry price is locked at free, disable the widget, unless the unlock_all_prices cheat is active.
 	if ((RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32) & PARK_FLAGS_PARK_FREE_ENTRY)
-		&& (!gConfigCheat.unlock_all_prices)) {
+		&& (!gCheatsUnlockAllPrices)) {
 		window_park_price_widgets[WIDX_PRICE].type = WWT_12;
 		window_park_price_widgets[WIDX_INCREASE_PRICE].type = WWT_EMPTY;
 		window_park_price_widgets[WIDX_DECREASE_PRICE].type = WWT_EMPTY;

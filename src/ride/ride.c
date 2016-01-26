@@ -2150,7 +2150,8 @@ static void ride_breakdown_update(int rideIndex)
 	//
 	// a 0.8% chance, less the breakdown factor which accumulates as the game
 	// continues.
-	if ((ride->reliability == 0 || (int)(scenario_rand() & 0x2FFFFF) <= 1 + RIDE_INITIAL_RELIABILITY - ride->reliability) && !gConfigCheat.disable_all_breakdowns) {
+	if ((ride->reliability == 0 || (int)(scenario_rand() & 0x2FFFFF) <= 1 + RIDE_INITIAL_RELIABILITY - ride->reliability)
+			&& !gCheatsDisableAllBreakdowns) {
 		breakdownReason = ride_get_new_breakdown_problem(ride);
 		if (breakdownReason != -1)
 			ride_prepare_breakdown(rideIndex, breakdownReason);
@@ -2209,7 +2210,7 @@ static int ride_get_new_breakdown_problem(rct_ride *ride)
 			return -1;
 
 	// If brakes failure is disabled, also take it out of the equation (see above comment why)
-	if (gConfigCheat.disable_brakes_failure)
+	if (gCheatsDisableBrakesFailure)
 		return -1;
 
 	monthsOld = RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONTH_YEAR, uint8) - ride->build_date;
@@ -3666,6 +3667,14 @@ void game_command_set_ride_setting(int *eax, int *ebx, int *ecx, int *edx, int *
 	if (flags == 0){
 		*ebx = 0;
 		return;
+	}
+
+	if (ride->overall_view != (uint16)-1) {
+		rct_xyz16 coord;
+		coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+		coord.y = (ride->overall_view >> 8) * 32 + 16;
+		coord.z = map_element_height(coord.x, coord.y);
+		network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
 	}
 
 	switch (setting){
@@ -5261,6 +5270,16 @@ void game_command_set_ride_status(int *eax, int *ebx, int *ecx, int *edx, int *e
 	}
 	RCT2_GLOBAL(0x00F43484, uint32) = RCT2_GLOBAL(RCT2_ADDRESS_RIDE_FLAGS + (ride->type * 8), uint32);
 
+	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
+		if (ride->overall_view != (uint16)-1) {
+			rct_xyz16 coord;
+			coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+			coord.y = (ride->overall_view >> 8) * 32 + 16;
+			coord.z = map_element_height(coord.x, coord.y);
+			network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+		}
+	}
+
 	switch (targetStatus) {
 	case RIDE_STATUS_CLOSED:
 		if (*ebx & GAME_COMMAND_FLAG_APPLY) {
@@ -5382,6 +5401,14 @@ void game_command_set_ride_name(int *eax, int *ebx, int *ecx, int *edx, int *esi
 	}
 
 	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
+		if (ride->overall_view != (uint16)-1) {
+			rct_xyz16 coord;
+			coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+			coord.y = (ride->overall_view >> 8) * 32 + 16;
+			coord.z = map_element_height(coord.x, coord.y);
+			network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+		}
+
 		// Free the old ride name
 		user_string_free(ride->name);
 
@@ -6046,12 +6073,20 @@ void game_command_demolish_ride(int *eax, int *ebx, int *ecx, int *edx, int *esi
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Y, uint16) = y;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Z, uint16) = z;
 	}
-	if(!(*ebx & 0x40) && RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) && !gConfigCheat.build_in_pause_mode){
+	if(!(*ebx & 0x40) && RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) && !gCheatsBuildInPauseMode){
 		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_CONSTRUCTION_NOT_POSSIBLE_WHILE_GAME_IS_PAUSED;
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}else{
 		if(*ebx & GAME_COMMAND_FLAG_APPLY){
+			if (ride->overall_view != (uint16)-1) {
+				rct_xyz16 coord;
+				coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+				coord.y = (ride->overall_view >> 8) * 32 + 16;
+				coord.z = map_element_height(coord.x, coord.y);
+				network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+			}
+
 			if(!(*ebx & 8)){
 				window_close_by_number(WC_RIDE_CONSTRUCTION, ride_id);
 			}
@@ -6183,6 +6218,16 @@ void game_command_set_ride_appearance(int *eax, int *ebx, int *ecx, int *edx, in
 		log_warning("Invalid game command, ride_id = %u", ride_id);
 		*ebx = MONEY32_UNDEFINED;
 		return;
+	}
+
+	if (apply && RCT2_GLOBAL(0x009A8C28, uint8) == 1) {
+		if (ride->overall_view != (uint16)-1) {
+			rct_xyz16 coord;
+			coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+			coord.y = (ride->overall_view >> 8) * 32 + 16;
+			coord.z = map_element_height(coord.x, coord.y);
+			network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+		}
 	}
 
 	*ebx = 0;
@@ -6325,6 +6370,15 @@ void game_command_set_ride_price(int *eax, int *ebx, int *ecx, int *edx, int *es
 
 	RCT2_GLOBAL(RCT2_ADDRESS_NEXT_EXPENDITURE_TYPE, uint8) = RCT_EXPENDITURE_TYPE_PARK_RIDE_TICKETS * 4;
 	if (flags & 0x1) {
+
+		if (ride->overall_view != (uint16)-1) {
+			rct_xyz16 coord;
+			coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+			coord.y = (ride->overall_view >> 8) * 32 + 16;
+			coord.z = map_element_height(coord.x, coord.y);
+			network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+		}
+
 		if (!secondary_price) {
 			shop_item = 0x1F;
 			if (ride->type != RIDE_TYPE_TOILETS) {
@@ -7440,6 +7494,14 @@ void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int 
 		return;
 	}
 
+	if (ride->overall_view != (uint16)-1) {
+		rct_xyz16 coord;
+		coord.x = (ride->overall_view & 0xFF) * 32 + 16;
+		coord.y = (ride->overall_view >> 8) * 32 + 16;
+		coord.z = map_element_height(coord.x, coord.y);
+		network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+	}
+
 	ride_clear_for_construction(rideIndex);
 	ride_remove_peeps(rideIndex);
 	ride->var_1CA = 100;
@@ -7572,7 +7634,7 @@ money32 place_ride_entrance_or_exit(sint16 x, sint16 y, sint16 z, uint8 directio
 		return MONEY32_UNDEFINED;
 	}
 
-	if (!(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) != 0 && !gConfigCheat.build_in_pause_mode){
+	if (!(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) != 0 && !gCheatsBuildInPauseMode){
 		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_CONSTRUCTION_NOT_POSSIBLE_WHILE_GAME_IS_PAUSED;
 		return MONEY32_UNDEFINED;
 	}
@@ -7711,6 +7773,12 @@ money32 place_ride_entrance_or_exit(sint16 x, sint16 y, sint16 z, uint8 directio
 		}
 
 		if (flags & GAME_COMMAND_FLAG_APPLY) {
+			rct_xyz16 coord;
+			coord.x = x + 16;
+			coord.y = y + 16;
+			coord.z = map_element_height(coord.x, coord.y);
+			network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
+
 			rct_map_element* mapElement = map_element_insert(x / 32, y / 32, z / 8, 0xF);
 			mapElement->clearance_height = clear_z;
 			mapElement->properties.entrance.type = is_exit;
@@ -7778,7 +7846,7 @@ money32 remove_ride_entrance_or_exit(sint16 x, sint16 y, uint8 rideIndex, uint8 
 	}
 
 	if (!(flags & GAME_COMMAND_FLAG_GHOST)){
-		if (!(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) != 0 && !gConfigCheat.build_in_pause_mode){
+		if (!(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && RCT2_GLOBAL(RCT2_ADDRESS_GAME_PAUSED, uint8) != 0 && !gCheatsBuildInPauseMode){
 			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_CONSTRUCTION_NOT_POSSIBLE_WHILE_GAME_IS_PAUSED;
 			return MONEY32_UNDEFINED;
 		}
@@ -7818,6 +7886,12 @@ money32 remove_ride_entrance_or_exit(sint16 x, sint16 y, uint8 rideIndex, uint8 
 		if (!found){
 			return MONEY32_UNDEFINED;
 		}
+
+		rct_xyz16 coord;
+		coord.x = x + 16;
+		coord.y = y + 16;
+		coord.z = map_element_height(coord.x, coord.y);
+		network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
 
 		sub_6A7594();
 		maze_entrance_hedge_replacement(x, y, mapElement);

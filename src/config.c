@@ -232,16 +232,6 @@ config_property_definition _soundDefinitions[] = {
 	{ offsetof(sound_configuration, device),							"audio_device",					CONFIG_VALUE_TYPE_STRING,		{ .value_string = NULL },		NULL					},
 };
 
-config_property_definition _cheatDefinitions[] = {
-	{ offsetof(cheat_configuration, fast_lift_hill),					"fast_lift_hill",				CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-	{ offsetof(cheat_configuration, disable_brakes_failure),			"disable_brakes_failure",		CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-	{ offsetof(cheat_configuration, disable_all_breakdowns),			"disable_all_breakdowns",		CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-	{ offsetof(cheat_configuration, unlock_all_prices),					"unlock_all_prices",			CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-	{ offsetof(cheat_configuration, build_in_pause_mode),				"build_in_pause_mode",			CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-	{ offsetof(cheat_configuration, ignore_ride_intensity),				"ignore_ride_intensity",		CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-	{ offsetof(cheat_configuration, disable_vandalism),					"disable_vandalism",			CONFIG_VALUE_TYPE_BOOLEAN,		false,							NULL					},
-};
-
 config_property_definition _twitchDefinitions[] = {
 	{ offsetof(twitch_configuration, channel),							"channel",						CONFIG_VALUE_TYPE_STRING,		{ .value_string = NULL },		NULL					},
 	{ offsetof(twitch_configuration, enable_follower_peep_names),		"follower_peep_names",			CONFIG_VALUE_TYPE_BOOLEAN,		true,							NULL					},
@@ -290,7 +280,6 @@ config_section_definition _sectionDefinitions[] = {
 	{ &gConfigGeneral, "general", _generalDefinitions, countof(_generalDefinitions) },
 	{ &gConfigInterface, "interface", _interfaceDefinitions, countof(_interfaceDefinitions) },
 	{ &gConfigSound, "sound", _soundDefinitions, countof(_soundDefinitions) },
-	{ &gConfigCheat, "cheat", _cheatDefinitions, countof(_cheatDefinitions) },
 	{ &gConfigTwitch, "twitch", _twitchDefinitions, countof(_twitchDefinitions) },
 	{ &gConfigNetwork, "network", _networkDefinitions, countof(_networkDefinitions) },
 	{ &gConfigNotifications, "notifications", _notificationsDefinitions, countof(_notificationsDefinitions) },
@@ -301,7 +290,6 @@ config_section_definition _sectionDefinitions[] = {
 general_configuration gConfigGeneral;
 interface_configuration gConfigInterface;
 sound_configuration gConfigSound;
-cheat_configuration gConfigCheat;
 twitch_configuration gConfigTwitch;
 network_configuration gConfigNetwork;
 notification_configuration gConfigNotifications;
@@ -597,8 +585,8 @@ bool config_get_section(const utf8string line, const utf8 **sectionName, int *se
 
 bool config_get_property_name_value(const utf8string line, utf8 **propertyName, int *propertyNameSize, utf8 **value, int *valueSize)
 {
-	utf8 *ch;
-	int c, lastC;
+	utf8 *ch, *clast;
+	int c;
 	bool quotes;
 
 	ch = line;
@@ -607,8 +595,10 @@ bool config_get_property_name_value(const utf8string line, utf8 **propertyName, 
 	if (*ch == 0) return false;
 	*propertyName = ch;
 
+	bool equals = false;
 	while ((c = utf8_get_next(ch, (const utf8**)&ch)) != 0) {
 		if (isspace(c) || c == '=') {
+			if (c == '=') equals = true;
 			*propertyNameSize = ch - *propertyName - 1;
 			break;
 		} else if (c == '#') {
@@ -618,9 +608,11 @@ bool config_get_property_name_value(const utf8string line, utf8 **propertyName, 
 
 	if (*ch == 0) return false;
 	utf8_skip_whitespace(&ch);
-	if (*ch != '=') return false;
-	ch++;
-	utf8_skip_whitespace(&ch);
+	if (!equals) {
+		if (*ch != '=') return false;
+		ch++;
+		utf8_skip_whitespace(&ch);
+	}
 	if (*ch == 0) return false;
 
 	if (*ch == '"') {
@@ -631,13 +623,15 @@ bool config_get_property_name_value(const utf8string line, utf8 **propertyName, 
 	}
 	*value = ch;
 
+	clast = ch;
 	while ((c = utf8_get_next(ch, (const utf8**)&ch)) != 0) {
-		if (isspace(c) || c == '#') {
-			if (!quotes) break;
+		if (!quotes) {
+			if (c == '#') break;
+			if (c != ' ') clast = ch;
 		}
-		lastC = c;
 	}
-	*valueSize = ch - *value - 1;
+	if (!quotes) *valueSize = clast - *value;
+	else *valueSize = ch - *value - 1;
 	if (quotes) (*valueSize)--;
 	return true;
 }
