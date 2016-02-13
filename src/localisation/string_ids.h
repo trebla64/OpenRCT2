@@ -475,6 +475,7 @@ enum {
 	STR_WATER_RIDES_TIP = 1227,
 	STR_SHOPS_STALLS_TIP = 1228,
 
+	STR_PLAYER_DEFAULT_NAME = 1315,
 	STR_X_PLAYER = 1317,
 	STR_X_PLAYERS = 1318,
 
@@ -2332,6 +2333,11 @@ enum {
 	STR_USE_NN_AT_INTEGER_SCALE = 5733,
 
 	STR_OPTIONS_RENDERING_TIP = 5734,
+
+	STR_CLOSED_WITH_PERSON = 5737,
+	STR_CLOSED_WITH_PEOPLE = 5738,
+
+	STR_CUSTOMERS_ON_RIDE = 5739,
 
 	// Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
 	STR_COUNT = 32768

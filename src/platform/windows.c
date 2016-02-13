@@ -23,6 +23,7 @@
 #ifdef __WINDOWS__
 
 #include <windows.h>
+#include <lmcons.h>
 #include <psapi.h>
 #include <shlobj.h>
 #include <SDL_syswm.h>
@@ -579,7 +580,7 @@ void platform_show_messagebox(char *message)
  *
  *  rct2: 0x004080EA
  */
-int platform_open_common_file_dialog(int type, utf8 *title, utf8 *filename, utf8 *filterPattern, utf8 *filterName)
+int platform_open_common_file_dialog(filedialog_type type, utf8 *title, utf8 *filename, utf8 *filterPattern, utf8 *filterName)
 {
 	wchar_t wctitle[256], wcfilename[MAX_PATH], wcfilterPattern[256], wcfilterName[256];
 	wchar_t initialDirectory[MAX_PATH], *dotAddress, *slashAddress;
@@ -603,8 +604,8 @@ int platform_open_common_file_dialog(int type, utf8 *title, utf8 *filename, utf8
 	}
 
 	// Clear filename
-	if (type != 0)
-	wcfilename[0] = 0;
+	if (type != FD_SAVE)
+		wcfilename[0] = 0;
 
 	// Set open file name options
 	memset(&openFileName, 0, sizeof(OPENFILENAMEW));
@@ -633,10 +634,10 @@ int platform_open_common_file_dialog(int type, utf8 *title, utf8 *filename, utf8
 
 	// Open dialog
 	commonFlags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_NOCHANGEDIR;
-	if (type == 0) {
+	if (type == FD_SAVE) {
 		openFileName.Flags = commonFlags | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT;
 		result = GetSaveFileNameW(&openFileName);
-	} else if (type == 1) {
+	} else if (type == FD_OPEN) {
 		openFileName.Flags = commonFlags | OFN_NONETWORKBUTTON | OFN_FILEMUSTEXIST;
 		result = GetOpenFileNameW(&openFileName);
 	}
@@ -973,6 +974,17 @@ datetime64 platform_get_datetime_now_utc()
 	// Convert to start from: 0001-01-01T00:00:00Z
 	datetime64 utcNow = fileTime64 - 504911232000000000ULL;
 	return utcNow;
+}
+
+utf8* platform_get_username() {
+	static char username[UNLEN + 1];
+
+	DWORD usernameLength = UNLEN + 1;
+	if (!GetUserName(username, &usernameLength)) {
+		return NULL;
+	}
+
+	return username;
 }
 
 #endif

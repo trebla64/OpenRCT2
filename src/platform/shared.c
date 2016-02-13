@@ -677,6 +677,7 @@ void platform_process_messages()
 						}
 						gTextInputCursorPosition++;
 					}
+					gTextInput[gTextInputLength] = '\0';
 					window_update_textbox();
 				}
 			}
@@ -710,6 +711,10 @@ void platform_process_messages()
 			if (gTextInputLength < gTextInputMaxLength && gTextInput){
 				// HACK ` will close console, so don't input any text
 				if (e.text.text[0] == '`' && gConsoleOpen)
+					break;
+
+				// Entering formatting characters is not allowed
+				if (utf8_is_format_code(utf8_get_next(e.text.text, NULL)))
 					break;
 
 				utf8 *newText = e.text.text;
