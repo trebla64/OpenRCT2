@@ -68,7 +68,7 @@ extern "C" {
 // This define specifies which version of network stream current build uses.
 // It is used for making sure only compatible builds get connected, even within
 // single OpenRCT2 version.
-#define NETWORK_STREAM_VERSION "1"
+#define NETWORK_STREAM_VERSION "2"
 #define NETWORK_STREAM_ID OPENRCT2_VERSION "-" NETWORK_STREAM_VERSION
 
 #ifdef __WINDOWS__
@@ -153,21 +153,21 @@ public:
 class NetworkPlayer
 {
 public:
-	NetworkPlayer();
+	NetworkPlayer() = default;
 	void Read(NetworkPacket& packet);
 	void Write(NetworkPacket& packet);
 	void SetName(const char* name);
 	void AddMoneySpent(money32 cost);
-	uint8 id;
-	uint8 name[32 + 1];
-	uint16 ping;
-	uint8 flags;
-	uint8 group;
-	money32 money_spent;
-	unsigned int commands_ran;
-	int last_action;
-	uint32 last_action_time;
-	rct_xyz16 last_action_coord;
+	uint8 id = 0;
+	uint8 name[32 + 1] = { 0 };
+	uint16 ping = 0;
+	uint8 flags = 0;
+	uint8 group = 0;
+	money32 money_spent = MONEY(0, 0);
+	unsigned int commands_ran = 0;
+	int last_action = -999;
+	uint32 last_action_time = 0;
+	rct_xyz16 last_action_coord = { 0 };
 };
 
 class NetworkAction
@@ -219,7 +219,7 @@ public:
 	void SetName(std::string name);
 	rct_string_id GetNameStringId();
 	std::array<uint8, 8> actions_allowed;
-	uint8 id;
+	uint8 id = 0;
 
 private:
 	std::string name;

@@ -3196,7 +3196,6 @@ static void loc_6DA9F9(rct_vehicle *vehicle, int x, int y, int bx, int dx)
  */
 static void vehicle_update_motion_boat_hire(rct_vehicle *vehicle)
 {
-	// RCT2_CALLPROC_X(0x006DA717, 0, 0, 0, 0, (int)vehicle, 0, 0);
 	RCT2_GLOBAL(0x00F64E18, uint32) = 0;
 	vehicle->velocity += vehicle->acceleration;
 	RCT2_GLOBAL(0x00F64E08, sint32) = vehicle->velocity;
@@ -3608,7 +3607,7 @@ static void vehicle_update_ferris_wheel_rotating(rct_vehicle* vehicle) {
 	}
 
 	uint8 rotation = vehicle->var_1F;
-	if (ride->mode & RIDE_MODE_FORWARD_ROTATION)
+	if (ride->mode == RIDE_MODE_FORWARD_ROTATION)
 		rotation++;
 	else
 		rotation--;
@@ -3622,7 +3621,7 @@ static void vehicle_update_ferris_wheel_rotating(rct_vehicle* vehicle) {
 	vehicle_invalidate(vehicle);
 
 	uint8 subState = vehicle->sub_state;
-	if (ride->mode & RIDE_MODE_FORWARD_ROTATION)
+	if (ride->mode == RIDE_MODE_FORWARD_ROTATION)
 		subState++;
 	else
 		subState--;
@@ -3646,7 +3645,7 @@ static void vehicle_update_ferris_wheel_rotating(rct_vehicle* vehicle) {
 		return;
 
 	subState = vehicle->sub_state;
-	if (ride->mode & RIDE_MODE_FORWARD_ROTATION)
+	if (ride->mode == RIDE_MODE_FORWARD_ROTATION)
 		subState += 8;
 	else
 		subState -= 8;
@@ -4944,15 +4943,6 @@ void vehicle_get_g_forces(rct_vehicle *vehicle, int *verticalG, int *lateralG)
 	gForceLateral *= 10;
 	gForceVert >>= 16;
 	gForceLateral >>= 16;
-
-	// Call original version so we can test if our result is the same as the original
-	int eax, ebx, ecx, edx, esi, edi, ebp;
-	esi = (int)vehicle;
-	RCT2_CALLFUNC_X(0x006D73D0, &eax, &ebx, &ecx, &edx, &esi, &edi, &ebp);
-	if (gForceVert != (sint16)(eax & 0xFFFF))
-		assert(gForceVert == (sint16)(eax & 0xFFFF));
-	if (gForceLateral != (sint16)(edx & 0xFFFF))
-		assert(gForceLateral == (sint16)(edx & 0xFFFF));
 
 	if (verticalG != NULL) *verticalG = (sint16)(gForceVert & 0xFFFF);
 	if (lateralG != NULL) *lateralG = (sint16)(gForceLateral & 0xFFFF);
@@ -7975,22 +7965,11 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 {
 	registers regs = { 0 };
 
-	//////////////////////////////////////////////////////////////////////////////////////////
-	regs.esi = (int)vehicle;
-	//RCT2_CALLFUNC_Y(0x006DAB4C, &regs);
-	//if (outStation != NULL) *outStation = regs.ebx;
-	//return regs.eax;
-	//////////////////////////////////////////////////////////////////////////////////////////
-
 	rct_ride *ride = get_ride(vehicle->ride);
 	rct_ride_type *rideEntry = get_ride_entry(vehicle->ride_subtype);
 	rct_ride_type_vehicle *vehicleEntry = vehicle_get_vehicle_entry(vehicle);
 
 	rct_map_element *mapElement = NULL;
-
-	// esi = vehicle
-	// eax = rideEntry
-	// edi = vehicleEntry
 
 	if (vehicleEntry->flags_a & VEHICLE_ENTRY_FLAG_A_MINI_GOLF) {
 		return vehicle_update_track_motion_mini_golf(vehicle, outStation);
@@ -8014,6 +7993,8 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 
 	uint16 spriteId = vehicle->sprite_index;
 	for (rct_vehicle* car = vehicle; spriteId != 0xFFFF; car = GET_VEHICLE(spriteId)) {
+		vehicleEntry = vehicle_get_vehicle_entry(car);
+
 		// Swinging cars
 		if (vehicleEntry->flags_b & VEHICLE_ENTRY_FLAG_B_SWINGING) {
 			vehicle_update_swinging_car(car);

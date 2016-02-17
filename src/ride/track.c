@@ -1685,6 +1685,7 @@ int track_place_ride(sint16 x, sint16 y, sint16 z, uint8 rideIndex, uint8** trac
 		}
 
 		if (RCT2_GLOBAL(0x00F440D4, uint8) == 3){
+			int temp_z = z - TrackCoordinates[track_type].z_begin;
 			for (const rct_preview_track* trackBlock = TrackBlocks[track_type];
 				trackBlock->index != 0xFF;
 				trackBlock++){
@@ -1742,11 +1743,10 @@ int track_place_ride(sint16 x, sint16 y, sint16 z, uint8 rideIndex, uint8** trac
 						height = water_height;
 					}
 				}
-				int temp_z = z + RCT2_GLOBAL(0x00F440D5, sint16);
-				temp_z -= height;
+				int height_diff = temp_z + RCT2_GLOBAL(0x00F440D5, sint16) + trackBlock->z - height;
 
-				if (temp_z < 0){
-					RCT2_GLOBAL(0x00F440D5, sint16) -= temp_z;
+				if (height_diff < 0){
+					RCT2_GLOBAL(0x00F440D5, sint16) -= height_diff;
 				}
 			}
 		}
@@ -1989,19 +1989,6 @@ int sub_6D01B3(uint8 bl, uint8 rideIndex, int x, int y, int z)
 	if (bl == 3)
 		return RCT2_GLOBAL(0x00F440D5, sint16);
 	return RCT2_GLOBAL(0x00F440D5, money32);
-
-	int eax, ebx, ecx, edx, esi, edi, ebp;
-	eax = x;
-	ebx = bl;
-	ecx = y;
-	edx = z;
-	esi = 0;
-	edi = 0;
-	ebp = 0;
-	RCT2_CALLFUNC_X(0x006D01B3, &eax, &ebx, &ecx, &edx, &esi, &edi, &ebp);
-	if (bl == 3)
-		ebx &= 0xFFFF;
-	return ebx;
 }
 
 /**
@@ -3401,7 +3388,6 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_X, sint16) = x + 8;
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Y, sint16) = y + 8;
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Z, sint16) = z;
-	RCT2_GLOBAL(0x00F4413E, uint32) = 0;
 	if (!sub_68B044()) {
 		return MONEY32_UNDEFINED;
 	}
@@ -3444,6 +3430,7 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 		}
 	}
 
+	money32 cost = 0;
 	// Clearance checks
 	if (!gCheatsDisableClearanceChecks) {
 		int fx = floor2(x, 32);
@@ -3451,14 +3438,7 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 		int fz0 = z >> 3;
 		int fz1 = fz0 + 4;
 
-		uint8 stack_F4412F[13];
-		stack_F4412F[0x0C] = flags;
-
-		RCT2_GLOBAL(0x00F4412B, uint16) = fx;
-		RCT2_GLOBAL(0x00F4412D, uint16) = fy;
-		RCT2_GLOBAL(0x00F4412F, uint8*) = stack_F4412F;
-		RCT2_GLOBAL(0x00F4413E, money32) = 0;
-		if (!map_can_construct_with_clear_at(fx, fy, fz0, fz1, (void*)0x006CDE57, 15)) {
+		if (!map_can_construct_with_clear_at(fx, fy, fz0, fz1, &map_place_non_scenery_clear_func, 15, flags, &cost)) {
 			return MONEY32_UNDEFINED;
 		}
 
@@ -3481,6 +3461,8 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 		price = RCT2_ADDRESS(0x0097DD78, money16)[ride->type * 2] * RCT2_GLOBAL(0x0099DBC8, money32);
 		price = (price >> 17) * 10;
 	}
+
+	cost += price;
 
 	if (flags & GAME_COMMAND_FLAG_APPLY) {
 		if (RCT2_GLOBAL(0x009A8C28, uint8) == 1 && !(flags & GAME_COMMAND_FLAG_GHOST)) {
@@ -3515,7 +3497,7 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 		}
 	}
 
-	return price;
+	return cost;
 }
 
 /**
@@ -4079,13 +4061,318 @@ const rct_preview_track *get_track_def_from_ride_index(int rideIndex, int trackT
 	return get_track_def_from_ride(get_ride(rideIndex), trackType);
 }
 
+static rct_map_element *find_station_element(int x, int y, int z, int direction, int rideIndex)
+{
+	rct_map_element *mapElement = map_get_first_element_at(x >> 5, y >> 5);
+	do {
+		if (z != mapElement->base_height) continue;
+		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
+		if (map_element_get_direction(mapElement) != direction) continue;
+		if (mapElement->properties.track.ride_index != rideIndex) continue;
+		if (!track_element_is_station(mapElement)) continue;
+
+		return mapElement;
+	} while (!map_element_is_last_for_tile(mapElement++));
+	return NULL;
+}
+
+static void ride_remove_station(rct_ride *ride, int x, int y, int z)
+{
+	uint16 xy = (x >> 5) | ((y >> 5) << 8);
+	for (int i = 0; i < 4; i++) {
+		if (ride->station_starts[i] == xy && ride->station_heights[i] == z) {
+			ride->station_starts[i] = 0xFFFF;
+			ride->num_stations--;
+			break;
+		}
+	}
+}
+
 /**
  *
  *  rct2: 0x006C4D89
  */
-static bool sub_6C4D89(int x, int y, int z, int direction, int rideIndex, int flags)
+static bool track_add_station_element(int x, int y, int z, int direction, int rideIndex, int flags)
 {
-	return !(RCT2_CALLPROC_X(0x006C4D89, x, flags | (rideIndex << 8), y, z | (direction << 8), 0, 0, 0) & 0x100);
+	int stationX0 = x;
+	int stationY0 = y;
+	int stationX1 = x;
+	int stationY1 = y;
+	int stationLength = 1;
+
+	rct_ride *ride = get_ride(rideIndex);
+	if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_3)) {
+		if (ride->num_stations >= 4) {
+			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_NO_MORE_STATIONS_ALLOWED_ON_THIS_RIDE;
+			return false;
+		}
+		if (flags & GAME_COMMAND_FLAG_APPLY) {
+			int stationIndex = -1;
+			for (int i = 0; i < 4; i++) {
+				if (ride->station_starts[i] == 0xFFFF) {
+					stationIndex = i;
+					break;
+				}
+			}
+
+			assert(stationIndex != -1);
+
+			ride->station_starts[stationIndex] = (x >> 5) | ((y >> 5) << 8);
+			ride->station_heights[stationIndex] = z;
+			ride->station_depart[stationIndex] = 1;
+			ride->station_length[stationIndex] = 0;
+			ride->num_stations++;
+		}
+		return true;
+	}
+
+	rct_map_element *stationElement;
+
+	// Search backwards for more station
+	x = stationX0;
+	y = stationY0;
+	do {
+		x -= TileDirectionDelta[direction].x;
+		y -= TileDirectionDelta[direction].y;
+
+		stationElement = find_station_element(x, y, z, direction, rideIndex);
+		if (stationElement != NULL) {
+			if (stationElement->properties.track.type == TRACK_ELEM_END_STATION) {
+				if (flags & GAME_COMMAND_FLAG_APPLY) {
+					ride_remove_station(ride, x, y, z);
+				}
+			}
+
+			stationX0 = x;
+			stationY0 = y;
+			stationLength++;
+		}
+	} while (stationElement != NULL);
+
+	// Search forwards for more station
+	x = stationX1;
+	y = stationY1;
+	do {
+		x += TileDirectionDelta[direction].x;
+		y += TileDirectionDelta[direction].y;
+
+		stationElement = find_station_element(x, y, z, direction, rideIndex);
+		if (stationElement != NULL) {
+			if (stationElement->properties.track.type == TRACK_ELEM_END_STATION) {
+				if (flags & GAME_COMMAND_FLAG_APPLY) {
+					ride_remove_station(ride, x, y, z);
+				}
+			}
+
+			stationX1 = x;
+			stationY1 = y;
+			stationLength++;
+		}
+	} while (stationElement != NULL);
+
+	if (stationX0 == stationX1 && stationY0 == stationY1 && ride->num_stations >= 4) {
+		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_NO_MORE_STATIONS_ALLOWED_ON_THIS_RIDE;
+		return false;
+	}
+
+	if (stationLength > 12) {
+		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_STATION_PLATFORM_TOO_LONG;
+		return false;
+	}
+
+	if (flags & GAME_COMMAND_FLAG_APPLY) {
+		x = stationX1;
+		y = stationY1;
+
+		bool finaliseStationDone;
+		do {
+			finaliseStationDone = true;
+
+			stationElement = find_station_element(x, y, z, direction, rideIndex);
+			if (stationElement != NULL) {
+				int targetTrackType;
+				if (x == stationX1 && y == stationY1) {
+					int stationIndex = -1;
+					for (int i = 0; i < 4; i++) {
+						if (ride->station_starts[i] == 0xFFFF) {
+							stationIndex = i;
+							break;
+						}
+					}
+
+					assert(stationIndex != -1);
+
+					uint16 xy = (x >> 5) | ((y >> 5) << 8);
+					ride->station_starts[stationIndex] = xy;
+					ride->station_heights[stationIndex] = z;
+					ride->station_depart[stationIndex] = 1;
+					ride->station_length[stationIndex] = stationLength;
+					ride->num_stations++;
+
+					targetTrackType = TRACK_ELEM_END_STATION;
+				} else if (x == stationX0 && y == stationY0) {
+					targetTrackType = TRACK_ELEM_BEGIN_STATION;
+				} else {
+					targetTrackType = TRACK_ELEM_MIDDLE_STATION;
+				}
+				stationElement->properties.track.type = targetTrackType;
+
+				map_invalidate_element(x, y, stationElement);
+
+				if (x != stationX0 || y != stationY0) {
+					x -= TileDirectionDelta[direction].x;
+					y -= TileDirectionDelta[direction].y;
+					finaliseStationDone = false;
+				}
+			}
+		} while (!finaliseStationDone);
+	}
+	return true;
+}
+
+/**
+ *
+ *  rct2: 0x006C494B
+ */
+static bool track_remove_station_element(int x, int y, int z, int direction, int rideIndex, int flags)
+{
+	int removeX = x;
+	int removeY = y;
+	int stationX0 = x;
+	int stationY0 = y;
+	int stationX1 = x;
+	int stationY1 = y;
+	int stationLength = 1;
+	int byte_F441D1 = -1;
+
+	rct_ride *ride = get_ride(rideIndex);
+	if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_3)) {
+		rct_map_element *mapElement = map_get_track_element_at_with_direction_from_ride(x, y, z, direction, rideIndex);
+		if (mapElement != NULL) {
+			if (flags & GAME_COMMAND_FLAG_APPLY) {
+				ride_remove_station(ride, x, y, z);
+			}
+		}
+		return true;
+	}
+
+	rct_map_element *stationElement;
+
+	// Search backwards for more station
+	x = stationX0;
+	y = stationY0;
+	while ((stationElement = find_station_element(x, y, z, direction, rideIndex)) != NULL) {
+		if (stationElement->properties.track.type == TRACK_ELEM_END_STATION) {
+			if (flags & GAME_COMMAND_FLAG_APPLY) {
+				ride_remove_station(ride, x, y, z);
+			}
+		}
+
+		stationX0 = x;
+		stationY0 = y;
+		byte_F441D1++;
+
+		x -= TileDirectionDelta[direction].x;
+		y -= TileDirectionDelta[direction].y;
+	}
+
+	// Search forwards for more station
+	x = stationX1;
+	y = stationY1;
+	do {
+		x += TileDirectionDelta[direction].x;
+		y += TileDirectionDelta[direction].y;
+
+		stationElement = find_station_element(x, y, z, direction, rideIndex);
+		if (stationElement != NULL) {
+			if (stationElement->properties.track.type == TRACK_ELEM_END_STATION) {
+				if (flags & GAME_COMMAND_FLAG_APPLY) {
+					ride_remove_station(ride, x, y, z);
+				}
+			}
+
+			stationX1 = x;
+			stationY1 = y;
+			stationLength++;
+		}
+	} while (stationElement != NULL);
+
+	if (!(flags & GAME_COMMAND_FLAG_APPLY)) {
+		if ((removeX != stationX0 || removeY != stationY0) &&
+			(removeX != stationX1 || removeY != stationY1) &&
+			ride->num_stations >= 4
+		) {
+			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_NO_MORE_STATIONS_ALLOWED_ON_THIS_RIDE;
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	x = stationX1;
+	y = stationY1;
+	bool finaliseStationDone;
+	do {
+		finaliseStationDone = true;
+
+		if (x != removeX || y != removeY) {
+			stationElement = find_station_element(x, y, z, direction, rideIndex);
+			if (stationElement != NULL) {
+				int targetTrackType;
+				if (x == stationX1 && y == stationY1) {
+				loc_6C4BF5:;
+					int stationIndex = -1;
+					for (int i = 0; i < 4; i++) {
+						if (ride->station_starts[i] == 0xFFFF) {
+							stationIndex = i;
+							break;
+						}
+					}
+
+					assert(stationIndex != -1);
+
+					uint16 xy = (x >> 5) | ((y >> 5) << 8);
+					ride->station_starts[stationIndex] = xy;
+					ride->station_heights[stationIndex] = z;
+					ride->station_depart[stationIndex] = 1;
+					ride->station_length[stationIndex] = stationLength != 0 ? stationLength : byte_F441D1;
+					ride->num_stations++;
+
+					stationLength = 0;
+					targetTrackType = TRACK_ELEM_END_STATION;
+				} else {
+					if (x + TileDirectionDelta[direction].x == removeX &&
+						y + TileDirectionDelta[direction].y == removeY
+					) {
+						goto loc_6C4BF5;
+					} else {
+						if (x - TileDirectionDelta[direction].x == removeX &&
+							y - TileDirectionDelta[direction].y == removeY
+						) {
+							targetTrackType = TRACK_ELEM_BEGIN_STATION;
+						} else {
+							if (x == stationX0 && y == stationY0) {
+								targetTrackType = TRACK_ELEM_BEGIN_STATION;
+							} else {
+								targetTrackType = TRACK_ELEM_MIDDLE_STATION;
+							}
+						}
+					}
+				}
+				stationElement->properties.track.type = targetTrackType;
+
+				map_invalidate_element(x, y, stationElement);
+			}
+		}
+
+		if (x != stationX0 || y != stationY0) {
+			x -= TileDirectionDelta[direction].x;
+			y -= TileDirectionDelta[direction].y;
+			finaliseStationDone = false;
+		}
+	} while (!finaliseStationDone);
+	
+	return true;
 }
 
 static money32 track_place(int rideIndex, int type, int originX, int originY, int originZ, int direction, int properties_1, int properties_2, int properties_3, int edx_flags, int flags)
@@ -4136,30 +4423,26 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 		}
 	}
 
-	if (type == TRACK_ELEM_ON_RIDE_PHOTO) {
-		if (ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_ONLY_ONE_ON_RIDE_PHOTO_PER_RIDE;
-			return MONEY32_UNDEFINED;
-		}
-	}
-	else if (type == TRACK_ELEM_CABLE_LIFT_HILL) {
-		if (ride->lifecycle_flags & RIDE_LIFECYCLE_16) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_ONLY_ONE_CABLE_LIFT_HILL_PER_RIDE;
-			return MONEY32_UNDEFINED;
-		}
-	}
-
-	if ((edx_flags & (1 << 0)) && !(enabledTrackPieces & (1ULL << TRACK_LIFT_HILL_STEEP))) {
-		if (RCT2_ADDRESS(0x0099423C, uint16)[type] & 0x400) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_TOO_STEEP_FOR_LIFT_HILL;
-			return MONEY32_UNDEFINED;
-		}
-	}
-
-	if (rideTypeFlags & RIDE_TYPE_FLAG_FLAT_RIDE){
+	if (rideTypeFlags & RIDE_TYPE_FLAG_FLAT_RIDE) {
 		RCT2_GLOBAL(0x00F44054, uint8*) = &RCT2_ADDRESS(0x0099AA94, uint8)[type * 16];
-	}
-	else{
+	} else {
+		if (type == TRACK_ELEM_ON_RIDE_PHOTO) {
+			if (ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO) {
+				RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_ONLY_ONE_ON_RIDE_PHOTO_PER_RIDE;
+				return MONEY32_UNDEFINED;
+			}
+		} else if (type == TRACK_ELEM_CABLE_LIFT_HILL) {
+			if (ride->lifecycle_flags & RIDE_LIFECYCLE_16) {
+				RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_ONLY_ONE_CABLE_LIFT_HILL_PER_RIDE;
+				return MONEY32_UNDEFINED;
+			}
+		}
+		if ((edx_flags & (1 << 0)) && !(enabledTrackPieces & (1ULL << TRACK_LIFT_HILL_STEEP))) {
+			if (RCT2_ADDRESS(0x0099423C, uint16)[type] & 0x400) {
+				RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) = STR_TOO_STEEP_FOR_LIFT_HILL;
+				return MONEY32_UNDEFINED;
+			}
+		}
 		RCT2_GLOBAL(0x00F44054, uint8*) = &RCT2_ADDRESS(0x00999A94, uint8)[type * 16];
 	}
 
@@ -4288,23 +4571,10 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 		_currentTrackEndX = x;
 		_currentTrackEndY = y;
 
-		// Until 0x006C5A5F is implemented use this hacky struct.
-		struct{
-			money32 cost; //0
-			uint8 pad[0x10];//4
-			uint8 flags;//14
-		} clearance_struct;
-		clearance_struct.cost = cost;
-		clearance_struct.flags = flags;
-
-		RCT2_GLOBAL(0x00F44060, void*) = &clearance_struct;
-
 		if (!gCheatsDisableClearanceChecks || flags & GAME_COMMAND_FLAG_GHOST){
-			if (!map_can_construct_with_clear_at(x, y, baseZ, clearanceZ, (void*)0x006C5A5F, bl))
+			if (!map_can_construct_with_clear_at(x, y, baseZ, clearanceZ, &map_place_non_scenery_clear_func, bl, flags, &cost))
 				return MONEY32_UNDEFINED;
 		}
-		// Again when 0x006C5A5F implemented remove this.
-		cost = clearance_struct.cost;
 
 		//6c53dc
 		// push baseZ and clearanceZ
@@ -4404,7 +4674,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 			entranceDirections = RCT2_ADDRESS(0x0099BA64, uint8)[type * 16];
 		}
 		if ((entranceDirections & 0x10) && trackBlock->index == 0) {
-			if (!sub_6C4D89(x, y, baseZ, direction, rideIndex, 0)) {
+			if (!track_add_station_element(x, y, baseZ, direction, rideIndex, 0)) {
 				return MONEY32_UNDEFINED;
 			}
 		}
@@ -4560,7 +4830,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 
 		if (entranceDirections & (1 << 4)) {
 			if (trackBlock->index == 0) {
-				sub_6C4D89(x, y, baseZ, direction, rideIndex, GAME_COMMAND_FLAG_APPLY);
+				track_add_station_element(x, y, baseZ, direction, rideIndex, GAME_COMMAND_FLAG_APPLY);
 			}
 			sub_6CB945(rideIndex);
 			ride_update_max_vehicles(rideIndex);
@@ -4621,15 +4891,6 @@ void game_command_place_track(int *eax, int *ebx, int *ecx, int *edx, int *esi, 
 		(*edx >> 16),
 		*ebx & 0xFF
 		);
-}
-
-/**
- *
- *  rct2: 0x006C494B
- */
-static bool sub_6C494B(int x, int y, int z, int direction, int rideIndex, int flags)
-{
-	return !(RCT2_CALLPROC_X(0x006C494B, x, flags | (rideIndex << 8), y, z | (direction << 8), 0, 0, 0) & 0x100);
 }
 
 money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 originY, sint16 originZ, uint8 rotation, uint8 flags){
@@ -4799,7 +5060,7 @@ money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 originY,
 		}
 
 		if (entranceDirections & (1 << 4) && ((mapElement->properties.track.sequence & 0xF) == 0)){
-			if (!sub_6C494B(x, y, z / 8, rotation, rideIndex, 0)) {
+			if (!track_remove_station_element(x, y, z / 8, rotation, rideIndex, 0)) {
 				return MONEY32_UNDEFINED;
 			}
 		}
@@ -4820,7 +5081,7 @@ money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 originY,
 			continue;
 
 		if (entranceDirections & (1 << 4) && ((mapElement->properties.track.sequence & 0xF) == 0)){
-			if (!sub_6C494B(x, y, z / 8, rotation, rideIndex, GAME_COMMAND_FLAG_APPLY)) {
+			if (!track_remove_station_element(x, y, z / 8, rotation, rideIndex, GAME_COMMAND_FLAG_APPLY)) {
 				return MONEY32_UNDEFINED;
 			}
 		}

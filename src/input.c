@@ -1091,8 +1091,8 @@ void process_mouse_over(int x, int y)
 				ebx = 0;
 				edi = cursorId;
 				esi = (int)subWindow;
-				// Not sure what this is for, no windows actually implement a handler
-				// RCT2_CALLFUNC_X(subWindow->event_handlers[WE_UNKNOWN_0E], &eax, &ebx, &ecx, &edx, &esi, &edi, &ebp);
+				// Window event WE_UNKNOWN_0E was called here, but no windows actually implemented a handler and
+				// its not known what it was for
 				cursorId = edi;
 				if ((ebx & 0xFF) != 0)
 				{
@@ -1437,9 +1437,15 @@ void title_handle_keyboard_input()
 		w = window_find_by_class(WC_CHANGE_KEYBOARD_SHORTCUT);
 		if (w != NULL) {
 			keyboard_shortcut_set(key);
-		}
-		else if (key == gShortcutKeys[SHORTCUT_SCREENSHOT]) {
-			keyboard_shortcut_handle_command(SHORTCUT_SCREENSHOT);
+		} else {
+			w = window_find_by_class(WC_TEXTINPUT);
+			if (w != NULL) {
+				window_text_input_key(w, key);
+			}
+			
+			if (key == gShortcutKeys[SHORTCUT_SCREENSHOT]) {
+				keyboard_shortcut_handle_command(SHORTCUT_SCREENSHOT);
+			}
 		}
 	}
 }
@@ -1553,9 +1559,7 @@ void sub_6ED990(char cursor_id){
 		return;
 	}
 	RCT2_GLOBAL(RCT2_ADDRESS_CURENT_CURSOR, uint8) = cursor_id;
-	RCT2_GLOBAL(0x14241BC, uint32) = 2;
 	platform_set_cursor(cursor_id);
-	RCT2_GLOBAL(0x14241BC, uint32) = 0;
 }
 
 

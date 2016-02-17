@@ -311,7 +311,10 @@ void map_invalidate_selection_rect();
 void map_reorganise_elements();
 int sub_68B044();
 rct_map_element *map_element_insert(int x, int y, int z, int flags);
-int map_can_construct_with_clear_at(int x, int y, int zLow, int zHigh, void *clearFunc, uint8 bl);
+
+typedef int (CLEAR_FUNC)(rct_map_element** map_element, int x, int y, uint8 flags, money32* price);
+int map_place_non_scenery_clear_func(rct_map_element** map_element, int x, int y, uint8 flags, money32* price);
+int map_can_construct_with_clear_at(int x, int y, int zLow, int zHigh, CLEAR_FUNC *clearFunc, uint8 bl, uint8 flags, money32 *price);
 int map_can_construct_at(int x, int y, int zLow, int zHigh, uint8 bl);
 void rotate_map_coordinates(sint16 *x, sint16 *y, int rotation);
 rct_xy16 coordinate_3d_to_2d(const rct_xyz16* coordinate_3d, int rotation);
@@ -400,5 +403,6 @@ rct_map_element *map_get_track_element_at_of_type(int x, int y, int z, int track
 rct_map_element *map_get_track_element_at_of_type_seq(int x, int y, int z, int trackType, int sequence);
 rct_map_element *map_get_track_element_at_of_type_from_ride(int x, int y, int z, int trackType, int rideIndex);
 rct_map_element *map_get_track_element_at_from_ride(int x, int y, int z, int rideIndex);
+rct_map_element *map_get_track_element_at_with_direction_from_ride(int x, int y, int z, int direction, int rideIndex);
 
 #endif

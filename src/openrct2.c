@@ -215,7 +215,6 @@ bool openrct2_initialise()
 	// 	return false;
 	// }
 
-	get_system_info();
 	if (!gOpenRCT2Headless) {
 		audio_init();
 		audio_populate_devices();
@@ -365,7 +364,7 @@ static void openrct2_loop()
 
 	_finished = 0;
 	do {
-		if (gConfigGeneral.uncap_fps && gGameSpeed <= 4) {
+		if (gConfigGeneral.uncap_fps && gGameSpeed <= 4 && !gOpenRCT2Headless) {
 			currentTick = SDL_GetTicks();
 			if (uncapTick == 0) {
 				// Reset sprite locations
