@@ -1086,7 +1086,7 @@ void ride_remove_peeps(int rideIndex)
 	}
 
 	ride->num_riders = 0;
-	ride->var_15D = 0;
+	ride->slide_in_use = 0;
 	ride->window_invalidate_flags |= RIDE_INVALIDATE_RIDE_MAIN;
 }
 
@@ -1859,8 +1859,8 @@ static void ride_update(int rideIndex)
 	int i;
 	rct_ride *ride = get_ride(rideIndex);
 
-	if (ride->var_1CA != 0)
-		ride->var_1CA--;
+	if (ride->vehicle_change_timeout != 0)
+		ride->vehicle_change_timeout--;
 
 	ride_music_update(rideIndex);
 
@@ -2001,14 +2001,14 @@ static void ride_spiral_slide_update(rct_ride *ride)
 
 	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) & 3)
 		return;
-	if (ride->var_15D == 0)
+	if (ride->slide_in_use == 0)
 		return;
 
-	ride->var_176++;
-	if (ride->var_176 >= 48) {
-		ride->var_15D--;
+	ride->spiral_slide_progress++;
+	if (ride->spiral_slide_progress >= 48) {
+		ride->slide_in_use--;
 
-		peep = &(g_sprite_list[ride->maze_tiles].peep);
+		peep = GET_PEEP(ride->slide_peep);
 		peep->destination_x++;
 	}
 
@@ -2126,27 +2126,23 @@ static void ride_breakdown_update(int rideIndex)
 		return;
 
 	if (ride->lifecycle_flags & (RIDE_LIFECYCLE_BROKEN_DOWN | RIDE_LIFECYCLE_CRASHED))
-		ride->var_19C++;
+		ride->downtime_history[0]++;
 
 	if (!(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) & 8191)) {
-		int ax =
-			ride->var_19C +
-			ride->var_19D +
-			ride->var_19E +
-			ride->var_19F +
-			ride->var_1A0 +
-			ride->var_1A2 +
-			ride->var_1A3;
-		ride->downtime = min(ax / 2, 100);
+		int totalDowntime =
+			ride->downtime_history[0] +
+			ride->downtime_history[1] +
+			ride->downtime_history[2] +
+			ride->downtime_history[3] +
+			ride->downtime_history[4] +
+			ride->downtime_history[5] +
+			ride->downtime_history[6] +
+			ride->downtime_history[7];
+		ride->downtime = min(totalDowntime / 2, 100);
 
-		ride->var_1A3 = ride->var_1A2;
-		ride->var_1A2 = ride->var_1A1;
-		ride->var_1A1 = ride->var_1A0;
-		ride->var_1A0 = ride->var_19F;
-		ride->var_19F = ride->var_19E;
-		ride->var_19E = ride->var_19D;
-		ride->var_19D = ride->var_19C;
-		ride->var_19C = 0;
+		memmove(&ride->downtime_history[1], ride->downtime_history, sizeof(ride->downtime_history));
+
+		ride->downtime_history[0] = 0;
 		ride->window_invalidate_flags |= RIDE_INVALIDATE_RIDE_MAINTENANCE;
 	}
 
@@ -2255,8 +2251,8 @@ void ride_prepare_breakdown(int rideIndex, int breakdownReason)
 
 	ride->breakdown_reason_pending = breakdownReason;
 	ride->mechanic_status = RIDE_MECHANIC_STATUS_UNDEFINED;
-	ride->var_1AC = 0;
-	ride->var_1AD = 0;
+	ride->breakdown_sound_modifier = 0;
+	ride->not_fixed_timeout = 0;
 
 	switch (breakdownReason) {
 	case BREAKDOWN_SAFETY_CUT_OUT:
@@ -2337,12 +2333,15 @@ static void ride_breakdown_status_update(int rideIndex)
 
 	// Warn player if ride hasnt been fixed for ages
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN) {
-		ride->var_1AD++;
-		if (ride->var_1AD == 0)
-			ride->var_1AD -= 16;
+		ride->not_fixed_timeout++;
+		// When there has been a full 255 timeout ticks this
+		// will force timeout ticks to keep issueing news every
+		// 16 ticks. Note there is no reason to do this.
+		if (ride->not_fixed_timeout == 0)
+			ride->not_fixed_timeout -= 16;
 
 		if (
-			!(ride->var_1AD & 15) &&
+			!(ride->not_fixed_timeout & 15) &&
 			ride->mechanic_status != RIDE_MECHANIC_STATUS_FIXING &&
 			ride->mechanic_status != RIDE_MECHANIC_STATUS_4
 		) {
@@ -2639,19 +2638,19 @@ static void ride_music_update(int rideIndex)
 	if (ride->lifecycle_flags & (RIDE_LIFECYCLE_BREAKDOWN_PENDING | RIDE_LIFECYCLE_BROKEN_DOWN)) {
 		if (ride->breakdown_reason_pending == BREAKDOWN_CONTROL_FAILURE) {
 			if (!(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) & 7))
-				if (ride->var_1AC != 255)
-					ride->var_1AC++;
+				if (ride->breakdown_sound_modifier != 255)
+					ride->breakdown_sound_modifier++;
 		} else {
 			if (
 				(ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN) ||
 				ride->breakdown_reason_pending == BREAKDOWN_BRAKES_FAILURE ||
 				ride->breakdown_reason_pending == BREAKDOWN_CONTROL_FAILURE
 			) {
-				if (ride->var_1AC != 255)
-					ride->var_1AC++;
+				if (ride->breakdown_sound_modifier != 255)
+					ride->breakdown_sound_modifier++;
 			}
 
-			if (ride->var_1AC == 255) {
+			if (ride->breakdown_sound_modifier == 255) {
 				ride->music_tune_id = 255;
 				return;
 			}
@@ -2675,7 +2674,7 @@ static void ride_music_update(int rideIndex)
 
 	// Alter sample rate for a power cut effect
 	if (ride->lifecycle_flags & (RIDE_LIFECYCLE_BREAKDOWN_PENDING | RIDE_LIFECYCLE_BROKEN_DOWN)) {
-		sampleRate = ride->var_1AC * 70;
+		sampleRate = ride->breakdown_sound_modifier * 70;
 		if (ride->breakdown_reason_pending != BREAKDOWN_CONTROL_FAILURE)
 			sampleRate *= -1;
 		sampleRate += 22050;
@@ -5816,7 +5815,7 @@ foundRideEntry:
 
 	ride->status = RIDE_STATUS_CLOSED;
 	ride->lifecycle_flags = 0;
-	ride->var_1CA = 0;
+	ride->vehicle_change_timeout = 0;
 	ride->num_stations = 0;
 	ride->num_vehicles = 1;
 	ride->var_0CA = 32;
@@ -5907,7 +5906,7 @@ foundRideEntry:
 	ride->total_customers = 0;
 	ride->total_profit = 0;
 	ride->num_riders = 0;
-	ride->var_15D = 0;
+	ride->slide_in_use = 0;
 	ride->maze_tiles = 0;
 	ride->build_date = RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONTH_YEAR, uint16);
 	ride->music_tune_id = 255;
@@ -5919,8 +5918,7 @@ foundRideEntry:
 	ride->inspection_interval = RIDE_INSPECTION_EVERY_30_MINUTES;
 	ride->last_inspection = 0;
 	ride->downtime = 0;
-	ride->var_19C = 0;
-	ride->var_1A0 = 0;
+	memset(ride->downtime_history, 0, sizeof(ride->downtime_history));
 	ride->no_primary_items_sold = 0;
 	ride->no_secondary_items_sold = 0;
 	ride->last_crash_type = RIDE_CRASH_TYPE_NONE;
@@ -7520,7 +7518,7 @@ void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int 
 
 	ride_clear_for_construction(rideIndex);
 	ride_remove_peeps(rideIndex);
-	ride->var_1CA = 100;
+	ride->vehicle_change_timeout = 100;
 	if (ride->type != RIDE_TYPE_ENTERPRISE) {
 		gfx_invalidate_screen();
 	}

@@ -1808,7 +1808,7 @@ static void peep_update_ride_sub_state_0(rct_peep* peep){
 	}
 
 	if (ride->status != RIDE_STATUS_OPEN ||
-		ride->var_1CA != 0){
+		ride->vehicle_change_timeout != 0){
 		if (peep->destination_tolerence == 0){
 			remove_peep_from_queue(peep);
 			peep_decrement_num_riders(peep);
@@ -2231,7 +2231,7 @@ static void peep_update_ride_sub_state_2(rct_peep* peep){
 
 	if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_13)){
 		if (ride->status != RIDE_STATUS_OPEN ||
-			ride->var_1CA != 0 ||
+			ride->vehicle_change_timeout != 0 ||
 			(++peep->var_AC) == 0){
 
 			peep_update_ride_sub_state_2_rejoin_queue(peep, ride);
@@ -2905,13 +2905,13 @@ static void peep_update_ride_sub_state_15(rct_peep* peep){
 				peep->destination_x++;
 			return;
 		case 1:
-			if (ride->var_15D != 0)
+			if (ride->slide_in_use != 0)
 				return;
 
-			ride->var_15D++;
+			ride->slide_in_use++;
 			ride->slide_peep = peep->sprite_index;
 			ride->slide_peep_t_shirt_colour = peep->tshirt_colour;
-			ride->var_176 = 0;
+			ride->spiral_slide_progress = 0;
 			peep->destination_x++;
 			return;
 		case 2:
