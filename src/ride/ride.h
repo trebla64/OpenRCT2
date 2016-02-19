@@ -157,8 +157,8 @@ typedef struct {
 	uint8 num_stations;				// 0x0C7
 	uint8 num_vehicles;				// 0x0C8
 	uint8 num_cars_per_train;		// 0x0C9
-	uint8 var_0CA;
-	uint8 var_0CB;
+	uint8 proposed_num_vehicles;	// 0x0CA
+	uint8 proposed_num_cars_per_train; // 0x0CB
 	uint8 max_trains;				// 0x0CC
 	uint8 min_max_cars_per_train;	// 0x0CD
 	uint8 min_waiting_time;			// 0x0CE
@@ -185,7 +185,7 @@ typedef struct {
 	sint32 max_speed;				// 0x0D8
 	sint32 average_speed;			// 0x0DC
 	uint8 current_test_segment;		// 0x0E0
-	uint8 var_0E1;
+	uint8 average_speed_test_timeout;	// 0x0E1
 	uint8 pad_0E2[0x2];
 	sint32 length[4];				// 0x0E4
 	uint16 time[4];					// 0x0F4
@@ -196,8 +196,9 @@ typedef struct {
 	fixed16_2dp previous_lateral_g;	// 0x104
 	uint8 pad_106[0x2];
 	uint32 testing_flags;			// 0x108
-	// x y map location
-	uint16 var_10C;
+	// x y map location of the current track piece during a test
+	// this is to prevent counting special tracks multiple times
+	rct_xy8 cur_test_track_location;	// 0x10C
 	// Next 3 variables are related (XXXX XYYY ZZZa aaaa)
 	uint16 turn_count_default;		// 0x10E X = current turn count
 	uint16 turn_count_banked;		// 0x110
@@ -214,10 +215,11 @@ typedef struct {
 	uint8 start_drop_height;		// 0x116
 	uint8 highest_drop_height;		// 0x117
 	sint32 sheltered_length;		// 0x118
+	// Unused always 0? Should affect nausea
 	uint16 var_11C;
 	uint8 num_sheltered_sections;   // 0x11E (?abY YYYY)
-	// z related to var_10C
-	uint8 var_11F;
+	// see cur_test_track_location
+	uint8 cur_test_track_z;			// 0x11F
 	// Customer counter in the current 960 game tick (about 30 seconds) interval
 	uint16 cur_num_customers;       // 0x120
 	// Counts ticks to update customer intervals, resets each 960 game ticks.
@@ -225,10 +227,8 @@ typedef struct {
 	// Customer count in the last 10 * 960 game ticks (sliding window)
 	uint16 num_customers[10];       // 0x124
 	money16 price;					// 0x138
-	sint16 var_13A;
-	sint16 var_13C;
-	uint8 var_13E;
-	uint8 var_13F;
+	rct_xy8 chairlift_bullwheel_location[2]; // 0x13A
+	uint8 chairlift_bullwheel_z[2];	// 0x13E
 	union {
 		rating_tuple ratings;		// 0x140
 		struct {
@@ -238,7 +238,7 @@ typedef struct {
 		};
 	};
 	uint16 value;					// 0x146
-	uint16 var_148;
+	uint16 chairlift_bullwheel_rotation;	// 0x148
 	uint8 satisfaction;				// 0x14A
 	uint8 satisfaction_time_out;	// 0x14B
 	uint8 satisfaction_next;		// 0x14C

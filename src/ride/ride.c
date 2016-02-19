@@ -1925,30 +1925,27 @@ static void ride_update(int rideIndex)
  */
 static void ride_chairlift_update(rct_ride *ride)
 {
-	int x, y, z, ax, bx, cx;
+	int x, y, z;
 
 	if (!(ride->lifecycle_flags & RIDE_LIFECYCLE_ON_TRACK))
 		return;
-	if (!(ride->lifecycle_flags & (RIDE_LIFECYCLE_BREAKDOWN_PENDING | RIDE_LIFECYCLE_BROKEN_DOWN | RIDE_LIFECYCLE_CRASHED)))
-		return;
-	if (ride->breakdown_reason_pending == 0)
-		return;
-
-	ax = ride->operation_option * 2048;
-	bx = ride->var_148;
-	cx = bx + ax;
-	ride->var_148 = cx;
-	if (bx >> 14 == cx >> 14)
+	if ((ride->lifecycle_flags & (RIDE_LIFECYCLE_BREAKDOWN_PENDING | RIDE_LIFECYCLE_BROKEN_DOWN | RIDE_LIFECYCLE_CRASHED)) && 
+		ride->breakdown_reason_pending == 0)
 		return;
 
-	x = (ride->var_13A & 0xFF) * 32;
-	y = (ride->var_13A >> 8) * 32;
-	z = ride->var_13E * 8;
+	uint16 old_chairlift_bullwheel_rotation = ride->chairlift_bullwheel_rotation >> 14;
+	ride->chairlift_bullwheel_rotation += ride->speed * 2048;
+	if (old_chairlift_bullwheel_rotation == ride->speed / 8)
+		return;
+
+	x = ride->chairlift_bullwheel_location[0].x * 32;
+	y = ride->chairlift_bullwheel_location[0].y * 32;
+	z = ride->chairlift_bullwheel_z[0] * 8;
 	map_invalidate_tile_zoom1(x, y, z, z + (4 * 8));
 
-	x = (ride->var_13C & 0xFF) * 32;
-	y = (ride->var_13C >> 8) * 32;
-	z = ride->var_13F * 8;
+	x = ride->chairlift_bullwheel_location[1].x * 32;
+	y = ride->chairlift_bullwheel_location[1].y * 32;
+	z = ride->chairlift_bullwheel_z[1] * 8;
 	map_invalidate_tile_zoom1(x, y, z, z + (4 * 8));
 }
 
@@ -4099,8 +4096,9 @@ bool ride_check_start_and_end_is_station(rct_xy_element *input, rct_xy_element *
 	if (!(RCT2_GLOBAL(0x0099BA64 + (trackType * 16), uint32) & 0x10)) {
 		return false;
 	}
-	ride->var_13A = (trackBack.x >> 5) | ((trackBack.y >> 5) << 8);
-	ride->var_13E = trackBack.element->base_height;
+	ride->chairlift_bullwheel_location[0].x = trackBack.x >> 5;
+	ride->chairlift_bullwheel_location[0].y = trackBack.y >> 5;
+	ride->chairlift_bullwheel_z[0] = trackBack.element->base_height;
 
 	// Check front of the track
 	track_get_front(input, &trackFront);
@@ -4108,8 +4106,9 @@ bool ride_check_start_and_end_is_station(rct_xy_element *input, rct_xy_element *
 	if (!(RCT2_GLOBAL(0x0099BA64 + (trackType * 16), uint32) & 0x10)) {
 		return false;
 	}
-	ride->var_13C = (trackFront.x >> 5) | ((trackFront.y >> 5) << 8);
-	ride->var_13F = trackFront.element->base_height;
+	ride->chairlift_bullwheel_location[1].x = trackFront.x >> 5;
+	ride->chairlift_bullwheel_location[1].y = trackFront.y >> 5;
+	ride->chairlift_bullwheel_z[1] = trackFront.element->base_height;
 	return true;
 }
 
@@ -4325,8 +4324,8 @@ rct_vehicle *vehicle_create_car(
 	vehicle->scream_sound_id = 255;
 	vehicle->var_1F = 0;
 	vehicle->var_20 = 0;
-	vehicle->var_D9 = 4;
-	vehicle->var_D8 = 4;
+	vehicle->target_seat_rotation = 4;
+	vehicle->seat_rotation = 4;
 	for (int i = 0; i < 32; i++) {
 		vehicle->peep[i] = SPRITE_INDEX_NULL;
 	}
@@ -4376,7 +4375,7 @@ rct_vehicle *vehicle_create_car(
 			regs.dl = 9;
 			vehicle->var_D3 = 0;
 			vehicle->var_D4 = 0;
-			vehicle->var_D5 = 0;
+			vehicle->mini_golf_flags = 0;
 		}
 		if (vehicleEntry->flags_a & VEHICLE_ENTRY_FLAG_A_4) {
 			if (!vehicle->is_child) {
@@ -5818,10 +5817,10 @@ foundRideEntry:
 	ride->vehicle_change_timeout = 0;
 	ride->num_stations = 0;
 	ride->num_vehicles = 1;
-	ride->var_0CA = 32;
+	ride->proposed_num_vehicles = 32;
 	ride->max_trains = 32;
 	ride->num_cars_per_train = 1;
-	ride->var_0CB = 12;
+	ride->proposed_num_cars_per_train = 12;
 	ride->min_waiting_time = 10;
 	ride->max_waiting_time = 60;
 	ride->depart_flags = RIDE_DEPART_WAIT_FOR_MINIMUM_LENGTH | 3;
@@ -5843,7 +5842,7 @@ foundRideEntry:
 	ride->excitement = (ride_rating)-1;
 	ride->cur_num_customers = 0;
 	ride->num_customers_timeout = 0;
-	ride->var_148 = 0;
+	ride->chairlift_bullwheel_rotation = 0;
 
 	ride->price = 0;
 	ride->price_secondary = 0;
@@ -7327,7 +7326,7 @@ void ride_update_max_vehicles(int rideIndex)
 				break;
 			}
 		}
-		int newCarsPerTrain = max(ride->var_0CB, rideEntry->min_cars_in_train);
+		int newCarsPerTrain = max(ride->proposed_num_cars_per_train, rideEntry->min_cars_in_train);
 		maxCarsPerTrain = max(maxCarsPerTrain, rideEntry->min_cars_in_train);
 		newCarsPerTrain = min(maxCarsPerTrain, newCarsPerTrain);
 		ride->min_max_cars_per_train = maxCarsPerTrain | (rideEntry->min_cars_in_train << 4);
@@ -7396,13 +7395,13 @@ void ride_update_max_vehicles(int rideIndex)
 		}
 		ride->max_trains = maxNumTrains;
 
-		numCarsPerTrain = min(ride->var_0CB, newCarsPerTrain);
-		numVehicles = min(ride->var_0CA, maxNumTrains);
+		numCarsPerTrain = min(ride->proposed_num_cars_per_train, newCarsPerTrain);
+		numVehicles = min(ride->proposed_num_vehicles, maxNumTrains);
 	} else {
 		ride->max_trains = rideEntry->cars_per_flat_ride;
 		ride->min_max_cars_per_train = rideEntry->max_cars_in_train | (rideEntry->min_cars_in_train << 4);
 		numCarsPerTrain = rideEntry->max_cars_in_train;
-		numVehicles = min(ride->var_0CA, rideEntry->cars_per_flat_ride);
+		numVehicles = min(ride->proposed_num_vehicles, rideEntry->cars_per_flat_ride);
 	}
 
 	// Refresh new current num vehicles / num cars per vehicle
@@ -7525,7 +7524,7 @@ void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int 
 
 	switch (commandType) {
 	case RIDE_SET_VEHICLES_COMMAND_TYPE_NUM_TRAINS:
-		ride->var_0CA = value;
+		ride->proposed_num_vehicles = value;
 		if (ride->type != RIDE_TYPE_SPACE_RINGS) {
 			gfx_invalidate_screen();
 		}
@@ -7534,7 +7533,7 @@ void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int 
 		invalidate_test_results(rideIndex);
 		rideEntry = get_ride_entry(ride->subtype);
 		value = clamp(rideEntry->min_cars_in_train, value, rideEntry->max_cars_in_train);
-		ride->var_0CB = value;
+		ride->proposed_num_cars_per_train = value;
 		break;
 	case RIDE_SET_VEHICLES_COMMAND_TYPE_RIDE_ENTRY:
 		invalidate_test_results(rideIndex);
