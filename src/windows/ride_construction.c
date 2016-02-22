@@ -1627,7 +1627,6 @@ static void window_ride_construction_construct(rct_window *w)
 	// NOTE: the rest of this function (minus the network condition) is copied to game_command_callback_ride_construct_placed_front/back
 	// Please update both ends if there are any changes here
 	if (_rideConstructionState == RIDE_CONSTRUCTION_STATE_BACK) {
-		RCT2_GLOBAL(0x00F441D2, uint8) = _currentRideIndex;
 		trackDirection = _currentTrackPieceDirection ^ 2;
 		x = _currentTrackBeginX;
 		y = _currentTrackBeginY;
@@ -1651,7 +1650,6 @@ static void window_ride_construction_construct(rct_window *w)
 			_rideConstructionState = RIDE_CONSTRUCTION_STATE_0;
 		}
 	} else {
-		RCT2_GLOBAL(0x00F441D2, uint8) = _currentRideIndex;
 		trackDirection = _currentTrackPieceDirection;
 		x = _currentTrackBeginX;
 		y = _currentTrackBeginY;
@@ -3712,7 +3710,7 @@ static void ride_construction_tooldown_entrance_exit(int screenX, int screenY)
 	rct_ride *ride = get_ride(RCT2_GLOBAL(0x00F44192, uint8));
 	if (ride_are_all_possible_entrances_and_exits_built(ride)) {
 		tool_cancel();
-		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_15)) {
+		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_HAS_NO_TRACK)) {
 			window_close_by_class(WC_RIDE_CONSTRUCTION);
 		}
 	} else {

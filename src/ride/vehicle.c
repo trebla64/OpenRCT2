@@ -1368,14 +1368,14 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 
 		ride->train_at_station[vehicle->current_station] = train_index;
 		vehicle->sub_state = 1;
-		vehicle->var_C0 = 0;
+		vehicle->time_waiting = 0;
 
 		vehicle_invalidate(vehicle);
 		return;
 	}
 	else if (vehicle->sub_state == 1){
-		if (vehicle->var_C0 != 0xFFFF)
-			vehicle->var_C0++;
+		if (vehicle->time_waiting != 0xFFFF)
+			vehicle->time_waiting++;
 
 		vehicle->update_flags &= ~VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 
@@ -1395,7 +1395,7 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 		num_seats_on_train &= 0x7F;
 
 		if (!ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_NO_TEST_MODE)){
-			if (vehicle->var_C0 < 20){
+			if (vehicle->time_waiting < 20){
 				train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 				return;
 			}
@@ -1409,13 +1409,13 @@ static void vehicle_update_waiting_for_passengers(rct_vehicle* vehicle){
 
 		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_HAS_LOAD_OPTIONS)){
 			if (ride->depart_flags & RIDE_DEPART_WAIT_FOR_MINIMUM_LENGTH){
-				if (ride->min_waiting_time * 32 > vehicle->var_C0){
+				if (ride->min_waiting_time * 32 > vehicle->time_waiting){
 					train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 					return;
 				}
 			}
 			if (ride->depart_flags & RIDE_DEPART_WAIT_FOR_MAXIMUM_LENGTH){
-				if (ride->max_waiting_time * 32 < vehicle->var_C0){
+				if (ride->max_waiting_time * 32 < vehicle->time_waiting){
 					vehicle->update_flags |= VEHICLE_UPDATE_FLAG_TRAIN_READY_DEPART;
 					train_ready_to_depart(vehicle, num_peeps_on_train, num_used_seats_on_train);
 					return;
@@ -1631,7 +1631,6 @@ static void vehicle_update_waiting_to_depart(rct_vehicle* vehicle) {
 	vehicle->sub_state = 0;
 
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_CABLE_LIFT) {
-		RCT2_GLOBAL(0x00F441D2, uint8) = vehicle->ride;
 		rct_xy_element track;
 		int z;
 		int direction;
@@ -2105,8 +2104,8 @@ static void vehicle_update_travelling_boat_hire_setup(rct_vehicle* vehicle) {
 	vehicle->track_y = vehicle->y & 0xFFE0;
 
 	rct_xy8 location = {
-		.x = (vehicle->track_x + RCT2_ADDRESS(0x00993CCC, sint16)[2 * (vehicle->sprite_direction >> 3)]) / 32,
-		.y = (vehicle->track_y + RCT2_ADDRESS(0x00993CCE, sint16)[2 * (vehicle->sprite_direction >> 3)]) / 32
+		.x = (vehicle->track_x + TileDirectionDelta[vehicle->sprite_direction >> 3].x) / 32,
+		.y = (vehicle->track_y + TileDirectionDelta[vehicle->sprite_direction >> 3].y) / 32
 	};
 
 	vehicle->boat_location = location;
@@ -2554,12 +2553,12 @@ static void vehicle_update_crash_setup(rct_vehicle* vehicle) {
 		int x = RCT2_ADDRESS(0x009A3AC4, sint16)[trainVehicle->sprite_direction & 0xFE];
 		int	y = RCT2_ADDRESS(0x009A3AC6, sint16)[trainVehicle->sprite_direction & 0xFE];
 
-		int ecx = RCT2_ADDRESS(0x009A37E4, uint32)[trainVehicle->var_1F] >> 15;
+		int ecx = RCT2_ADDRESS(0x009A37E4, sint32)[trainVehicle->var_1F] >> 15;
 		x *= ecx;
 		y *= ecx;
 		x >>= 16;
 		y >>= 16;
-		ecx = RCT2_ADDRESS(0x009A38D4, uint32)[trainVehicle->var_1F] >> 23;
+		ecx = RCT2_ADDRESS(0x009A38D4, sint32)[trainVehicle->var_1F] >> 23;
 		x *= edx;
 		y *= edx;
 		ecx *= edx;
@@ -3070,7 +3069,7 @@ static void vehicle_update_waiting_for_cable_lift(rct_vehicle *vehicle)
 		return;
 
 	cableLift->status = VEHICLE_STATUS_WAITING_TO_DEPART;
-	cableLift->var_C0 = vehicle->sprite_index;
+	cableLift->cable_lift_target = vehicle->sprite_index;
 }
 
 /**
@@ -3437,8 +3436,8 @@ static void sub_6DA280(rct_vehicle *vehicle)
 	rct_ride* ride = get_ride(vehicle->ride);
 
 	rct_xy8 location = {
-		.x = (vehicle->x + RCT2_ADDRESS(0x00993CCC, sint16)[2 * (ride->boat_hire_return_direction & 3)]) / 32,
-		.y = (vehicle->y + RCT2_ADDRESS(0x00993CCE, sint16)[2 * (ride->boat_hire_return_direction & 3)]) / 32
+		.x = (vehicle->x + TileDirectionDelta[ride->boat_hire_return_direction & 3].x) / 32,
+		.y = (vehicle->y + TileDirectionDelta[ride->boat_hire_return_direction & 3].y) / 32
 	};
 
 	if (*((uint16*)&location) == ride->boat_hire_return_position) {
@@ -3455,8 +3454,8 @@ static void sub_6DA280(rct_vehicle *vehicle)
 	if (scenario_rand() & 1 && (!(rideEntry->flags & RIDE_ENTRY_FLAG_7) || vehicle->lost_time_out > 1920)) {
 		location = *((rct_xy8*)&ride->boat_hire_return_position);
 		rct_xy16 destLocation = {
-			.x = location.x * 32 - RCT2_ADDRESS(0x00993CCC, sint16)[2 * (ride->boat_hire_return_direction & 3)] + 16,
-			.y = location.y * 32 - RCT2_ADDRESS(0x00993CCE, sint16)[2 * (ride->boat_hire_return_direction & 3)] + 16
+			.x = location.x * 32 - TileDirectionDelta[ride->boat_hire_return_direction & 3].x + 16,
+			.y = location.y * 32 - TileDirectionDelta[ride->boat_hire_return_direction & 3].y + 16
 		};
 
 		destLocation.x -= vehicle->x;
@@ -3475,8 +3474,8 @@ static void sub_6DA280(rct_vehicle *vehicle)
 			continue;
 		}
 
-		sint16 x = vehicle->track_x + RCT2_ADDRESS(0x00993CCC, sint16)[2 * (randDirection + rotations[i] & 3)];
-		sint16 y = vehicle->track_y + RCT2_ADDRESS(0x00993CCE, sint16)[2 * (randDirection + rotations[i] & 3)];
+		sint16 x = vehicle->track_x + TileDirectionDelta[(randDirection + rotations[i]) & 3].x;
+		sint16 y = vehicle->track_y + TileDirectionDelta[(randDirection + rotations[i]) & 3].y;
 
 		if (vehicle_is_boat_on_water(vehicle, x, y)) {
 			continue;
@@ -3486,8 +3485,8 @@ static void sub_6DA280(rct_vehicle *vehicle)
 		return;
 	}
 
-	sint16 x = vehicle->track_x + RCT2_ADDRESS(0x00993CCC, sint16)[2 * (curDirection & 3)];
-	sint16 y = vehicle->track_y + RCT2_ADDRESS(0x00993CCE, sint16)[2 * (curDirection & 3)];
+	sint16 x = vehicle->track_x + TileDirectionDelta[curDirection & 3].x;
+	sint16 y = vehicle->track_y + TileDirectionDelta[curDirection & 3].y;
 	vehicle->boat_location.x = x / 32;
 	vehicle->boat_location.y = y / 32;
 }
@@ -4229,9 +4228,9 @@ static void vehicle_update_crash(rct_vehicle *vehicle){
 		curPosition.x += (sint8)(curVehicle->var_B6 >> 8);
 		curPosition.y += (sint8)(curVehicle->var_C0 >> 8);
 		curPosition.z += (sint8)(curVehicle->var_4E >> 8);
-		curVehicle->track_x += (sint16)(curVehicle->var_B6 << 8);
-		curVehicle->track_y += (sint16)(curVehicle->var_C0 << 8);
-		curVehicle->track_z += (sint16)(curVehicle->var_4E << 8);
+		curVehicle->track_x = (sint16)(curVehicle->var_B6 << 8);
+		curVehicle->track_y = (sint16)(curVehicle->var_C0 << 8);
+		curVehicle->track_z = (sint16)(curVehicle->var_4E << 8);
 
 		if (curPosition.x > 0x1FFF ||
 			curPosition.y > 0x1FFF) {

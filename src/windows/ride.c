@@ -1531,7 +1531,7 @@ static void window_ride_init_viewport(rct_window *w)
 		focus.coordinate.z = map_element_height(focus.coordinate.x, focus.coordinate.y) & 0xFFFF;
 		focus.sprite.type |= 0x40;
 		focus.coordinate.zoom = 1;
-		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_15))
+		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_HAS_NO_TRACK))
 			focus.coordinate.zoom = 0;
 	}
 	focus.coordinate.var_480 = w->viewport_focus_coordinates.var_480;
@@ -5798,9 +5798,7 @@ static void window_ride_income_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		profit = ride->price;
 
 		stringId = STR_PROFIT_PER_ITEM_SOLD;
-		profit -= primaryItem < 32 ?
-			RCT2_GLOBAL(0x00982164 + (primaryItem * 8), uint16) :
-			RCT2_GLOBAL(0x00982144 + (primaryItem * 8), uint16);
+		profit -= get_shop_item_cost(primaryItem);
 		if (profit < 0) {
 			profit *= -1;
 			stringId = STR_LOSS_PER_ITEM_SOLD;
@@ -5819,9 +5817,7 @@ static void window_ride_income_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		profit = ride->price_secondary;
 
 		stringId = STR_PROFIT_PER_ITEM_SOLD;
-		profit -= secondaryItem < 32 ?
-			RCT2_GLOBAL(0x00982164 + (secondaryItem * 8), uint16) :
-			RCT2_GLOBAL(0x00982144 + (secondaryItem * 8), uint16);
+		profit -= get_shop_item_cost(secondaryItem);
 		if (profit < 0) {
 			profit *= -1;
 			stringId = STR_LOSS_PER_ITEM_SOLD;
