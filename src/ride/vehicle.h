@@ -90,7 +90,7 @@ typedef struct {
 	// Height from center of sprite to bottom
 	uint8 sprite_height_negative;	// 0x09
 	uint16 sprite_index;			// 0x0A
-	uint16 var_0C;
+	uint16 flags;			// 0x0C
 	sint16 x;						// 0x0E
 	sint16 y;						// 0x10
 	sint16 z;						// 0x12
@@ -103,8 +103,8 @@ typedef struct {
 	sint16 sprite_right;			// 0x1A
 	sint16 sprite_bottom;			// 0x1C
 	uint8 sprite_direction;			// 0x1E
-	uint8 var_1F;
-	uint8 var_20;
+	uint8 vehicle_sprite_type;		// 0x1F
+	uint8 bank_rotation;			// 0x20
 	uint8 pad_21[3];
 	sint32 remaining_distance;		// 0x24
 	sint32 velocity;				// 0x28
@@ -209,8 +209,8 @@ typedef struct {
 	uint16 y;			// 0x02
 	uint16 z;			// 0x04
 	uint8 direction;	// 0x06
-	uint8 var_07;
-	uint8 var_08;
+	uint8 vehicle_sprite_type;	// 0x07
+	uint8 bank_rotation;	// 0x08
 } rct_vehicle_info;
 
 enum {
