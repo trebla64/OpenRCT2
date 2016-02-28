@@ -1779,7 +1779,7 @@ STR_1773    :Only one on-ride photo section allowed per ride
 STR_1774    :Only one cable lift hill allowed per ride
 STR_1775    :Off
 STR_1776    :On
-STR_1777    :{WINDOW_COLOUR_2}Music
+STR_1777    :{WINDOW_COLOUR_2}Ride music
 STR_1778    :{STRINGID} - - 
 STR_1779    :{INLINE_SPRITE}{254}{19}{00}{00} Panda costume
 STR_1780    :{INLINE_SPRITE}{255}{19}{00}{00} Tiger costume
@@ -4002,7 +4002,6 @@ STR_5660    :Modify Groups
 STR_5661    :Set Player Group
 STR_5662    :N/A
 STR_5663    :Clear Landscape
-STR_5664    :Cheat
 STR_5701    :{WINDOW_COLOUR_2}Last action: {BLACK}{STRINGID}
 STR_5702    :{SMALLFONT}{BLACK}Locate player's most recent action
 STR_5703    :Can't kick the host
@@ -4068,6 +4067,25 @@ STR_5760    :Hong Kong Dollars (HK$)
 STR_5761    :New Taiwan Dollar (NT$)
 STR_5762    :Chinese Yuan (CN{YEN})
 STR_5763    :All files
+STR_5764    :Invalid ride type
+STR_5765    :Cannot edit rides of invalid type
+STR_5766    :<available string id>
+STR_5767    :Income
+STR_5768    :Total customers
+STR_5769    :Total profit
+STR_5770    :Customers per hour
+STR_5771    :Running cost
+STR_5772    :Age
+STR_5773    :Total customers: {COMMA32}
+STR_5774    :Total profit: {CURRENCY2DP}
+STR_5775    :Customers: {COMMA32} per hour
+STR_5776    :Built: This Year
+STR_5777    :Built: Last Year
+STR_5778    :Built: {COMMA16} Years Ago
+STR_5779    :Income: {CURRENCY2DP} per hour
+STR_5780    :Running cost: {CURRENCY2DP} per hour
+STR_5781    :Running cost: Unknown
+STR_5782    :You are now connected. Press '{STRING}' to chat.
 
 #############
 # Scenarios #

@@ -102,7 +102,7 @@ void game_handle_edge_scroll();
 void game_handle_key_scroll();
 static void input_widget_left(int x, int y, rct_window *w, int widgetIndex);
 void input_state_widget_pressed(int x, int y, int state, int widgetIndex, rct_window* w, rct_widget* widget);
-void sub_6ED990(char cursor_id);
+void sub_6ED990(uint8 cursor_id);
 static void input_window_position_continue(rct_window *w, int lastX, int lastY, int newX, int newY);
 static void input_window_position_end(rct_window *w, int x, int y);
 static void input_window_resize_begin(rct_window *w, int widgetIndex, int x, int y);
@@ -796,9 +796,7 @@ static void input_scroll_part_update_hleft(rct_window *w, int widgetIndex, int s
 	assert(w != NULL);
 	if (window_find_by_number(w->classification, w->number)) {
 		w->scrolls[scroll_id].flags |= HSCROLLBAR_LEFT_PRESSED;
-		if (w->scrolls[scroll_id].h_left < 0)
-			w->scrolls[scroll_id].h_left = 0;
-		else if (w->scrolls[scroll_id].h_left >= 3)
+		if (w->scrolls[scroll_id].h_left >= 3)
 			w->scrolls[scroll_id].h_left -= 3;
 		widget_scroll_update_thumbs(w, widgetIndex);
 		widget_invalidate_by_number(w->classification, w->number, widgetIndex);
@@ -839,9 +837,7 @@ static void input_scroll_part_update_vtop(rct_window *w, int widgetIndex, int sc
 	assert(w != NULL);
 	if (window_find_by_number(w->classification, w->number)) {
 		w->scrolls[scroll_id].flags |= VSCROLLBAR_UP_PRESSED;
-		if (w->scrolls[scroll_id].v_top < 0)
-			w->scrolls[scroll_id].v_top = 0;
-		else if (w->scrolls[scroll_id].v_top >= 3)
+		if (w->scrolls[scroll_id].v_top >= 3)
 			w->scrolls[scroll_id].v_top -= 3;
 		widget_scroll_update_thumbs(w, widgetIndex);
 		widget_invalidate_by_number(w->classification, w->number, widgetIndex);
@@ -1548,7 +1544,7 @@ int get_next_key()
 *
 *  rct2: 0x006ED990
 */
-void sub_6ED990(char cursor_id){
+void sub_6ED990(uint8 cursor_id){
 	if (gInputState == INPUT_STATE_RESIZING)
 	{
 		cursor_id = CURSOR_DIAGONAL_ARROWS;	//resize icon

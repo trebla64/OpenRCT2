@@ -42,6 +42,7 @@ extern "C" {
 #include "../game.h"
 #include "../interface/chat.h"
 #include "../interface/window.h"
+#include "../interface/keyboard_shortcut.h"
 #include "../localisation/date.h"
 #include "../localisation/localisation.h"
 #include "../network/http.h"
@@ -76,6 +77,7 @@ enum {
 	NETWORK_COMMAND_GAMEINFO,
 	NETWORK_COMMAND_SHOWERROR,
 	NETWORK_COMMAND_GROUPLIST,
+	NETWORK_COMMAND_EVENT,
 	NETWORK_COMMAND_MAX,
 	NETWORK_COMMAND_INVALID = -1
 };
@@ -93,8 +95,15 @@ enum {
 	MASTER_SERVER_STATUS_INTERNAL_ERROR = 500
 };
 
+enum {
+	SERVER_EVENT_PLAYER_JOINED,
+	SERVER_EVENT_PLAYER_DISCONNECTED,
+};
+
 constexpr int MASTER_SERVER_REGISTER_TIME = 120 * 1000;	// 2 minutes
 constexpr int MASTER_SERVER_HEARTBEAT_TIME = 60 * 1000;	// 1 minute
+
+void network_chat_show_connected_message();
 
 NetworkPacket::NetworkPacket()
 {
@@ -563,6 +572,7 @@ Network::Network()
 	client_command_handlers[NETWORK_COMMAND_SETDISCONNECTMSG] = &Network::Client_Handle_SETDISCONNECTMSG;
 	client_command_handlers[NETWORK_COMMAND_SHOWERROR] = &Network::Client_Handle_SHOWERROR;
 	client_command_handlers[NETWORK_COMMAND_GROUPLIST] = &Network::Client_Handle_GROUPLIST;
+	client_command_handlers[NETWORK_COMMAND_EVENT] = &Network::Client_Handle_EVENT;
 	server_command_handlers.resize(NETWORK_COMMAND_MAX, 0);
 	server_command_handlers[NETWORK_COMMAND_AUTH] = &Network::Server_Handle_AUTH;
 	server_command_handlers[NETWORK_COMMAND_CHAT] = &Network::Server_Handle_CHAT;
@@ -702,6 +712,7 @@ bool Network::BeginServer(unsigned short port, const char* address)
 	player_id = player->id;
 
 	printf("Ready for clients...\n");
+	network_chat_show_connected_message();
 
 	mode = NETWORK_MODE_SERVER;
 	status = NETWORK_STATUS_CONNECTED;
@@ -1336,7 +1347,7 @@ void Network::Server_Send_MAP(NetworkConnection* connection)
 		return;
 	}
 	size_t chunksize = 1000;
-	size_t out_size;
+	size_t out_size = size;
 	unsigned char *compressed = util_zlib_deflate(&buffer[0], size, &out_size);
 	unsigned char *header;
 	if (compressed != NULL)
@@ -1497,6 +1508,25 @@ void Network::Server_Send_GROUPLIST(NetworkConnection& connection)
 	connection.QueuePacket(std::move(packet));
 }
 
+void Network::Server_Send_EVENT_PLAYER_JOINED(const char *playerName)
+{
+	std::unique_ptr<NetworkPacket> packet = std::move(NetworkPacket::Allocate());
+	*packet << (uint32)NETWORK_COMMAND_EVENT;
+	*packet << (uint16)SERVER_EVENT_PLAYER_JOINED;
+	packet->WriteString(playerName);
+	SendPacketToClients(*packet);
+}
+
+void Network::Server_Send_EVENT_PLAYER_DISCONNECTED(const char *playerName, const char *reason)
+{
+	std::unique_ptr<NetworkPacket> packet = std::move(NetworkPacket::Allocate());
+	*packet << (uint32)NETWORK_COMMAND_EVENT;
+	*packet << (uint16)SERVER_EVENT_PLAYER_DISCONNECTED;
+	packet->WriteString(playerName);
+	packet->WriteString(reason);
+	SendPacketToClients(*packet);
+}
+
 bool Network::ProcessConnection(NetworkConnection& connection)
 {
 	int packetStatus;
@@ -1602,7 +1632,7 @@ void Network::RemoveClient(std::unique_ptr<NetworkConnection>& connection)
 		}
 
 		chat_history_add(text);
-		gNetwork.Server_Send_CHAT(text);
+		gNetwork.Server_Send_EVENT_PLAYER_DISCONNECTED((char*)connection_player->name, connection->getLastDisconnectReason());
 	}
 	player_list.erase(std::remove_if(player_list.begin(), player_list.end(), [connection_player](std::unique_ptr<NetworkPlayer>& player){ return player.get() == connection_player; }), player_list.end());
 	client_connection_list.remove(connection);
@@ -1705,7 +1735,7 @@ void Network::Server_Handle_AUTH(NetworkConnection& connection, NetworkPacket& p
 				format_string(text, STR_MULTIPLAYER_PLAYER_HAS_JOINED_THE_GAME, &player_name);
 				chat_history_add(text);
 				Server_Send_MAP(&connection);
-				gNetwork.Server_Send_CHAT(text);
+				gNetwork.Server_Send_EVENT_PLAYER_JOINED(player_name);
 				Server_Send_GROUPLIST(connection);
 				Server_Send_PLAYERLIST();
 			}
@@ -1758,6 +1788,9 @@ void Network::Client_Handle_MAP(NetworkConnection& connection, NetworkPacket& pa
 			server_srand0_tick = 0;
 			// window_network_status_open("Loaded new map from network");
 			_desynchronised = false;
+
+			// Notify user he is now online and which shortcut key enables chat
+			network_chat_show_connected_message();
 		}
 		else
 		{
@@ -1961,6 +1994,36 @@ void Network::Client_Handle_GROUPLIST(NetworkConnection& connection, NetworkPack
 	}
 }
 
+void Network::Client_Handle_EVENT(NetworkConnection& connection, NetworkPacket& packet)
+{
+	uint16 eventType;
+	packet >> eventType;
+	switch (eventType) {
+	case SERVER_EVENT_PLAYER_JOINED:
+	{
+		char text[256];
+		const char *playerName = packet.ReadString();
+		format_string(text, STR_MULTIPLAYER_PLAYER_HAS_JOINED_THE_GAME, &playerName);
+		chat_history_add(text);
+		break;
+	}
+	case SERVER_EVENT_PLAYER_DISCONNECTED:
+	{
+		char text[256];
+		const char *playerName = packet.ReadString();
+		const char *reason = packet.ReadString();
+		const char *args[] = { playerName, reason };
+		if (str_is_null_or_empty(reason)) {
+			format_string(text, STR_MULTIPLAYER_PLAYER_HAS_DISCONNECTED_NO_REASON, args);
+		} else {
+			format_string(text, STR_MULTIPLAYER_PLAYER_HAS_DISCONNECTED_WITH_REASON, args);
+		}
+		chat_history_add(text);
+		break;
+	}
+	}
+}
+
 int network_init()
 {
 	return gNetwork.Init();
@@ -2128,6 +2191,18 @@ const char* network_get_group_name(unsigned int index)
 rct_string_id network_get_group_name_string_id(unsigned int index)
 {
 	return gNetwork.group_list[index]->GetNameStringId();
+}
+
+void network_chat_show_connected_message()
+{
+	char *templateString = (char*)language_get_string(STR_INDIVIDUAL_KEYS_BASE);
+	keyboard_shortcut_format_string(templateString, gShortcutKeys[SHORTCUT_OPEN_CHAT_WINDOW]);
+	utf8 buffer[256];
+	NetworkPlayer server;
+	safe_strcpy((char*)&server.name, "Server", sizeof(server.name));
+	format_string(buffer, STR_MULTIPLAYER_CONNECTED_CHAT_HINT, &templateString);
+	const char *formatted = Network::FormatChat(&server, buffer);
+	chat_history_add(formatted);
 }
 
 void game_command_set_player_group(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* edi, int* ebp)

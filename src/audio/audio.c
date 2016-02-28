@@ -60,9 +60,9 @@ void audio_init()
 	if (result >= 0)
 		return;
 
-		log_fatal("SDL_Init %s", SDL_GetError());
-		exit(-1);
-	}
+	log_fatal("SDL_Init %s", SDL_GetError());
+	exit(-1);
+}
 
 void audio_quit()
 {
@@ -211,6 +211,7 @@ void audio_start_title_music()
 	}
 
 	gTitleMusicChannel = Mixer_Play_Music(pathId, MIXER_LOOP_INFINITE, true);
+	Mixer_Channel_SetGroup(gTitleMusicChannel, MIXER_GROUP_TITLE_MUSIC);
 }
 
 void audio_stop_ride_music()
@@ -267,9 +268,9 @@ void audio_init_ride_sounds_and_info()
 		if (file == NULL)
 			continue;
 
-			uint32 head;
-			SDL_RWread(file, &head, sizeof(head), 1);
-			SDL_RWclose(file);
+		uint32 head;
+		SDL_RWread(file, &head, sizeof(head), 1);
+		SDL_RWclose(file);
 		if (head == 0x78787878)
 			rideMusicInfo->length = 0;
 	}
@@ -301,8 +302,8 @@ void audio_close()
 }
 
 void audio_toggle_all_sounds(){
-	gConfigSound.sound = !gConfigSound.sound;
-	if (gConfigSound.sound)
+	gConfigSound.sound_enabled = !gConfigSound.sound_enabled;
+	if (gConfigSound.sound_enabled)
 		audio_unpause_sounds();
 	else {
 		audio_stop_title_music();
@@ -329,7 +330,7 @@ void audio_stop_vehicle_sounds()
 	if (gOpenRCT2Headless || RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_SOUND_DEVICE, sint32) == -1)
 		return;
 
-		for (int i = 0; i < countof(gVehicleSoundList); i++) {
+	for (int i = 0; i < countof(gVehicleSoundList); i++) {
 		rct_vehicle_sound *vehicleSound = &gVehicleSoundList[i];
 		if (vehicleSound->id == 0xFFFF)
 			continue;

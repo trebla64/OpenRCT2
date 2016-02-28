@@ -1151,7 +1151,7 @@ void sub_6E1F34(sint16 x, sint16 y, uint16 selected_scenery, sint16* grid_x, sin
 
 			// Also places it in lower but think thats for clobering
 			*parameter_1 = (selected_scenery & 0xFF) << 8;
-			*parameter_2 = cl ^ (1 << 1) | (window_scenery_primary_colour << 8);
+			*parameter_2 = (cl ^ (1 << 1)) | (window_scenery_primary_colour << 8);
 			*parameter_3 = rotation | (window_scenery_secondary_colour << 16);
 			return;
 		}
@@ -2392,7 +2392,7 @@ void top_toolbar_tool_update_scenery(sint16 x, sint16 y){
 		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_Y, sint16) = mapTile.y;
 		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_X, sint16) = mapTile.x;
 		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_Y, sint16) = mapTile.y;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_TYPE, uint16) = 10 + parameter2 & 0xFF;
+		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_TYPE, uint16) = 10 + (parameter2 & 0xFF);
 
 		map_invalidate_selection_rect();
 

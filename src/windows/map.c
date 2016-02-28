@@ -527,7 +527,7 @@ static void window_map_scrollgetsize(rct_window *w, int scrollIndex, int *width,
  */
 static void window_map_scrollmousedown(rct_window *w, int scrollIndex, int x, int y)
 {
-	int mapX, mapY, mapZ;
+	int mapX = 0, mapY = 0, mapZ = 0;
 	rct_window *mainWindow;
 
 	map_window_screen_to_map(x, y, &mapX, &mapY);
@@ -863,7 +863,7 @@ static void window_map_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int sc
  */
 static void window_map_init_map()
 {
-	memset(RCT2_GLOBAL(RCT2_ADDRESS_MAP_IMAGE_DATA, void*), 0x0A0A0A0A, 256 * 256 * sizeof(uint32));
+	memset(RCT2_GLOBAL(RCT2_ADDRESS_MAP_IMAGE_DATA, void*), 0x0A, 256 * 256 * sizeof(uint32));
 	RCT2_GLOBAL(0x00F1AD6C, uint32) = 0;
 }
 
@@ -1603,7 +1603,7 @@ static uint16 map_window_get_pixel_colour_ride(int x, int y)
 static void map_window_set_pixels(rct_window *w)
 {
 	uint16 colour = 0, *destination;
-	int x, y, dx, dy;
+	int x = 0, y = 0, dx = 0, dy = 0;
 
 	destination = (uint16*)((RCT2_GLOBAL(0x00F1AD6C, uint32) * 511) + RCT2_GLOBAL(RCT2_ADDRESS_MAP_IMAGE_DATA, uint32) + 255);
 	switch (get_current_rotation()) {

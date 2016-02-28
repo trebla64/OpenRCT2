@@ -405,10 +405,8 @@ static int game_check_affordability(int cost)
 {
 	if (cost <= 0)return cost;
 	if (RCT2_GLOBAL(0x141F568, uint8) & 0xF0)return cost;
+	if (cost <= (sint32)(DECRYPT_MONEY(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONEY_ENCRYPTED, sint32))))return cost;
 
-	if (!(RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32)&(1 << 8))){
-		if (cost <= (sint32)(DECRYPT_MONEY(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONEY_ENCRYPTED, sint32))))return cost;
-	}
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = cost;
 
 	RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = 827;
@@ -800,7 +798,8 @@ void game_fix_save_vars() {
 			if (mapElement == NULL)
 			{
 				log_error("Null map element at x = %d and y = %d. Fixing...", x, y);
-				map_element_insert(x, y, 14, 0);
+				mapElement = map_element_insert(x, y, 14, 0);
+				assert(mapElement != NULL);
 			}
 		}
 	}
@@ -877,6 +876,7 @@ int game_load_network(SDL_RWops* rw)
 	map_update_tile_pointers();
 	reset_0x69EBE4();
 	openrct2_reset_object_tween_locations();
+	game_convert_strings_to_utf8();
 	return 1;
 }
 

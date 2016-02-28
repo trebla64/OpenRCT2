@@ -392,7 +392,7 @@ int map_element_height(int x, int y)
 	// Remove the extra height bit
 	slope &= 0xF;
 
-	sint8 quad, quad_extra; // which quadrant the element is in?
+	sint8 quad = 0, quad_extra = 0; // which quadrant the element is in?
 	                        // quad_extra is for extra height tiles
 
 	uint8 xl, yl;	    // coordinates across this tile
@@ -1676,7 +1676,7 @@ static money32 map_set_land_height(int flags, int x, int y, int height, int styl
 			if(map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK)
 				continue;
 			int rideIndex = mapElement->properties.track.ride_index;
-			int maxHeight = ride_get_entry(get_ride(rideIndex))->max_height;
+			int maxHeight = get_ride_entry_by_ride(get_ride(rideIndex))->max_height;
 			if(maxHeight == 0)
 				maxHeight = RCT2_GLOBAL(0x97D218 + 8 * get_ride(rideIndex)->type, uint8);
 			int zDelta = mapElement->clearance_height - height;
@@ -2738,6 +2738,7 @@ void game_command_place_banner(int* eax, int* ebx, int* ecx, int* edx, int* esi,
 						}
 
 						rct_map_element* new_map_element = map_element_insert(x / 32, y / 32, (base_height + 1) * 2, 0);
+						assert(new_map_element != NULL);
 						gBanners[banner_index].type = type;
 						gBanners[banner_index].colour = colour;
 						gBanners[banner_index].x = x / 32;
@@ -2987,6 +2988,7 @@ void game_command_place_scenery(int* eax, int* ebx, int* ecx, int* edx, int* esi
 								}
 								int collisionQuadrants = (bl & 0xf);
 								rct_map_element* new_map_element = map_element_insert(x / 32, y / 32, zLow, collisionQuadrants);
+								assert(new_map_element != NULL);
 								RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_MAP_ELEMENT, rct_map_element*) = new_map_element;
 								uint8 type = quadrant << 6;
 								type |= MAP_ELEMENT_TYPE_SCENERY;
@@ -3078,7 +3080,7 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 		return false;
 	}
 
-	rct_ride_type *rideEntry = get_ride_entry(ride->subtype);
+	rct_ride_entry *rideEntry = get_ride_entry(ride->subtype);
 	if (rideEntry->flags & RIDE_ENTRY_FLAG_16) {
 		return false;
 	}
@@ -3423,6 +3425,7 @@ void game_command_place_fence(int* eax, int* ebx, int* ecx, int* edx, int* esi, 
 		}
 
 		map_element = map_element_insert(position.x / 32, position.y / 32, position.z / 8, 0);
+		assert(map_element != NULL);
 
 		map_animation_create(MAP_ANIMATION_TYPE_WALL, position.x, position.y, position.z / 8);
 
@@ -3671,6 +3674,7 @@ void game_command_place_large_scenery(int* eax, int* ebx, int* ecx, int* edx, in
 			}
 
 			rct_map_element *new_map_element = map_element_insert(curTile.x / 32, curTile.y / 32, zLow, F43887);
+			assert(new_map_element != NULL);
 			map_animation_create(MAP_ANIMATION_TYPE_LARGE_SCENERY, curTile.x, curTile.y, zLow);
 
 			new_map_element->clearance_height = zHigh;
@@ -3914,7 +3918,10 @@ rct_map_element *map_element_insert(int x, int y, int z, int flags)
 {
 	rct_map_element *originalMapElement, *newMapElement, *insertedElement;
 
-	sub_68B044();
+	if (!sub_68B044()) {
+		log_error("Cannot insert new element");
+		return NULL;
+	}
 
 	newMapElement = RCT2_GLOBAL(RCT2_ADDRESS_NEXT_FREE_MAP_ELEMENT, rct_map_element*);
 	originalMapElement = TILE_MAP_ELEMENT_POINTER(y * 256 + x);
@@ -3943,7 +3950,7 @@ rct_map_element *map_element_insert(int x, int y, int z, int flags)
 	newMapElement->base_height = z;
 	newMapElement->flags = flags;
 	newMapElement->clearance_height = z;
-	*((uint32*)&newMapElement->properties) = 0;
+	memset(&newMapElement->properties, 0, sizeof(newMapElement->properties));
 	newMapElement++;
 
 	// Insert rest of map elements above insert height
@@ -4892,6 +4899,7 @@ money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint8 direc
 		}
 
 		rct_map_element* newElement = map_element_insert(x / 32, y / 32, zLow, 0xF);
+		assert(newElement != NULL);
 		newElement->clearance_height = zHigh;
 
 		if (flags & GAME_COMMAND_FLAG_GHOST) {
@@ -4934,6 +4942,7 @@ money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint8 direc
 		}
 
 		rct_map_element* newElement = map_element_insert(x / 32, y / 32, zLow, 0xF);
+		assert(newElement != NULL);
 		newElement->clearance_height = zHigh;
 
 		if (flags & GAME_COMMAND_FLAG_GHOST) {
@@ -4969,6 +4978,7 @@ money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint8 direc
 		}
 
 		rct_map_element* newElement = map_element_insert(x / 32, y / 32, zLow, 0xF);
+		assert(newElement != NULL);
 		newElement->clearance_height = zHigh;
 
 		if (flags & GAME_COMMAND_FLAG_GHOST) {

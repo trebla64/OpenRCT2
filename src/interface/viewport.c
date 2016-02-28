@@ -1080,8 +1080,8 @@ int sub_98198C(sint8 al, sint8 ah, int image_id, sint8 cl, int height, sint16 le
  */
 void viewport_vehicle_paint_setup(rct_vehicle *vehicle, int imageDirection)
 {
-	rct_ride_type *rideEntry;
-	const rct_ride_type_vehicle *vehicleEntry;
+	rct_ride_entry *rideEntry;
+	const rct_ride_entry_vehicle *vehicleEntry;
 
 	int x = vehicle->x;
 	int y = vehicle->y;
@@ -1108,7 +1108,7 @@ void viewport_vehicle_paint_setup(rct_vehicle *vehicle, int imageDirection)
 		}
 	}
 
-	uint32 rct2VehiclePtrFormat = ((uint32)vehicleEntry) - offsetof(rct_ride_type, vehicles);
+	uint32 rct2VehiclePtrFormat = ((uint32)vehicleEntry) - offsetof(rct_ride_entry, vehicles);
 	RCT2_GLOBAL(0x00F64DFC, uint32) = rct2VehiclePtrFormat;
 	switch (vehicleEntry->car_visual) {
 	case VEHICLE_VISUAL_DEFAULT:						RCT2_CALLPROC_X(0x006D45F8, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
@@ -1856,13 +1856,15 @@ static void sub_68B3FB(int x, int y)
 		case MAP_ELEMENT_TYPE_BANNER:
 			viewport_banner_paint_setup(direction, height, map_element);
 			break;
-		default:
-			// This is a little hack for taking care of undefined map_elements
-			// 8cars MOM used a dirty version of this to skip drawing certain elements
+		// A corrupt element inserted by OpenRCT2 itself, which skips the drawing of the next element only.
+		case MAP_ELEMENT_TYPE_CORRUPT:
 			if (map_element_is_last_for_tile(map_element))
 				return;
 			map_element++;
 			break;
+		default:
+			// An undefined map element is most likely a corrupt element inserted by 8 cars' MOM feature to skip drawing of all elements after it.
+			return;
 		}
 		RCT2_GLOBAL(0x9DE574, uint32_t) = dword_9DE574;
 	} while (!map_element_is_last_for_tile(map_element++));

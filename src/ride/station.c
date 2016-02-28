@@ -66,7 +66,7 @@ static void ride_update_station_blocksection(rct_ride *ride, int stationIndex)
 
 	mapElement = ride_get_station_start_track_element(ride, stationIndex);
 
-	if ((ride->status == RIDE_STATUS_CLOSED && ride->num_riders == 0) || mapElement->flags & 0x20) {
+	if ((ride->status == RIDE_STATUS_CLOSED && ride->num_riders == 0) || (mapElement != NULL && mapElement->flags & 0x20)) {
 		ride->station_depart[stationIndex] &= ~STATION_DEPART_FLAG;
 
 		if ((ride->station_depart[stationIndex] & STATION_DEPART_FLAG) || (mapElement->properties.track.sequence & 0x80))
@@ -75,7 +75,7 @@ static void ride_update_station_blocksection(rct_ride *ride, int stationIndex)
 		if (!(ride->station_depart[stationIndex] & STATION_DEPART_FLAG)) {
 			ride->station_depart[stationIndex] |= STATION_DEPART_FLAG;
 			ride_invalidate_station_start(ride, stationIndex, 1);
-		} else if (mapElement->properties.track.sequence & 0x80) {
+		} else if (mapElement != NULL && mapElement->properties.track.sequence & 0x80) {
 			ride_invalidate_station_start(ride, stationIndex, 1);
 		}
 	}
@@ -242,7 +242,7 @@ static void ride_update_station_race(rct_ride *ride, int stationIndex)
  */
 static void ride_race_init_vehicle_speeds(rct_ride *ride)
 {
-	rct_ride_type *rideEntry;
+	rct_ride_entry *rideEntry;
 	rct_vehicle *vehicle;
 	int i;
 

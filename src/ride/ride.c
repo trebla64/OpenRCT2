@@ -128,7 +128,7 @@ static const int RideInspectionInterval[] = {
 	10, 20, 30, 45, 60, 120, 0, 0
 };
 
-rct_ride_type **gRideTypeList = RCT2_ADDRESS(RCT2_ADDRESS_RIDE_ENTRIES, rct_ride_type*);
+rct_ride_entry **gRideTypeList = RCT2_ADDRESS(RCT2_ADDRESS_RIDE_ENTRIES, rct_ride_entry*);
 rct_ride* gRideList = RCT2_ADDRESS(RCT2_ADDRESS_RIDE_LIST, rct_ride);
 bool gGotoStartPlacementMode = false;
 int gRideRemoveTrackPieceCallbackX;
@@ -169,7 +169,7 @@ rct_ride *get_ride(int index)
 	return &gRideList[index];
 }
 
-rct_ride_type *get_ride_entry(int index)
+rct_ride_entry *get_ride_entry(int index)
 {
 	if (index < 0 || index >= object_entry_group_counts[0])
 	{
@@ -184,9 +184,16 @@ rct_ride_measurement *get_ride_measurement(int index)
 	return &(RCT2_ADDRESS(RCT2_ADDRESS_RIDE_MEASUREMENTS, rct_ride_measurement)[index]);
 }
 
-rct_ride_type *ride_get_entry(rct_ride *ride)
+rct_ride_entry *get_ride_entry_by_ride(rct_ride *ride)
 {
-	return get_ride_entry(ride->subtype);
+	rct_ride_entry *type = get_ride_entry(ride->subtype);
+	if (type == NULL)
+	{
+		char oldname[128];
+		format_string(oldname, ride->name, &ride->name_arguments);
+		log_error("Invalid ride subtype for ride %s", oldname);
+	}
+	return type;
 }
 
 /**
@@ -303,11 +310,12 @@ money16 get_shop_hot_value(int shopItem)
  */
 money32 ride_calculate_income_per_hour(rct_ride *ride)
 {
-	rct_ride_type *entry;
+	rct_ride_entry *entry;
 	money32 customersPerHour, priceMinusCost;
 	int currentShopItem;
 
-	entry = get_ride_entry(ride->subtype);
+	// Get entry by ride to provide better reporting
+	entry = get_ride_entry_by_ride(ride);
 	if (entry == NULL) {
 		return 0;
 	}
@@ -833,6 +841,11 @@ void reset_all_ride_build_dates()
 
 static int ride_check_if_construction_allowed(rct_ride *ride)
 {
+	rct_ride_entry *rideType = get_ride_entry_by_ride(ride);
+	if (rideType == NULL) {
+		window_error_open(STR_INVALID_RIDE_TYPE, STR_CANT_EDIT_INVALID_RIDE_TYPE);
+		return 0;
+	}
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN) {
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, uint16) = ride->name;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 8, uint32) = ride->name_arguments;
@@ -870,7 +883,7 @@ static rct_window *ride_create_or_find_construction_window(int rideIndex)
 int ride_create_ride(ride_list_item listItem)
 {
 	int eax, ebx, ecx, edx, esi, edi, ebp;
-	edx = *((uint16*)&listItem);
+	edx = listItem.ride_type_and_entry;
 	eax = 0;
 	ecx = 0;
 	ebx = GAME_COMMAND_FLAG_APPLY;
@@ -1676,13 +1689,15 @@ int ride_modify(rct_xy_element *input)
 	int rideIndex, x, y, z, direction, type;
 	rct_xy_element mapElement, endOfTrackElement;
 	rct_ride *ride;
+	rct_ride_entry *rideType;
 	rct_window *constructionWindow;
 
 	mapElement = *input;
 	rideIndex = mapElement.element->properties.track.ride_index;
 	ride = get_ride(rideIndex);
+	rideType = get_ride_entry(rideIndex);
 
-	if (!ride_check_if_construction_allowed(ride))
+	if ((ride == NULL) || (rideType == NULL) || !ride_check_if_construction_allowed(ride))
 		return 0;
 
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_INDESTRUCTIBLE) {
@@ -2168,13 +2183,13 @@ static void ride_breakdown_update(int rideIndex)
 static int ride_get_new_breakdown_problem(rct_ride *ride)
 {
 	int availableBreakdownProblems, monthsOld, totalProbability, randomProbability, problemBits, breakdownProblem;
-	rct_ride_type *entry;
+	rct_ride_entry *entry;
 
 	// Brake failure is more likely when its raining
 	_breakdownProblemProbabilities[BREAKDOWN_BRAKES_FAILURE] =
 		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_RAIN_LEVEL, uint8) == 0 ? 3 : 20;
 
-	entry = ride_get_entry(ride);
+	entry = get_ride_entry_by_ride(ride);
 	if (entry->flags & RIDE_ENTRY_FLAG_14)
 		return -1;
 
@@ -2652,7 +2667,7 @@ static void ride_music_update(int rideIndex)
 	if (ride->music_tune_id == 255) {
 		uint8 *musicStyleTunes = ride_music_style_tuneids[ride->music];
 		uint8 numTunes = *musicStyleTunes++;
-		ride->music_tune_id = musicStyleTunes[scenario_rand() % numTunes];
+		ride->music_tune_id = musicStyleTunes[util_rand() % numTunes];
 		ride->music_position = 0;
 		return;
 	}
@@ -2952,8 +2967,8 @@ static int ride_get_unused_preset_vehicle_colour(uint8 ride_type, uint8 ride_sub
 	{
 		return 0;
 	}
-	rct_ride_type *rideEntry = get_ride_entry(ride_sub_type);
-	if (rideEntry == (rct_ride_type *)0xFFFFFFFF)
+	rct_ride_entry *rideEntry = get_ride_entry(ride_sub_type);
+	if (rideEntry == (rct_ride_entry *)0xFFFFFFFF)
 	{
 		return 0;
 	}
@@ -2979,7 +2994,7 @@ static int ride_get_unused_preset_vehicle_colour(uint8 ride_type, uint8 ride_sub
  */
 static void ride_set_vehicle_colours_to_random_preset(rct_ride *ride, uint8 preset_index)
 {
-	rct_ride_type *rideEntry = get_ride_entry(ride->subtype);
+	rct_ride_entry *rideEntry = get_ride_entry(ride->subtype);
 	vehicle_colour_preset_list *presetList = rideEntry->vehicle_preset_list;
 	if (presetList->count != 255) {
 		ride->colour_scheme_type = RIDE_COLOUR_SCHEME_ALL_SAME;
@@ -3498,7 +3513,8 @@ void ride_music_update_final()
 	rct_ride_music_params* edi = NULL;
 	int ebx;
 	if (!(RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_FLAGS, uint8) & 2)) {
-		if (!gGameSoundsOff && gConfigSound.sound && gConfigSound.ride_music && !(RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_FLAGS, uint8) & 1)) {
+		// TODO Allow circus music (CSS24) to play if ride music is disabled (that should be sound)
+		if (!gGameSoundsOff && gConfigSound.ride_music_enabled && !(RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_FLAGS, uint8) & 1)) {
 			// set to stop music if volume <= 1 ?
 			while (1) {
 				int v8 = 0;
@@ -3594,6 +3610,11 @@ void ride_music_update_final()
 									offset = 0;
 								}
 								Mixer_Channel_SetOffset(ride_music->sound_channel, offset);
+
+								// Move circus music to the sound mixer group
+								if (ride_music_info->path_id == PATH_ID_CSS24) {
+									Mixer_Channel_SetGroup(ride_music->sound_channel, MIXER_GROUP_SOUND);
+								}
 							}
 							return;
 						}
@@ -3690,7 +3711,7 @@ void game_command_set_ride_setting(int *eax, int *ebx, int *ecx, int *edx, int *
 		ride_clear_for_construction(ride_id);
 		ride_remove_peeps(ride_id);
 
-		rct_ride_type* ride_entry = get_ride_entry(ride->subtype);
+		rct_ride_entry* ride_entry = get_ride_entry(ride->subtype);
 		const uint8* available_modes = ride_seek_available_modes(ride);
 
 		if ((ride_entry->flags & RIDE_ENTRY_DISABLE_FIRST_TWO_OPERATING_MODES) && !gCheatsShowAllOperatingModes){
@@ -4274,8 +4295,8 @@ rct_vehicle *vehicle_create_car(
 	registers regs = { 0 };
 
 	rct_ride *ride = get_ride(rideIndex);
-	rct_ride_type *rideEntry = get_ride_entry(ride->subtype);
-	rct_ride_type_vehicle *vehicleEntry = &rideEntry->vehicles[vehicleEntryIndex];
+	rct_ride_entry *rideEntry = get_ride_entry(ride->subtype);
+	rct_ride_entry_vehicle *vehicleEntry = &rideEntry->vehicles[vehicleEntryIndex];
 
 	rct_vehicle *vehicle = (rct_vehicle*)create_sprite(1);
 	vehicle->sprite_identifier = SPRITE_IDENTIFIER_VEHICLE;
@@ -4334,7 +4355,7 @@ rct_vehicle *vehicle_create_car(
 		vehicle->track_x = x;
 		vehicle->track_y = y;
 		vehicle->track_z = z;
-		vehicle->current_station = (mapElement->properties.track.sequence & 0x70) << 4;
+		vehicle->current_station = map_get_station(mapElement);
 		
 		z += RCT2_GLOBAL(0x0097D21A + (ride->type * 8), sint8);
 
@@ -4644,8 +4665,8 @@ bool ride_create_vehicles(rct_ride *ride, int rideIndex, rct_xy_element *element
 			for (int i = 0; i < ride->num_vehicles; i++) {
 				rct_vehicle *vehicle = GET_VEHICLE(ride->vehicles[i]);
 
-				rct_ride_type *rideType = get_ride_entry(vehicle->vehicle_type);
-				rct_ride_type_vehicle *vehicleEntry = vehicle_get_vehicle_entry(vehicle);
+				rct_ride_entry *rideType = get_ride_entry(vehicle->vehicle_type);
+				rct_ride_entry_vehicle *vehicleEntry = vehicle_get_vehicle_entry(vehicle);
 
 				if (!(vehicleEntry->flags_b & VEHICLE_ENTRY_FLAG_B_15)) {
 					vehicle_update_track_motion(vehicle, NULL);
@@ -4932,7 +4953,10 @@ void loc_6B51C0(int rideIndex)
 
 		ride_try_get_origin_element(rideIndex, &trackElement);
 		ride_find_track_gap(&trackElement, &trackElement);
-		ride_modify(&trackElement);
+		int ok = ride_modify(&trackElement);
+		if (ok == 0) {
+			return;
+		}
 
 		w = window_find_by_class(WC_RIDE_CONSTRUCTION);
 		if (w != NULL)
@@ -5057,7 +5081,7 @@ int ride_is_valid_for_test(int rideIndex, int goingToBeOpen, int isApplying)
 	}
 
 	if (ride->subtype != 255) {
-		rct_ride_type *rideType = get_ride_entry(ride->subtype);
+		rct_ride_entry *rideType = get_ride_entry(ride->subtype);
 		if (rideType->flags & RIDE_ENTRY_FLAG_NO_INVERSIONS) {
 			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_TRACK_UNSUITABLE_FOR_TYPE_OF_TRAIN;
 			if (ride_check_track_contains_inversions(&trackElement, &problematicTrackElement)) {
@@ -5128,8 +5152,6 @@ int ride_is_valid_for_open(int rideIndex, int goingToBeOpen, int isApplying)
 
 	ride = get_ride(rideIndex);
 
-	window_close_by_number(WC_RIDE_CONSTRUCTION, rideIndex);
-
 	stationIndex = ride_mode_check_station_present(ride);
 	if (stationIndex == -1)return 0;
 
@@ -5181,7 +5203,7 @@ int ride_is_valid_for_open(int rideIndex, int goingToBeOpen, int isApplying)
 	}
 
 	if (ride->subtype != 255) {
-		rct_ride_type *rideType = get_ride_entry(ride->subtype);
+		rct_ride_entry *rideType = get_ride_entry(ride->subtype);
 		if (rideType->flags & RIDE_ENTRY_FLAG_NO_INVERSIONS) {
 			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_TRACK_UNSUITABLE_FOR_TYPE_OF_TRAIN;
 			if (ride_check_track_contains_inversions(&trackElement, &problematicTrackElement)) {
@@ -5550,7 +5572,7 @@ static int ride_get_empty_slot()
 
 static int ride_get_default_mode(rct_ride *ride)
 {
-	const rct_ride_type *rideEntry = get_ride_entry(ride->subtype);
+	const rct_ride_entry *rideEntry = get_ride_entry(ride->subtype);
 	const uint8 *availableModes = RideAvailableModes;
 
 	for (int i = 0; i < ride->type; i++) {
@@ -5655,7 +5677,7 @@ static money32 ride_get_common_price(rct_ride *forRide)
 
 static money32 shop_item_get_common_price(rct_ride *forRide, int shopItem)
 {
-	rct_ride_type *rideEntry;
+	rct_ride_entry *rideEntry;
 	rct_ride *ride;
 	int i;
 
@@ -5691,7 +5713,7 @@ money32 ride_create(int type, int subType, int flags, int *outRideIndex, int *ou
 {
 	char rideNameBuffer[256];
 	rct_ride *ride;
-	rct_ride_type *rideEntry;
+	rct_ride_entry *rideEntry;
 	int rideIndex, rideEntryIndex;
 
 	if (type > 90)
@@ -5742,7 +5764,7 @@ foundRideEntry:
 
 	ride = get_ride(rideIndex);
 	rideEntry = get_ride_entry(rideEntryIndex);
-	if (rideEntry == (rct_ride_type *)0xFFFFFFFF)
+	if (rideEntry == (rct_ride_entry *)0xFFFFFFFF)
 	{
 		log_warning("Invalid request for ride %u", rideIndex);
 		return MONEY32_UNDEFINED;
@@ -6333,7 +6355,7 @@ void game_command_set_ride_price(int *eax, int *ebx, int *ecx, int *edx, int *es
 	uint8 ride_number;
 	money16 price;
 	rct_ride *ride;
-	rct_ride_type *rideEntry;
+	rct_ride_entry *rideEntry;
 	bool secondary_price;
 
 	flags = *ebx;
@@ -6355,7 +6377,7 @@ void game_command_set_ride_price(int *eax, int *ebx, int *ecx, int *edx, int *es
 	price = *edi;
 	secondary_price = (*edx >> 8);
 
-	if (rideEntry == (rct_ride_type *)0xFFFFFFFF)
+	if (rideEntry == (rct_ride_entry *)0xFFFFFFFF)
 	{
 		log_warning("Invalid game command for ride %u", ride_number);
 		*ebx = MONEY32_UNDEFINED;
@@ -6713,7 +6735,7 @@ void ride_all_has_any_track_elements(bool *rideIndexArray)
  *
  *  rct2: 0x006847BA
  */
-void set_vehicle_type_image_max_sizes(rct_ride_type_vehicle* vehicle_type, int num_images){
+void set_vehicle_type_image_max_sizes(rct_ride_entry_vehicle* vehicle_type, int num_images){
 	uint8 bitmap[200][200] = { 0 };
 
 	rct_drawpixelinfo dpi = {
@@ -7190,7 +7212,7 @@ static void ride_update_vehicle_colours(int rideIndex)
  */
 void ride_entry_get_train_layout(int rideEntryIndex, int numCarsPerTrain, uint8 *trainLayout)
 {
-	rct_ride_type *rideEntry = get_ride_entry(rideEntryIndex);
+	rct_ride_entry *rideEntry = get_ride_entry(rideEntryIndex);
 
 	for (int i = 0; i < numCarsPerTrain; i++) {
 		uint8 vehicleType = rideEntry->default_vehicle;
@@ -7279,8 +7301,8 @@ foundTrack:
 void ride_update_max_vehicles(int rideIndex)
 {
 	rct_ride *ride;
-	rct_ride_type *rideEntry;
-	rct_ride_type_vehicle *vehicleEntry;
+	rct_ride_entry *rideEntry;
+	rct_ride_entry_vehicle *vehicleEntry;
 	uint8 trainLayout[16], numCarsPerTrain, numVehicles;
 	int trainLength, maxNumTrains;
 
@@ -7451,7 +7473,7 @@ void ride_set_num_cars_per_vehicle(int rideIndex, int numCarsPerVehicle)
 void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp)
 {
 	rct_ride *ride;
-	rct_ride_type *rideEntry;
+	rct_ride_entry *rideEntry;
 	rct_window *w;
 	int rideIndex, commandType, value;
 
@@ -7527,8 +7549,10 @@ void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int 
 		break;
 	case RIDE_SET_VEHICLES_COMMAND_TYPE_RIDE_ENTRY:
 		invalidate_test_results(rideIndex);
+		rideEntry = get_ride_entry(ride->subtype);
 		ride->subtype = value;
 		ride_set_vehicle_colours_to_random_preset(ride, *eax & 0xFF);
+		ride->proposed_num_cars_per_train = clamp(rideEntry->min_cars_in_train, ride->proposed_num_cars_per_train, rideEntry->max_cars_in_train);
 		break;
 	default:
 		log_error("Unknown command!");
@@ -7997,6 +8021,7 @@ money32 place_ride_entrance_or_exit(sint16 x, sint16 y, sint16 z, uint8 directio
 			network_set_player_last_action_coord(network_get_player_index(game_command_playerid), coord);
 
 			rct_map_element* mapElement = map_element_insert(x / 32, y / 32, z / 8, 0xF);
+			assert(mapElement != NULL);
 			mapElement->clearance_height = clear_z;
 			mapElement->properties.entrance.type = is_exit;
 			mapElement->properties.entrance.index = station_num << 4;
