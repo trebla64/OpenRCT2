@@ -440,7 +440,7 @@ static void window_multiplayer_players_scrollpaint(rct_window *w, rct_drawpixeli
 			if (action != -999) {
 				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = network_get_action_name_string_id(action);
 			}
-			gfx_draw_string_left(dpi, 1191, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, 256, y - 1);
+			gfx_draw_string_left_clipped(dpi, 1191, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, 256, y - 1, 100);
 
 			// Draw ping
 			lineCh = buffer;
@@ -472,8 +472,10 @@ static void window_multiplayer_groups_mouseup(rct_window *w, int widgetIndex)
 	case WIDX_REMOVE_GROUP:
 		game_do_command(1 | (_selectedGroup << 8), GAME_COMMAND_FLAG_APPLY, 0, 0, GAME_COMMAND_MODIFY_GROUPS, 0, 0);
 		break;
-	case WIDX_RENAME_GROUP:
-		window_text_input_open(w, widgetIndex, STR_GROUP_NAME, STR_ENTER_NEW_NAME_FOR_THIS_GROUP, 0, 0, 32);
+	case WIDX_RENAME_GROUP:;
+		int groupIndex = network_get_group_index(_selectedGroup);
+		const utf8 *groupName = network_get_group_name(groupIndex);
+		window_text_input_raw_open(w, widgetIndex, STR_GROUP_NAME, STR_ENTER_NEW_NAME_FOR_THIS_GROUP, (utf8*)groupName, 32);
 		break;
 	}
 }
@@ -616,13 +618,14 @@ static void window_multiplayer_groups_paint(rct_window *w, rct_drawpixelinfo *dp
 	int group = network_get_group_index(network_get_default_group());
 	if (group != -1) {
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = network_get_group_name_string_id(group);
-		gfx_draw_string_centred(
+		gfx_draw_string_centred_clipped(
 			dpi,
 			1193,
+			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS,
+			0,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
-			0,
-			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS
+			widget->right - widget->left - 8
 		);
 	}
 
@@ -639,13 +642,14 @@ static void window_multiplayer_groups_paint(rct_window *w, rct_drawpixelinfo *dp
 	group = network_get_group_index(_selectedGroup);
 	if (group != -1) {
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = network_get_group_name_string_id(group);
-		gfx_draw_string_centred(
+		gfx_draw_string_centred_clipped(
 			dpi,
 			1193,
+			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS,
+			0,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
-			0,
-			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS
+			widget->right - widget->left - 8
 		);
 	}
 }

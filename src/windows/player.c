@@ -206,7 +206,7 @@ void window_player_open(uint8 id)
 	int player = network_get_player_index(id);
 	window = window_bring_to_front_by_number(WC_PLAYER, id);
 	if (window == NULL) {
-		window = window_create_auto_pos(210, 134, &window_player_overview_events, WC_PLAYER, WF_RESIZABLE);
+		window = window_create_auto_pos(240, 170, &window_player_overview_events, WC_PLAYER, WF_RESIZABLE);
 		window->number = id;
 		window->page = 0;
 		window->viewport_focus_coordinates.y = 0;
@@ -371,13 +371,14 @@ void window_player_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		rct_widget* widget = &window_player_overview_widgets[WIDX_GROUP];
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = network_get_group_name_string_id(groupindex);
 
-		gfx_draw_string_centred(
+		gfx_draw_string_centred_clipped(
 			dpi,
 			1193,
+			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS,
+			0,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
-			0,
-			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS
+			widget->right - widget->left - 8
 		);
 	}
 

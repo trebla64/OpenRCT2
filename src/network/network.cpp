@@ -209,6 +209,7 @@ void NetworkPlayer::SetName(const char* name)
 {
 	safe_strcpy((char*)NetworkPlayer::name, name, sizeof(NetworkPlayer::name));
 	NetworkPlayer::name[sizeof(NetworkPlayer::name) - 1] = 0;
+	utf8_remove_format_codes((utf8*)NetworkPlayer::name, false);
 }
 
 void NetworkPlayer::AddMoneySpent(money32 cost)
@@ -992,7 +993,9 @@ const char* Network::FormatChat(NetworkPlayer* fromplayer, const char* text)
 	}
 	lineCh = utf8_write_codepoint(lineCh, FORMAT_OUTLINE);
 	lineCh = utf8_write_codepoint(lineCh, FORMAT_WHITE);
+	char* ptrtext = lineCh;
 	safe_strcpy(lineCh, text, 800);
+	utf8_remove_format_codes((utf8*)ptrtext, true);
 	return formatted;
 }
 
@@ -2330,7 +2333,8 @@ void game_command_modify_groups(int *eax, int *ebx, int *ecx, int *edx, int *esi
 		}
 
 		if (newName[0] == 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_INVALID_RIDE_ATTRACTION_NAME;
+			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_RENAME_GROUP;
+			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_INVALID_GROUP_NAME;
 			*ebx = MONEY32_UNDEFINED;
 			return;
 		}
