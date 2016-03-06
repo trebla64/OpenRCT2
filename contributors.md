@@ -58,6 +58,8 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Hielke Morsink (Broxzier)
 * Lucas Riutzel (jackinloadup)
 * Youngjae Yu (YJSoft)
+* Chanwoong Kim (kexplo)
+* Josué Acevedo (Wirlie)
 
 ## Toolchain
 * (Balletie) - OSX
@@ -91,7 +93,7 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Portuguese (BR) - (kaudy)
 * Russian - (Soosisya)
 * Simplified Chinese - Naiji Ma (naijim)
-* Spanish - (mdtrooper)
+* Spanish - (mdtrooper), Josué Acevedo (Wirlie)
 * Swedish - (Jinxit), (mharrys), (Slimeyo)
 * Traditional Chinese - Harry Lam (daihakken)
 

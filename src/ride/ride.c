@@ -1695,7 +1695,7 @@ int ride_modify(rct_xy_element *input)
 	mapElement = *input;
 	rideIndex = mapElement.element->properties.track.ride_index;
 	ride = get_ride(rideIndex);
-	rideType = get_ride_entry(rideIndex);
+	rideType = get_ride_entry_by_ride(ride);
 
 	if ((ride == NULL) || (rideType == NULL) || !ride_check_if_construction_allowed(ride))
 		return 0;
@@ -3007,8 +3007,6 @@ static void ride_set_vehicle_colours_to_random_preset(rct_ride *ride, uint8 pres
 		ride->vehicle_colours_extended[0] = preset->additional_2;
 	} else {
 		ride->colour_scheme_type = RIDE_COLOUR_SCHEME_DIFFERENT_PER_TRAIN;
-		assert(presetList->count >= 32);
-
 		for (int i = 0; i < 32; i++) {
 			vehicle_colour *preset = &presetList->list[i];
 			ride->vehicle_colours[i].body_colour = preset->main;
@@ -6013,6 +6011,7 @@ void game_command_callback_ride_construct_placed_back(int eax, int ebx, int ecx,
 		_rideConstructionState = RIDE_CONSTRUCTION_STATE_0;
 	}
 
+	window_ride_construction_do_station_check();
 	sub_6C84CE();
 }
 
@@ -6045,6 +6044,8 @@ void game_command_callback_ride_construct_placed_front(int eax, int ebx, int ecx
 		_rideConstructionState = RIDE_CONSTRUCTION_STATE_0;
 	}
 
+	window_ride_construction_do_station_check();
+	window_ride_construction_do_entrance_exit_check();
 	sub_6C84CE();
 }
 
@@ -8178,6 +8179,18 @@ void game_command_remove_ride_entrance_or_exit(int *eax, int *ebx, int *ecx, int
 		*edi & 0xFF,
 		*ebx & 0xFF
 		);
+}
+
+void ride_set_to_default_inspection_interval(int rideIndex)
+{
+	rct_ride *ride = get_ride(rideIndex);
+	uint8 defaultInspectionInterval = gConfigGeneral.default_inspection_interval;
+	if (ride->inspection_interval != defaultInspectionInterval) {
+		if (defaultInspectionInterval <= RIDE_INSPECTION_NEVER) {
+			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_CHANGE_OPERATING_MODE;
+			game_do_command(0, (defaultInspectionInterval << 8) | 1, 0, (5 << 8) | rideIndex, GAME_COMMAND_SET_RIDE_SETTING, 0, 0);
+		}
+	}
 }
 
 /**

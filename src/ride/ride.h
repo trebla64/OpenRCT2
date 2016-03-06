@@ -1036,6 +1036,8 @@ void game_command_set_ride_vehicles(int *eax, int *ebx, int *ecx, int *edx, int 
 void game_command_place_ride_entrance_or_exit(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 void game_command_remove_ride_entrance_or_exit(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 
+void ride_set_to_default_inspection_interval(int rideIndex);
+
 void sub_6CB945(int rideIndex);
 void ride_crash(uint8 rideIndex, uint8 vehicleIndex);
 
@@ -1055,4 +1057,9 @@ const uint32 ride_customers_per_hour(const rct_ride *ride);
 const uint32 ride_customers_in_last_5_minutes(const rct_ride *ride);
 
 rct_vehicle * ride_get_broken_vehicle(rct_ride *ride);
+
+void window_ride_construction_do_station_check();
+void window_ride_construction_do_entrance_exit_check();
+void game_command_callback_place_ride_entrance_or_exit(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp);
+
 #endif

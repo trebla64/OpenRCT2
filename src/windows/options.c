@@ -100,6 +100,7 @@ enum WINDOW_OPTIONS_WIDGET_IDX {
 	WIDX_CONSTRUCTION_MARKER_DROPDOWN,
 	WIDX_DAY_NIGHT_CHECKBOX,
 	WIDX_UPPER_CASE_BANNERS_CHECKBOX,
+	WIDX_DISABLE_LIGHTNING_EFFECT_CHECKBOX,
 
 	// Culture / Units
 	WIDX_LANGUAGE = WIDX_PAGE_START,
@@ -148,19 +149,21 @@ enum WINDOW_OPTIONS_WIDGET_IDX {
 
 	// Misc
 	WIDX_REAL_NAME_CHECKBOX = WIDX_PAGE_START,
+	WIDX_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM,
 	WIDX_SAVE_PLUGIN_DATA_CHECKBOX,
+	WIDX_TEST_UNFINISHED_TRACKS,
+	WIDX_DEBUGGING_TOOLS,
+	WIDX_STAY_CONNECTED_AFTER_DESYNC,
 	WIDX_AUTOSAVE,
 	WIDX_AUTOSAVE_DROPDOWN,
-	WIDX_TEST_UNFINISHED_TRACKS,
-	WIDX_AUTO_STAFF_PLACEMENT,
-	WIDX_HANDYMEN_MOW_DEFAULT,
-	WIDX_DEBUGGING_TOOLS,
 	WIDX_TITLE_SEQUENCE,
 	WIDX_TITLE_SEQUENCE_DROPDOWN,
 	WIDX_TITLE_SEQUENCE_BUTTON,
-	WIDX_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM,
-	WIDX_STAY_CONNECTED_AFTER_DESYNC,
+	WIDX_AUTO_STAFF_PLACEMENT,
+	WIDX_HANDYMEN_MOW_DEFAULT,
 	WIDX_AUTO_OPEN_SHOPS,
+	WIDX_DEFAULT_INSPECTION_INTERVAL,
+	WIDX_DEFAULT_INSPECTION_INTERVAL_DROPDOWN,
 
 	// Twitch
 	WIDX_CHANNEL_BUTTON = WIDX_PAGE_START,
@@ -220,13 +223,14 @@ static rct_widget window_options_display_widgets[] = {
 static rct_widget window_options_rendering_widgets[] = {
 	MAIN_OPTIONS_WIDGETS,
 #define FRAME_RENDERING_START 53
-	{ WWT_GROUPBOX,			1,	5,      304,	FRAME_RENDERING_START + 0,	FRAME_RENDERING_START + 91,	STR_RENDERING_GROUP,	STR_NONE },					// Rendering group
+	{ WWT_GROUPBOX,			1,	5,      304,	FRAME_RENDERING_START + 0,	FRAME_RENDERING_START + 106,	STR_RENDERING_GROUP,	STR_NONE },					// Rendering group
 	{ WWT_CHECKBOX,			1,	10,		290,	FRAME_RENDERING_START + 15,	FRAME_RENDERING_START + 26,	STR_TILE_SMOOTHING, 	STR_TILE_SMOOTHING_TIP },	// landscape smoothing
 	{ WWT_CHECKBOX,			1,	10,		290,	FRAME_RENDERING_START + 30,	FRAME_RENDERING_START + 41,	STR_GRIDLINES,			STR_GRIDLINES_TIP },		// gridlines
 	{ WWT_DROPDOWN,			1,	155,	299,	FRAME_RENDERING_START + 45,	FRAME_RENDERING_START + 55,	STR_NONE,				STR_NONE },					// construction marker
 	{ WWT_DROPDOWN_BUTTON,	1,	288,	298,	FRAME_RENDERING_START + 46,	FRAME_RENDERING_START + 54,	STR_DROPDOWN_GLYPH,		STR_NONE },
 	{ WWT_CHECKBOX,			1,	10,		290,	FRAME_RENDERING_START + 60,	FRAME_RENDERING_START + 71,	STR_CYCLE_DAY_NIGHT,	STR_NONE },					// cycle day-night
 	{ WWT_CHECKBOX,			1,	10,		290,	FRAME_RENDERING_START + 75,	FRAME_RENDERING_START + 86,	STR_UPPER_CASE_BANNERS,	STR_NONE },					// upper case banners
+	{ WWT_CHECKBOX,			1,	10,		290,	FRAME_RENDERING_START + 90,	FRAME_RENDERING_START + 101,	STR_DISABLE_LIGHTNING_EFFECT,	STR_NONE },		// disable lightning effect
 #undef FRAME_RENDERING_START
 	{ WIDGETS_END },
 };
@@ -290,20 +294,22 @@ static rct_widget window_options_controls_and_interface_widgets[] = {
 
 static rct_widget window_options_misc_widgets[] = {
 	MAIN_OPTIONS_WIDGETS,
-	{ WWT_CHECKBOX,			2,	10,		299,	54,		65,		STR_REAL_NAME,								STR_REAL_NAME_TIP },
-	{ WWT_CHECKBOX,			2,	10,		299,	69,		80,		STR_SAVE_PLUGIN_DATA,						STR_SAVE_PLUGIN_DATA_TIP },
-	{ WWT_DROPDOWN,			1,	155,	299,	83,		94,		STR_NONE,									STR_NONE },
-	{ WWT_DROPDOWN_BUTTON,	1,	288,	298,	84,		93,		STR_DROPDOWN_GLYPH,							STR_NONE },
-	{ WWT_CHECKBOX,			2,	10,		299,	114,	125,	STR_TEST_UNFINISHED_TRACKS,					STR_TEST_UNFINISHED_TRACKS_TIP },					// test unfinished tracks
-	{ WWT_CHECKBOX,			2,	10,		299,	129,	140,	STR_AUTO_STAFF_PLACEMENT,					STR_NONE }, 										// auto staff placement
-	{ WWT_CHECKBOX,			2,	10,		299,	144,	155,	STR_HANDYMEN_MOW_BY_DEFAULT,				STR_NONE },											// handymen mow by default
-	{ WWT_CHECKBOX,			2,	10,		299,	159,	170,	STR_ENABLE_DEBUGGING_TOOLS,					STR_NONE },											// enable debugging tools
-	{ WWT_DROPDOWN,			1,	155,	299,	173,	184,	STR_NONE,									STR_NONE },
-	{ WWT_DROPDOWN_BUTTON,	1,	288,	298,	174,	183,	STR_DROPDOWN_GLYPH,							STR_NONE },
-	{ WWT_DROPDOWN_BUTTON,	1,	26,		185,	189,	200,	STR_EDIT_TITLE_SEQUENCES_BUTTON,			STR_NONE },											// Title sequences button
-	{ WWT_CHECKBOX,			2,	10,		299,	204,	215,	STR_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM,	STR_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM_TIP },	// Allow loading with incorrect checksum
-	{ WWT_CHECKBOX,			2,	10,		299,	219,	230,	STR_STAY_CONNECTED_AFTER_DESYNC,			STR_NONE },											// Do not disconnect after the client desynchronises with the server
-	{ WWT_CHECKBOX,			2,	10,		299,	234,	245,	STR_AUTO_OPEN_SHOPS,						STR_AUTO_OPEN_SHOPS_TIP },							// Automatically open shops & stalls
+	{ WWT_CHECKBOX,			2,	10,		299,	54,		65,		STR_REAL_NAME,								STR_REAL_NAME_TIP },								// Show 'real' names of guests
+	{ WWT_CHECKBOX,			2,	10,		299,	69,		80,		STR_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM,	STR_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM_TIP },	// Allow loading with incorrect checksum
+	{ WWT_CHECKBOX,			2,	10,		299,	84,		95,		STR_SAVE_PLUGIN_DATA,						STR_SAVE_PLUGIN_DATA_TIP },							// Export plug-in objects with saved games
+	{ WWT_CHECKBOX,			2,	10,		299,	99,		110,	STR_TEST_UNFINISHED_TRACKS,					STR_TEST_UNFINISHED_TRACKS_TIP },					// test unfinished tracks
+	{ WWT_CHECKBOX,			2,	10,		299,	114,	125,	STR_ENABLE_DEBUGGING_TOOLS,					STR_NONE },											// enable debugging tools
+	{ WWT_CHECKBOX,			2,	10,		299,	129,	140,	STR_STAY_CONNECTED_AFTER_DESYNC,			STR_NONE },											// Do not disconnect after the client desynchronises with the server
+	{ WWT_DROPDOWN,			1,	155,	299,	144,	155,	STR_NONE,									STR_NONE },											// autosave dropdown
+	{ WWT_DROPDOWN_BUTTON,	1,	288,	298,	145,	154,	STR_DROPDOWN_GLYPH,							STR_NONE },											// autosave dropdown button
+	{ WWT_DROPDOWN,			1,	155,	299,	159,	170,	STR_NONE,									STR_NONE },											// title sequence dropdown
+	{ WWT_DROPDOWN_BUTTON,	1,	288,	298,	160,	169,	STR_DROPDOWN_GLYPH,							STR_NONE },											// title seqeuence dropdown button
+	{ WWT_DROPDOWN_BUTTON,	1,	26,		185,	174,	185,	STR_EDIT_TITLE_SEQUENCES_BUTTON,			STR_NONE },											// Title sequences button
+	{ WWT_CHECKBOX,			2,	10,		299,	189,	200,	STR_AUTO_STAFF_PLACEMENT,					STR_NONE }, 										// auto staff placement
+	{ WWT_CHECKBOX,			2,	10,		299,	204,	215,	STR_HANDYMEN_MOW_BY_DEFAULT,				STR_NONE },											// handymen mow by default
+	{ WWT_CHECKBOX,			2,	10,		299,	219,	230,	STR_AUTO_OPEN_SHOPS,						STR_AUTO_OPEN_SHOPS_TIP },							// Automatically open shops & stalls
+	{ WWT_DROPDOWN,			1,	155,	299,	234,	245,	STR_NONE,									STR_NONE },											// default inspection time dropdown
+	{ WWT_DROPDOWN_BUTTON,	1,	288,	298,	235,	244,	STR_DROPDOWN_GLYPH,							STR_NONE },											// default inspection time dropdown button
 	{ WIDGETS_END },
 };
 
@@ -422,7 +428,8 @@ static uint32 window_options_page_enabled_widgets[] = {
 	(1 << WIDX_CONSTRUCTION_MARKER) |
 	(1 << WIDX_CONSTRUCTION_MARKER_DROPDOWN) |
 	(1 << WIDX_DAY_NIGHT_CHECKBOX) |
-	(1 << WIDX_UPPER_CASE_BANNERS_CHECKBOX),
+	(1 << WIDX_UPPER_CASE_BANNERS_CHECKBOX) |
+	(1 << WIDX_DISABLE_LIGHTNING_EFFECT_CHECKBOX),
 
 	MAIN_OPTIONS_ENABLED_WIDGETS |
 	(1 << WIDX_LANGUAGE) |
@@ -478,7 +485,9 @@ static uint32 window_options_page_enabled_widgets[] = {
 	(1 << WIDX_TITLE_SEQUENCE_BUTTON) |
 	(1 << WIDX_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM) |
 	(1 << WIDX_STAY_CONNECTED_AFTER_DESYNC) |
-	(1 << WIDX_AUTO_OPEN_SHOPS),
+	(1 << WIDX_AUTO_OPEN_SHOPS) |
+	(1 << WIDX_DEFAULT_INSPECTION_INTERVAL) |
+	(1 << WIDX_DEFAULT_INSPECTION_INTERVAL_DROPDOWN),
 
 	MAIN_OPTIONS_ENABLED_WIDGETS |
 	(1 << WIDX_CHANNEL_BUTTON) |
@@ -504,7 +513,7 @@ void window_options_open()
 	if (w != NULL)
 		return;
 
-	w = window_create_centred(WW, WH, &window_options_events, WC_OPTIONS, WF_RESIZABLE);
+	w = window_create_centred(WW, WH, &window_options_events, WC_OPTIONS, 0);
 	w->widgets = window_options_display_widgets;
 	w->enabled_widgets = window_options_page_enabled_widgets[WINDOW_OPTIONS_PAGE_DISPLAY];
 	w->page = WINDOW_OPTIONS_PAGE_DISPLAY;
@@ -610,6 +619,11 @@ static void window_options_mouseup(rct_window *w, int widgetIndex)
 			break;
 		case WIDX_UPPER_CASE_BANNERS_CHECKBOX:
 			gConfigGeneral.upper_case_banners ^= 1;
+			config_save_default();
+			window_invalidate(w);
+			break;
+		case WIDX_DISABLE_LIGHTNING_EFFECT_CHECKBOX:
+			gConfigGeneral.disable_lightning_effect ^= 1;
 			config_save_default();
 			window_invalidate(w);
 			break;
@@ -1064,6 +1078,15 @@ static void window_options_mousedown(int widgetIndex, rct_window*w, rct_widget* 
 
 			dropdown_set_checked(gCurrentPreviewTitleSequence, true);
 			break;
+		case WIDX_DEFAULT_INSPECTION_INTERVAL_DROPDOWN:
+			for (i = 0; i < 7; i++) {
+				gDropdownItemsFormat[i] = 1142;
+				gDropdownItemsArgs[i] = STR_EVERY_10_MINUTES + i;
+			}
+
+			window_options_show_dropdown(w, widget, 7);
+			dropdown_set_checked(gConfigGeneral.default_inspection_interval, true);
+			break;
 		}
 		break;
 
@@ -1268,6 +1291,13 @@ static void window_options_dropdown(rct_window *w, int widgetIndex, int dropdown
 				window_invalidate(w);
 			}
 			break;
+		case WIDX_DEFAULT_INSPECTION_INTERVAL_DROPDOWN:
+			if (dropdownIndex != gConfigGeneral.default_inspection_interval) {
+				gConfigGeneral.default_inspection_interval = (uint8)dropdownIndex;
+				config_save_default();
+				window_invalidate(w);
+			}
+			break;
 		}
 		break;
 
@@ -1347,6 +1377,7 @@ static void window_options_invalidate(rct_window *w)
 		widget_set_checkbox_value(w, WIDX_GRIDLINES_CHECKBOX, RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_FLAGS, uint8) & CONFIG_FLAG_ALWAYS_SHOW_GRIDLINES);
 		widget_set_checkbox_value(w, WIDX_DAY_NIGHT_CHECKBOX, gConfigGeneral.day_night_cycle);
 		widget_set_checkbox_value(w, WIDX_UPPER_CASE_BANNERS_CHECKBOX, gConfigGeneral.upper_case_banners);
+		widget_set_checkbox_value(w, WIDX_DISABLE_LIGHTNING_EFFECT_CHECKBOX, gConfigGeneral.disable_lightning_effect);
 
 		// construction marker: white/translucent
 		window_options_rendering_widgets[WIDX_CONSTRUCTION_MARKER].image = STR_WHITE + gConfigGeneral.construction_marker_colour;
@@ -1357,6 +1388,7 @@ static void window_options_invalidate(rct_window *w)
 		window_options_rendering_widgets[WIDX_CONSTRUCTION_MARKER_DROPDOWN].type = WWT_DROPDOWN_BUTTON;
 		window_options_rendering_widgets[WIDX_DAY_NIGHT_CHECKBOX].type = WWT_CHECKBOX;
 		window_options_rendering_widgets[WIDX_UPPER_CASE_BANNERS_CHECKBOX].type = WWT_CHECKBOX;
+		window_options_rendering_widgets[WIDX_DISABLE_LIGHTNING_EFFECT_CHECKBOX].type = WWT_CHECKBOX;
 		break;
 
 	case WINDOW_OPTIONS_PAGE_CULTURE:
@@ -1508,6 +1540,8 @@ static void window_options_invalidate(rct_window *w)
 		window_options_misc_widgets[WIDX_ALLOW_LOADING_WITH_INCORRECT_CHECKSUM].type = WWT_CHECKBOX;
 		window_options_misc_widgets[WIDX_STAY_CONNECTED_AFTER_DESYNC].type = WWT_CHECKBOX;
 		window_options_misc_widgets[WIDX_AUTO_OPEN_SHOPS].type = WWT_CHECKBOX;
+		window_options_misc_widgets[WIDX_DEFAULT_INSPECTION_INTERVAL].type = WWT_DROPDOWN;
+		window_options_misc_widgets[WIDX_DEFAULT_INSPECTION_INTERVAL_DROPDOWN].type = WWT_DROPDOWN_BUTTON;
 		break;
 
 	case WINDOW_OPTIONS_PAGE_TWITCH:
@@ -1682,6 +1716,16 @@ static void window_options_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			w->x + window_options_misc_widgets[WIDX_TITLE_SEQUENCE].left + 1,
 			w->y + window_options_misc_widgets[WIDX_TITLE_SEQUENCE].top,
 			window_options_misc_widgets[WIDX_TITLE_SEQUENCE_DROPDOWN].left - window_options_misc_widgets[WIDX_TITLE_SEQUENCE].left - 4
+		);
+
+		gfx_draw_string_left(dpi, STR_DEFAULT_INSPECTION_INTERVAL, w, w->colours[1], w->x + 10, w->y + window_options_misc_widgets[WIDX_DEFAULT_INSPECTION_INTERVAL].top + 1);
+		gfx_draw_string_left(
+			dpi,
+			STR_EVERY_10_MINUTES + gConfigGeneral.default_inspection_interval,
+			NULL,
+			w->colours[1],
+			w->x + window_options_misc_widgets[WIDX_DEFAULT_INSPECTION_INTERVAL].left + 1,
+			w->y + window_options_misc_widgets[WIDX_DEFAULT_INSPECTION_INTERVAL].top
 		);
 		break;
 	}

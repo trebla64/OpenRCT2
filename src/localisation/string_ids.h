@@ -2407,6 +2407,10 @@ enum {
 
 	STR_X_PLAYERS_ONLINE = 5787,
 
+	STR_DEFAULT_INSPECTION_INTERVAL = 5788,
+
+	STR_DISABLE_LIGHTNING_EFFECT = 5789,
+
 	// Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
 	STR_COUNT = 32768
 };

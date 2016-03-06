@@ -3343,7 +3343,8 @@ void game_command_place_track_design(int* eax, int* ebx, int* ecx, int* edx, int
 	uint8 num_circuits = track_design->lift_hill_speed_num_circuits >> 5;
 	if (num_circuits == 0) num_circuits = 1;
 	game_do_command(0, GAME_COMMAND_FLAG_APPLY | (num_circuits << 8), 0, rideIndex | (9 << 8), GAME_COMMAND_SET_RIDE_SETTING, 0, 0);
-
+	
+	ride_set_to_default_inspection_interval(rideIndex);
 
 	ride->lifecycle_flags |= RIDE_LIFECYCLE_NOT_CUSTOM_DESIGN;
 
@@ -4718,7 +4719,8 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 			support_height = 10;
 		}
 
-		cost += (support_height / 2) * RCT2_ADDRESS(0x0097DD7A, uint16)[ride->type * 2];
+		cost += (((support_height / 2) * RCT2_ADDRESS(0x0097DD7A, uint16)[ride->type * 2]) / 2) * 10;
+
 		//6c56d3
 
 		if (!(flags & GAME_COMMAND_FLAG_APPLY))
@@ -4863,7 +4865,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 		RCT2_ADDRESS(0x0099DA34, money32)[type];
 
 	price >>= 16;
-	price = ((cost + price) / 2) * 10;
+	price = cost + ((price / 2) * 10);
 
 	if (RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32) & PARK_FLAGS_NO_MONEY) {
 		return 0;
