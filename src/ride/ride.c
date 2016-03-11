@@ -2146,7 +2146,7 @@ static void ride_breakdown_update(int rideIndex)
 			ride->downtime_history[7];
 		ride->downtime = min(totalDowntime / 2, 100);
 
-		memmove(&ride->downtime_history[1], ride->downtime_history, sizeof(ride->downtime_history));
+		memmove(&ride->downtime_history[1], ride->downtime_history, sizeof(ride->downtime_history) - 1);
 
 		ride->downtime_history[0] = 0;
 		ride->window_invalidate_flags |= RIDE_INVALIDATE_RIDE_MAINTENANCE;
@@ -5687,6 +5687,9 @@ static money32 shop_item_get_common_price(rct_ride *forRide, int shopItem)
 	FOR_ALL_RIDES(i, ride) {
 		if (ride != forRide) {
 			rideEntry = get_ride_entry(ride->subtype);
+			if (rideEntry == NULL) {
+				continue;
+			}
 			if (rideEntry->shop_item == shopItem) {
 				return ride->price;
 			}
@@ -7795,7 +7798,7 @@ void sub_6CB945(int rideIndex)
 				}
 
 				mapElement->properties.entrance.index &= 0x8F;
-				mapElement->properties.entrance.index |= stationId;
+				mapElement->properties.entrance.index |= stationId << 4;
 				shouldRemove = false;
 			} while (!map_element_is_last_for_tile(trackElement++));
 

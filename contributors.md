@@ -48,6 +48,7 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Thomas den Hollander (ThomasdenH) - Misc.
 * James Robertson (rd3k) - Misc.
 * Robert Jordan (trigger-death) - UI theming, title sequence editor, misc.
+* Aaron van Geffen (AaronVanGeffen) - scenario select screen, font detection, misc.
 
 ## Bug fixes
 * (halfbro)
@@ -60,6 +61,7 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Youngjae Yu (YJSoft)
 * Chanwoong Kim (kexplo)
 * Josué Acevedo (Wirlie)
+* Martin Černáč (octaroot)
 
 ## Toolchain
 * (Balletie) - OSX
@@ -84,6 +86,7 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Fixing unmaintained languages: Michael Steenbeek (Gymnasiast)
 * English (UK) - Ted John (IntelOrca), (Tinytimrob)
 * English (US) - Ted John (IntelOrca), Michael Steenbeek (Gymnasiast)
+* Czech - Martin Černáč (octaroot)
 * Dutch - Michael Steenbeek (Gymnasiast), (xzbobzx), (mrtnptrs), Thomas den Hollander (ThomasdenH), (hostbrute); reviewing and discussion: Aaron van Geffen (AaronVanGeffen), (Balletie) and Sijmen Schoon (Vijfhoek).
 * Finnish - (DJHasis)
 * French - (fbourigault), Joël Troch (JoelTroch), Michael Steenbeek (Gymnasiast)
@@ -94,7 +97,7 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Russian - (Soosisya)
 * Simplified Chinese - Naiji Ma (naijim)
 * Spanish - (mdtrooper), Josué Acevedo (Wirlie)
-* Swedish - (Jinxit), (mharrys), (Slimeyo)
+* Swedish - (Jinxit), (mharrys), (Slimeyo), (Nubbiy)
 * Traditional Chinese - Harry Lam (daihakken)
 
 ## Graphics
