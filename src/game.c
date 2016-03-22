@@ -553,6 +553,9 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 
 	// Decrement nest count
 	RCT2_GLOBAL(0x009A8C28, uint8)--;
+	
+	// Clear the game command callback to prevent the next command triggering it
+	game_command_callback = 0;
 
 	// Show error window
 	if (RCT2_GLOBAL(0x009A8C28, uint8) == 0 && (flags & GAME_COMMAND_FLAG_APPLY) && RCT2_GLOBAL(0x0141F568, uint8) == RCT2_GLOBAL(0x013CA740, uint8) && !(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && !(flags & GAME_COMMAND_FLAG_NETWORKED))
@@ -651,21 +654,61 @@ static void load_landscape()
 	window_loadsave_open(LOADSAVETYPE_LOAD | LOADSAVETYPE_LANDSCAPE, NULL);
 }
 
+static void utf8_to_rct2_self(char *buffer, size_t length)
+{
+	char tempBuffer[512];
+	utf8_to_rct2(tempBuffer, buffer);
+	
+	size_t i = 0;
+	const char *src = tempBuffer;
+	char *dst = buffer;
+	while (*src != 0 && i < length - 1) {
+		if (*src == (char)0xFF) {
+			if (i < length - 3) {
+				*dst++ = *src++;
+				*dst++ = *src++;
+				*dst++ = *src++;
+			} else {
+				break;
+			}
+			i += 3;
+		} else {
+			*dst++ = *src++;
+			i++;
+		}
+	}
+	do {
+		*dst++ = '\0';
+		i++;
+	} while (i < length);
+}
+
+static void rct2_to_utf8_self(char *buffer, size_t length)
+{
+	char tempBuffer[512];
+	if (length > 0) {
+		rct2_to_utf8(tempBuffer, buffer);
+		strncpy(buffer, tempBuffer, length - 1);
+		buffer[length - 1] = '\0';
+	}
+}
+
 /**
  * Converts all the user strings and news item strings to UTF-8.
  */
 void game_convert_strings_to_utf8()
 {
-	utf8 buffer[512];
+	// Scenario details
+	rct2_to_utf8_self(RCT2_ADDRESS(RCT2_ADDRESS_SCENARIO_COMPLETED_BY, char), 32);
+	rct2_to_utf8_self(RCT2_ADDRESS(RCT2_ADDRESS_SCENARIO_NAME, char), 64);
+	rct2_to_utf8_self(RCT2_ADDRESS(RCT2_ADDRESS_SCENARIO_DETAILS, char), 256);
 
 	// User strings
 	for (int i = 0; i < MAX_USER_STRINGS; i++) {
 		utf8 *userString = &gUserStrings[i * USER_STRING_MAX_LENGTH];
 
 		if (!str_is_null_or_empty(userString)) {
-			rct2_to_utf8(buffer, userString);
-			memcpy(userString, buffer, 31);
-			userString[31] = 0;
+			rct2_to_utf8_self(userString, 32);
 		}
 	}
 
@@ -674,9 +717,7 @@ void game_convert_strings_to_utf8()
 		rct_news_item *newsItem = news_item_get(i);
 
 		if (!str_is_null_or_empty(newsItem->text)) {
-			rct2_to_utf8(buffer, newsItem->text);
-			memcpy(newsItem->text, buffer, 255);
-			newsItem->text[255] = 0;
+			rct2_to_utf8_self(newsItem->text, 256);
 		}
 	}
 }
@@ -686,16 +727,17 @@ void game_convert_strings_to_utf8()
  */
 void game_convert_strings_to_rct2(rct_s6_data *s6)
 {
-	char buffer[512];
+	// Scenario details
+	utf8_to_rct2_self(s6->scenario_completed_name, sizeof(s6->scenario_completed_name));
+	utf8_to_rct2_self(s6->scenario_name, sizeof(s6->scenario_name));
+	utf8_to_rct2_self(s6->scenario_description, sizeof(s6->scenario_description));
 
 	// User strings
 	for (int i = 0; i < MAX_USER_STRINGS; i++) {
 		char *userString = &s6->custom_strings[i * USER_STRING_MAX_LENGTH];
 
 		if (!str_is_null_or_empty(userString)) {
-			utf8_to_rct2(buffer, userString);
-			memcpy(userString, buffer, 31);
-			userString[31] = 0;
+			utf8_to_rct2_self(userString, 32);
 		}
 	}
 
@@ -704,9 +746,7 @@ void game_convert_strings_to_rct2(rct_s6_data *s6)
 		rct_news_item *newsItem = &s6->news_items[i];
 
 		if (!str_is_null_or_empty(newsItem->text)) {
-			utf8_to_rct2(buffer, newsItem->text);
-			memcpy(newsItem->text, buffer, 255);
-			newsItem->text[255] = 0;
+			utf8_to_rct2_self(newsItem->text, 256);
 		}
 	}
 }
@@ -776,6 +816,7 @@ int game_load_sv6(SDL_RWops* rw)
 	// #2407: Resetting screen time to not open a save prompt shortly after loading a park.
 	RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_AGE, uint16) = 0;
 
+	gLastAutoSaveTick = SDL_GetTicks();
 	return 1;
 }
 
@@ -881,6 +922,7 @@ int game_load_network(SDL_RWops* rw)
 	reset_0x69EBE4();
 	openrct2_reset_object_tween_locations();
 	game_convert_strings_to_utf8();
+	gLastAutoSaveTick = SDL_GetTicks();
 	return 1;
 }
 

@@ -287,8 +287,7 @@ typedef struct {
 	rct_research_item research_items[500];
 	uint16 word_01359208;
 	char scenario_name[64];
-	char scenario_description[255];
-	uint8 byte_01359349;
+	char scenario_description[256];
 	uint8 current_interest_rate;
 	uint8 pad_0135934B;
 	uint32 dword_0135934C;
@@ -472,6 +471,7 @@ extern scenario_index_entry *gScenarioList;
 
 extern char gScenarioSavePath[MAX_PATH];
 extern int gFirstTimeSave;
+extern uint32 gLastAutoSaveTick;
 
 bool scenario_scores_save();
 void scenario_load_list();
