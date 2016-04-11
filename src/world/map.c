@@ -1993,6 +1993,7 @@ money32 lower_land(int flags, int x, int y, int z, int ax, int ay, int bx, int b
 money32 raise_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 {
 	money32 cost = 0;
+	bool waterHeightChanged = false;
 
 	uint8 max_height = 0xFF;
 
@@ -2034,6 +2035,7 @@ money32 raise_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 						return MONEY32_UNDEFINED;
 
 					cost += tileCost;
+					waterHeightChanged = true;
 				}
 			}
 		}
@@ -2058,7 +2060,9 @@ money32 raise_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_X, uint16) = x;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Y, uint16) = y;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Z, uint16) = z;
-		audio_play_sound_at_location(SOUND_LAYING_OUT_WATER, x, y, z);
+		if (waterHeightChanged) {
+			audio_play_sound_at_location(SOUND_LAYING_OUT_WATER, x, y, z);
+		}
 	}
 
 	// Force ride construction to recheck area
@@ -2070,6 +2074,7 @@ money32 raise_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 money32 lower_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 {
 	money32 cost = 0;
+	bool waterHeightChanged = false;
 
 	uint8 min_height = 0;
 
@@ -2106,6 +2111,7 @@ money32 lower_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 					if (tileCost == MONEY32_UNDEFINED)
 						return MONEY32_UNDEFINED;
 					cost += tileCost;
+					waterHeightChanged = true;
 				}
 			}
 		}
@@ -2130,7 +2136,9 @@ money32 lower_water(sint16 x0, sint16 y0, sint16 x1, sint16 y1, uint8 flags)
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_X, uint16) = x;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Y, uint16) = y;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMAND_MAP_Z, uint16) = z;
-		audio_play_sound_at_location(SOUND_LAYING_OUT_WATER, x, y, z);
+		if (waterHeightChanged) {
+			audio_play_sound_at_location(SOUND_LAYING_OUT_WATER, x, y, z);
+		}
 	}
 
 	// Force ride construction to recheck area
@@ -4262,9 +4270,8 @@ static void map_update_grass_length(int x, int y, rct_map_element *mapElement)
 		return;
 	}
 
-	// Grass can't grow any further
-	if (grassLength == GRASS_LENGTH_CLUMPS_2)
-		return;
+	// Grass can't grow any further than CLUMPS_2 but this code also cuts grass
+	// if there is an object placed ontop of it.
 
 	int z0 = mapElement->base_height;
 	int z1 = mapElement->base_height + 2;
@@ -4276,17 +4283,22 @@ static void map_update_grass_length(int x, int y, rct_map_element *mapElement)
 	for (;;) {
 		if (mapElementAbove->flags & MAP_ELEMENT_FLAG_LAST_TILE) {
 			// Grow grass
-			if (mapElement->properties.surface.grass_length < 0xF0) {
+
+			// Check interim grass lengths
+			uint8 lengthNibble = (mapElement->properties.surface.grass_length & 0xF0) >> 8;
+			if (lengthNibble < 0xF) {
 				mapElement->properties.surface.grass_length += 0x10;
 			} else {
+				// Zeros the length nibble
 				mapElement->properties.surface.grass_length += 0x10;
 				mapElement->properties.surface.grass_length ^= 8;
 				if (mapElement->properties.surface.grass_length & 8) {
-					// Random growth rate
+					// Random growth rate (length nibble)
 					mapElement->properties.surface.grass_length |= scenario_rand() & 0x70;
 				} else {
-					// Increase length
-					map_set_grass_length(x, y, mapElement, grassLength + 1);
+					// Increase length if not at max length
+					if (grassLength != GRASS_LENGTH_CLUMPS_2)
+						map_set_grass_length(x, y, mapElement, grassLength + 1);
 				}
 			}
 		} else {
@@ -4297,6 +4309,9 @@ static void map_update_grass_length(int x, int y, rct_map_element *mapElement)
 				continue;
 			if (z1 < mapElementAbove->base_height)
 				continue;
+
+			if (grassLength != GRASS_LENGTH_CLEAR_0)
+				map_set_grass_length(x, y, mapElement, GRASS_LENGTH_CLEAR_0);
 		}
 		break;
 	}
