@@ -242,8 +242,8 @@ static void window_map_close(rct_window *w)
 {
 	free(RCT2_GLOBAL(RCT2_ADDRESS_MAP_IMAGE_DATA, uint32*));
 	if ((gInputFlags & INPUT_FLAG_TOOL_ACTIVE) &&
-		RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, uint8) == w->classification &&
-		RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER, uint16) == w->number) {
+		gCurrentToolWidget.window_classification == w->classification &&
+		gCurrentToolWidget.window_number == w->number) {
 		tool_cancel();
 	}
 }
@@ -465,7 +465,7 @@ static void window_map_tooldrag(rct_window* w, int widgetIndex, int x, int y)
 	switch (widgetIndex) {
 	case WIDX_SET_LAND_RIGHTS:
 		if (RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) & (1 << 0)) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, rct_string_id) = 0;
+			gGameCommandErrorTitle = 0;
 			game_do_command(
 				RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_X, uint16),
 				GAME_COMMAND_FLAG_APPLY,
@@ -557,7 +557,7 @@ static void window_map_scrollmousedown(rct_window *w, int scrollIndex, int x, in
 		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_Y, uint16) = mapY + size;
 		map_invalidate_selection_rect();
 
-		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, rct_string_id) = STR_CANT_CHANGE_LAND_TYPE;
+		gGameCommandErrorTitle = STR_CANT_CHANGE_LAND_TYPE;
 		game_do_command(
 			RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_X, sint16),
 			GAME_COMMAND_FLAG_APPLY,
@@ -584,7 +584,7 @@ static void window_map_scrollmousedown(rct_window *w, int scrollIndex, int x, in
 		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_Y, uint16) = mapY + size;
 		map_invalidate_selection_rect();
 
-		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, rct_string_id) = 0;
+		gGameCommandErrorTitle = 0;
 		game_do_command(
 			RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_X, uint16),
 			GAME_COMMAND_FLAG_APPLY,
@@ -741,8 +741,8 @@ static void window_map_invalidate(rct_window *w)
 		// scenario editor: build park entrance selected, show rotate button
 		if (
 			(gInputFlags & INPUT_FLAG_TOOL_ACTIVE) &&
-			RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) == WC_MAP &&
-			RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) == WIDX_BUILD_PARK_ENTRANCE
+			gCurrentToolWidget.window_classification == WC_MAP &&
+			gCurrentToolWidget.widget_index == WIDX_BUILD_PARK_ENTRANCE
 		) {
 			w->widgets[WIDX_ROTATE_90].type = WWT_FLATBTN;
 		}
@@ -753,10 +753,10 @@ static void window_map_invalidate(rct_window *w)
 		// If any tool is active
 		if (
 			(gInputFlags & INPUT_FLAG_TOOL_ACTIVE) &&
-			RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, uint8) == WC_MAP
+			gCurrentToolWidget.window_classification == WC_MAP
 		) {
 			// if not in set land rights mode: show the default scenario editor buttons
-			if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WIDGETINDEX, uint16) != WIDX_SET_LAND_RIGHTS) {
+			if (gCurrentToolWidget.widget_index != WIDX_SET_LAND_RIGHTS) {
 				window_map_show_default_scenario_editor_buttons(w);
 			} else { // if in set land rights mode: show land tool buttons + modes
 				w->widgets[WIDX_LAND_TOOL].type = WWT_IMGBTN;
@@ -1276,7 +1276,7 @@ static void window_map_place_park_entrance_tool_down(int x, int y)
 	if (mapX == (sint16)0x8000)
 		return;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, rct_string_id) = STR_CANT_BUILD_PARK_ENTRANCE_HERE;
+	gGameCommandErrorTitle = STR_CANT_BUILD_PARK_ENTRANCE_HERE;
 	price = game_do_command(
 		mapX,
 		GAME_COMMAND_FLAG_APPLY | (direction << 8),

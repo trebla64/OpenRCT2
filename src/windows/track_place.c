@@ -151,7 +151,7 @@ static void window_track_place_draw_mini_preview()
 		if (track->type != RIDE_TYPE_MAZE) {
 			#pragma region Track
 
-			rotation = RCT2_GLOBAL(RCT2_ADDRESS_TRACK_PREVIEW_ROTATION, uint8) + get_current_rotation();
+			rotation = _currentTrackPieceDirection + get_current_rotation();
 			trackElement = RCT2_ADDRESS(0x009D821B, rct_track_element);
 
 			while (trackElement->type != 255) {
@@ -250,7 +250,7 @@ static void window_track_place_draw_mini_preview()
 		} else {
 			#pragma region Maze
 
-			rotation = (RCT2_GLOBAL(RCT2_ADDRESS_TRACK_PREVIEW_ROTATION, uint8) + get_current_rotation()) & 3;
+			rotation = (_currentTrackPieceDirection + get_current_rotation()) & 3;
 			mazeElement = RCT2_ADDRESS(0x009D821B, rct_maze_element);
 			while (mazeElement->all != 0) {
 				x = mazeElement->x * 32;
@@ -395,7 +395,7 @@ void window_track_place_open()
 	show_gridlines();
 	_window_track_place_last_cost = MONEY32_UNDEFINED;
 	_window_track_place_last_x = 0xFFFF;
-	RCT2_GLOBAL(RCT2_ADDRESS_TRACK_PREVIEW_ROTATION, uint8) = (2 - get_current_rotation()) & 3;
+	_currentTrackPieceDirection = (2 - get_current_rotation()) & 3;
 	window_track_place_draw_mini_preview();
 }
 
@@ -451,7 +451,7 @@ static void window_track_place_mouseup(rct_window *w, int widgetIndex)
 static void window_track_place_update(rct_window *w)
 {
 	if (!(gInputFlags & INPUT_FLAG_TOOL_ACTIVE))
-		if (RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass) != WC_TRACK_DESIGN_PLACE)
+		if (gCurrentToolWidget.window_classification != WC_TRACK_DESIGN_PLACE)
 			window_close(w);
 }
 
@@ -544,7 +544,7 @@ static void window_track_place_tooldown(rct_window* w, int widgetIndex, int x, i
 			window_close_by_class(WC_ERROR);
 			audio_play_sound_at_location(SOUND_PLACE_ITEM, mapX, mapY, mapZ);
 
-			RCT2_GLOBAL(0x00F440A7, uint8) = rideIndex;
+			_currentRideIndex = rideIndex;
 			if (RCT2_GLOBAL(0x00F4414E, uint8) & 1) {
 				window_ride_main_open(rideIndex);
 				window_close(w);
@@ -557,7 +557,7 @@ static void window_track_place_tooldown(rct_window* w, int widgetIndex, int x, i
 		}
 
 		// Check if player did not have enough funds
-		if (RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, rct_string_id) == 827)
+		if (gGameCommandErrorText == 827)
 			break;
 
 		mapZ += 8;

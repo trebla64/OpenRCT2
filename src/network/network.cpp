@@ -1355,7 +1355,7 @@ void Network::Server_Send_MAP(NetworkConnection* connection)
 		SDL_RWclose(rw);
 		return;
 	}
-	size_t chunksize = 1000;
+	size_t chunksize = 1024;
 	size_t out_size = size;
 	unsigned char *compressed = util_zlib_deflate(&buffer[0], size, &out_size);
 	unsigned char *header;
@@ -1765,7 +1765,7 @@ void Network::Client_Handle_MAP(NetworkConnection& connection, NetworkPacket& pa
 		chunk_buffer.resize(offset + chunksize);
 	}
 	char str_downloading_map[256];
-	unsigned int downloading_map_args[2] = {(offset + chunksize) / 1000, size / 1000};
+	unsigned int downloading_map_args[2] = {(offset + chunksize) / 1024, size / 1024};
 	format_string(str_downloading_map, STR_MULTIPLAYER_DOWNLOADING_MAP, downloading_map_args);
 	window_network_status_open(str_downloading_map, []() -> void {
 		gNetwork.Close();
@@ -2243,12 +2243,12 @@ void game_command_set_player_group(int* eax, int* ebx, int* ecx, int* edx, int* 
 		return;
 	}
 	if (player->flags & NETWORK_PLAYER_FLAG_ISSERVER) {
-		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_CHANGE_GROUP_THAT_THE_HOST_BELONGS_TO;
+		gGameCommandErrorTitle = STR_CANT_CHANGE_GROUP_THAT_THE_HOST_BELONGS_TO;
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}
 	if (groupid == 0 && fromgroup && fromgroup->id != 0) {
-		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_SET_TO_THIS_GROUP;
+		gGameCommandErrorTitle = STR_CANT_SET_TO_THIS_GROUP;
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}
@@ -2281,13 +2281,13 @@ void game_command_modify_groups(int *eax, int *ebx, int *ecx, int *edx, int *esi
 	}break;
 	case 1:{ // remove group
 		if (groupid == 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_THIS_GROUP_CANNOT_BE_MODIFIED;
+			gGameCommandErrorTitle = STR_THIS_GROUP_CANNOT_BE_MODIFIED;
 			*ebx = MONEY32_UNDEFINED;
 			return;
 		}
 		for (auto it = gNetwork.player_list.begin(); it != gNetwork.player_list.end(); it++) {
 			if((*it)->group == groupid) {
-				RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_REMOVE_GROUP_THAT_PLAYERS_BELONG_TO;
+				gGameCommandErrorTitle = STR_CANT_REMOVE_GROUP_THAT_PLAYERS_BELONG_TO;
 				*ebx = MONEY32_UNDEFINED;
 				return;
 			}
@@ -2301,7 +2301,7 @@ void game_command_modify_groups(int *eax, int *ebx, int *ecx, int *edx, int *esi
 		bool all = *edx & 1;
 		bool allvalue = (*edx >> 1) & 1;
 		if (groupid == 0) { // cant change admin group permissions
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_THIS_GROUP_CANNOT_BE_MODIFIED;
+			gGameCommandErrorTitle = STR_THIS_GROUP_CANNOT_BE_MODIFIED;
 			*ebx = MONEY32_UNDEFINED;
 			return;
 		}
@@ -2310,7 +2310,7 @@ void game_command_modify_groups(int *eax, int *ebx, int *ecx, int *edx, int *esi
 		if (player && !all) {
 			mygroup = gNetwork.GetGroupByID(player->group);
 			if (!mygroup || (mygroup && !mygroup->CanPerformAction(index))) {
-				RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_MODIFY_PERMISSION_THAT_YOU_DO_NOT_HAVE_YOURSELF;
+				gGameCommandErrorTitle = STR_CANT_MODIFY_PERMISSION_THAT_YOU_DO_NOT_HAVE_YOURSELF;
 				*ebx = MONEY32_UNDEFINED;
 				return;
 			}
@@ -2353,8 +2353,8 @@ void game_command_modify_groups(int *eax, int *ebx, int *ecx, int *edx, int *esi
 		}
 
 		if (newName[0] == 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_RENAME_GROUP;
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) = STR_INVALID_GROUP_NAME;
+			gGameCommandErrorTitle = STR_CANT_RENAME_GROUP;
+			gGameCommandErrorText = STR_INVALID_GROUP_NAME;
 			*ebx = MONEY32_UNDEFINED;
 			return;
 		}
@@ -2368,7 +2368,7 @@ void game_command_modify_groups(int *eax, int *ebx, int *ecx, int *edx, int *esi
 	}break;
 	case 4:{ // set default group
 		if (groupid == 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_SET_TO_THIS_GROUP;
+			gGameCommandErrorTitle = STR_CANT_SET_TO_THIS_GROUP;
 			*ebx = MONEY32_UNDEFINED;
 			return;
 		}
@@ -2388,7 +2388,7 @@ void game_command_kick_player(int *eax, int *ebx, int *ecx, int *edx, int *esi, 
 	uint8 playerid = (uint8)*eax;
 	NetworkPlayer* player = gNetwork.GetPlayerByID(playerid);
 	if (player && player->flags & NETWORK_PLAYER_FLAG_ISSERVER) {
-		RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_KICK_THE_HOST;
+		gGameCommandErrorTitle = STR_CANT_KICK_THE_HOST;
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}

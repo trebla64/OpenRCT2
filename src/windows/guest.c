@@ -561,8 +561,8 @@ void window_guest_disable_widgets(rct_window* w){
 void window_guest_overview_close(rct_window *w)
 {
 	if (gInputFlags & INPUT_FLAG_TOOL_ACTIVE){
-		if (w->classification == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS,rct_windowclass) &&
-			w->number == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER,rct_windownumber))
+		if (w->classification == gCurrentToolWidget.window_classification &&
+			w->number == gCurrentToolWidget.window_number)
 			tool_cancel();
 	}
 }
@@ -664,8 +664,8 @@ void window_guest_overview_mouse_up(rct_window *w, int widgetIndex)
 void window_guest_set_page(rct_window* w, int page){
 	if (gInputFlags & INPUT_FLAG_TOOL_ACTIVE)
 	{
-		if(w->number == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWNUMBER, rct_windownumber) &&
-		   w->classification == RCT2_GLOBAL(RCT2_ADDRESS_TOOL_WINDOWCLASS, rct_windowclass))
+		if(w->number == gCurrentToolWidget.window_number &&
+		   w->classification == gCurrentToolWidget.window_classification)
 			tool_cancel();
 
 	}
@@ -1158,7 +1158,7 @@ void window_guest_overview_text_input(rct_window *w, int widgetIndex, char *text
 	if (text == NULL)
 		return;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TITLE, uint16) = STR_CANT_NAME_GUEST;
+	gGameCommandErrorTitle = STR_CANT_NAME_GUEST;
 	game_do_command(1, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 0)), GAME_COMMAND_SET_PEEP_NAME, *((int*)(text + 8)), *((int*)(text + 4)));
 	game_do_command(2, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 12)), GAME_COMMAND_SET_PEEP_NAME, *((int*)(text + 20)), *((int*)(text + 16)));
 	game_do_command(0, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 24)), GAME_COMMAND_SET_PEEP_NAME, *((int*)(text + 32)), *((int*)(text + 28)));
@@ -1246,8 +1246,8 @@ void window_guest_overview_tool_down(rct_window* w, int widgetIndex, int x, int 
 	}
 	
 	if (!map_can_construct_at(tile_x, tile_y, dest_z / 8, (dest_z / 8) + 1, 15)){
-		if (RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) != 0x3A5 ){
-			if (RCT2_GLOBAL(RCT2_ADDRESS_GAME_COMMAND_ERROR_TEXT, uint16) != 0x49B){
+		if (gGameCommandErrorText != 0x3A5 ){
+			if (gGameCommandErrorText != 0x49B){
 				window_error_open(0x785, -1);
 				return;
 			}
