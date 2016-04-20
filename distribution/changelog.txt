@@ -1,3 +1,7 @@
+0.0.5
+------------------------------------------------------------------------
+- Feature: Ability to rotate map elements with the tile inspector.
+
 0.0.4
 ------------------------------------------------------------------------
 - Feature: Full native OSX .app support.
@@ -29,6 +33,7 @@
 - Feature: Ability to automatically open shops after placing them.
 - Feature: Ability to change the default inspection interval for rides.
 - Feature: Ability to disable lightning effect during a thunderstorm.
+- Feature: Ability to set ownership of map edges.
 - Feature: Display a chat hotkey when joining a server.
 - Change: Server IP addresses are no longer shown in the server list.
 - Change: Theme format changed from INI to JSON (INI format no longer supported).

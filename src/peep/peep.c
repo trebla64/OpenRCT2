@@ -195,7 +195,7 @@ void peep_update_all()
  */
 static uint8 peep_assess_surroundings(sint16 center_x, sint16 center_y, sint16 center_z){
 	if ((map_element_height(center_x, center_y) & 0xFFFF) > center_z)
-		return 0;
+		return PEEP_THOUGHT_TYPE_NONE;
 
 	uint16 num_scenery = 0;
 	uint16 num_fountains = 0;
@@ -262,40 +262,31 @@ static uint8 peep_assess_surroundings(sint16 center_x, sint16 center_y, sint16 c
 		}
 	}
 
-
-	short num_litter;
-
-	num_litter = 0;
 	rct_litter* litter;
 	for (uint16 sprite_idx = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_LITTER, uint16); sprite_idx != SPRITE_INDEX_NULL; sprite_idx = litter->next) {
 		litter = &(g_sprite_list[sprite_idx].litter);
 
 		sint16 dist_x = abs(litter->x - center_x);
 		sint16 dist_y = abs(litter->y - center_y);
-		if (max(dist_x, dist_y) <= 160){
+		if (max(dist_x, dist_y) <= 160) {
 			num_rubbish++;
 		}
 	}
 
-	if (num_fountains >= 5){
-		if (num_rubbish < 20)
-			return 3;
-	}
+	if (num_fountains >= 5 && num_rubbish < 20)
+		return PEEP_THOUGHT_TYPE_FOUNTAINS;
 
-	if (num_scenery >= 40){
-		if (num_rubbish < 8)
-			return 1;
-	}
+	if (num_scenery >= 40 && num_rubbish < 8)
+		return PEEP_THOUGHT_TYPE_SCENERY;
 
-	if (nearby_music == 1){
-		if (num_rubbish < 20)
-			return 4;
-	}
+	if (nearby_music == 1 && num_rubbish < 20)
+		return PEEP_THOUGHT_TYPE_MUSIC;
 
-	if (num_rubbish < 2)
-		return 2;
+	if (num_rubbish < 2 && !gCheatsDisableLittering)
+		// if disable littering cheat is enabled, peeps will not have the "clean and tidy park" thought
+		return PEEP_THOUGHT_TYPE_VERY_CLEAN;
 
-	return 0;
+	return PEEP_THOUGHT_TYPE_NONE;
 }
 
 /**
@@ -454,25 +445,11 @@ static void sub_68F41A(rct_peep *peep, int index)
 				peep->var_F2 = 0;
 				if (peep->x != (sint16)0x8000){
 
-					uint8 bl = peep_assess_surroundings(peep->x & 0xFFE0, peep->y & 0xFFE0, peep->z);
+					uint8 thought_type = peep_assess_surroundings(peep->x & 0xFFE0, peep->y & 0xFFE0, peep->z);
 
-					if (bl != 0){
+					if (thought_type != PEEP_THOUGHT_TYPE_NONE) {
+						peep_insert_new_thought(peep, thought_type, 0xFF);
 						peep->happiness_growth_rate = min(255, peep->happiness_growth_rate + 45);
-
-						switch (bl){
-						case 1:
-							peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_SCENERY, 0xFF);
-							break;
-						case 2:
-							peep_insert_new_thought(peep, PEEP_THOUGHT_VERY_CLEAN, 0xFF);
-							break;
-						case 3:
-							peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_FOUNTAINS, 0xFF);
-							break;
-						default:
-							peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_MUSIC, 0xFF);
-							break;
-						}
 					}
 				}
 			}
@@ -563,7 +540,7 @@ static void sub_68F41A(rct_peep *peep, int index)
 						peep->cash_in_pocket <= MONEY(9, 00) &&
 						peep->happiness >= 105 &&
 						peep->happiness >= 70){
-						possible_thoughts[num_thoughts++] = PEEP_THOUGHT_RUNNING_OUT;
+						possible_thoughts[num_thoughts++] = PEEP_THOUGHT_TYPE_RUNNING_OUT;
 					}
 				}
 
@@ -582,7 +559,7 @@ static void sub_68F41A(rct_peep *peep, int index)
 					case PEEP_THOUGHT_TYPE_BATHROOM:
 						peep_head_for_nearest_ride_with_flags(peep, RIDE_TYPE_FLAG_IS_BATHROOM);
 						break;
-					case PEEP_THOUGHT_RUNNING_OUT:
+					case PEEP_THOUGHT_TYPE_RUNNING_OUT:
 						peep_head_for_nearest_ride_type(peep, RIDE_TYPE_CASH_MACHINE);
 						break;
 					}
@@ -591,12 +568,12 @@ static void sub_68F41A(rct_peep *peep, int index)
 		}
 		else{
 			if (peep->nausea >= 140){
-				uint8 thought = PEEP_THOUGHT_TYPE_SICK;
+				uint8 thought_type = PEEP_THOUGHT_TYPE_SICK;
 				if (peep->nausea >= 200){
-					thought = PEEP_THOUGHT_TYPE_VERY_SICK;
+					thought_type = PEEP_THOUGHT_TYPE_VERY_SICK;
 					peep_head_for_nearest_ride_type(peep, RIDE_TYPE_FIRST_AID);
 				}
-				peep_insert_new_thought(peep, thought, 0xFF);
+				peep_insert_new_thought(peep, thought_type, 0xFF);
 			}
 		}
 
@@ -4368,7 +4345,7 @@ static void peep_update_picked(rct_peep* peep){
 	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) & 0x1F) return;
 	peep->sub_state++;
 	if (peep->sub_state == 13){
-		peep_insert_new_thought(peep, PEEP_THOUGHT_HELP, 0xFF);
+		peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_HELP, 0xFF);
 	}
 }
 
@@ -5479,12 +5456,14 @@ static void peep_update_walking(rct_peep* peep){
 			((0xFFFF & scenario_rand()) <= 4096)){
 
 			uint8 pos_stnd = 0;
-			for (int container = peep_empty_container_standard_flag(peep); pos_stnd < 32; pos_stnd++)if (container&(1<<pos_stnd))break;
+			for (int container = peep_empty_container_standard_flag(peep); pos_stnd < 32; pos_stnd++)
+				if (container & (1u << pos_stnd))
+					break;
 
 			int bp = 0;
 
 			if (pos_stnd != 32){
-				peep->item_standard_flags &= ~(1 << pos_stnd);
+				peep->item_standard_flags &= ~(1u << pos_stnd);
 				bp = RCT2_ADDRESS(0x97EFCC, uint8)[pos_stnd];
 			}
 			else{
@@ -5625,7 +5604,7 @@ static void peep_update_walking(rct_peep* peep){
 	peep->destination_tolerence = 3;
 
 	if (peep->current_seat&1){
-		peep_insert_new_thought(peep, PEEP_THOUGHT_NEW_RIDE, 0xFF);
+		peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_NEW_RIDE, 0xFF);
 	}
 	if (peep->current_ride == 0xFF){
 		peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_SCENERY, 0xFF);
@@ -6250,19 +6229,19 @@ void get_arguments_from_action(rct_peep* peep, uint32 *argument_1, uint32* argum
 		ride = get_ride(peep->current_ride);
 		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_IN_RIDE))
 			*argument_1 = STR_IN_RIDE;
-		*argument_1 |= (ride->name << 16);
+		*argument_1 |= ((uint32)ride->name << 16);
 		*argument_2 = ride->name_arguments;
 		break;
 	case PEEP_STATE_BUYING:
 		ride = get_ride(peep->current_ride);
-		*argument_1 = STR_AT_RIDE | (ride->name << 16);
+		*argument_1 = STR_AT_RIDE | ((uint32)ride->name << 16);
 		*argument_2 = ride->name_arguments;
 		break;
 	case PEEP_STATE_WALKING:
 	case PEEP_STATE_USING_BIN:
 		if (peep->guest_heading_to_ride_id != 0xFF){
 			ride = get_ride(peep->guest_heading_to_ride_id);
-			*argument_1 = STR_HEADING_FOR | (ride->name << 16);
+			*argument_1 = STR_HEADING_FOR | ((uint32)ride->name << 16);
 			*argument_2 = ride->name_arguments;
 		}
 		else{
@@ -6273,7 +6252,7 @@ void get_arguments_from_action(rct_peep* peep, uint32 *argument_1, uint32* argum
 	case PEEP_STATE_QUEUING_FRONT:
 	case PEEP_STATE_QUEUING:
 		ride = get_ride(peep->current_ride);
-		*argument_1 = STR_QUEUING_FOR | (ride->name << 16);
+		*argument_1 = STR_QUEUING_FOR | ((uint32)ride->name << 16);
 		*argument_2 = ride->name_arguments;
 		break;
 	case PEEP_STATE_SITTING:
@@ -6283,12 +6262,12 @@ void get_arguments_from_action(rct_peep* peep, uint32 *argument_1, uint32* argum
 	case PEEP_STATE_WATCHING:
 		if (peep->current_ride != 0xFF){
 			ride = get_ride(peep->current_ride);
-			*argument_1 = STR_WATCHING_RIDE | (ride->name << 16);
+			*argument_1 = STR_WATCHING_RIDE | ((uint32)ride->name << 16);
 			*argument_2 = ride->name_arguments;
 			if (peep->current_seat & 0x1)
-				*argument_1 = STR_WATCHING_CONSTRUCTION_OF | (ride->name << 16);
+				*argument_1 = STR_WATCHING_CONSTRUCTION_OF | ((uint32)ride->name << 16);
 			else
-				*argument_1 = STR_WATCHING_RIDE | (ride->name << 16);
+				*argument_1 = STR_WATCHING_RIDE | ((uint32)ride->name << 16);
 		}
 		else{
 			*argument_1 = peep->current_seat & 0x1 ? STR_WATCHING_NEW_RIDE_BEING_CONSTRUCTED : STR_LOOKING_AT_SCENERY;
@@ -6332,23 +6311,23 @@ void get_arguments_from_action(rct_peep* peep, uint32 *argument_1, uint32* argum
 		}
 		else{
 			ride = get_ride(peep->current_ride);
-			*argument_1 = STR_RESPONDING_TO_RIDE_BREAKDOWN_CALL | (ride->name << 16);
+			*argument_1 = STR_RESPONDING_TO_RIDE_BREAKDOWN_CALL | ((uint32)ride->name << 16);
 			*argument_2 = ride->name_arguments;
 		}
 		break;
 	case PEEP_STATE_FIXING:
 		ride = get_ride(peep->current_ride);
-		*argument_1 = STR_FIXING_RIDE | (ride->name << 16);
+		*argument_1 = STR_FIXING_RIDE | ((uint32)ride->name << 16);
 		*argument_2 = ride->name_arguments;
 		break;
 	case PEEP_STATE_HEADING_TO_INSPECTION:
 		ride = get_ride(peep->current_ride);
-		*argument_1 = STR_HEADING_TO_RIDE_FOR_INSPECTION | (ride->name << 16);
+		*argument_1 = STR_HEADING_TO_RIDE_FOR_INSPECTION | ((uint32)ride->name << 16);
 		*argument_2 = ride->name_arguments;
 		break;
 	case PEEP_STATE_INSPECTING:
 		ride = get_ride(peep->current_ride);
-		*argument_1 = STR_INSPECTING_RIDE | (ride->name << 16);
+		*argument_1 = STR_INSPECTING_RIDE | ((uint32)ride->name << 16);
 		*argument_2 = ride->name_arguments;
 		break;
 	}
@@ -6376,7 +6355,7 @@ void get_arguments_from_thought(rct_peep_thought thought, uint32* argument_1, ui
 	} else {
 		esi = 0x009AC864; //No thought?
 	}
-	*argument_1 = ((thought.type + STR_THOUGHT_START) & 0xFFFF) | (*((uint16*)esi) << 16);
+	*argument_1 = (((thought.type + STR_THOUGHT_START) & 0xFFFF) | (((uint32)*((uint16*)esi)) << 16));
 	*argument_2 = *((uint32*)(esi + 2)); //Always 0 apart from on rides?
 }
 
@@ -6707,7 +6686,7 @@ static void peep_stop_purchase_thought(rct_peep* peep, uint8 ride_type){
 	if (!ride_type_has_flag(ride_type, RIDE_TYPE_FLAG_SELLS_FOOD)){
 		thought_type = PEEP_THOUGHT_TYPE_THIRSTY;
 		if (!ride_type_has_flag(ride_type, RIDE_TYPE_FLAG_SELLS_DRINKS)){
-			thought_type = PEEP_THOUGHT_RUNNING_OUT;
+			thought_type = PEEP_THOUGHT_TYPE_RUNNING_OUT;
 			if (ride_type != RIDE_TYPE_CASH_MACHINE){
 				thought_type = PEEP_THOUGHT_TYPE_BATHROOM;
 				if (!ride_type_has_flag(ride_type, RIDE_TYPE_FLAG_IS_BATHROOM)){
@@ -8813,7 +8792,7 @@ static void peep_on_exit_ride(rct_peep *peep, int rideIndex)
 	}
 
 	if (peep->peep_flags & PEEP_FLAGS_NICE_RIDE) {
-		peep_insert_new_thought(peep, PEEP_THOUGHT_NICE_RIDE, 255);
+		peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_NICE_RIDE, 255);
 	}
 
 	if (peep_really_liked_ride(peep, ride)) {
@@ -9830,7 +9809,7 @@ static bool peep_should_go_on_ride(rct_peep *peep, int rideIndex, int entranceNu
 		if (peepAtRide) {
 			ride_update_popularity(ride, 1);
 			if ((peep->peep_flags & PEEP_FLAGS_INTAMIN) && ride_type_is_intamin(ride->type)) {
-				peep_insert_new_thought(peep, PEEP_THOUGHT_EXCITED, 255);
+				peep_insert_new_thought(peep, PEEP_THOUGHT_TYPE_EXCITED, 255);
 			}
 		}
 

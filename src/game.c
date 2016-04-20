@@ -813,7 +813,10 @@ void game_fix_save_vars() {
 			{
 				log_error("Null map element at x = %d and y = %d. Fixing...", x, y);
 				mapElement = map_element_insert(x, y, 14, 0);
-				assert(mapElement != NULL);
+				if (mapElement == NULL) {
+					log_error("Unable to fix: Map element limit reached.");
+					return;
+				}
 			}
 		}
 	}
@@ -872,6 +875,7 @@ int game_load_network(SDL_RWops* rw)
 	gCheatsBuildInPauseMode = SDL_ReadU8(rw);
 	gCheatsIgnoreRideIntensity = SDL_ReadU8(rw);
 	gCheatsDisableVandalism = SDL_ReadU8(rw);
+	gCheatsDisableLittering = SDL_ReadU8(rw);
 	gCheatsNeverendingMarketing = SDL_ReadU8(rw);
 	gCheatsFreezeClimate = SDL_ReadU8(rw);
 
