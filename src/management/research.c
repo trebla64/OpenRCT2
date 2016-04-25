@@ -79,8 +79,8 @@ static void research_calculate_expected_date()
 	int progress = RCT2_GLOBAL(RCT2_ADDRESS_RESEARH_PROGRESS, uint16);
 	int progressStage = RCT2_GLOBAL(RCT2_ADDRESS_RESEARH_PROGRESS_STAGE, uint8);
 	int researchLevel = RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_RESEARCH_LEVEL, uint8);
-	int currentDay = RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONTH_TICKS, uint16);
-	int currentMonth = RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_MONTH_YEAR, uint16);
+	int currentDay = gDateMonthTicks;
+	int currentMonth = gDateMonthsElapsed;
 	int expectedDay, expectedMonth, dayQuotient, dayRemainder, progressRemaining, daysRemaining;
 
 	if (progressStage == RESEARCH_STAGE_INITIAL_RESEARCH || researchLevel == RESEARCH_FUNDING_NONE) {
@@ -244,7 +244,7 @@ void research_update()
 	int editorScreenFlags, researchLevel, currentResearchProgress;
 
 	editorScreenFlags = SCREEN_FLAGS_SCENARIO_EDITOR | SCREEN_FLAGS_TRACK_DESIGNER | SCREEN_FLAGS_TRACK_MANAGER;
-	if (RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_FLAGS, uint8) & editorScreenFlags)
+	if (gScreenFlags & editorScreenFlags)
 		return;
 
 	if (RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) % 32 != 0)
@@ -557,7 +557,7 @@ void game_command_set_research_funding(int* eax, int* ebx, int* ecx, int* edx, i
 	int fundingAmount = *edx;
 	int activeCategories = *edx;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_NEXT_EXPENDITURE_TYPE, uint8) = RCT_EXPENDITURE_TYPE_RESEARCH * 4;
+	gCommandExpenditureType = RCT_EXPENDITURE_TYPE_RESEARCH;
 	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
 		if (!setPriorities) {
 			if (fundingAmount < 0 || fundingAmount >= countof(_researchRate)) {
@@ -575,4 +575,22 @@ void game_command_set_research_funding(int* eax, int* ebx, int* ecx, int* edx, i
 	}
 
 	*ebx = 0;
+}
+
+void research_insert_ride_entry(uint8 entryIndex, bool researched)
+{
+	rct_ride_entry *rideEntry = get_ride_entry(entryIndex);
+	uint8 category = rideEntry->category[0];
+	for (int i = 0; i < 3; i++) {
+		uint8 rideType = rideEntry->ride_type[i];
+		if (rideType != 255) {
+			research_insert(researched, 0x10000 | (rideType << 8) | entryIndex, category);
+		}
+	}
+}
+
+void research_insert_scenery_group_entry(uint8 entryIndex, bool researched)
+{
+	rct_scenery_set_entry *scenerySetEntry = g_scenerySetEntries[entryIndex];
+	research_insert(researched, entryIndex, RESEARCH_CATEGORY_SCENERYSET);
 }

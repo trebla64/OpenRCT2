@@ -22,12 +22,14 @@
 #include "../config.h"
 #include "../drawing/drawing.h"
 #include "../drawing/supports.h"
+#include "../game.h"
 #include "../input.h"
 #include "../localisation/localisation.h"
 #include "../ride/ride_data.h"
 #include "../ride/track_data.h"
 #include "../ride/track_paint.h"
 #include "../sprites.h"
+#include "../world/climate.h"
 #include "../world/map.h"
 #include "../world/sprite.h"
 #include "../world/banner.h"
@@ -57,10 +59,10 @@ struct paint_struct{
 			uint16 pad_12;
 		};
 		struct {
-			uint16 some_x; // 0x0C
-			uint16 some_y; // 0x0E
-			uint16 other_x; // 0x10
-			uint16 other_y; // 0x12
+			uint16 attached_z; // 0x0C
+			uint16 attached_z_end; // 0x0E
+			uint16 attached_x_end; // 0x10
+			uint16 attached_y_end; // 0x12
 		};
 	};
 	uint16 x;				// 0x14
@@ -101,7 +103,7 @@ void viewport_init_all()
 	gInputFlags = 0;
 	gInputState = INPUT_STATE_RESET;
 	gPressedWidget.window_classification = 255;
-	RCT2_GLOBAL(RCT2_ADDRESS_PICKEDUP_PEEP_IMAGE, sint32) = -1;
+	gPickupPeepImage = UINT32_MAX;
 	gTooltipNotShownTicks = -1;
 	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, sint16) = 0;
 	RCT2_GLOBAL(0x009DEA50, sint16) = -1;
@@ -243,7 +245,7 @@ void sub_689174(sint16* x, sint16* y, sint16 *z)
 
 		// HACK: This is to prevent the x and y values being set to values outside
 		// of the map. This can happen when the height is larger than the map size.
-		sint16 max = RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16);
+		sint16 max = gMapSizeMinus2;
 		if (pos.x > max && pos.y > max) {
 			int x_corr[] = { -1, 1, 1, -1 };
 			int y_corr[] = { -1, -1, 1, 1 };
@@ -282,16 +284,16 @@ void gfx_move_screen_rect(int x, int y, int width, int height, int dx, int dy)
 		return;
 
 	// get screen info
-	rct_drawpixelinfo *screenDPI = RCT2_ADDRESS(RCT2_ADDRESS_SCREEN_DPI, rct_drawpixelinfo);
+	rct_drawpixelinfo *screenDPI = &gScreenDPI;
 
 	// adjust for move off screen
 	// NOTE: when zooming, there can be x, y, dx, dy combinations that go off the 
 	// screen; hence the checks. This code should ultimately not be called when
 	// zooming because this function is specific to updating the screen on move
 	int lmargin = min(x - dx, 0);
-	int rmargin = min(RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_WIDTH, uint16) - (x - dx + width), 0);
+	int rmargin = min(gScreenWidth - (x - dx + width), 0);
 	int tmargin = min(y - dy, 0);
-	int bmargin = min(RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_HEIGHT, uint16) - (y - dy + height), 0);
+	int bmargin = min(gScreenHeight - (y - dy + height), 0);
 	x -= lmargin;
 	y -= tmargin;
 	width  += lmargin + rmargin;
@@ -487,8 +489,8 @@ void sub_6E7DE1(sint16 x, sint16 y, rct_window* w, rct_viewport* viewport){
 	if (w->flags & WF_7){
 		int left = max(viewport->x, 0);
 		int top = max(viewport->y, 0);
-		int right = min(viewport->x + viewport->width, RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_WIDTH, uint16));
-		int bottom = min(viewport->y + viewport->height, RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_HEIGHT, uint16));
+		int right = min(viewport->x + viewport->width, gScreenWidth);
+		int bottom = min(viewport->y + viewport->height, gScreenHeight);
 
 		if (left >= right) return;
 		if (top >= bottom) return;
@@ -507,7 +509,7 @@ void sub_6E7DE1(sint16 x, sint16 y, rct_window* w, rct_viewport* viewport){
 		viewport->x = 0;
 	}
 
-	int eax = viewport->x + viewport->width - RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_WIDTH, uint16);
+	int eax = viewport->x + viewport->width - gScreenWidth;
 	if (eax > 0){
 		viewport->width -= eax;
 		viewport->view_width -= eax * zoom;
@@ -525,7 +527,7 @@ void sub_6E7DE1(sint16 x, sint16 y, rct_window* w, rct_viewport* viewport){
 		viewport->y = 0;
 	}
 
-	eax = viewport->y + viewport->height - RCT2_GLOBAL(RCT2_ADDRESS_SCREEN_HEIGHT, uint16);
+	eax = viewport->y + viewport->height - gScreenHeight;
 	if (eax > 0){
 		viewport->height -= eax;
 		viewport->view_height -= eax * zoom;
@@ -598,12 +600,12 @@ void viewport_update_position(rct_window *window)
 	}
 
 	//Clamp to the map maximum value (scenario specific)
-	if (x > RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16)){
-		x = RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16);
+	if (x > gMapSizeMinus2){
+		x = gMapSizeMinus2;
 		at_map_edge = 1;
 	}
-	if (y > RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16)){
-		y = RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16);
+	if (y > gMapSizeMinus2){
+		y = gMapSizeMinus2;
 		at_map_edge = 1;
 	}
 
@@ -859,26 +861,26 @@ void sub_688485(){
  * @param bound_box_length_x (di)
  * @param bound_box_length_y (si)
  * @param bound_box_length_z (ah)
- * @param z_offset (edx)
+ * @param z_offset (dx)
  * @param bound_box_offset_x (0x009DEA52)
  * @param bound_box_offset_y (0x009DEA54)
  * @param bound_box_offset_z (0x009DEA56)
  * @param rotation (ebp)
- * @return ??
+ * @return (!CF) success
  */
-int sub_98199C(
-	int image_id,
+bool sub_98199C(
+	uint32 image_id,
 	sint8 x_offset, sint8 y_offset,
 	sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z,
-	int z_offset,
-	uint16 bound_box_offset_x, uint16 bound_box_offset_y, uint16 bound_box_offset_z,
+	uint16 z_offset,
+	sint16 bound_box_offset_x, uint16 bound_box_offset_y, sint16 bound_box_offset_z,
 	uint32 rotation
 ) {
 	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_BOUNDBOX_OFFSET_X, uint16) = bound_box_offset_x;
 	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_BOUNDBOX_OFFSET_Y, uint16) = bound_box_offset_y;
 	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_BOUNDBOX_OFFSET_Z, uint16) = bound_box_offset_z;
 
-	RCT2_CALLPROC_X(RCT2_ADDRESS(0x98199C, uint32_t)[rotation],
+	int flags = RCT2_CALLPROC_X(RCT2_ADDRESS(0x98199C, uint32_t)[rotation],
 		x_offset | (bound_box_length_z << 8),
 		image_id,
 		y_offset,
@@ -886,7 +888,8 @@ int sub_98199C(
 		bound_box_length_y,
 		bound_box_length_x,
 		rotation);
-	return 1;
+
+	return !(flags & (1 << 8));
 }
 
 /**
@@ -898,18 +901,18 @@ int sub_98199C(
  * @param bound_box_length_x (di)
  * @param bound_box_length_y (si)
  * @param bound_box_length_z (ah)
- * @param z_offset (edx)
+ * @param z_offset (dx)
  * @param rotation (ebp)
- * @return ??
+ * @return (!CF) success
  */
-int sub_98196C(
-	int image_id,
+bool sub_98196C(
+	uint32 image_id,
 	sint8 x_offset, sint8 y_offset,
 	sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z,
-	int z_offset,
+	uint16 z_offset,
 	uint32 rotation
 ) {
-	RCT2_CALLPROC_X(RCT2_ADDRESS(0x0098196C, uint32)[rotation],
+	int flags = RCT2_CALLPROC_X(RCT2_ADDRESS(0x0098196C, uint32)[rotation],
 		x_offset | (bound_box_length_z << 8),
 		image_id,
 		y_offset,
@@ -918,7 +921,8 @@ int sub_98196C(
 		bound_box_length_x,
 		rotation
 	);
-	return 1;
+
+	return !(flags & (1 << 8));
 }
 
 /**
@@ -930,17 +934,18 @@ int sub_98196C(
  * @param bound_box_length_x (di)
  * @param bound_box_length_y (si)
  * @param bound_box_length_z (ah)
- * @param z_offset (edx)
+ * @param z_offset (dx)
  * @param bound_box_offset_x (0x009DEA52)
  * @param bound_box_offset_y (0x009DEA54)
  * @param bound_box_offset_z (0x009DEA56)
  * @param rotation (ebp)
+ * @return (!CF) success
  */
-int sub_98197C(
-	int image_id,
+bool sub_98197C(
+	uint32 image_id,
 	sint8 x_offset, sint8 y_offset,
 	sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z,
-	int z_offset,
+	uint16 z_offset,
 	sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z,
 	uint32 rotation
 ) {
@@ -952,7 +957,7 @@ int sub_98197C(
 	//Not a paint struct but something similar
 	paint_struct* ps = RCT2_GLOBAL(0xEE7888, paint_struct*);
 
-	if ((uint32)ps >= RCT2_GLOBAL(0xEE7880, uint32))return 1;
+	if ((uint32)ps >= RCT2_GLOBAL(0xEE7880, uint32))return false;
 
 	ps->image_id = image_id;
 
@@ -998,10 +1003,10 @@ int sub_98197C(
 
 	rct_drawpixelinfo* dpi = RCT2_GLOBAL(0x140E9A8, rct_drawpixelinfo*);
 
-	if (right <= dpi->x)return 1;
-	if (top <= dpi->y)return 1;
-	if (left > dpi->x + dpi->width)return 1;
-	if (bottom > dpi->y + dpi->height)return 1;
+	if (right <= dpi->x)return false;
+	if (top <= dpi->y)return false;
+	if (left > dpi->x + dpi->width)return false;
+	if (bottom > dpi->y + dpi->height)return false;
 
 	rct_xy16 boundBox = {
 		.x = bound_box_length_x,
@@ -1037,10 +1042,10 @@ int sub_98197C(
 		break;
 	}
 
-	ps->other_x = boundBox.x + boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
-	ps->some_x = bound_box_offset_z;
-	ps->some_y = ebp;
-	ps->other_y = boundBox.y + boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
+	ps->attached_x_end = boundBox.x + boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
+	ps->attached_z = bound_box_offset_z;
+	ps->attached_z_end = ebp;
+	ps->attached_y_end = boundBox.y + boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
 	ps->var_1A = 0;
 	ps->attached_x = boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
 	ps->attached_y = boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
@@ -1095,7 +1100,59 @@ int sub_98197C(
 	}
 
 	RCT2_GLOBAL(0xEE7888, paint_struct*) += 1;
-	return 0;
+	return true;
+}
+
+/**
+ *
+ *  rct2: 0x006D5DA9
+ */
+static void vehicle_visual_roto_drop(int x, int imageDirection, int y, int z, rct_vehicle *vehicle, int rct2VehiclePtrFormat)
+{
+	const rct_ride_entry_vehicle *vehicleEntry = (const rct_ride_entry_vehicle *)(rct2VehiclePtrFormat + 0x1A);
+	int image_id;
+	int baseImage_id = (vehicleEntry->base_image_id + 4) + ((vehicle->var_C5 / 4) & 0x3);
+	if (vehicle->restraints_position >= 64) {
+		baseImage_id += 7;
+		baseImage_id += (vehicle->restraints_position / 64);
+	}
+
+	// Draw back:
+	image_id = baseImage_id | (vehicle->colours.body_colour << 19) | (vehicle->colours.trim_colour << 24) | 0xA0000000;
+	sub_98197C(image_id, 0, 0, 2, 2, 41, z, -11, -11, z + 1, get_current_rotation());
+
+	// Draw front:
+	image_id = (baseImage_id + 4) | (vehicle->colours.body_colour << 19) | (vehicle->colours.trim_colour << 24) | 0xA0000000;
+	sub_98197C(image_id, 0, 0, 16, 16, 41, z, -5, -5, z + 1, get_current_rotation());
+
+	uint8 riding_peep_sprites[64];
+	memset(riding_peep_sprites, 0xFF, sizeof(riding_peep_sprites));
+	for (int i = 0; i < vehicle->num_peeps; i++) {
+		uint8 cl = (i & 3) * 16;
+		cl += (i & 0xFC);
+		cl += vehicle->var_C5 / 4;
+		cl += (imageDirection / 8) * 16;
+		cl &= 0x3F;
+		riding_peep_sprites[cl] = vehicle->peep_tshirt_colours[i];
+	}
+
+	// Draw riding peep sprites in back to front order:
+	for (int j = 0; j <= 48; j++) {
+		int i = (j % 2) ? (48 - (j / 2)) : (j / 2);
+		if (riding_peep_sprites[i] != 0xFF) {
+			baseImage_id = vehicleEntry->base_image_id + 20 + i;
+			if (vehicle->restraints_position >= 64) {
+				baseImage_id += 64;
+				baseImage_id += vehicle->restraints_position / 64;
+			}
+			image_id = baseImage_id | (riding_peep_sprites[i] << 19) | 0x20000000;
+			sub_98199C(image_id, 0, 0, 16, 16, 41, z, -5, -5, z + 1, get_current_rotation());
+		}
+	};
+
+	assert(vehicleEntry->pad_5E == 1);
+	// 0x5E is treated as another car_visual paint setup jump table like in viewport_vehicle_paint_setup
+	// in the original code right here but appears to only ever be 1 which goes to a nullsub so it was taken out.
 }
 
 /**
@@ -1108,26 +1165,26 @@ int sub_98197C(
  * @param bound_box_length_x (di)
  * @param bound_box_length_y (si)
  * @param bound_box_length_z (ah)
- * @param z_offset (edx)
+ * @param z_offset (dx)
  * @param bound_box_offset_x (0x009DEA52)
  * @param bound_box_offset_y (0x009DEA54)
  * @param bound_box_offset_z (0x009DEA56)
  * @param rotation
- * @return ??
+ * @return (!CF) success
  */
-int sub_98198C(
-	int image_id,
+bool sub_98198C(
+	uint32 image_id,
 	sint8 x_offset, sint8 y_offset,
 	sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z,
-	int z_offset,
-	uint16 bound_box_offset_x, uint16 bound_box_offset_y, uint16 bound_box_offset_z,
+	uint16 z_offset,
+	sint16 bound_box_offset_x, uint16 bound_box_offset_y, sint16 bound_box_offset_z,
 	uint32 rotation
 ) {
 	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_BOUNDBOX_OFFSET_X, uint16) = bound_box_offset_x;
 	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_BOUNDBOX_OFFSET_Y, uint16) = bound_box_offset_y;
 	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_BOUNDBOX_OFFSET_Z, uint16) = bound_box_offset_z;
 
-	RCT2_CALLPROC_X(RCT2_ADDRESS(0x0098198C, uint32)[rotation],
+	int flags = RCT2_CALLPROC_X(RCT2_ADDRESS(0x0098198C, uint32)[rotation],
 		x_offset | (bound_box_length_z << 8),
 		image_id, 
 		y_offset,
@@ -1136,7 +1193,8 @@ int sub_98198C(
 		bound_box_length_x,
 		rotation
 	);
-	return 1;
+
+	return !(flags & (1 << 8));
 }
 
 /**
@@ -1181,7 +1239,7 @@ void viewport_vehicle_paint_setup(rct_vehicle *vehicle, int imageDirection)
 	case VEHICLE_VISUAL_MINI_GOLF_BALL:					RCT2_CALLPROC_X(0x006D43C6, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_REVERSER:						RCT2_CALLPROC_X(0x006D4453, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_SPLASH_BOATS_OR_WATER_COASTER:	RCT2_CALLPROC_X(0x006D4295, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
-	case VEHICLE_VISUAL_ROTO_DROP:						RCT2_CALLPROC_X(0x006D5DA9, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
+	case VEHICLE_VISUAL_ROTO_DROP:						vehicle_visual_roto_drop(x, imageDirection, y, z, vehicle, rct2VehiclePtrFormat); break;
 	case 10:											RCT2_CALLPROC_X(0x006D5600, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case 11:											RCT2_CALLPROC_X(0x006D5696, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case 12:											RCT2_CALLPROC_X(0x006D57EE, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
@@ -1229,7 +1287,7 @@ void viewport_litter_paint_setup(rct_litter *litter, int imageDirection)
 
 	uint32 image_id = imageDirection + RCT2_ADDRESS(0x97EF6C, uint32)[litter->type * 2];
 
-	sub_98197C(image_id, 0, 0, 4, 4, 0xFF, litter->z, 0xFFFC, 0xFFFC, litter->z + 2, get_current_rotation());
+	sub_98197C(image_id, 0, 0, 4, 4, -1, litter->z, -4, -4, litter->z + 2, get_current_rotation());
 }
 
 
@@ -1412,7 +1470,7 @@ void viewport_ride_entrance_exit_paint_setup(uint8 direction, int height, rct_ma
 		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = 0x1C0;
 
 		uint16 string_width = gfx_get_string_width(entrance_string);
-		uint16 scroll = (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) / 2) % string_width;
+		uint16 scroll = (gCurrentTicks / 2) % string_width;
 
 		sub_98199C(scrolling_text_setup(string_id, scroll, style->scrolling_mode), 0, 0, 0x1C, 0x1C, 0x33, height + style->height, 2, 2, height + style->height, get_current_rotation());
 	}
@@ -1483,9 +1541,9 @@ void viewport_park_entrance_paint_setup(uint8 direction, int height, rct_map_ele
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = 0;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32) = 0;
 
-		if (RCT2_GLOBAL(RCT2_ADDRESS_PARK_FLAGS, uint32) & PARK_FLAGS_PARK_OPEN){
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = RCT2_GLOBAL(RCT2_ADDRESS_PARK_NAME, rct_string_id);
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, rct_string_id) = RCT2_GLOBAL(RCT2_ADDRESS_PARK_NAME_ARGS, rct_string_id);
+		if (gParkFlags & PARK_FLAGS_PARK_OPEN){
+			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = gParkName;
+			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = gParkNameArgs;
 
 			park_text_id = 1731;
 		}
@@ -1499,7 +1557,7 @@ void viewport_park_entrance_paint_setup(uint8 direction, int height, rct_map_ele
 
 		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = 0x1C0;
 		uint16 string_width = gfx_get_string_width(park_name);
-		uint16 scroll = (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) / 2) % string_width;
+		uint16 scroll = (gCurrentTicks / 2) % string_width;
 
 		if (entrance->scrolling_mode == 0xFF)
 			break;
@@ -1597,9 +1655,29 @@ void viewport_track_paint_setup(uint8 direction, int height, rct_map_element *ma
 			RCT2_GLOBAL(0x00F441A4, uint32) = ghost_id;
 		}
 
-		TRACK_PAINT_FUNCTION **trackTypeList = (TRACK_PAINT_FUNCTION**)RideTypeTrackPaintFunctionsOld[ride->type];
+		int rideType = ride->type;
+		if (rideType == RIDE_TYPE_JUNIOR_ROLLER_COASTER) {
+			switch (trackType) {
+			case TRACK_ELEM_60_DEG_UP:
+			case TRACK_ELEM_25_DEG_UP_TO_60_DEG_UP:
+			case TRACK_ELEM_60_DEG_UP_TO_25_DEG_UP:
+			case TRACK_ELEM_60_DEG_DOWN:
+			case TRACK_ELEM_25_DEG_DOWN_TO_60_DEG_DOWN:
+			case TRACK_ELEM_60_DEG_DOWN_TO_25_DEG_DOWN:
+				rideType = RIDE_TYPE_WATER_COASTER;
+				break;
+
+			case TRACK_ELEM_FLAT_TO_60_DEG_UP:
+			case TRACK_ELEM_60_DEG_UP_TO_FLAT:
+			case TRACK_ELEM_FLAT_TO_60_DEG_DOWN:
+			case TRACK_ELEM_60_DEG_DOWN_TO_FLAT:
+				return;
+			}
+		}
+
+		TRACK_PAINT_FUNCTION **trackTypeList = (TRACK_PAINT_FUNCTION**)RideTypeTrackPaintFunctionsOld[rideType];
 		if (trackTypeList == NULL) {
-			TRACK_PAINT_FUNCTION_GETTER paintFunctionGetter = RideTypeTrackPaintFunctions[ride->type];
+			TRACK_PAINT_FUNCTION_GETTER paintFunctionGetter = RideTypeTrackPaintFunctions[rideType];
 			TRACK_PAINT_FUNCTION paintFunction = paintFunctionGetter(trackType, direction);
 			if (paintFunction != NULL) {
 				paintFunction(rideIndex, trackSequence, direction, height, mapElement);
@@ -1611,7 +1689,7 @@ void viewport_track_paint_setup(uint8 direction, int height, rct_map_element *ma
 			// Have to call from this point as it pushes esi and expects callee to pop it
 			RCT2_CALLPROC_X(
 				0x006C4934,
-				ride->type,
+				rideType,
 				(int)trackDirectionList,
 				direction,
 				height,
@@ -1739,7 +1817,7 @@ void viewport_banner_paint_setup(uint8 direction, int height, rct_map_element* m
 	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = 0x1C0;
 
 	uint16 string_width = gfx_get_string_width(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char));
-	uint16 scroll = (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32) / 2) % string_width;
+	uint16 scroll = (gCurrentTicks / 2) % string_width;
 
 	sub_98199C(scrolling_text_setup(string_id, scroll, scrollingMode), 0, 0, 1, 1, 0x15, height + 22, boundBoxOffsetX, boundBoxOffsetY, boundBoxOffsetZ, get_current_rotation());
 }
@@ -1938,8 +2016,8 @@ static void viewport_blank_tiles_paint_setup(int x, int y)
 void sub_68B2B7(int x, int y)
 {
 	if (
-		x < RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, uint16) &&
-		y < RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, uint16) &&
+		x < gMapSizeUnits &&
+		y < gMapSizeUnits &&
 		x >= 32 &&
 		y >= 32
 	) {
@@ -1971,8 +2049,8 @@ void map_element_paint_setup(int x, int y)
 {
 	rct_drawpixelinfo *dpi = RCT2_GLOBAL(0x0140E9A8, rct_drawpixelinfo*);
 	if (
-		x < RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, uint16) &&
-		y < RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, uint16) &&
+		x < gMapSizeUnits &&
+		y < gMapSizeUnits &&
 		x >= 32 &&
 		y >= 32
 	) {
@@ -2149,10 +2227,10 @@ void sub_688217_helper(uint16 ax, uint8 flag)
 
 		uint16 my_attached_x = ps_next->attached_x;
 		uint16 my_attached_y = ps_next->attached_y;
-		uint16 my_some_x = ps_next->some_x;
-		uint16 my_some_y = ps_next->some_y;
-		uint16 my_other_x = ps_next->other_x;
-		uint16 my_other_y = ps_next->other_y;
+		uint16 my_some_x = ps_next->attached_z;
+		uint16 my_some_y = ps_next->attached_z_end;
+		uint16 my_other_x = ps_next->attached_x_end;
+		uint16 my_other_y = ps_next->attached_y_end;
 
 		while (true) {
 			ps = ps_next;
@@ -2164,23 +2242,23 @@ void sub_688217_helper(uint16 ax, uint8 flag)
 			int yes = 0;
 			switch (rotation) {
 			case 0:
-				if (my_some_y >= ps_next->some_x && my_other_y >= ps_next->attached_y && my_other_x >= ps_next->attached_x
-					&& !(my_some_x < ps_next->some_y && my_attached_y < ps_next->other_y && my_attached_x < ps_next->other_x))
+				if (my_some_y >= ps_next->attached_z && my_other_y >= ps_next->attached_y && my_other_x >= ps_next->attached_x
+					&& !(my_some_x < ps_next->attached_z_end && my_attached_y < ps_next->attached_y_end && my_attached_x < ps_next->attached_x_end))
 					yes = 1;
 				break;
 			case 1:
-				if (my_some_y >= ps_next->some_x && my_other_y >= ps_next->attached_y && my_other_x < ps_next->attached_x
-					&& !(my_some_x < ps_next->some_y && my_attached_y < ps_next->other_y && my_attached_x >= ps_next->other_x))
+				if (my_some_y >= ps_next->attached_z && my_other_y >= ps_next->attached_y && my_other_x < ps_next->attached_x
+					&& !(my_some_x < ps_next->attached_z_end && my_attached_y < ps_next->attached_y_end && my_attached_x >= ps_next->attached_x_end))
 					yes = 1;
 				break;
 			case 2:
-				if (my_some_y >= ps_next->some_x && my_other_y < ps_next->attached_y && my_other_x < ps_next->attached_x
-					&& !(my_some_x < ps_next->some_y && my_attached_y >= ps_next->other_y && my_attached_x >= ps_next->other_x))
+				if (my_some_y >= ps_next->attached_z && my_other_y < ps_next->attached_y && my_other_x < ps_next->attached_x
+					&& !(my_some_x < ps_next->attached_z_end && my_attached_y >= ps_next->attached_y_end && my_attached_x >= ps_next->attached_x_end))
 					yes = 1;
 				break;
 			case 3:
-				if (my_some_y >= ps_next->some_x && my_other_y < ps_next->attached_y && my_other_x >= ps_next->attached_x
-					&& !(my_some_x < ps_next->some_y && my_attached_y >= ps_next->other_y && my_attached_x < ps_next->other_x))
+				if (my_some_y >= ps_next->attached_z && my_other_y < ps_next->attached_y && my_other_x >= ps_next->attached_x
+					&& !(my_some_x < ps_next->attached_z_end && my_attached_y >= ps_next->attached_y_end && my_attached_x < ps_next->attached_x_end))
 					yes = 1;
 				break;
 			}
@@ -2376,7 +2454,7 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 		sub_688217();
 		sub_688485();
 
-		int weather_colour = RCT2_ADDRESS(0x98195C, uint32)[RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_WEATHER_GLOOM, uint8)];
+		int weather_colour = RCT2_ADDRESS(0x98195C, uint32)[gClimateCurrentWeatherGloom];
 		if ((weather_colour != -1) && (!(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_INVISIBLE_SPRITES)) && (!(RCT2_GLOBAL(0x9DEA6F, uint8) & 1))){
 			gfx_fill_rect(dpi2, dpi2->x, dpi2->y, dpi2->width + dpi2->x - 1, dpi2->height + dpi2->y - 1, weather_colour);
 		}
