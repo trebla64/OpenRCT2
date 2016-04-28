@@ -41,6 +41,7 @@
 #include "peep/peep.h"
 #include "peep/staff.h"
 #include "platform/platform.h"
+#include "rct1.h"
 #include "ride/ride.h"
 #include "ride/ride_ratings.h"
 #include "ride/vehicle.h"
@@ -933,7 +934,17 @@ bool game_load_save(const utf8 *path)
 		return false;
 	}
 
-	bool result = game_load_sv6(rw);
+	uint32 extension_type = get_file_extension_type(path);
+	bool result = false;
+
+	if (extension_type == FILE_EXTENSION_SV6) {
+		result = game_load_sv6(rw);
+	} else if (extension_type == FILE_EXTENSION_SV4) {
+		result = rct1_load_saved_game(path);
+		if (result)
+			gFirstTimeSave = 1;
+	}
+
 	SDL_RWclose(rw);
 
 	if (result) {
@@ -946,7 +957,7 @@ bool game_load_save(const utf8 *path)
 		}
 		return true;
 	} else {
-		// If loading the SV6 failed, the current park state will be corrupted
+		// If loading the SV6 or SV4 failed, the current park state will be corrupted
 		// so just go back to the title screen.
 		title_load();
 		return false;
@@ -963,19 +974,19 @@ void game_load_init()
 	mainWindow = window_get_main();
 
 	mainWindow->viewport_target_sprite = -1;
-	mainWindow->saved_view_x = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_X, sint16);
-	mainWindow->saved_view_y = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_Y, sint16);
-	uint8 _cl = (RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM_AND_ROTATION, sint16) & 0xFF) - mainWindow->viewport->zoom;
-	mainWindow->viewport->zoom = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM_AND_ROTATION, sint16) & 0xFF;
-	*((char*)(&RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_ROTATION, sint32))) = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM_AND_ROTATION, sint16) >> 8;
-	if (_cl != 0) {
-		if (_cl < 0) {
-			_cl = -_cl;
-			mainWindow->viewport->view_width >>= _cl;
-			mainWindow->viewport->view_height >>= _cl;
+	mainWindow->saved_view_x = gSavedViewX;
+	mainWindow->saved_view_y = gSavedViewY;
+	uint8 zoomDifference = gSavedViewZoom - mainWindow->viewport->zoom;
+	mainWindow->viewport->zoom = gSavedViewZoom;
+	gCurrentRotation = gSavedViewRotation;
+	if (zoomDifference != 0) {
+		if (zoomDifference < 0) {
+			zoomDifference = -zoomDifference;
+			mainWindow->viewport->view_width >>= zoomDifference;
+			mainWindow->viewport->view_height >>= zoomDifference;
 		} else {
-			mainWindow->viewport->view_width <<= _cl;
-			mainWindow->viewport->view_height <<= _cl;
+			mainWindow->viewport->view_width <<= zoomDifference;
+			mainWindow->viewport->view_height <<= zoomDifference;
 		}
 	}
 	mainWindow->saved_view_x -= mainWindow->viewport->view_width >> 1;

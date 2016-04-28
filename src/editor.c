@@ -453,7 +453,7 @@ static void editor_clear_map_for_editing()
 
 		gGuestInitialCash = clamp(MONEY(10,00), gGuestInitialCash, MONEY(100,00));
 
-		RCT2_GLOBAL(RCT2_ADDRESS_INITIAL_CASH, uint32) = min(RCT2_GLOBAL(RCT2_ADDRESS_INITIAL_CASH, uint32), 100000);
+		gInitialCash = min(gInitialCash, 100000);
 		finance_reset_cash_to_initial();
 		finance_update_loan_hash();
 
@@ -463,9 +463,9 @@ static void editor_clear_map_for_editing()
 			MONEY(5000000,00)
 		);
 
-		RCT2_GLOBAL(RCT2_ADDRESS_MAXIMUM_LOAN, money32) = clamp(
+		gMaxBankLoan = clamp(
 			MONEY(0,00),
-			RCT2_GLOBAL(RCT2_ADDRESS_MAXIMUM_LOAN, money32),
+			gMaxBankLoan,
 			MONEY(5000000,00)
 		);
 
@@ -536,13 +536,12 @@ static void editor_finalise_main_view()
 	rct_viewport *viewport = w->viewport;
 
 	w->viewport_target_sprite = -1;
-	w->saved_view_x = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_X, sint16);
-	w->saved_view_y = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_Y, sint16);
+	w->saved_view_x = gSavedViewX;
+	w->saved_view_y = gSavedViewY;
+	gCurrentRotation = gSavedViewRotation;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_ROTATION, uint8) = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM_AND_ROTATION, uint16) >> 8;
-
-	int zoom_difference = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM_AND_ROTATION, sint16) - viewport->zoom;
-	viewport->zoom = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM_AND_ROTATION, uint16) & 0xFF;
+	int zoom_difference = gSavedViewZoom - viewport->zoom;
+	viewport->zoom = gSavedViewZoom;
 	if (zoom_difference != 0) {
 		if (zoom_difference >= 0) {
 			viewport->view_width <<= zoom_difference;

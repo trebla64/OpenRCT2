@@ -764,7 +764,7 @@ void paint_attached_ps(paint_struct* ps, paint_struct* attached_ps, rct_drawpixe
 		sint16 y = attached_ps->attached_y + ps->y;
 
 		int image_id = attached_ps->image_id;
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_SEETHROUGH_RIDES){
+		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_RIDES) {
 			if (ps->sprite_type == 3){
 				if (image_id & 0x40000000){
 					image_id &= 0x7FFFF;
@@ -773,7 +773,7 @@ void paint_attached_ps(paint_struct* ps, paint_struct* attached_ps, rct_drawpixe
 			}
 		}
 
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_SEETHROUGH_SCENERY){
+		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_SCENERY) {
 			if (ps->sprite_type == 5){
 				if (image_id & 0x40000000){
 					image_id &= 0x7FFFF;
@@ -809,7 +809,7 @@ void sub_688485(){
 			}
 		}
 		int image_id = ps->image_id;
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_SEETHROUGH_RIDES){
+		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_RIDES) {
 			if (ps->sprite_type == 3){
 				if (!(image_id & 0x40000000)){
 					image_id &= 0x7FFFF;
@@ -817,7 +817,7 @@ void sub_688485(){
 				}
 			}
 		}
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_UNDERGROUND_INSIDE){
+		if (gCurrentViewportFlags & VIEWPORT_FLAG_UNDERGROUND_INSIDE) {
 			if (ps->sprite_type == 9){
 				if (!(image_id & 0x40000000)){
 					image_id &= 0x7FFFF;
@@ -825,7 +825,7 @@ void sub_688485(){
 				}
 			}
 		}
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_SEETHROUGH_SCENERY){
+		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_SCENERY) {
 			if (ps->sprite_type == 10 || ps->sprite_type == 12 || ps->sprite_type == 9 || ps->sprite_type == 5){
 				if (!(image_id & 0x40000000)){
 					image_id &= 0x7FFFF;
@@ -1105,11 +1105,47 @@ bool sub_98197C(
 
 /**
  *
+ *  rct2: 0x006D6258
+ */
+static void vehicle_visual_observation_tower(int x, int imageDirection, int y, int z, rct_vehicle *vehicle, const rct_ride_entry_vehicle *vehicleEntry)
+{
+	int image_id;
+	int baseImage_id = (vehicle->restraints_position / 64);
+	if (vehicle->restraints_position >= 64) {
+		if ((imageDirection / 8) && (imageDirection / 8) != 3) {
+			baseImage_id *= 2;
+			baseImage_id += vehicleEntry->base_image_id + 28;
+			if ((imageDirection / 8) != 1) {
+				baseImage_id -= 6;
+			}
+		} else {
+			baseImage_id = vehicleEntry->base_image_id + 8;
+		}
+	} else {
+		baseImage_id = (vehicle->var_C5 * 2) + vehicleEntry->base_image_id + 8;
+	}
+
+	image_id = baseImage_id | (vehicle->colours.body_colour << 19) | (vehicle->colours.trim_colour << 24) | 0x80000000;
+	if (sub_98197C(image_id, 0, 0, 2, 2, 41, z, -11, -11, z + 1, get_current_rotation())) {
+		paint_struct* ps = RCT2_GLOBAL(0xEE7888, paint_struct*) - 1; // sub_98197C increments this but need original
+		ps->var_04 = vehicle->colours_extended;
+	}
+
+	image_id++;
+	if (sub_98197C(image_id, 0, 0, 16, 16, 41, z, -5, -5, z + 1, get_current_rotation())) {
+		paint_struct* ps = RCT2_GLOBAL(0xEE7888, paint_struct*) - 1; // sub_98197C increments this but need original
+		ps->var_04 = vehicle->colours_extended;
+	}
+
+	assert(vehicleEntry->pad_5E == 1);
+}
+
+/**
+ *
  *  rct2: 0x006D5DA9
  */
-static void vehicle_visual_roto_drop(int x, int imageDirection, int y, int z, rct_vehicle *vehicle, int rct2VehiclePtrFormat)
+static void vehicle_visual_roto_drop(int x, int imageDirection, int y, int z, rct_vehicle *vehicle, const rct_ride_entry_vehicle *vehicleEntry)
 {
-	const rct_ride_entry_vehicle *vehicleEntry = (const rct_ride_entry_vehicle *)(rct2VehiclePtrFormat + 0x1A);
 	int image_id;
 	int baseImage_id = (vehicleEntry->base_image_id + 4) + ((vehicle->var_C5 / 4) & 0x3);
 	if (vehicle->restraints_position >= 64) {
@@ -1233,13 +1269,13 @@ void viewport_vehicle_paint_setup(rct_vehicle *vehicle, int imageDirection)
 	switch (vehicleEntry->car_visual) {
 	case VEHICLE_VISUAL_DEFAULT:						RCT2_CALLPROC_X(0x006D45F8, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_LAUNCHED_FREEFALL:				RCT2_CALLPROC_X(0x006D5FAB, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
-	case VEHICLE_VISUAL_OBSERVATION_TOWER:				RCT2_CALLPROC_X(0x006D6258, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
+	case VEHICLE_VISUAL_OBSERVATION_TOWER:				vehicle_visual_observation_tower(x, imageDirection, y, z, vehicle, vehicleEntry); break;
 	case VEHICLE_VISUAL_RIVER_RAPIDS:					RCT2_CALLPROC_X(0x006D5889, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_MINI_GOLF_PLAYER:				RCT2_CALLPROC_X(0x006D42F0, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_MINI_GOLF_BALL:					RCT2_CALLPROC_X(0x006D43C6, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_REVERSER:						RCT2_CALLPROC_X(0x006D4453, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case VEHICLE_VISUAL_SPLASH_BOATS_OR_WATER_COASTER:	RCT2_CALLPROC_X(0x006D4295, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
-	case VEHICLE_VISUAL_ROTO_DROP:						vehicle_visual_roto_drop(x, imageDirection, y, z, vehicle, rct2VehiclePtrFormat); break;
+	case VEHICLE_VISUAL_ROTO_DROP:						vehicle_visual_roto_drop(x, imageDirection, y, z, vehicle, vehicleEntry); break;
 	case 10:											RCT2_CALLPROC_X(0x006D5600, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case 11:											RCT2_CALLPROC_X(0x006D5696, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
 	case 12:											RCT2_CALLPROC_X(0x006D57EE, x, imageDirection, y, z, (int)vehicle, rct2VehiclePtrFormat, 0); break;
@@ -1307,7 +1343,7 @@ void sprite_paint_setup(const uint16 eax, const uint16 ecx){
 	if (RCT2_GLOBAL(0x9DEA6F, uint8) & 1) return;
 
 
-	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_INVISIBLE_SPRITES) return;
+	if (gCurrentViewportFlags & VIEWPORT_FLAG_INVISIBLE_SPRITES) return;
 
 	dpi = RCT2_GLOBAL(0x140E9A8, rct_drawpixelinfo*);
 	if (dpi->zoom_level > 2) return;
@@ -1467,7 +1503,7 @@ void viewport_ride_entrance_exit_paint_setup(uint8 direction, int height, rct_ma
 			format_string(entrance_string, string_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
 		}
 
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = 0x1C0;
+		gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
 
 		uint16 string_width = gfx_get_string_width(entrance_string);
 		uint16 scroll = (gCurrentTicks / 2) % string_width;
@@ -1555,7 +1591,7 @@ void viewport_park_entrance_paint_setup(uint8 direction, int height, rct_map_ele
 			format_string(park_name, park_text_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
 		}
 
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = 0x1C0;
+		gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
 		uint16 string_width = gfx_get_string_width(park_name);
 		uint16 scroll = (gCurrentTicks / 2) % string_width;
 
@@ -1624,7 +1660,7 @@ void viewport_track_paint_setup(uint8 direction, int height, rct_map_element *ma
 		trackSequence = mapElement->properties.track.sequence & 0x0F;
 		trackColourScheme = mapElement->properties.track.colour & 3;
 
-		if ((RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_TRACK_HEIGHTS) && dpi->zoom_level == 0) {
+		if ((gCurrentViewportFlags & VIEWPORT_FLAG_TRACK_HEIGHTS) && dpi->zoom_level == 0) {
 			RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8) = 0;
 			if (RCT2_ADDRESS(0x00999694, uint32)[trackType] & (1 << trackSequence)) {
 				uint16 ax = RideData5[ride->type].z_offset;
@@ -1714,7 +1750,7 @@ void viewport_entrance_paint_setup(uint8 direction, int height, rct_map_element*
 
 	rct_drawpixelinfo* dpi = RCT2_GLOBAL(0x140E9A8, rct_drawpixelinfo*);
 
-	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_PATH_HEIGHTS &&
+	if (gCurrentViewportFlags & VIEWPORT_FLAG_PATH_HEIGHTS &&
 		dpi->zoom_level == 0){
 		uint32 ebx =
 			(map_element->properties.entrance.type << 4) |
@@ -1814,7 +1850,7 @@ void viewport_banner_paint_setup(uint8 direction, int height, rct_map_element* m
 		format_string(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
 	}
 
-	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = 0x1C0;
+	gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
 
 	uint16 string_width = gfx_get_string_width(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char));
 	uint16 scroll = (gCurrentTicks / 2) % string_width;
@@ -2349,7 +2385,7 @@ static void viewport_draw_money_effects()
 
 	do {
 		format_string(buffer, ps->string_id, &ps->args);
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, uint16) = FONT_SPRITE_BASE_MEDIUM;
+		gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
 		bool forceSpriteFont = false;
 		const currency_descriptor *currencyDesc = &CurrencyDescriptors[gConfigGeneral.currency_format];
@@ -2372,7 +2408,7 @@ static void viewport_draw_money_effects()
  *  ebp: bottom
  */
 void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, int top, int right, int bottom){
-	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) = viewport->flags;
+	gCurrentViewportFlags = viewport->flags;
 	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16) = viewport->zoom;
 
 	uint16 width = right - left;
@@ -2439,9 +2475,9 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 		dpi2->bits = bits_pointer;
 		dpi2->pitch = pitch;
 
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & (VIEWPORT_FLAG_HIDE_VERTICAL | VIEWPORT_FLAG_HIDE_BASE | VIEWPORT_FLAG_UNDERGROUND_INSIDE)){
+		if (gCurrentViewportFlags & (VIEWPORT_FLAG_HIDE_VERTICAL | VIEWPORT_FLAG_HIDE_BASE | VIEWPORT_FLAG_UNDERGROUND_INSIDE)){
 			uint8 colour = 0x0A;
-			if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_INVISIBLE_SPRITES){
+			if (gCurrentViewportFlags & VIEWPORT_FLAG_INVISIBLE_SPRITES){
 				colour = 0;
 			}
 			gfx_clear(dpi2, colour);
@@ -2455,7 +2491,7 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 		sub_688485();
 
 		int weather_colour = RCT2_ADDRESS(0x98195C, uint32)[gClimateCurrentWeatherGloom];
-		if ((weather_colour != -1) && (!(RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) & VIEWPORT_FLAG_INVISIBLE_SPRITES)) && (!(RCT2_GLOBAL(0x9DEA6F, uint8) & 1))){
+		if ((weather_colour != -1) && (!(gCurrentViewportFlags & VIEWPORT_FLAG_INVISIBLE_SPRITES)) && (!(RCT2_GLOBAL(0x9DEA6F, uint8) & 1))){
 			gfx_fill_rect(dpi2, dpi2->x, dpi2->y, dpi2->width + dpi2->x - 1, dpi2->height + dpi2->y - 1, weather_colour);
 		}
 		viewport_draw_money_effects();
@@ -3312,12 +3348,12 @@ void screen_get_map_xy_side_with_z(sint16 screenX, sint16 screenY, sint16 z, sin
  */
 uint8 get_current_rotation()
 {
-	uint32 rotation = RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_ROTATION, uint32);
-	uint32 rotation_masked = rotation & 3;
+	uint8 rotation = gCurrentRotation;
+	uint8 rotation_masked = rotation & 3;
 #if DEBUG_LEVEL_1
 	if (rotation != rotation_masked) {
-		log_error("Found wrong rotation %d! Will return %d instead.", rotation, rotation_masked);
+		log_error("Found wrong rotation %d! Will return %d instead.", (uint32)rotation, (uint32)rotation_masked);
 	}
 #endif // DEBUG_LEVEL_1
-	return (uint8)rotation_masked;
+	return rotation_masked;
 }
