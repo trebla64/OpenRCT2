@@ -1,28 +1,25 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "addresses.h"
 #include "config.h"
 #include "interface/keyboard_shortcut.h"
 #include "interface/themes.h"
 #include "interface/title_sequences.h"
+#include "interface/viewport.h"
 #include "localisation/language.h"
 #include "localisation/localisation.h"
 #include "network/network.h"
@@ -147,13 +144,13 @@ config_enum_definition _languageEnum[] = {
 	{ "sv-SE", 	LANGUAGE_SWEDISH },
 	{ "it-IT", 	LANGUAGE_ITALIAN },
 	{ "pt-BR", 	LANGUAGE_PORTUGUESE_BR },
-	{ "zh-Hant",LANGUAGE_CHINESE_TRADITIONAL },
-	{ "zh-Hans",LANGUAGE_CHINESE_SIMPLIFIED },
+	{ "zh-TW",	LANGUAGE_CHINESE_TRADITIONAL },
+	{ "zh-CN",	LANGUAGE_CHINESE_SIMPLIFIED },
 	{ "fi-FI", 	LANGUAGE_FINNISH },
-	{ "ko", 	LANGUAGE_KOREAN },
+	{ "ko-KR", 	LANGUAGE_KOREAN },
 	{ "ru-RU", 	LANGUAGE_RUSSIAN },
-	{ "cz-CZ", 	LANGUAGE_CZECH },
-	{ "jp-JP", 	LANGUAGE_JAPANESE },
+	{ "cs-CZ", 	LANGUAGE_CZECH },
+	{ "ja-JP", 	LANGUAGE_JAPANESE },
 	END_OF_ENUM
 };
 
@@ -942,20 +939,8 @@ void config_apply_to_old_addresses()
 	RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_METRIC, sint8) = gConfigGeneral.measurement_format;
 	RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_TEMPERATURE, sint8) = gConfigGeneral.temperature_format;
 	RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_CONSTRUCTION_MARKER, uint8) = gConfigGeneral.construction_marker_colour;
-	if (gConfigGeneral.show_height_as_units) {
-		RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_HEIGHT_MARKERS, sint16) = 0;
-	} else {
-		switch (gConfigGeneral.measurement_format) {
-		default:
-		case MEASUREMENT_FORMAT_IMPERIAL:
-			RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_HEIGHT_MARKERS, sint16) = 1 * 256;
-			break;
-		case MEASUREMENT_FORMAT_METRIC:
-		case MEASUREMENT_FORMAT_SI:
-			RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_HEIGHT_MARKERS, sint16) = 2 * 256;
-			break;
-		}
-	}
+	RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_HEIGHT_MARKERS, sint16) = get_height_marker_offset();
+
 	int configFlags = 0;
 	if (gConfigGeneral.always_show_gridlines)
 		configFlags |= CONFIG_FLAG_ALWAYS_SHOW_GRIDLINES;
@@ -1036,6 +1021,7 @@ static const uint16 _defaultShortcutKeys[SHORTCUT_COUNT] = {
 
 	SHORTCUT_UNDEFINED,					// SHORTCUT_SHOW_OPTIONS
 	SHORTCUT_UNDEFINED,					// SHORTCUT_MUTE_SOUND
+	ALT | SDL_SCANCODE_RETURN			// SHORTCUT_WINDOWED_MODE_TOGGLE
 };
 
 #define SHORTCUT_FILE_VERSION 1

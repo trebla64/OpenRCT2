@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John, Matthias Lanzinger
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #pragma warning(disable : 4996) // GetVersionExA deprecated
 
@@ -45,6 +41,7 @@
 #include "rct1.h"
 #include "ride/ride.h"
 #include "ride/track.h"
+#include "ride/track_design.h"
 #include "scenario.h"
 #include "title.h"
 #include "util/util.h"
@@ -143,7 +140,7 @@ int rct2_init()
 {
 	log_verbose("initialising game");
 
-	RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) = 0;
+	gScenarioTicks = 0;
 	RCT2_GLOBAL(0x009AC310, char*) = RCT2_GLOBAL(RCT2_ADDRESS_CMDLINE, char*);
 	util_srand((unsigned int)time(0));
 	if (!rct2_init_directories())
@@ -157,14 +154,13 @@ int rct2_init()
 	gInputPlaceObjectModifier = PLACE_OBJECT_MODIFIER_NONE;
 	// config_load();
 
-	object_list_load();
-	scenario_load_list();
-
-	ride_list_item item = { 253, 0 };
-	track_load_list(item);
-
 	gfx_load_g1();
 	gfx_load_g2();
+
+	object_list_load();
+	scenario_load_list();
+	track_design_index_create();
+
 	font_sprite_initialise_characters();
 	if (!gOpenRCT2Headless) {
 		platform_init();

@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 
@@ -583,11 +579,11 @@ bool platform_file_copy(const utf8 *srcPath, const utf8 *dstPath, bool overwrite
 	if (dstFile == NULL) {
 		if (errno == EEXIST) {
 			log_warning("platform_file_copy: Not overwriting %s, because overwrite flag == false", dstPath);
-			return 0;
+			return false;
 		}
 
 		log_error("Could not open destination file %s for copying", dstPath);
-		return 0;
+		return false;
 	}
 
 	// Open both files and check whether they are opened correctly
@@ -595,21 +591,30 @@ bool platform_file_copy(const utf8 *srcPath, const utf8 *dstPath, bool overwrite
 	if (srcFile == NULL) {
 		fclose(dstFile);
 		log_error("Could not open source file %s for copying", srcPath);
-		return 0;
+		return false;
 	}
 
 	size_t amount_read = 0;
+	size_t file_offset = 0;
 
+	// Copy file in FILE_BUFFER_SIZE-d chunks
 	char* buffer = (char*) malloc(FILE_BUFFER_SIZE);
 	while ((amount_read = fread(buffer, FILE_BUFFER_SIZE, 1, srcFile))) {
 		fwrite(buffer, amount_read, 1, dstFile);
+		file_offset += amount_read;
 	}
+
+	// Finish the left-over data from file, which may not be a full
+	// FILE_BUFFER_SIZE-d chunk.
+	fseek(srcFile, file_offset, SEEK_SET);
+	amount_read = fread(buffer, 1, FILE_BUFFER_SIZE, srcFile);
+	fwrite(buffer, amount_read, 1, dstFile);
 
 	fclose(srcFile);
 	fclose(dstFile);
 	free(buffer);
 
-	return 0;
+	return true;
 }
 
 bool platform_file_move(const utf8 *srcPath, const utf8 *dstPath)

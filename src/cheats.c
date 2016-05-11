@@ -1,3 +1,19 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
+/*****************************************************************************
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
+
 #include "cheats.h"
 #include "config.h"
 #include "game.h"
@@ -24,6 +40,7 @@ bool gCheatsDisableVandalism = false;
 bool gCheatsDisableLittering = false;
 bool gCheatsNeverendingMarketing = false;
 bool gCheatsFreezeClimate = false;
+bool gCheatsDisableTrainLengthLimit = false;
 
 int park_rating_spinner_value;
 
@@ -90,7 +107,7 @@ static void cheat_remove_litter()
 	rct_litter* litter;
 	uint16 spriteIndex, nextSpriteIndex;
 
-	for (spriteIndex = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_LITTER, uint16); spriteIndex != SPRITE_INDEX_NULL; spriteIndex = nextSpriteIndex) {
+	for (spriteIndex = gSpriteListHead[SPRITE_LIST_LITTER]; spriteIndex != SPRITE_INDEX_NULL; spriteIndex = nextSpriteIndex) {
 		litter = &(g_sprite_list[spriteIndex].litter);
 		nextSpriteIndex = litter->next;
 		sprite_remove((rct_sprite*)litter);
@@ -301,7 +318,7 @@ static void cheat_remove_all_guests()
 	rct_peep *peep;
 	uint16 spriteIndex, nextSpriteIndex;
 
-	for (spriteIndex = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_PEEP, uint16); spriteIndex != SPRITE_INDEX_NULL; spriteIndex = nextSpriteIndex) {
+	for (spriteIndex = gSpriteListHead[SPRITE_LIST_PEEP]; spriteIndex != SPRITE_INDEX_NULL; spriteIndex = nextSpriteIndex) {
 		peep = &(g_sprite_list[spriteIndex].peep);
 		nextSpriteIndex = peep->next;
 		if (peep->type == PEEP_TYPE_GUEST) {
@@ -364,6 +381,7 @@ void game_command_cheat(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* e
 			case CHEAT_FASTLIFTHILL: gCheatsFastLiftHill = !gCheatsFastLiftHill; break;
 			case CHEAT_DISABLEBRAKESFAILURE: gCheatsDisableBrakesFailure = !gCheatsDisableBrakesFailure; break;
 			case CHEAT_DISABLEALLBREAKDOWNS: gCheatsDisableAllBreakdowns = !gCheatsDisableAllBreakdowns; break;
+			case CHEAT_DISABLETRAINLENGTHLIMIT: gCheatsDisableTrainLengthLimit = !gCheatsDisableTrainLengthLimit; break;
 			case CHEAT_UNLOCKALLPRICES: gCheatsUnlockAllPrices = !gCheatsUnlockAllPrices; window_invalidate_by_class(WC_RIDE); window_invalidate_by_class(WC_PARK_INFORMATION); break;
 			case CHEAT_BUILDINPAUSEMODE: gCheatsBuildInPauseMode = !gCheatsBuildInPauseMode; break;
 			case CHEAT_IGNORERIDEINTENSITY: gCheatsIgnoreRideIntensity = !gCheatsIgnoreRideIntensity; break;

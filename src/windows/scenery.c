@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
-* Copyright (c) 2014 Dániel Tar
-* OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
-*
-* This file is part of OpenRCT2.
-*
-* OpenRCT2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*****************************************************************************/
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../audio/audio.h"
@@ -514,18 +510,57 @@ void window_scenery_close(rct_window *w)
 		tool_cancel();
 }
 
-int window_scenery_scrollgetsize_num()
-{
-	int items = 0;
-	while (window_scenery_tab_entries[window_scenery_active_tab_index][items] != -1)
-		items++;
-
-	items += 8;
+static int count_rows(int items){
 	int rows = items / 9;
-	if (rows == 0)
-		rows++;
 
+	return rows;
+}
+
+typedef struct {
+	int allRows;
+	int selected_item;
+	sint16 sceneryId;
+} scenery_item;
+
+static scenery_item window_scenery_count_rows_with_selected_item(int tabIndex)
+{	
+	scenery_item sceneryItem = { 0, 0, -1 };
+	int totalItems = 0;
+	sint16 id = 0;
+	sint16 sceneryId = window_scenery_selected_scenery_by_tab[tabIndex];
+
+	while ((id = window_scenery_tab_entries[tabIndex][totalItems]) != -1){
+		if (id == sceneryId){
+			sceneryItem.selected_item = totalItems;
+			sceneryItem.sceneryId = sceneryId;
+		}
+		totalItems++;		
+	}
+	sceneryItem.allRows = count_rows(totalItems + 8);
+	return sceneryItem;
+}
+
+static int window_scenery_count_rows()
+{	
+	int tabIndex = window_scenery_active_tab_index;
+	int totalItems = 0;
+
+	while (window_scenery_tab_entries[tabIndex][totalItems] != -1){
+		totalItems++;		
+	}
+
+	int rows = count_rows(totalItems + 8);
+	return rows;
+}
+
+static int window_scenery_rows_height(int rows)
+{
 	return rows * SCENERY_BUTTON_HEIGHT;
+}
+
+static int rows_on_page(int height)
+{
+	return height / 90;
 }
 
 /**
@@ -569,28 +604,28 @@ static void window_scenery_mouseup(rct_window *w, int widgetIndex)
  */
 void window_scenery_update_scroll(rct_window *w)
 {
-	w->scrolls[0].v_bottom = window_scenery_scrollgetsize_num() + 1;
-
 	int tabIndex = window_scenery_active_tab_index;
 
-	int itemIndex = 0;
-	sint16 sceneryId;
-	while ((sceneryId = window_scenery_tab_entries[tabIndex][itemIndex]) != -1) {
-		if (sceneryId == window_scenery_selected_scenery_by_tab[tabIndex])
-			break;
-		itemIndex++;
+	scenery_item sceneryItem = window_scenery_count_rows_with_selected_item(tabIndex);
+	w->scrolls[0].v_bottom = window_scenery_rows_height(sceneryItem.allRows) + 1;
+
+	int rowsOnPage = rows_on_page(w->height);
+	int rowSelected = count_rows(sceneryItem.selected_item);
+
+	if (sceneryItem.allRows - rowSelected <= rowsOnPage){
+		rowSelected = sceneryItem.allRows - rowsOnPage;
 	}
 
-	if (sceneryId == -1) {
-		itemIndex = 0;
-		sint16 sceneryId = window_scenery_tab_entries[tabIndex][itemIndex];
+	if (sceneryItem.sceneryId == -1) {
+		rowSelected = 0;
+		sint16 sceneryId = window_scenery_tab_entries[tabIndex][0];
 		if (sceneryId != -1)
 			window_scenery_selected_scenery_by_tab[tabIndex] = sceneryId;
 	}
-
-	w->scrolls[0].v_top = (itemIndex / 9) * SCENERY_BUTTON_HEIGHT;
+	w->scrolls[0].v_top = window_scenery_rows_height(rowSelected);
 	widget_scroll_update_thumbs(w, WIDX_SCENERY_LIST);
 }
+
 
 /**
  *
@@ -650,7 +685,9 @@ static void window_scenery_mousedown(int widgetIndex, rct_window* w, rct_widget*
 		window_scenery_active_tab_index = widgetIndex - WIDX_SCENERY_TAB_1;
 		window_invalidate(w);
 		RCT2_GLOBAL(RCT2_ADDRESS_SCENERY_COST, uint32) = MONEY32_UNDEFINED;
-		window_scenery_update_scroll(w);
+
+		//HACK: for 3210 Ensures that window_scenery_update_scroll gets called one time
+		w->max_height = 60;
 	}
 }
 
@@ -710,7 +747,7 @@ static void window_scenery_update(rct_window *w)
 						w->max_height = WINDOW_SCENERY_HEIGHT;
 					}
 				} else {
-					int windowHeight = min(454, w->scrolls[0].v_bottom - 1 + 62);
+					int windowHeight = min(463, w->scrolls[0].v_bottom + 62);
 					if (gScreenHeight < 600)
 						windowHeight = min(374, windowHeight);
 
@@ -770,7 +807,8 @@ static void window_scenery_update(rct_window *w)
  */
 void window_scenery_scrollgetsize(rct_window *w, int scrollIndex, int *width, int *height)
 {
-	*height = window_scenery_scrollgetsize_num();
+	int rows = window_scenery_count_rows();
+	*height = window_scenery_rows_height(rows);
 }
 
 short get_scenery_id_by_cursor_pos(short x, short y)

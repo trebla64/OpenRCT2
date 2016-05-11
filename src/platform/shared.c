@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../audio/audio.h"
@@ -583,13 +579,6 @@ void platform_process_messages()
 
 			gLastKeyPressed = e.key.keysym.sym;
 			gKeysPressed[e.key.keysym.scancode] = 1;
-			if (e.key.keysym.sym == SDLK_RETURN && e.key.keysym.mod & KMOD_ALT) {
-				int targetMode = gConfigGeneral.fullscreen_mode == 0 ? 2 : 0;
-				platform_set_fullscreen_mode(targetMode);
-				gConfigGeneral.fullscreen_mode = targetMode;
-				config_save_default();
-				break;
-			}
 
 			// Text input
 			if (gTextInput.buffer == NULL) break;
@@ -643,8 +632,13 @@ void platform_process_messages()
 			}
 			else if (e.key.keysym.sym == SDLK_v && (SDL_GetModState() & KEYBOARD_PRIMARY_MODIFIER)) {
 				if (SDL_HasClipboardText()) {
-					utf8 *text = SDL_GetClipboardText();
+					utf8* text = SDL_GetClipboardText();
+
+					utf8_remove_formatting(text);
 					textinputbuffer_insert(&gTextInput, text);
+
+					SDL_free(text);
+
 					window_update_textbox();
 				}
 			}
@@ -687,13 +681,11 @@ void platform_process_messages()
 				break;
 			}
 
-			// Entering formatting characters is not allowed
-			if (utf8_is_format_code(utf8_get_next(e.text.text, NULL))) {
-				break;
-			}
+			utf8* newText = e.text.text;
 
-			utf8 *newText = e.text.text;
+			utf8_remove_formatting(newText);
 			textinputbuffer_insert(&gTextInput, newText);
+
 			console_refresh_caret();
 			window_update_textbox();
 			break;
@@ -863,6 +855,14 @@ void platform_set_fullscreen_mode(int mode)
 
 		// TODO try another display mode rather than just exiting the game
 	}
+}
+
+void platform_toggle_windowed_mode()
+{
+	int targetMode = gConfigGeneral.fullscreen_mode == 0 ? 2 : 0;
+	platform_set_fullscreen_mode(targetMode);
+	gConfigGeneral.fullscreen_mode = targetMode;
+	config_save_default();
 }
 
 /**

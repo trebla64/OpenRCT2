@@ -1,3 +1,19 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
+/*****************************************************************************
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
+
 #include "S4Importer.h"
 
 #include "../core/Exception.hpp"
@@ -313,6 +329,7 @@ void S4Importer::AddAvailableEntriesFromSceneryGroups()
 
 void S4Importer::AddEntryForRideType(uint8 rideType)
 {
+    assert(rideType < Util::CountOf(_rideTypeToRideEntryMap));
     if (_rideTypeToRideEntryMap[rideType] == 255)
     {
         const char * entryName = RCT1::GetRideTypeObject(rideType);
@@ -323,6 +340,7 @@ void S4Importer::AddEntryForRideType(uint8 rideType)
 
 void S4Importer::AddEntryForVehicleType(uint8 rideType, uint8 vehicleType)
 {
+    assert(vehicleType < Util::CountOf(_vehicleTypeToRideEntryMap));
     if (_vehicleTypeToRideEntryMap[vehicleType] == 255)
     {
         const char * entryName = RCT1::GetVehicleObject(vehicleType);
@@ -338,6 +356,7 @@ void S4Importer::AddEntryForVehicleType(uint8 rideType, uint8 vehicleType)
 
 void S4Importer::AddEntryForSmallScenery(uint8 smallSceneryType)
 {
+    assert(smallSceneryType < Util::CountOf(_smallSceneryTypeToEntryMap));
     if (_smallSceneryTypeToEntryMap[smallSceneryType] == 255)
     {
         const char * entryName = RCT1::GetSmallSceneryObject(smallSceneryType);
@@ -348,6 +367,7 @@ void S4Importer::AddEntryForSmallScenery(uint8 smallSceneryType)
 
 void S4Importer::AddEntryForLargeScenery(uint8 largeSceneryType)
 {
+    assert(largeSceneryType < Util::CountOf(_largeSceneryTypeToEntryMap));
     if (_largeSceneryTypeToEntryMap[largeSceneryType] == 255)
     {
         const char * entryName = RCT1::GetLargeSceneryObject(largeSceneryType);
@@ -358,6 +378,7 @@ void S4Importer::AddEntryForLargeScenery(uint8 largeSceneryType)
 
 void S4Importer::AddEntryForWall(uint8 wallType)
 {
+    assert(wallType < Util::CountOf(_wallTypeToEntryMap));
     if (_wallTypeToEntryMap[wallType] == 255)
     {
         const char * entryName = RCT1::GetWallObject(wallType);
@@ -368,6 +389,7 @@ void S4Importer::AddEntryForWall(uint8 wallType)
 
 void S4Importer::AddEntryForPath(uint8 pathType)
 {
+    assert(pathType < Util::CountOf(_pathTypeToEntryMap));
     if (_pathTypeToEntryMap[pathType] == 255)
     {
         const char * entryName = RCT1::GetPathObject(pathType);
@@ -647,7 +669,7 @@ void S4Importer::ImportMapAnimations()
         gAnimatedObjects[i] = s4Animations[i];
         gAnimatedObjects[i].baseZ /= 2;
     }
-    RCT2_GLOBAL(0x0138B580, uint16) = _s4.num_map_animations;
+    gNumMapAnimations = _s4.num_map_animations;
 }
 
 void S4Importer::ImportFinance()
@@ -663,7 +685,7 @@ void S4Importer::ImportFinance()
 
     gCompanyValue = _s4.company_value;
     gParkValue = _s4.park_value;
-    RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PROFIT, money32) = _s4.profit;
+    gCurrentProfit = _s4.profit;
 
     for (int i = 0; i < 128; i++)
     {
@@ -674,12 +696,12 @@ void S4Importer::ImportFinance()
 
     for (int i = 0; i < 14 * 16; i++)
     {
-        RCT2_ADDRESS(RCT2_ADDRESS_EXPENDITURE_TABLE, money32)[i] = _s4.expenditure[i];
+        gExpenditureTable[i] = _s4.expenditure[i];
     }
-    RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_EXPENDITURE, money32) = _s4.total_expenditure;
+    gCurrentExpenditure = _s4.total_expenditure;
 
-    RCT2_GLOBAL(RCT2_ADDRESS_TOTAL_ADMISSIONS, uint32) = _s4.num_admissions;
-    RCT2_GLOBAL(RCT2_ADDRESS_INCOME_FROM_ADMISSIONS, money32) = _s4.admission_total_income;
+    gTotalAdmissions = _s4.num_admissions;
+    gTotalIncomeFromAdmissions = _s4.admission_total_income;
 
     // TODO marketing campaigns not working
     for (int i = 0; i < 6; i++)
@@ -853,7 +875,7 @@ void S4Importer::ImportResearch()
     }
 
     research_remove_non_separate_vehicle_types();
-    // Fixes avaibility of rides
+    // Fixes availability of rides
     sub_684AC3();
 
     // Research funding / priority

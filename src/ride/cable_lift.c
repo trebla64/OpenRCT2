@@ -1,3 +1,19 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
+/*****************************************************************************
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
+
 #include "../world/sprite.h"
 #include "cable_lift.h"
 #include "ride.h"
@@ -18,7 +34,7 @@ rct_vehicle *cable_lift_segment_create(int rideIndex, int x, int y, int z, int d
 	current->ride = rideIndex;
 	current->ride_subtype = 0xFF;
 	if (head) {
-		move_sprite_to_list((rct_sprite*)current, SPRITE_LINKEDLIST_OFFSET_VEHICLE);
+		move_sprite_to_list((rct_sprite*)current, SPRITE_LIST_VEHICLE * 2);
 		ride->cable_lift = current->sprite_index;
 	}
 	current->is_child = head ? 0 : 1;

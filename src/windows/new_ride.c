@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
-* Copyright (c) 2014 Maciek Baron
-* OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
-*
-* This file is part of OpenRCT2.
-*
-* OpenRCT2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*****************************************************************************/
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../audio/audio.h"
@@ -33,6 +29,7 @@
 #include "../rct1.h"
 #include "../ride/ride.h"
 #include "../ride/track.h"
+#include "../ride/track_design.h"
 #include "../world/scenery.h"
 #include "../ride/ride_data.h"
 
@@ -288,13 +285,11 @@ void window_new_ride_init_vars() {
  */
 static void window_new_ride_populate_list()
 {
-	int i, quadIndex, bitIndex;
-
 	uint8 currentCategory = _window_new_ride_current_tab;
 	ride_list_item *nextListItem = (ride_list_item*)0x00F43523;
 
 	// For each ride type in the view order list
-	for (i = 0; i < countof(RideTypeViewOrder); i++) {
+	for (int i = 0; i < countof(RideTypeViewOrder); i++) {
 		uint8 rideType = RideTypeViewOrder[i];
 		if (rideType == RIDE_TYPE_NULL)
 			continue;
@@ -307,9 +302,7 @@ static void window_new_ride_populate_list()
 		char preferredVehicleName[9];
 		strcpy(preferredVehicleName,"        ");
 
-		quadIndex = rideType >> 5;
-		bitIndex = rideType & 0x1F;
-		if (RCT2_ADDRESS(0x01357404, uint32)[quadIndex] & (1u << bitIndex)) {
+		if (ride_type_is_invented(rideType)) {
 			int dh = 0;
 			uint8 *rideEntryIndexPtr = get_ride_entry_indices_for_ride_type(rideType);
 
@@ -320,10 +313,8 @@ static void window_new_ride_populate_list()
 				memcpy(rideEntryName,object_entry_groups[OBJECT_TYPE_RIDE].entries[rideEntryIndex].name,8);
 				rideEntryName[8]=0;
 
-				quadIndex = rideEntryIndex >> 5;
-				bitIndex = rideEntryIndex & 0x1F;
 				// Skip if vehicle type is not invented yet
-				if (!(RCT2_ADDRESS(0x01357424, uint32)[quadIndex] & (1u << bitIndex)))
+				if (!ride_entry_is_invented(rideEntryIndex))
 					continue;
 
 				// Ride entries
@@ -620,7 +611,7 @@ static void window_new_ride_mouseup(rct_window *w, int widgetIndex)
 		window_close(w);
 		break;
 	case WIDX_LAST_DEVELOPMENT_BUTTON:
-		news_item_open_subject(NEWS_ITEM_RESEARCH, RCT2_GLOBAL(RCT2_ADDRESS_LAST_RESEARCHED_ITEM_SUBJECT, sint32));
+		news_item_open_subject(NEWS_ITEM_RESEARCH, (int)gResearchLastItemSubject);
 		break;
 	case WIDX_RESEARCH_FUNDING_BUTTON:
 		window_finances_research_open();
@@ -742,7 +733,7 @@ static void window_new_ride_invalidate(rct_window *w)
 
 	if (_window_new_ride_current_tab == WINDOW_NEW_RIDE_PAGE_RESEARCH) {
 		window_new_ride_widgets[WIDX_LAST_DEVELOPMENT_BUTTON].type = WWT_EMPTY;
-		uint32 typeId = RCT2_GLOBAL(RCT2_ADDRESS_LAST_RESEARCHED_ITEM_SUBJECT, uint32);
+		uint32 typeId = gResearchLastItemSubject;
 		if (typeId != 0xFFFFFFFF) {
 			window_new_ride_widgets[WIDX_LAST_DEVELOPMENT_BUTTON].type = WWT_FLATBTN;
 			window_new_ride_widgets[WIDX_LAST_DEVELOPMENT_BUTTON].image = typeId >= 0x10000 ? 5189 : 5191;
@@ -845,15 +836,17 @@ static ride_list_item window_new_ride_scroll_get_ride_list_item_at(rct_window *w
 
 static int get_num_track_designs(ride_list_item item)
 {
-	track_load_list(item);
-
-	char *trackDesignList = RCT2_ADDRESS(RCT2_ADDRESS_TRACK_LIST, char);
-	int count = 0;
-	while (*trackDesignList != 0 && trackDesignList < (char*)0x00F635EC) {
-		trackDesignList += 128;
-		count++;
+	char entry[9];
+	const char *entryPtr = NULL;
+	if (item.type < 0x80) {
+		rct_ride_entry *rideEntry = get_ride_entry(item.entry_index);
+		if ((rideEntry->flags & RIDE_ENTRY_FLAG_SEPARATE_RIDE) && !rideTypeShouldLoseSeparateFlag(rideEntry)) {
+			get_ride_entry_name(entry, item.entry_index);
+			entryPtr = entry;
+		}
 	}
-	return count;
+
+	return track_design_index_get_count_for_ride(item.type, entryPtr);
 }
 
 /**
@@ -946,10 +939,7 @@ static void window_new_ride_select(rct_window *w)
 #endif
 
 	if (allowTrackDesigns && ride_type_has_flag(item.type, RIDE_TYPE_FLAG_HAS_TRACK)) {
-		track_load_list(item);
-
-		char *trackDesignList = RCT2_ADDRESS(RCT2_ADDRESS_TRACK_LIST, char);
-		if (*trackDesignList != 0) {
+		if (_lastTrackDesignCount > 0) {
 			window_track_list_open(item);
 			return;
 		}

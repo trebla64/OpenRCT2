@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../interface/window.h"
@@ -68,19 +64,7 @@ enum {
 
 typedef void (*ride_ratings_calculation)(rct_ride *ride);
 
-#define _rideRatingsProximityX				RCT2_GLOBAL(0x0138B584, uint16)
-#define _rideRatingsProximityY				RCT2_GLOBAL(0x0138B586, uint16)
-#define _rideRatingsProximityZ				RCT2_GLOBAL(0x0138B588, uint16)
-#define _rideRatingsCurrentRide				RCT2_GLOBAL(0x0138B590, uint8)
-#define _rideRatingsState					RCT2_GLOBAL(0x0138B591, uint8)
-#define _rideRatingsProximityTrackType		RCT2_GLOBAL(0x0138B592, uint8)
-#define _rideRatingsProximityBaseHeight		RCT2_GLOBAL(0x0138B593, uint8)
-#define _rideRatingsProximityTotal			RCT2_GLOBAL(0x0138B594, uint16)
-#define _rideRatingsProximityStartX			RCT2_GLOBAL(0x0138B58A, uint16)
-#define _rideRatingsProximityStartY			RCT2_GLOBAL(0x0138B58C, uint16)
-#define _rideRatingsProximityStartZ			RCT2_GLOBAL(0x0138B58E, uint16)
-
-static uint16 *_proximityScores = (uint16*)0x0138B596;
+uint16 *_proximityScores = (uint16*)0x0138B596;
 
 static const ride_ratings_calculation ride_ratings_calculate_func_table[91];
 
@@ -156,7 +140,7 @@ static void ride_ratings_update_state_1()
 	RCT2_GLOBAL(0x0138B5CA, uint16) = 0;
 	RCT2_GLOBAL(0x0138B5CC, uint16) = 0;
 	_rideRatingsState = RIDE_RATINGS_STATE_2;
-	RCT2_GLOBAL(0x0138B5CE, uint16) = 0;
+	_rideRatingsStationFlags = 0;
 	ride_ratings_begin_proximity_loop();
 }
 
@@ -191,10 +175,11 @@ static void ride_ratings_update_state_2()
 
 		if (trackType == 255 || ((mapElement->properties.track.sequence & 0x0F) == 0 && trackType == mapElement->properties.track.type)) {
 			if (trackType == TRACK_ELEM_END_STATION) {
-				entranceIndex = (mapElement->properties.track.sequence >> 4) & 7;
-				RCT2_GLOBAL(0x0138B5CE, uint16) &= ~1;
-				if (ride->entrances[entranceIndex] == 0xFFFF)
-					RCT2_GLOBAL(0x0138B5CE, uint16) |= 1;
+				entranceIndex = map_get_station(mapElement);
+				_rideRatingsStationFlags &= ~RIDE_RATING_STATION_FLAG_NO_ENTRANCE;
+				if (ride->entrances[entranceIndex] == 0xFFFF) {
+					_rideRatingsStationFlags |= RIDE_RATING_STATION_FLAG_NO_ENTRANCE;
+				}
 			}
 
 			ride_ratings_score_close_proximity(mapElement);
@@ -336,9 +321,10 @@ static void ride_ratings_begin_proximity_loop()
 
 	for (i = 0; i < 4; i++) {
 		if (ride->station_starts[i] != 0xFFFF) {
-			RCT2_GLOBAL(0x0138B5CE, uint16) &= ~1;
-			if (ride->entrances[i] == 0xFFFF)
-				RCT2_GLOBAL(0x0138B5CE, uint16) |= 1;
+			_rideRatingsStationFlags &= ~RIDE_RATING_STATION_FLAG_NO_ENTRANCE;
+			if (ride->entrances[i] == 0xFFFF) {
+				_rideRatingsStationFlags |= RIDE_RATING_STATION_FLAG_NO_ENTRANCE;
+			}
 
 			x = (ride->station_starts[i] & 0xFF) * 32;
 			y = (ride->station_starts[i] >> 8) * 32;
@@ -478,8 +464,9 @@ static void ride_ratings_score_close_proximity(rct_map_element *inputMapElement)
 	int x, y, z, direction, waterHeight, trackType, sequence;
 	bool isStation;
 
-	if (RCT2_GLOBAL(0x0138B5CE, uint16) & 1)
+	if (_rideRatingsStationFlags & RIDE_RATING_STATION_FLAG_NO_ENTRANCE) {
 		return;
+	}
 
 	_rideRatingsProximityTotal++;
 	x = _rideRatingsProximityX;
@@ -609,8 +596,8 @@ static void ride_ratings_score_close_proximity(rct_map_element *inputMapElement)
 	case TRACK_ELEM_BRAKES:
 		RCT2_GLOBAL(0x0138B5CA, uint16)++;
 		break;
-	case 211:
-	case 212:
+	case TRACK_ELEM_LEFT_REVERSER:
+	case TRACK_ELEM_RIGHT_REVERSER:
 		RCT2_GLOBAL(0x0138B5CC, uint16)++;
 		break;
 	}

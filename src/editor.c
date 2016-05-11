@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "addresses.h"
 #include "audio/audio.h"
@@ -231,7 +227,7 @@ static void set_all_land_owned()
 {
 	int mapSize = gMapSize;
 
-	game_do_command(64, 1, 64, 2, GAME_COMMAND_SET_LAND_OWNERSHIP, (mapSize - 2) * 32, (mapSize - 2) * 32);
+	game_do_command(64, 1, 64, 2, GAME_COMMAND_SET_LAND_OWNERSHIP, (mapSize - 3) * 32, (mapSize - 3) * 32);
 }
 
 /**
@@ -304,8 +300,8 @@ static int editor_read_s6(const char *path)
 	if (rw != NULL) {
 		if (!sawyercoding_validate_checksum(rw)) {
 			SDL_RWclose(rw);
-			RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 255;
-			RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = STR_FILE_CONTAINS_INVALID_DATA;
+			gErrorType = ERROR_TYPE_FILE_LOAD;
+			gErrorStringId = STR_FILE_CONTAINS_INVALID_DATA;
 
 			log_error("failed to load scenario, invalid checksum");
 			return 0;
@@ -392,8 +388,8 @@ static int editor_read_s6(const char *path)
 	}
 
 	log_error("failed to find scenario file.");
-	RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 255;
-	RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = STR_FILE_CONTAINS_INVALID_DATA;
+	gErrorType = ERROR_TYPE_FILE_LOAD;
+	gErrorStringId = STR_FILE_CONTAINS_INVALID_DATA;
 	return 0;
 }
 

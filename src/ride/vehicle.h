@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _VEHICLE_H_
 #define _VEHICLE_H_
@@ -74,7 +70,7 @@ typedef struct {
 	uint8 powered_acceleration;		// 0x5B , 0x75
 	uint8 powered_max_speed;		// 0x5C , 0x76
 	uint8 car_visual;				// 0x5D , 0x77
-	uint8 pad_5E;
+	uint8 effect_visual;
 	uint8 draw_order;
 	uint8 special_frames;			// 0x60 , 0x7A
 	sint8* peep_loading_positions;	// 0x61 , 0x7B
@@ -334,7 +330,12 @@ enum {
 	VEHICLE_VISUAL_REVERSER,
 	VEHICLE_VISUAL_SPLASH_BOATS_OR_WATER_COASTER,
 	VEHICLE_VISUAL_ROTO_DROP,
-	VEHICLE_VISUAL_VIRGINIA_REEL = 15,
+	VEHICLE_VISUAL_SPLASH1_EFFECT,
+	VEHICLE_VISUAL_SPLASH2_EFFECT,
+	VEHICLE_VISUAL_SPLASH3_EFFECT,
+	VEHICLE_VISUAL_SPLASH4_EFFECT,
+	VEHICLE_VISUAL_SPLASH5_EFFECT,
+	VEHICLE_VISUAL_VIRGINIA_REEL,
 	VEHICLE_VISUAL_SUBMARINE
 };
 

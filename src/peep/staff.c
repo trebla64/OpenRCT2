@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
-* Copyright (c) 2014 Dániel Tar
-* OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
-*
-* This file is part of OpenRCT2.
-*
-* OpenRCT2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*****************************************************************************/
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../config.h"
@@ -92,7 +88,7 @@ void game_command_hire_new_staff_member(int* eax, int* ebx, int* ecx, int* edx, 
 	gCommandPosition.y = _cx;
 	gCommandPosition.z = _dx;
 
-	if (RCT2_GLOBAL(0x13573C8, uint16) < 0x190) {
+	if (gSpriteListCount[SPRITE_LIST_NULL] < 400) {
 		*ebx = MONEY32_UNDEFINED;
 		gGameCommandErrorText = STR_TOO_MANY_PEOPLE_IN_GAME;
 		return;
@@ -128,7 +124,7 @@ void game_command_hire_new_staff_member(int* eax, int* ebx, int* ecx, int* edx, 
 	if (_bl == 0) {
 		sprite_remove((rct_sprite*)newPeep);
 	} else {
-		move_sprite_to_list((rct_sprite *)newPeep, SPRITE_LINKEDLIST_OFFSET_PEEP);
+		move_sprite_to_list((rct_sprite *)newPeep, SPRITE_LIST_PEEP * 2);
 
 		newPeep->sprite_identifier = 1;
 		newPeep->window_invalidate_flags = 0;
@@ -449,7 +445,7 @@ void staff_update_greyed_patrol_areas()
 		for (int i = 0; i < 128; ++i)
 			RCT2_ADDRESS(RCT2_ADDRESS_STAFF_PATROL_AREAS + ((staff_type + STAFF_MAX_COUNT) * 512), uint32)[i] = 0;
 
-		for (uint16 sprite_index = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_PEEP, uint16); sprite_index != SPRITE_INDEX_NULL; sprite_index = peep->next)
+		for (uint16 sprite_index = gSpriteListHead[SPRITE_LIST_PEEP]; sprite_index != SPRITE_INDEX_NULL; sprite_index = peep->next)
 		{
 			peep = GET_PEEP(sprite_index);
 
@@ -571,7 +567,7 @@ static uint8 staff_handyman_direction_to_nearest_litter(rct_peep* peep){
 	rct_litter* nearestLitter = NULL;
 	rct_litter* litter = NULL;
 	
-	for(uint16 litterIndex = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_LITTER, uint16); litterIndex != 0xFFFF; litterIndex = litter->next){
+	for (uint16 litterIndex = gSpriteListHead[SPRITE_LIST_LITTER]; litterIndex != 0xFFFF; litterIndex = litter->next){
 		litter = &g_sprite_list[litterIndex].litter;
 		
 		uint16 distance = 
@@ -1211,4 +1207,23 @@ int staff_path_finding(rct_peep* peep) {
 		assert(false);
 		return 0;
 	}
+}
+
+void game_command_set_staff_name(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp) {
+	uint16 sprite_index = *ecx & 0xFFFF;
+
+	rct_peep *peep = GET_PEEP(sprite_index);
+	if (peep->type != PEEP_TYPE_STAFF) {
+		*ebx = MONEY32_UNDEFINED;
+		return;
+	}
+
+	*ebx = set_peep_name(
+		*ebx & 0xFF,
+		*eax & 0xFFFF,
+		sprite_index,
+		(uint8*)edx,
+		(uint8*)ebp,
+		(uint8*)edi
+	);
 }

@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../interface/window.h"
@@ -165,8 +161,8 @@ void update_rain_animation()
  */
 static void draw_light_rain(int left, int top, int width, int height)
 {
-	int x_start = -(int)RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) + 8;
-	int y_start = (RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) * 3) + 7;
+	int x_start = -(int)gScenarioTicks + 8;
+	int y_start = (gScenarioTicks * 3) + 7;
 	y_start = -y_start;
 
 	x_start += left;
@@ -174,8 +170,8 @@ static void draw_light_rain(int left, int top, int width, int height)
 
 	gfx_draw_rain(left, top, width, height, x_start, y_start);
 
-	x_start = -(int)RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) + 0x18;
-	y_start = (RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) * 4) + 0x0D;
+	x_start = -(int)gScenarioTicks + 0x18;
+	y_start = (gScenarioTicks * 4) + 0x0D;
 	y_start = -y_start;
 
 	x_start += left;
@@ -189,8 +185,8 @@ static void draw_light_rain(int left, int top, int width, int height)
  */
 static void draw_heavy_rain(int left, int top, int width, int height)
 {
-	int x_start = -(int)RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32);
-	int y_start = RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) * 5;
+	int x_start = -(int)gScenarioTicks;
+	int y_start = gScenarioTicks * 5;
 	y_start = -y_start;
 
 	x_start += left;
@@ -198,8 +194,8 @@ static void draw_heavy_rain(int left, int top, int width, int height)
 
 	gfx_draw_rain(left, top, width, height, x_start, y_start);
 
-	x_start = -(int)RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) + 0x10;
-	y_start = (RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) * 6) + 5;
+	x_start = -(int)gScenarioTicks + 0x10;
+	y_start = (gScenarioTicks * 6) + 5;
 	y_start = -y_start;
 
 	x_start += left;
@@ -207,8 +203,8 @@ static void draw_heavy_rain(int left, int top, int width, int height)
 
 	gfx_draw_rain(left, top, width, height, x_start, y_start);
 
-	x_start = -(int)RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) + 8;
-	y_start = (RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) * 3) + 7;
+	x_start = -(int)gScenarioTicks + 8;
+	y_start = (gScenarioTicks * 3) + 7;
 	y_start = -y_start;
 
 	x_start += left;
@@ -216,8 +212,8 @@ static void draw_heavy_rain(int left, int top, int width, int height)
 
 	gfx_draw_rain(left, top, width, height, x_start, y_start);
 
-	x_start = -(int)RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) + 0x18;
-	y_start = (RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) * 4) + 0x0D;
+	x_start = -(int)gScenarioTicks + 0x18;
+	y_start = (gScenarioTicks * 4) + 0x0D;
 	y_start = -y_start;
 
 	x_start += left;

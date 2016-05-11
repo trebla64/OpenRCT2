@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John, Peter Hill
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _SPRITE_H_
 #define _SPRITE_H_
@@ -25,11 +21,12 @@
 #include "../peep/peep.h"
 #include "../ride/vehicle.h"
 
-#define SPRITE_INDEX_NULL    0xFFFF
-#define SPRITE_LOCATION_NULL ((sint16)0x8000)
-#define MAX_SPRITES          10000
+#define SPRITE_INDEX_NULL		0xFFFF
+#define SPRITE_LOCATION_NULL	((sint16)0x8000)
+#define MAX_SPRITES				10000
+#define NUM_SPRITE_LISTS		6
 
-enum SPRITE_IDENTIFIER{
+enum SPRITE_IDENTIFIER {
 	SPRITE_IDENTIFIER_VEHICLE = 0,
 	SPRITE_IDENTIFIER_PEEP = 1,
 	SPRITE_IDENTIFIER_MISC = 2,
@@ -37,14 +34,14 @@ enum SPRITE_IDENTIFIER{
 	SPRITE_IDENTIFIER_NULL = 255
 };
 
-typedef enum {
-	SPRITE_LINKEDLIST_OFFSET_NULL = 0,
-	SPRITE_LINKEDLIST_OFFSET_VEHICLE = 2,
-	SPRITE_LINKEDLIST_OFFSET_PEEP = 4,
-	SPRITE_LINKEDLIST_OFFSET_MISC = 6,
-	SPRITE_LINKEDLIST_OFFSET_LITTER = 8,
-	SPRITE_LINKEDLIST_OFFSET_UNKNOWN = 10
-} SPRITE_LINKEDLIST_OFFSET;
+enum SPRITE_LIST {
+	SPRITE_LIST_NULL,
+	SPRITE_LIST_VEHICLE,
+	SPRITE_LIST_PEEP,
+	SPRITE_LIST_MISC,
+	SPRITE_LIST_LITTER,
+	SPRITE_LIST_UNKNOWN,
+};
 
 typedef struct {
 	uint8 sprite_identifier;		// 0x00
@@ -72,7 +69,7 @@ typedef struct {
 	uint8 pad_1F[3]; // 0x1f
 	uint16 name_string_idx;			// 0x22
 	uint16 var_24;
-	uint16 var_26;
+	uint16 frame;					// 0x26
 	uint8 var_28[3];
 	uint8 var_2B;
 	uint8 pad_2C[0x45];
@@ -118,7 +115,7 @@ typedef struct {
 	uint8 pad_16[0xE];
 	uint16 popped;					// 0x24
 	union {
-		uint16 var_26;
+		uint16 frame;				// 0x26
 		struct {
 			uint8 var_26a;
 			uint8 var_26b;
@@ -239,7 +236,7 @@ typedef struct {
 	uint8 pad_1F[3]; // 0x1f
 	uint16 name_string_idx;			// 0x22
 	uint16 var_24;
-	uint16 var_26;
+	uint16 frame;					// 0x26
 	uint8 var_28[3];
 	uint8 var_2B;
 	uint8 colour[2];
@@ -281,7 +278,7 @@ typedef struct {
 	uint8 pad_1F[3]; // 0x1f
 	uint16 name_string_idx;			// 0x22
 	uint16 var_24;
-	uint16 var_26;
+	uint16 frame;					// 0x26
 } rct_crash_splash;
 
 typedef struct {
@@ -310,7 +307,7 @@ typedef struct {
 	uint8 pad_1F[3];				// 0x1F
 	uint16 name_string_idx;			// 0x22
 	uint16 var_24;
-	uint16 var_26;
+	uint16 frame;					// 0x26
 } rct_steam_particle;
 
 /**
@@ -353,9 +350,9 @@ enum {
 	SPRITE_MISC_STEAM_PARTICLE,
 	SPRITE_MISC_MONEY_EFFECT,
 	SPRITE_MISC_CRASHED_VEHICLE_PARTICLE,
-	SPRITE_MISC_3,							// (related to vehicle crash, probably crash particles)
+	SPRITE_MISC_EXPLOSION_CLOUD,
 	SPRITE_MISC_CRASH_SPLASH,
-	SPRITE_MISC_5,							// (related to vehicle crash, probably crash particles)
+	SPRITE_MISC_EXPLOSION_FLARE,
 	SPRITE_MISC_JUMPING_FOUNTAIN_WATER,
 	SPRITE_MISC_BALLOON,
 	SPRITE_MISC_DUCK,
@@ -374,6 +371,8 @@ extern rct_sprite* g_sprite_list;
 // rct2: 0x00982708
 extern rct_sprite_entry* g_sprite_entries;
 
+extern uint16 *gSpriteListHead;
+extern uint16 *gSpriteListCount;
 
 rct_sprite *create_sprite(uint8 bl);
 void reset_sprite_list();
@@ -388,8 +387,8 @@ void invalidate_sprite_2(rct_sprite *sprite);
 void sprite_remove(rct_sprite *sprite);
 void litter_create(int x, int y, int z, int direction, int type);
 void litter_remove_at(int x, int y, int z);
-void sprite_misc_3_create(int x, int y, int z);
-void sprite_misc_5_create(int x, int y, int z);
+void sprite_misc_explosion_cloud_create(int x, int y, int z);
+void sprite_misc_explosion_flare_create(int x, int y, int z);
 uint16 sprite_get_first_in_quadrant(int x, int y);
 
 ///////////////////////////////////////////////////////////////

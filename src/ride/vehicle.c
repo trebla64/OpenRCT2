@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../game.h"
@@ -381,7 +377,7 @@ void vehicle_sounds_update()
 				}
 			}
 			gVehicleSoundParamsListEnd = &gVehicleSoundParamsList[0];
-			for (uint16 i = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_VEHICLE, uint16); i != SPRITE_INDEX_NULL; i = g_sprite_list[i].vehicle.next) {
+			for (uint16 i = gSpriteListHead[SPRITE_LIST_VEHICLE]; i != SPRITE_INDEX_NULL; i = g_sprite_list[i].vehicle.next) {
 				vehicle_update_sound_params(&g_sprite_list[i].vehicle);
 			}
 			for(int i = 0; i < countof(gVehicleSoundList); i++){
@@ -630,7 +626,7 @@ void vehicle_update_all()
 		return;
 
 
-	sprite_index = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_VEHICLE, uint16);
+	sprite_index = gSpriteListHead[SPRITE_LIST_VEHICLE];
 	while (sprite_index != SPRITE_INDEX_NULL) {
 		vehicle = &(g_sprite_list[sprite_index].vehicle);
 		sprite_index = vehicle->next;
@@ -2548,11 +2544,11 @@ static void vehicle_update_collision_setup(rct_vehicle* vehicle) {
 			train->z
 			);
 
-		sprite_misc_3_create(
+		sprite_misc_explosion_cloud_create(
 			train->x,
 			train->y,
 			train->z
-			);
+		);
 
 		for (int i = 0; i < 10; i++) {
 			crashed_vehicle_particle_create(
@@ -4132,8 +4128,8 @@ static void vehicle_crash_on_land(rct_vehicle* vehicle) {
 	vehicle->sub_state = 2;
 	audio_play_sound_at_location(SOUND_CRASH, vehicle->x, vehicle->y, vehicle->z);
 
-	sprite_misc_3_create(vehicle->x, vehicle->y, vehicle->z);
-	sprite_misc_5_create(vehicle->x, vehicle->y, vehicle->z);
+	sprite_misc_explosion_cloud_create(vehicle->x, vehicle->y, vehicle->z);
+	sprite_misc_explosion_flare_create(vehicle->x, vehicle->y, vehicle->z);
 
 	uint8 numParticles = min(vehicle->sprite_width, 7);
 
@@ -4218,11 +4214,11 @@ static void vehicle_update_crash(rct_vehicle *vehicle){
 			if (curVehicle->var_4E <= 96) {
 				curVehicle->var_4E++;
 				if ((scenario_rand() & 0xFFFF) <= 0x1555) {
-					sprite_misc_3_create(
+					sprite_misc_explosion_cloud_create(
 						curVehicle->x + ((scenario_rand() & 2) - 1),
 						curVehicle->y + ((scenario_rand() & 2) - 1),
 						curVehicle->z
-						);
+					);
 				}
 			}
 			if (curVehicle->var_C8 + 7281 > 0xFFFF) {
@@ -6093,7 +6089,7 @@ static void steam_particle_create(sint16 x, sint16 y, sint16 z)
 		steam->sprite_height_positive = 16;
 		steam->sprite_identifier = SPRITE_IDENTIFIER_MISC;
 		steam->misc_identifier = SPRITE_MISC_STEAM_PARTICLE;
-		steam->var_26 = 256;
+		steam->frame = 256;
 		steam->var_24 = 0;
 		sprite_move(x, y, z, (rct_sprite*)steam);
 	}
@@ -6651,13 +6647,17 @@ void sub_6DBF3E(rct_vehicle *vehicle)
 
 	RCT2_GLOBAL(0x00F64E18, uint32) |= VEHICLE_UPDATE_MOTION_TRACK_FLAG_3;
 
-	rct_map_element *mapElement = map_get_track_element_at_of_type_seq(
-		vehicle->track_x,
-		vehicle->track_y,
-		vehicle->track_z >> 3,
-		trackType,
-		0
-	);
+	rct_map_element *mapElement = NULL;
+	if (map_is_location_valid(vehicle->track_x, vehicle->track_y)) {
+		mapElement = map_get_track_element_at_of_type_seq(
+			vehicle->track_x,
+			vehicle->track_y,
+			vehicle->track_z >> 3,
+			trackType,
+			0
+		);
+
+	}
 	if (RCT2_GLOBAL(0x00F64E1C, uint32) == 0xFFFFFFFF) {
 		RCT2_GLOBAL(0x00F64E1C, uint32) = (mapElement->properties.track.sequence >> 4) & 7;
 	}

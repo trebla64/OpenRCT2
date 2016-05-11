@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../game.h"
@@ -49,7 +45,7 @@ rct_map_animation *gAnimatedObjects = (rct_map_animation*)0x013886A0;
 void map_animation_create(int type, int x, int y, int z)
 {
 	rct_map_animation *aobj = &gAnimatedObjects[0];
-	int numAnimatedObjects = RCT2_GLOBAL(0x0138B580, uint16);
+	int numAnimatedObjects = gNumMapAnimations;
 	if (numAnimatedObjects >= 2000) {
 		log_error("Exceeded the maximum number of animations");
 		return;
@@ -68,7 +64,7 @@ void map_animation_create(int type, int x, int y, int z)
 	}
 
 	// Create new animation
-	RCT2_GLOBAL(0x0138B580, uint16)++;
+	gNumMapAnimations++;
 	aobj->type = type;
 	aobj->x = x;
 	aobj->y = y;
@@ -82,11 +78,11 @@ void map_animation_create(int type, int x, int y, int z)
 void map_animation_invalidate_all()
 {
 	rct_map_animation *aobj = &gAnimatedObjects[0];
-	int numAnimatedObjects = RCT2_GLOBAL(0x0138B580, uint16);
+	int numAnimatedObjects = gNumMapAnimations;
 	while (numAnimatedObjects > 0) {
 		if (map_animation_invalidate(aobj)) {
 			// Remove animated object
-			RCT2_GLOBAL(0x0138B580, uint16)--;
+			gNumMapAnimations--;
 			numAnimatedObjects--;
 			if (numAnimatedObjects > 0)
 				memmove(aobj, aobj + 1, numAnimatedObjects * sizeof(rct_map_animation));
@@ -203,7 +199,7 @@ static bool map_animation_invalidate_small_scenery(int x, int y, int baseZ)
 				uint16 spriteIdx = RCT2_ADDRESS(0x00F1EF60, uint16)[((x2 & 0x1FE0) << 3) | (y2 >> 5)];
 				for (; spriteIdx != 0xFFFF; spriteIdx = sprite->unknown.next_in_quadrant) {
 					sprite = &g_sprite_list[spriteIdx];
-					if (sprite->unknown.linked_list_type_offset != SPRITE_LINKEDLIST_OFFSET_PEEP)
+					if (sprite->unknown.linked_list_type_offset != SPRITE_LIST_PEEP * 2)
 						continue;
 
 					peep = &sprite->peep;

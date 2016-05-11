@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _GAME_H_
 #define _GAME_H_
@@ -48,7 +44,8 @@ enum GAME_COMMAND {
 	GAME_COMMAND_REMOVE_PATH,
 	GAME_COMMAND_CHANGE_SURFACE_STYLE,
 	GAME_COMMAND_SET_RIDE_PRICE,
-	GAME_COMMAND_SET_PEEP_NAME,
+	GAME_COMMAND_SET_GUEST_NAME,
+	GAME_COMMAND_SET_STAFF_NAME,
 	GAME_COMMAND_RAISE_LAND,
 	GAME_COMMAND_LOWER_LAND,
 	GAME_COMMAND_EDIT_LAND_SMOOTH,
@@ -111,6 +108,12 @@ enum {
 	GAME_PAUSED_SAVING_TRACK	= 1 << 2,
 };
 
+enum {
+	ERROR_TYPE_NONE = 0,
+	ERROR_TYPE_GENERIC = 254,
+	ERROR_TYPE_FILE_LOAD = 255
+};
+
 typedef void (GAME_COMMAND_POINTER)(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* edi, int* ebp);
 
 typedef void (GAME_COMMAND_CALLBACK_POINTER)(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp);
@@ -122,8 +125,10 @@ extern int game_command_playerid;
 
 extern rct_string_id gGameCommandErrorTitle;
 extern rct_string_id gGameCommandErrorText;
+extern uint8 gErrorType;
+extern uint16 gErrorStringId;
 
-extern GAME_COMMAND_POINTER* new_game_command_table[66];
+extern GAME_COMMAND_POINTER* new_game_command_table[67];
 
 #define gCurrentTicks		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32)
 

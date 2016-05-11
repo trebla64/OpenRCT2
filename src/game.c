@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John, Peter Hill
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "addresses.h"
 #include "audio/audio.h"
@@ -46,6 +42,7 @@
 #include "ride/ride_ratings.h"
 #include "ride/vehicle.h"
 #include "ride/track.h"
+#include "ride/track_design.h"
 #include "scenario.h"
 #include "title.h"
 #include "util/sawyercoding.h"
@@ -83,6 +80,8 @@ int game_command_playerid = -1;
 
 rct_string_id gGameCommandErrorTitle;
 rct_string_id gGameCommandErrorText;
+uint8 gErrorType;
+uint16 gErrorStringId;
 
 int game_command_callback_get_index(GAME_COMMAND_CALLBACK_POINTER* callback)
 {
@@ -357,7 +356,7 @@ void game_logic_update()
 		}
 	}
 	gCurrentTicks++;
-	RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32)++;
+	gScenarioTicks++;
 	gScreenAge++;
 	if (gScreenAge == 0)
 		gScreenAge--;
@@ -390,14 +389,14 @@ void game_logic_update()
 	// Update windows
 	//window_dispatch_update_all();
 
-	if (RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) != 0) {
+	if (gErrorType != ERROR_TYPE_NONE) {
 		rct_string_id title_text = STR_UNABLE_TO_LOAD_FILE;
-		rct_string_id body_text = RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16);
-		if (RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) == 254) {
-			title_text = RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16);
+		rct_string_id body_text = gErrorStringId;
+		if (gErrorType == ERROR_TYPE_GENERIC) {
+			title_text = gErrorStringId;
 			body_text = 0xFFFF;
 		}
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 0;
+		gErrorType = ERROR_TYPE_NONE;
 
 		window_error_open(title_text, body_text);
 	}
@@ -417,7 +416,7 @@ static int game_check_affordability(int cost)
 
 	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = cost;
 
-	gGameCommandErrorText = 827;
+	gGameCommandErrorText = STR_NOT_ENOUGH_CASH_REQUIRES;
 	return MONEY32_UNDEFINED;
 }
 
@@ -692,6 +691,7 @@ void game_convert_strings_to_utf8()
 
 		if (!str_is_null_or_empty(userString)) {
 			rct2_to_utf8_self(userString, 32);
+			utf8_remove_formatting(userString);
 		}
 	}
 
@@ -734,75 +734,6 @@ void game_convert_strings_to_rct2(rct_s6_data *s6)
 	}
 }
 
-/**
- *
- *  rct2: 0x00675E1B
- */
-int game_load_sv6(SDL_RWops* rw)
-{
-	int i, j;
-
-	if (!sawyercoding_validate_checksum(rw)) {
-		log_error("invalid checksum");
-
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 255;
-		gGameCommandErrorTitle = STR_FILE_CONTAINS_INVALID_DATA;
-		return 0;
-	}
-
-	rct_s6_header *s6Header = (rct_s6_header*)0x009E34E4;
-	rct_s6_info *s6Info = (rct_s6_info*)0x0141F570;
-
-	// Read first chunk
-	sawyercoding_read_chunk(rw, (uint8*)s6Header);
-	if (s6Header->type == S6_TYPE_SAVEDGAME) {
-		// Read packed objects
-		if (s6Header->num_packed_objects > 0) {
-			j = 0;
-			for (i = 0; i < s6Header->num_packed_objects; i++)
-				j += object_load_packed(rw);
-			if (j > 0)
-				object_list_load();
-		}
-	}
-
-	uint8 load_success = object_read_and_load_entries(rw);
-
-	// Read flags (16 bytes)
-	sawyercoding_read_chunk(rw, (uint8*)RCT2_ADDRESS_CURRENT_MONTH_YEAR);
-
-	// Read map elements
-	memset((void*)RCT2_ADDRESS_MAP_ELEMENTS, 0, MAX_MAP_ELEMENTS * sizeof(rct_map_element));
-	sawyercoding_read_chunk(rw, (uint8*)RCT2_ADDRESS_MAP_ELEMENTS);
-
-	// Read game data, including sprites
-	sawyercoding_read_chunk(rw, (uint8*)0x010E63B8);
-
-	if (!load_success){
-		set_load_objects_fail_reason();
-		if (gInputFlags & INPUT_FLAG_5){
-			//call 0x0040705E Sets cursor position and something else. Calls maybe wind func 8 probably pointless
-			gInputFlags &= ~INPUT_FLAG_5;
-		}
-
-		return 0;//This never gets called
-	}
-
-	// The rest is the same as in scenario_load
-	reset_loaded_objects();
-	map_update_tile_pointers();
-	reset_0x69EBE4();
-	openrct2_reset_object_tween_locations();
-	game_convert_strings_to_utf8();
-	game_fix_save_vars(); // OpenRCT2 fix broken save games
-
-	// #2407: Resetting screen time to not open a save prompt shortly after loading a park.
-	gScreenAge = 0;
-
-	gLastAutoSaveTick = SDL_GetTicks();
-	return 1;
-}
-
 // OpenRCT2 workaround to recalculate some values which are saved redundantly in the save to fix corrupted files.
 // For example recalculate guest count by looking at all the guests instead of trusting the value in the file.
 void game_fix_save_vars() {
@@ -836,83 +767,6 @@ void game_fix_save_vars() {
 	}
 }
 
-// Load game state for multiplayer
-int game_load_network(SDL_RWops* rw)
-{
-	int i, j;
-
-	rct_s6_header *s6Header = (rct_s6_header*)0x009E34E4;
-	rct_s6_info *s6Info = (rct_s6_info*)0x0141F570;
-
-	// Read first chunk
-	sawyercoding_read_chunk(rw, (uint8*)s6Header);
-	if (s6Header->type == S6_TYPE_SAVEDGAME) {
-		// Read packed objects
-		if (s6Header->num_packed_objects > 0) {
-			j = 0;
-			for (i = 0; i < s6Header->num_packed_objects; i++)
-				j += object_load_packed(rw);
-			if (j > 0)
-				object_list_load();
-		}
-	}
-
-	uint8 load_success = object_read_and_load_entries(rw);
-
-	// Read flags (16 bytes)
-	sawyercoding_read_chunk(rw, (uint8*)RCT2_ADDRESS_CURRENT_MONTH_YEAR);
-
-	// Read map elements
-	memset((void*)RCT2_ADDRESS_MAP_ELEMENTS, 0, MAX_MAP_ELEMENTS * sizeof(rct_map_element));
-	sawyercoding_read_chunk(rw, (uint8*)RCT2_ADDRESS_MAP_ELEMENTS);
-
-	// Read game data, including sprites
-	sawyercoding_read_chunk(rw, (uint8*)0x010E63B8);
-
-	// Read checksum
-	uint32 checksum;
-	SDL_RWread(rw, &checksum, sizeof(uint32), 1);
-
-	// Read other data not in normal save files
-	gGamePaused = SDL_ReadLE32(rw);
-	_guestGenerationProbability = SDL_ReadLE32(rw);
-	_suggestedGuestMaximum = SDL_ReadLE32(rw);
-	gCheatsSandboxMode = SDL_ReadU8(rw);
-	gCheatsDisableClearanceChecks = SDL_ReadU8(rw);
-	gCheatsDisableSupportLimits = SDL_ReadU8(rw);
-	gCheatsShowAllOperatingModes = SDL_ReadU8(rw);
-	gCheatsShowVehiclesFromOtherTrackTypes = SDL_ReadU8(rw);
-	gCheatsFastLiftHill = SDL_ReadU8(rw);
-	gCheatsDisableBrakesFailure = SDL_ReadU8(rw);
-	gCheatsDisableAllBreakdowns = SDL_ReadU8(rw);
-	gCheatsUnlockAllPrices = SDL_ReadU8(rw);
-	gCheatsBuildInPauseMode = SDL_ReadU8(rw);
-	gCheatsIgnoreRideIntensity = SDL_ReadU8(rw);
-	gCheatsDisableVandalism = SDL_ReadU8(rw);
-	gCheatsDisableLittering = SDL_ReadU8(rw);
-	gCheatsNeverendingMarketing = SDL_ReadU8(rw);
-	gCheatsFreezeClimate = SDL_ReadU8(rw);
-
-	if (!load_success){
-		set_load_objects_fail_reason();
-		if (gInputFlags & INPUT_FLAG_5){
-			//call 0x0040705E Sets cursor position and something else. Calls maybe wind func 8 probably pointless
-			gInputFlags &= ~INPUT_FLAG_5;
-		}
-
-		return 0;//This never gets called
-	}
-
-	// The rest is the same as in scenario load and play
-	reset_loaded_objects();
-	map_update_tile_pointers();
-	reset_0x69EBE4();
-	openrct2_reset_object_tween_locations();
-	game_convert_strings_to_utf8();
-	gLastAutoSaveTick = SDL_GetTicks();
-	return 1;
-}
-
 /**
  *
  *  rct2: 0x00675E1B
@@ -929,7 +783,7 @@ bool game_load_save(const utf8 *path)
 	SDL_RWops* rw = SDL_RWFromFile(path, "rb");
 	if (rw == NULL) {
 		log_error("unable to open %s", path);
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 255;
+		gErrorType = ERROR_TYPE_FILE_LOAD;
 		gGameCommandErrorTitle = STR_FILE_CONTAINS_INVALID_DATA;
 		return false;
 	}
@@ -997,7 +851,7 @@ void game_load_init()
 	scenery_set_default_placement_configuration();
 	window_new_ride_init_vars();
 	RCT2_GLOBAL(RCT2_ADDRESS_WINDOW_UPDATE_TICKS, uint16) = 0;
-	if (RCT2_GLOBAL(0x0013587C4, uint32) == 0)		// this check is not in scenario play
+	if (RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32) == 0)		// this check is not in scenario play
 		finance_update_loan_hash();
 
 	load_palette();
@@ -1016,9 +870,12 @@ void game_load_init()
  */
 void reset_all_sprite_quadrant_placements()
 {
-	for (rct_sprite* spr = g_sprite_list; spr < (rct_sprite*)RCT2_ADDRESS_SPRITES_NEXT_INDEX; spr++)
-		if (spr->unknown.sprite_identifier != 0xFF)
+	for (size_t i = 0; i < MAX_SPRITES; i++) {
+		rct_sprite *spr = &g_sprite_list[i];
+		if (spr->unknown.sprite_identifier != SPRITE_IDENTIFIER_NULL) {
 			sprite_move(spr->unknown.x, spr->unknown.y, spr->unknown.z, spr);
+		}
+	}
 }
 
 void save_game()
@@ -1214,7 +1071,7 @@ void game_load_or_quit_no_save_prompt()
 	}
 }
 
-GAME_COMMAND_POINTER* new_game_command_table[66] = {
+GAME_COMMAND_POINTER* new_game_command_table[67] = {
 	game_command_set_ride_appearance,
 	game_command_set_land_height,
 	game_pause_toggle,
@@ -1237,7 +1094,8 @@ GAME_COMMAND_POINTER* new_game_command_table[66] = {
 	game_command_remove_footpath,
 	game_command_change_surface_style,
 	game_command_set_ride_price,
-	game_command_set_peep_name,
+	game_command_set_guest_name,
+	game_command_set_staff_name,
 	game_command_raise_land,
 	game_command_lower_land,
 	game_command_smooth_land,

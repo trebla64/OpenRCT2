@@ -1,25 +1,23 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "addresses.h"
 #include "config.h"
+#include "game.h"
+#include "localisation/string_ids.h"
 #include "rct1.h"
 #include "util/sawyercoding.h"
 #include "util/util.h"
@@ -31,8 +29,8 @@ bool rct1_read_sc4(const char *path, rct1_s4 *s4)
 	bool success;
 
 	if (!readentirefile(path, (void**)&buffer, (int*)&length)) {
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 255;
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = 3011;
+		gErrorType = ERROR_TYPE_FILE_LOAD;
+		gErrorStringId = STR_FILE_CONTAINS_INVALID_DATA;
 		return 0;
 	}
 
@@ -61,8 +59,8 @@ bool rct1_read_sv4(const char *path, rct1_s4 *s4)
 	bool success;
 
 	if (!readentirefile(path, (void**)&buffer, (int*)&length)) {
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 255;
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = 3011;
+		gErrorType = ERROR_TYPE_FILE_LOAD;
+		gErrorStringId = STR_FILE_CONTAINS_INVALID_DATA;
 		return 0;
 	}
 

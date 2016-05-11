@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
@@ -68,7 +64,7 @@ extern "C" {
 // This define specifies which version of network stream current build uses.
 // It is used for making sure only compatible builds get connected, even within
 // single OpenRCT2 version.
-#define NETWORK_STREAM_VERSION "6"
+#define NETWORK_STREAM_VERSION "8"
 #define NETWORK_STREAM_ID OPENRCT2_VERSION "-" NETWORK_STREAM_VERSION
 
 #define NETWORK_DISCONNECT_REASON_BUFFER_SIZE 256
@@ -195,8 +191,8 @@ public:
 		{STR_ACTION_SCENERY, {GAME_COMMAND_REMOVE_SCENERY, GAME_COMMAND_PLACE_SCENERY, GAME_COMMAND_SET_BRAKES_SPEED, GAME_COMMAND_REMOVE_FENCE, GAME_COMMAND_PLACE_FENCE, GAME_COMMAND_REMOVE_LARGE_SCENERY, GAME_COMMAND_PLACE_LARGE_SCENERY, GAME_COMMAND_PLACE_BANNER, GAME_COMMAND_REMOVE_BANNER, GAME_COMMAND_SET_SCENERY_COLOUR, GAME_COMMAND_SET_FENCE_COLOUR, GAME_COMMAND_SET_LARGE_SCENERY_COLOUR, GAME_COMMAND_SET_BANNER_COLOUR, GAME_COMMAND_SET_BANNER_NAME, GAME_COMMAND_SET_SIGN_NAME, GAME_COMMAND_SET_BANNER_STYLE, GAME_COMMAND_SET_SIGN_STYLE}},
 		{STR_ACTION_PATH, {GAME_COMMAND_PLACE_PATH, GAME_COMMAND_PLACE_PATH_FROM_TRACK, GAME_COMMAND_REMOVE_PATH}},
 		{STR_ACTION_CLEAR_LANDSCAPE, {GAME_COMMAND_CLEAR_SCENERY}},
-		{STR_ACTION_GUEST, {GAME_COMMAND_SET_PEEP_NAME}},
-		{STR_ACTION_STAFF, {GAME_COMMAND_HIRE_NEW_STAFF_MEMBER, GAME_COMMAND_SET_STAFF_PATROL, GAME_COMMAND_FIRE_STAFF_MEMBER, GAME_COMMAND_SET_STAFF_ORDER, GAME_COMMAND_SET_STAFF_COLOUR}},
+		{STR_ACTION_GUEST, {GAME_COMMAND_SET_GUEST_NAME}},
+		{STR_ACTION_STAFF, {GAME_COMMAND_HIRE_NEW_STAFF_MEMBER, GAME_COMMAND_SET_STAFF_PATROL, GAME_COMMAND_FIRE_STAFF_MEMBER, GAME_COMMAND_SET_STAFF_ORDER, GAME_COMMAND_SET_STAFF_COLOUR, GAME_COMMAND_SET_STAFF_NAME}},
 		{STR_ACTION_PARK_PROPERTIES, {GAME_COMMAND_SET_PARK_NAME, GAME_COMMAND_SET_PARK_OPEN, GAME_COMMAND_SET_PARK_ENTRANCE_FEE, GAME_COMMAND_SET_LAND_OWNERSHIP, GAME_COMMAND_BUY_LAND_RIGHTS, GAME_COMMAND_PLACE_PARK_ENTRANCE, GAME_COMMAND_REMOVE_PARK_ENTRANCE}},
 		{STR_ACTION_PARK_FUNDING, {GAME_COMMAND_SET_CURRENT_LOAN, GAME_COMMAND_SET_RESEARCH_FUNDING, GAME_COMMAND_START_MARKETING_CAMPAIGN}},
 		{STR_ACTION_KICK_PLAYER, {GAME_COMMAND_KICK_PLAYER}},

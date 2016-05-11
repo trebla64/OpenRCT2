@@ -1,32 +1,29 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "addresses.h"
 #include "config.h"
+#include "game.h"
 #include "localisation/localisation.h"
 #include "object.h"
 #include "platform/platform.h"
-#include "ride/track.h"
-#include "util/sawyercoding.h"
-#include "game.h"
 #include "rct1.h"
+#include "ride/track.h"
+#include "ride/track_design.h"
+#include "util/sawyercoding.h"
 #include "world/entrance.h"
 #include "world/footpath.h"
 #include "world/scenery.h"
@@ -340,7 +337,7 @@ void object_list_load()
 	ride_list_item ride_list;
 	ride_list.entry_index = 0xFC;
 	ride_list.type = 0xFC;
-	track_load_list(ride_list);
+	// track_load_list(ride_list);
 
 	object_list_examine();
 }
@@ -503,8 +500,8 @@ void set_load_objects_fail_reason()
 		format_string(string_buffer, STR_MISSING_OBJECT_DATA_ID, 0);
 
 		object_create_identifier_name(string_buffer, object);
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 0xFF;
-		RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = 3165;
+		gErrorType = ERROR_TYPE_FILE_LOAD;
+		gErrorStringId = 3165;
 		return;
 	}
 
@@ -516,8 +513,8 @@ void set_load_objects_fail_reason()
 			expansionNameId = STR_OBJECT_FILTER_TT;
 			break;
 		default:
-			RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 0xFF;
-			RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = STR_REQUIRES_AN_ADDON_PACK;
+			gErrorType = ERROR_TYPE_FILE_LOAD;
+			gErrorStringId = STR_REQUIRES_AN_ADDON_PACK;
 			return;
 	}
 
@@ -525,36 +522,40 @@ void set_load_objects_fail_reason()
 
 	format_string(string_buffer, STR_REQUIRES_THE_FOLLOWING_ADDON_PACK, &expansionNameId);
 
-	RCT2_GLOBAL(RCT2_ADDRESS_ERROR_TYPE, uint8) = 0xFF;
-	RCT2_GLOBAL(RCT2_ADDRESS_ERROR_STRING_ID, uint16) = 3165;
+	gErrorType = ERROR_TYPE_FILE_LOAD;
+	gErrorStringId = 3165;
 }
 
 /**
  *
  *  rct2: 0x006AA0C6
  */
-int object_read_and_load_entries(SDL_RWops* rw)
+bool object_read_and_load_entries(SDL_RWops* rw)
 {
 	object_unload_all();
 
-	int i, j;
-	rct_object_entry *entries;
+	// Read all the object entries
+	rct_object_entry *entries = malloc(OBJECT_ENTRY_COUNT * sizeof(rct_object_entry));
+	sawyercoding_read_chunk(rw, (uint8*)entries);
+	bool result = object_load_entries(entries);
+	free(entries);
+	return result;
+}
 
+bool object_load_entries(rct_object_entry* entries)
+{
 	log_verbose("loading required objects");
 
-	// Read all the object entries
-	entries = malloc(OBJECT_ENTRY_COUNT * sizeof(rct_object_entry));
-	sawyercoding_read_chunk(rw, (uint8*)entries);
-
-	uint8 load_fail = 0;
+	bool loadFailed = false;
 	// Load each object
-	for (i = 0; i < OBJECT_ENTRY_COUNT; i++) {
-		if (!check_object_entry(&entries[i]))
+	for (int i = 0; i < OBJECT_ENTRY_COUNT; i++) {
+		if (!check_object_entry(&entries[i])) {
 			continue;
+		}
 
 		// Get entry group index
 		int entryGroupIndex = i;
-		for (j = 0; j < countof(object_entry_group_counts); j++) {
+		for (int j = 0; j < countof(object_entry_group_counts); j++) {
 			if (entryGroupIndex < object_entry_group_counts[j])
 				break;
 			entryGroupIndex -= object_entry_group_counts[j];
@@ -564,18 +565,17 @@ int object_read_and_load_entries(SDL_RWops* rw)
 		if (!object_load_chunk(entryGroupIndex, &entries[i], NULL)) {
 			log_error("failed to load entry: %.8s", entries[i].name);
 			memcpy((char*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, &entries[i], sizeof(rct_object_entry));
-			load_fail = 1;
+			loadFailed = true;
 		}
 	}
 
-	free(entries);
-	if (load_fail){
+	if (loadFailed) {
 		object_unload_all();
-		return 0;
+		return false;
 	}
 
 	log_verbose("finished loading required objects");
-	return 1;
+	return true;
 }
 
 

@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John, Peter Hill
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _PEEP_H_
 #define _PEEP_H_
@@ -588,7 +584,7 @@ enum {
  * applied in tautology if statements.
  */
 #define FOR_ALL_PEEPS(sprite_index, peep) \
-	for (sprite_index = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_PEEP, uint16); sprite_index != SPRITE_INDEX_NULL; sprite_index = peep->next) \
+	for (sprite_index = gSpriteListHead[SPRITE_LIST_PEEP]; sprite_index != SPRITE_INDEX_NULL; sprite_index = peep->next) \
 		if ((peep = GET_PEEP(sprite_index)) || 1)
 
 #define FOR_ALL_GUESTS(sprite_index, peep) \
@@ -608,6 +604,8 @@ enum {
 #define gGuestInitialHappiness		RCT2_GLOBAL(RCT2_ADDRESS_GUEST_INITIAL_HAPPINESS, uint8)
 #define gGuestInitialHunger			RCT2_GLOBAL(RCT2_ADDRESS_GUEST_INITIAL_HUNGER, uint8)
 #define gGuestInitialThirst			RCT2_GLOBAL(RCT2_ADDRESS_GUEST_INITIAL_THIRST, uint8)
+
+#define gNextGuestNumber			RCT2_GLOBAL(RCT2_ADDRESS_NEXT_GUEST_NUMBER, uint32)
 
 int peep_get_staff_count();
 int peep_can_be_picked_up(rct_peep* peep);
@@ -649,7 +647,8 @@ void sub_693BE5(rct_peep* peep, uint8 al);
 void peep_update_name_sort(rct_peep *peep);
 void peep_update_names(bool realNames);
 
-void game_command_set_peep_name(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
+money32 set_peep_name(int flags, int state, uint16 sprite_index, uint8* text_1, uint8* text_2, uint8* text_3);
+void game_command_set_guest_name(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 
 int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep);
 

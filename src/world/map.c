@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John, Peter Hill
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../audio/audio.h"
@@ -117,19 +113,19 @@ rct_xy16 coordinate_3d_to_2d(const rct_xyz16* coordinate_3d, int rotation){
 	switch (rotation){
 	case 0:
 		coordinate_2d.x = coordinate_3d->y - coordinate_3d->x;
-		coordinate_2d.y = (coordinate_3d->y + coordinate_3d->x) / 2 - coordinate_3d->z;
+		coordinate_2d.y = ((coordinate_3d->y + coordinate_3d->x) >> 1) - coordinate_3d->z;
 		break;
 	case 1:
 		coordinate_2d.x = -coordinate_3d->y - coordinate_3d->x;
-		coordinate_2d.y = (coordinate_3d->y - coordinate_3d->x) / 2 - coordinate_3d->z;
+		coordinate_2d.y = ((coordinate_3d->y - coordinate_3d->x) >> 1) - coordinate_3d->z;
 		break;
 	case 2:
 		coordinate_2d.x = -coordinate_3d->y + coordinate_3d->x;
-		coordinate_2d.y = (-coordinate_3d->y - coordinate_3d->x) / 2 - coordinate_3d->z;
+		coordinate_2d.y = ((-coordinate_3d->y - coordinate_3d->x) >> 1) - coordinate_3d->z;
 		break;
 	case 3:
 		coordinate_2d.x = coordinate_3d->y + coordinate_3d->x;
-		coordinate_2d.y = (-coordinate_3d->y + coordinate_3d->x) / 2 - coordinate_3d->z;
+		coordinate_2d.y = ((-coordinate_3d->y + coordinate_3d->x) >> 1) - coordinate_3d->z;
 		break;
 	}
 	return coordinate_2d;
@@ -318,7 +314,7 @@ void map_init(int size)
 	rct_map_element *map_element;
 
 	date_reset();
-	RCT2_GLOBAL(0x0138B580, sint16) = 0;
+	gNumMapAnimations = 0;
 	RCT2_GLOBAL(0x010E63B8, sint32) = 0;
 
 	for (i = 0; i < MAX_TILE_MAP_ELEMENT_POINTERS; i++) {
@@ -650,58 +646,66 @@ int map_height_from_slope(int x, int y, int slope)
 	return 0;
 }
 
+bool map_is_location_valid(int x, int y)
+{
+	if (x <= (256 * 32) && x >= 0 && y <= (256 * 32) && y >= 0) {
+		return true;
+	}
+	return false;
+}
+
 /**
  *
  *  rct2: 0x00664F72
  */
-int map_is_location_owned(int x, int y, int z)
+bool map_is_location_owned(int x, int y, int z)
 {
 	rct_map_element *mapElement;
 
 	// This check is to avoid throwing lots of messages in logs.
-	if (x < (256 * 32) && y < (256 * 32)) {
+	if (map_is_location_valid(x, y)) {
 		mapElement = map_get_surface_element_at(x / 32, y / 32);
 		if (mapElement != NULL) {
 			if (mapElement->properties.surface.ownership & OWNERSHIP_OWNED)
-				return 1;
+				return true;
 
 			if (mapElement->properties.surface.ownership & OWNERSHIP_CONSTRUCTION_RIGHTS_OWNED) {
 				z /= 8;
 				if (z < mapElement->base_height || z - 2 > mapElement->base_height)
-					return 1;
+					return true;
 			}
 		}
 	}
 
 	gGameCommandErrorText = STR_LAND_NOT_OWNED_BY_PARK;
-	return 0;
+	return false;
 }
 
 /**
  *
  *  rct2: 0x00664F2C
  */
-int map_is_location_in_park(int x, int y)
+bool map_is_location_in_park(int x, int y)
 {
 	rct_map_element *mapElement;
 
-	if (x < (256 * 32) && y < (256 * 32)) {
+	if (map_is_location_valid(x, y)) {
 		mapElement = map_get_surface_element_at(x / 32, y / 32);
 		if (mapElement == NULL)
-			return 0;
+			return false;
 		if (mapElement->properties.surface.ownership & OWNERSHIP_OWNED)
-			return 1;
+			return true;
 	}
 
 	gGameCommandErrorText = STR_LAND_NOT_OWNED_BY_PARK;
-	return 0;
+	return false;
 }
 
 bool map_is_location_owned_or_has_rights(int x, int y)
 {
 	rct_map_element *mapElement;
 
-	if (x < (256 * 32) && y < (256 * 32)) {
+	if (map_is_location_valid(x, y)) {
 		mapElement = map_get_surface_element_at(x / 32, y / 32);
 		if (mapElement->properties.surface.ownership & OWNERSHIP_OWNED) return true;
 		if (mapElement->properties.surface.ownership & OWNERSHIP_CONSTRUCTION_RIGHTS_OWNED) return true;
@@ -1824,16 +1828,7 @@ money32 map_set_land_ownership(uint8 flags, sint16 x1, sint16 y1, sint16 x2, sin
 	y1 = clamp(0, y1, gMapSizeUnits);
 	x2 = min(x2, gMapSizeUnits);
 	y2 = min(y2, gMapSizeUnits);
-	for (sint16 y = y1; y <= y2; y += 32) {
-		for (sint16 x = x1; x <= x2; x += 32) {
-			if (x > gMapSizeUnits)
-				continue;
-			if (y > gMapSizeUnits)
-				continue;
-
-			map_buy_land_rights(x, y, x2, y2, 6, flags | (newOwnership << 8));
-		}
-	}
+	map_buy_land_rights(x1, y1, x2, y2, 6, flags | (newOwnership << 8));
 
 	if (!(RCT2_GLOBAL(0x9E2E28, uint8) & 1)) {
 		return 0;
@@ -2248,7 +2243,7 @@ static int map_get_corner_height(rct_map_element *mapElement, int direction)
 static money32 smooth_land_tile(int direction, uint8 flags, int x, int y, int targetBaseZ, int minBaseZ)
 {
 	// Check if inside map bounds
-	if (x < 0 || y < 0 || x >= (256 * 32) || y >= (256 * 32)) {
+	if (!map_is_location_valid(x, y)) {
 		return MONEY32_UNDEFINED;
 	}
 
@@ -2929,8 +2924,8 @@ void game_command_place_scenery(int* eax, int* ebx, int* ecx, int* edx, int* esi
 	gCommandPosition.x += 16;
 	gCommandPosition.y += 16;
 	if(game_is_not_paused() || gCheatsBuildInPauseMode){
-		if(sub_68B044()){
-			if(RCT2_GLOBAL(0x009D8150, uint8) & 1 || (x <= gMapSizeMaxXY && y <= gMapSizeMaxXY)){
+		if (sub_68B044()) {
+			if ((byte_9D8150 & 1) || (x <= gMapSizeMaxXY && y <= gMapSizeMaxXY)) {
 				rct_scenery_entry* scenery_entry = (rct_scenery_entry*)object_entry_groups[OBJECT_TYPE_SMALL_SCENERY].chunks[scenery_type];
 				if(scenery_entry->small_scenery.flags & SMALL_SCENERY_FLAG_FULL_TILE || !(scenery_entry->small_scenery.flags & SMALL_SCENERY_FLAG9)){
 					if(scenery_entry->small_scenery.flags & (SMALL_SCENERY_FLAG9 | SMALL_SCENERY_FLAG24 | SMALL_SCENERY_FLAG25)){
@@ -5423,6 +5418,7 @@ rct_map_element *map_get_track_element_at_of_type_seq(int x, int y, int z, int t
 {
 	rct_map_element *mapElement = map_get_first_element_at(x >> 5, y >> 5);
 	do {
+		if (mapElement == NULL) break;
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_TRACK) continue;
 		if (mapElement->base_height != z) continue;
 		if (mapElement->properties.track.type != trackType) continue;
@@ -5498,3 +5494,25 @@ rct_map_element *map_get_track_element_at_with_direction_from_ride(int x, int y,
 
 	return NULL;
 };
+
+void map_offset_with_rotation(sint16 *x, sint16 *y, sint16 offsetX, sint16 offsetY, uint8 rotation)
+{
+	switch (rotation & 3) {
+	case MAP_ELEMENT_DIRECTION_WEST:
+		*x += offsetX;
+		*y += offsetY;
+		break;
+	case MAP_ELEMENT_DIRECTION_NORTH:
+		*x += offsetY;
+		*y -= offsetX;
+		break;
+	case MAP_ELEMENT_DIRECTION_EAST:
+		*x -= offsetX;
+		*y -= offsetY;
+		break;
+	case MAP_ELEMENT_DIRECTION_SOUTH:
+		*x -= offsetY;
+		*y += offsetX;
+		break;
+	}
+}

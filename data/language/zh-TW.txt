@@ -3364,7 +3364,7 @@ STR_3353    :新名稱含有不合適的字符
 STR_3354    :已有另外一個相同名稱的檔案, 或檔案被寫入保護
 STR_3355    :檔案被寫入保護或被鎖定
 STR_3356    :刪除檔案
-STR_3357    :{WINDOW_COLOUR_2}你確定要永久刪除{STRINGID} ?
+STR_3357    :{WINDOW_COLOUR_2}你確定要永久刪除{STRING} ?
 STR_3358    :不能刪除軌道設計...
 STR_3359    :{BLACK}這類遊樂設施沒有已設計好的軌道設計
 STR_3360    :警告!
@@ -4111,7 +4111,16 @@ STR_5801    :禁止亂拋垃圾
 STR_5802    :{SMALLFONT}{BLACK}停止遊客亂拋垃圾及嘔吐的行為
 STR_5803    :{SMALLFONT}{BLACK}旋轉被選中的地圖元素
 STR_5804    :靜音
-
+STR_5805    :{SMALLFONT}{BLACK}如勾選, 你的伺服器將會列名在公共伺服器列表上{NEWLINE}並容許其他人加入
+STR_5806    :設置為視窗化模式
+STR_5807    :{WINDOW_COLOUR_2}遊樂設施數目: {BLACK}{COMMA16}
+STR_5808    :{WINDOW_COLOUR_2}商店及攤販數目: {BLACK}{COMMA16}
+STR_5809    :{WINDOW_COLOUR_2}訪客資訊中心及其他設施數目: {BLACK}{COMMA16}
+STR_5810    :去除車卡長度限制
+STR_5811    :{SMALLFONT}{BLACK}勾選後, 你可以選擇高達每列車255車卡
+STR_5812    :顯示多人連線模式的視窗
+STR_5813    :{OPENQUOTES}{STRING}{ENDQUOTES}
+STR_5814    :{WINDOW_COLOUR_1}{OPENQUOTES}{STRING}{ENDQUOTES}
 
 #############
 # Scenarios #
@@ -4191,12 +4200,12 @@ STR_DTLS    :在Mystic Mountain的崎嶇不平森林中, 由零開始建造一�
 <Pacific Pyramids>
 STR_SCNR    :Pacific Pyramids
 STR_PARK    :Pacific Pyramids
-STR_DTLS    :Convert the Egyptian Ruins tourist attraction into a thriving theme park
+STR_DTLS    :將這個一直為旅遊景點的埃及遺址轉型成一個很受歡迎的樂園
 
 <Crumbly Woods>
 STR_SCNR    :Crumbly Woods
 STR_PARK    :Crumbly Woods
-STR_DTLS    :A large park with well-designed but rather old rides - Replace the old rides or add new rides to make the park more popular
+STR_DTLS    :一個擁有老舊但設計妥善的遊樂設施的大型樂園 - 取代那些遊樂設施或添加新的遊樂設施來使樂園變得更受歡迎
 
 <Paradise Pier>
 STR_SCNR    :Paradise Pier
@@ -4206,7 +4215,7 @@ STR_DTLS    :將這個平凡無奇的小鎮碼頭轉型成一個很受歡迎的�
 <Lightning Peaks>
 STR_SCNR    :Lightning Peaks
 STR_PARK    :Lightning Peaks
-STR_DTLS    :The beautiful mountains of Lightning Peaks are popular with walkers and sightseers - Use the available land to attract a new thrill-seeking clientele
+STR_DTLS    :雄偉的Lightning Peaks一直都是遊客及觀光客的首選 - 善用可用的土地來吸引尋找刺激的新顧客
 
 <Ivory Towers>
 STR_SCNR    :Ivory Towers
@@ -4216,7 +4225,7 @@ STR_DTLS    :一個有數項問題的知名樂園
 <Rainbow Valley>
 STR_SCNR    :Rainbow Valley
 STR_PARK    :Rainbow Valley
-STR_DTLS    :Rainbow Valley's local authority won't allow any landscape changes or large tree removal, but you must develop the area into a large theme park
+STR_DTLS    :Rainbow Valley的當地政府不容許改變土地或移除樹木, 但你要將此地區發展為一個大型樂園
 
 <Thunder Rock>
 STR_SCNR    :Thunder Rock

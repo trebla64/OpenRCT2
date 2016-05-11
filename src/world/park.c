@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../cheats.h"
@@ -93,7 +89,7 @@ void park_init()
 	gParkRating = 0;
 	_guestGenerationProbability = 0;
 	gTotalRideValue = 0;
-	RCT2_GLOBAL(RCT2_ADDRESS_LAST_RESEARCHED_ITEM_SUBJECT, sint32) = -1;
+	gResearchLastItemSubject = (uint32)-1;
 
 	for (i = 0; i < 20; i++)
 		gMarketingCampaignDaysLeft[i] = 0;
@@ -102,7 +98,7 @@ void park_init()
 	finance_init();
 
 	for (i = 0; i < 2; i++)
-		RCT2_ADDRESS(0x01357404, uint32)[i] = 0;
+		gResearchedRideTypes[i] = 0;
 
 	for (i = 0; i < 56; i++)
 		RCT2_ADDRESS(0x01357BD0, sint32)[i] = -1;
@@ -282,11 +278,11 @@ int calculate_park_rating()
 		short num_litter;
 
 		num_litter = 0;
-		for (sprite_idx = RCT2_GLOBAL(RCT2_ADDRESS_SPRITES_START_LITTER, uint16); sprite_idx != SPRITE_INDEX_NULL; sprite_idx = litter->next) {
+		for (sprite_idx = gSpriteListHead[SPRITE_LIST_LITTER]; sprite_idx != SPRITE_INDEX_NULL; sprite_idx = litter->next) {
 			litter = &(g_sprite_list[sprite_idx].litter);
 
 			// Ignore recently dropped litter
-			if (litter->creationTick - RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) >= 7680)
+			if (litter->creationTick - gScenarioTicks >= 7680)
 				num_litter++;
 		}
 		result -= 600 - (4 * (150 - min(150, num_litter)));
@@ -701,11 +697,11 @@ void game_command_set_park_open(int* eax, int* ebx, int* ecx, int* edx, int* esi
 		}
 		break;
 	case 2:
-		RCT2_GLOBAL(0x01358838, uint32) = *edi;
+		gSamePriceThroughoutParkA = *edi;
 		window_invalidate_by_class(WC_RIDE);
 		break;
 	case 3:
-		RCT2_GLOBAL(0x0135934C, uint32) = *edi;
+		gSamePriceThroughoutParkB = *edi;
 		window_invalidate_by_class(WC_RIDE);
 		break;
 	}

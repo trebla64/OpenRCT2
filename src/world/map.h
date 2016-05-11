@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _MAP_H_
 #define _MAP_H_
@@ -241,11 +237,15 @@ typedef struct {
 	};
 } rct_xy8;
 
+typedef struct {
+	uint8 x, y, z;
+} rct_xyz8;
+
 typedef struct{
 	uint8 x, y, z, direction;
 } rct_xyzd8;
 
-typedef struct {
+typedef struct rct_xy16{
 	sint16 x, y;
 } rct_xy16;
 
@@ -326,8 +326,9 @@ int map_element_height(int x, int y);
 void sub_68B089();
 int map_coord_is_connected(int x, int y, int z, uint8 faceDirection);
 void map_update_path_wide_flags();
-int map_is_location_owned(int x, int y, int z);
-int map_is_location_in_park(int x, int y);
+bool map_is_location_valid(int x, int y);
+bool map_is_location_owned(int x, int y, int z);
+bool map_is_location_in_park(int x, int y);
 bool map_is_location_owned_or_has_rights(int x, int y);
 bool map_surface_is_blocked(sint16 x, sint16 y);
 int map_get_station(rct_map_element *mapElement);
@@ -424,6 +425,8 @@ bool map_large_scenery_get_origin(
 	int x, int y, int z, int direction, int sequence,
 	int *outX, int *outY, int *outZ, rct_map_element** outElement
 );
+
+void map_offset_with_rotation(sint16 *x, sint16 *y, sint16 offsetX, sint16 offsetY, uint8 rotation);
 
 rct_map_element *map_get_track_element_at(int x, int y, int z);
 rct_map_element *map_get_track_element_at_of_type(int x, int y, int z, int trackType);

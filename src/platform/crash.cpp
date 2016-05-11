@@ -1,3 +1,19 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
+/*****************************************************************************
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
+
 #include <SDL_platform.h>
 #include "crash.h"
 
@@ -36,7 +52,10 @@ static bool OnCrash(const wchar_t * dumpPath,
     {
         constexpr const char * DumpFailedMessage = "Failed to create the dump. Nothing left to do. Please file an issue with OpenRCT2 on Github and provide latest save.";
         printf("%s\n", DumpFailedMessage);
-        MessageBoxA(NULL, DumpFailedMessage, OPENRCT2_NAME, MB_OK | MB_ICONERROR);
+        if (!gOpenRCT2SilentBreakpad)
+        {
+            MessageBoxA(NULL, DumpFailedMessage, OPENRCT2_NAME, MB_OK | MB_ICONERROR);
+        }
         return succeeded;
     }
 
@@ -61,6 +80,10 @@ static bool OnCrash(const wchar_t * dumpPath,
         SDL_RWclose(rw);
     }
 
+    if (gOpenRCT2SilentBreakpad)
+    {
+        return succeeded;
+    }
     constexpr const wchar_t * MessageFormat = L"A crash has occurred and dump was created at\n%s.\n\nPlease create an issue with OpenRCT2 on Github and provide the dump and save.\n\nVersion: %s\nCommit: %s";
     wchar_t message[MAX_PATH * 2];
     swprintf_s(message,

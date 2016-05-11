@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
-* Copyright (c) 2014 Ted John, Duncan Frost
-* OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
-*
-* This file is part of OpenRCT2.
-*
-* OpenRCT2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*****************************************************************************/
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
 
 #include "../addresses.h"
 #include "../config.h"
@@ -732,7 +728,7 @@ void window_guest_viewport_init(rct_window* w){
 			|| peep->state == PEEP_STATE_ENTERING_RIDE
 			|| (peep->state == PEEP_STATE_LEAVING_RIDE && peep->x == SPRITE_LOCATION_NULL)){
 
-			rct_ride* ride = &(RCT2_ADDRESS(RCT2_ADDRESS_RIDE_LIST, rct_ride)[peep->current_ride]);
+			rct_ride *ride = get_ride(peep->current_ride);
 			if (ride->lifecycle_flags & RIDE_LIFECYCLE_ON_TRACK){
 				rct_vehicle* train = GET_VEHICLE(ride->vehicles[peep->current_train]);
 				int car = peep->current_car;
@@ -746,7 +742,7 @@ void window_guest_viewport_init(rct_window* w){
 			}
 		}
 		if (peep->x == SPRITE_LOCATION_NULL && final_check){
-			rct_ride* ride = &(RCT2_ADDRESS(RCT2_ADDRESS_RIDE_LIST, rct_ride)[peep->current_ride]);
+			rct_ride *ride = get_ride(peep->current_ride);
 			int x = (ride->overall_view & 0xFF) * 32 + 16;
 			int y = (ride->overall_view >> 8) * 32 + 16;
 			int height = map_element_height(x, y);
@@ -1159,9 +1155,9 @@ void window_guest_overview_text_input(rct_window *w, int widgetIndex, char *text
 		return;
 
 	gGameCommandErrorTitle = STR_CANT_NAME_GUEST;
-	game_do_command(1, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 0)), GAME_COMMAND_SET_PEEP_NAME, *((int*)(text + 8)), *((int*)(text + 4)));
-	game_do_command(2, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 12)), GAME_COMMAND_SET_PEEP_NAME, *((int*)(text + 20)), *((int*)(text + 16)));
-	game_do_command(0, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 24)), GAME_COMMAND_SET_PEEP_NAME, *((int*)(text + 32)), *((int*)(text + 28)));
+	game_do_command(1, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 0)), GAME_COMMAND_SET_GUEST_NAME, *((int*)(text + 8)), *((int*)(text + 4)));
+	game_do_command(2, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 12)), GAME_COMMAND_SET_GUEST_NAME, *((int*)(text + 20)), *((int*)(text + 16)));
+	game_do_command(0, GAME_COMMAND_FLAG_APPLY, w->number, *((int*)(text + 24)), GAME_COMMAND_SET_GUEST_NAME, *((int*)(text + 32)), *((int*)(text + 28)));
 }
 
 /**
@@ -1534,7 +1530,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	// Time in park
 	y += 11;
 	if (peep->time_in_park != -1){
-		int eax = RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32);
+		int eax = gScenarioTicks;
 		eax -= peep->time_in_park;
 		eax >>= 11;
 		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = eax & 0xFFFF;
@@ -1591,7 +1587,7 @@ void window_guest_rides_update(rct_window *w)
 	rct_peep* peep = GET_PEEP(w->number);
 
 	// Every 2048 ticks do a full window_invalidate
-	int number_of_ticks = RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_TICKS, uint32) - peep->time_in_park;
+	int number_of_ticks = gScenarioTicks - peep->time_in_park;
 	if (!(number_of_ticks & 0x7FF)) window_invalidate(w);
 
 	uint8 curr_list_position = 0;

@@ -1,23 +1,19 @@
-
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
-* Copyright (c) 2014 Dániel Tar
-* OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
-*
-* This file is part of OpenRCT2.
-*
-* OpenRCT2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
+ * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
+ *
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
+ *
+ * OpenRCT2 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
+ *****************************************************************************/
+#pragma endregion
 
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*****************************************************************************/
 
 #include "../addresses.h"
 #include "../audio/audio.h"
@@ -33,6 +29,8 @@
 #include "../ride/ride.h"
 #include "../ride/ride_data.h"
 #include "../ride/track.h"
+#include "../ride/track_data.h"
+#include "../ride/track_design.h"
 #include "../scenario.h"
 #include "../util/util.h"
 #include "../world/footpath.h"
@@ -1936,18 +1934,17 @@ static int get_object_from_object_selection(uint8 object_type, int y, uint8 *obj
  */
 static void window_editor_object_selection_manage_tracks()
 {
-	RCT2_GLOBAL(0x1357404, sint32) = -1;
-	RCT2_GLOBAL(0x1357408, sint32) = -1;
-	RCT2_GLOBAL(0x135740C, sint32) = -1;
-	RCT2_GLOBAL(0x1357410, sint32) = -1;
-
-	for (int i = 0; i < 128; ++i){
-		RCT2_ADDRESS(0x1357444, uint32)[i] = RCT2_ADDRESS(0x97C468, uint32)[i];
-		RCT2_ADDRESS(0x1357644, uint32)[i] = RCT2_ADDRESS(0x97C5D4, uint32)[i];
+	for (int i = 0; i < 4; i++) {
+		gResearchedRideTypes[i] = 0xFFFFFFFF;
 	}
 
-	for (int i = 0; i < 8; ++i){
-		RCT2_ADDRESS(0x1357424, sint32)[i] = -1;
+	for (int i = 0; i < 128; i++) {
+		gResearchedTrackTypesA[i] = (RideTypePossibleTrackConfigurations[i]         ) & 0xFFFFFFFFULL;
+		gResearchedTrackTypesB[i] = (RideTypePossibleTrackConfigurations[i] >> 32ULL) & 0xFFFFFFFFULL;
+	}
+
+	for (int i = 0; i < 8; i++) {
+		gResearchedRideEntries[i] = 0xFFFFFFFF;
 	}
 
 	RCT2_GLOBAL(0x141F570, uint8) = 7;
@@ -1965,7 +1962,7 @@ static void window_editor_object_selection_manage_tracks()
 	RCT2_GLOBAL(0xF44158, uint8) = ride_type;
 
 	ride_list_item item = { ride_type, entry_index };
-	track_load_list(item);
+	// track_load_list(item);
 	window_track_list_open(item);
 }
 

@@ -1,22 +1,18 @@
+#pragma region Copyright (c) 2014-2016 OpenRCT2 Developers
 /*****************************************************************************
- * Copyright (c) 2014 Ted John, Peter Hill
  * OpenRCT2, an open source clone of Roller Coaster Tycoon 2.
  *
- * This file is part of OpenRCT2.
+ * OpenRCT2 is the work of many authors, a full list can be found in contributors.md
+ * For more information, visit https://github.com/OpenRCT2/OpenRCT2
  *
  * OpenRCT2 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * A full copy of the GNU General Public License can be found in licence.txt
  *****************************************************************************/
+#pragma endregion
 
 #ifndef _RIDE_H_
 #define _RIDE_H_
@@ -32,6 +28,7 @@ typedef fixed16_2dp ride_rating;
 // Convenience function for writing ride ratings. The result is a 16 bit signed
 // integer. To create the ride rating 3.65 type RIDE_RATING(3,65)
 #define RIDE_RATING(whole, fraction)	FIXED_2DP(whole, fraction)
+
 
 // Used for return values, for functions that modify all three.
 typedef struct {
@@ -819,6 +816,7 @@ enum {
 	SHOP_ITEM_LEMONADE,
 	SHOP_ITEM_EMPTY_BOX,
 	SHOP_ITEM_EMPTY_BOTTLE,
+	SHOP_ITEM_ADMISSION = 31,
 	SHOP_ITEM_PHOTO2 = 32,
 	SHOP_ITEM_PHOTO3,
 	SHOP_ITEM_PHOTO4,
@@ -841,7 +839,8 @@ enum {
 	SHOP_ITEM_EMPTY_JUICE_CUP,
 	SHOP_ITEM_ROAST_SAUSAGE,
 	SHOP_ITEM_EMPTY_BOWL_BLUE,
-	SHOP_ITEM_COUNT = 56
+	SHOP_ITEM_COUNT = 56,
+	SHOP_ITEM_NONE = 255
 };
 
 enum {
@@ -875,6 +874,7 @@ enum {
 /** Helper macros until rides are stored in this module. */
 rct_ride *get_ride(int index);
 rct_ride_entry *get_ride_entry(int index);
+void get_ride_entry_name(char *name, int index);
 rct_ride_measurement *get_ride_measurement(int index);
 
 /**
@@ -884,9 +884,14 @@ rct_ride_measurement *get_ride_measurement(int index);
 	for (i = 0; i < MAX_RIDES; i++) \
 		if ((ride = get_ride(i))->type != RIDE_TYPE_NULL)
 
-#define gTotalRideValue			RCT2_GLOBAL(RCT2_TOTAL_RIDE_VALUE, money16)
+#define gTotalRideValue				RCT2_GLOBAL(RCT2_TOTAL_RIDE_VALUE, money16)
+#define gSamePriceThroughoutParkA	RCT2_GLOBAL(RCT2_ADDRESS_SAME_PRICE_THROUGHOUT, uint32)
+#define gSamePriceThroughoutParkB	RCT2_GLOBAL(RCT2_ADDRESS_SAME_PRICE_THROUGHOUT_EXTENDED, uint32)
 
 extern const uint8 gRideClassifications[255];
+
+extern rct_ride *gRideList;
+extern rct_ride_measurement *gRideMeasurements;
 
 extern money32 _currentTrackPrice;
 
@@ -975,6 +980,7 @@ void ride_set_name(int rideIndex, const char *name);
 void game_command_set_ride_name(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 void game_command_set_ride_setting(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 int ride_get_refund_price(int ride_id);
+bool shop_item_has_common_price(int shopItem);
 void game_command_create_ride(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 void game_command_callback_ride_construct_new(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp);
 void game_command_callback_ride_construct_placed_front(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp);
@@ -983,6 +989,7 @@ void game_command_callback_ride_remove_track_piece(int eax, int ebx, int ecx, in
 void game_command_demolish_ride(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 void game_command_set_ride_appearance(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
 void game_command_set_ride_price(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp);
+money32 ride_create_command(int type, int subType, int flags, uint8 *outRideIndex, uint8 *outRideColour);
 
 void ride_clear_for_construction(int rideIndex);
 void set_vehicle_type_image_max_sizes(rct_ride_entry_vehicle* vehicle_type, int num_images);
@@ -1030,12 +1037,13 @@ void ride_get_entrance_or_exit_position_from_screen_position(int x, int y, int *
 bool ride_select_backwards_from_front();
 bool ride_select_forwards_from_back();
 
-money32 ride_remove_track_piece(int x, int y, int z, int direction, int type);
+money32 ride_remove_track_piece(int x, int y, int z, int direction, int type, uint8 flags);
 
 bool ride_are_all_possible_entrances_and_exits_built(rct_ride *ride);
 void ride_fix_breakdown(int rideIndex, int reliabilityIncreaseFactor);
 
 void ride_entry_get_train_layout(int rideEntryIndex, int numCarsPerTrain, uint8 *trainLayout);
+uint8 ride_entry_get_vehicle_at_position(int rideEntryIndex, int numCarsPerTrain, int position);
 void ride_update_max_vehicles(int rideIndex);
 
 void ride_set_ride_entry(int rideIndex, int rideEntry);
@@ -1071,5 +1079,7 @@ rct_vehicle * ride_get_broken_vehicle(rct_ride *ride);
 void window_ride_construction_do_station_check();
 void window_ride_construction_do_entrance_exit_check();
 void game_command_callback_place_ride_entrance_or_exit(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp);
+
+void ride_delete(uint8 rideIndex);
 
 #endif

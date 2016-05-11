@@ -3362,7 +3362,7 @@ STR_3353    :Neuer Name enthält ungültige Zeichen
 STR_3354    :Entweder besteht bereits eine Datei mit diesem Namen oder die Datei ist schreibgeschützt
 STR_3355    :Datei ist schreibgeschützt oder gesperrt
 STR_3356    :Datei löschen
-STR_3357    :{WINDOW_COLOUR_2}Soll {STRINGID} wirklich dauerhaft gelöscht werden?
+STR_3357    :{WINDOW_COLOUR_2}Soll {STRING} wirklich dauerhaft gelöscht werden?
 STR_3358    :Streckenentwurf kann nicht gelöscht werden...
 STR_3359    :{BLACK}Keine Streckenentwürfe dieser Art
 STR_3360    :Warnung!
@@ -4104,6 +4104,15 @@ STR_5802    :{SMALLFONT}{BLACK}Hält Besucher davon ab Müll wegzuwerfen oder si
 STR_5803    :{SMALLFONT}{BLACK}Ausgewähltes Kartenelement drehen
 STR_5804    :Ton ein-/ausschalten
 STR_5805    :{SMALLFONT}{BLACK}Wenn aktiviert, wird der Server zur öffentlichen Serverliste hinzugefügt und für jeden sichtbar
+STR_5806    :Fenstermodus ein-/ausschalten
+STR_5807    :{WINDOW_COLOUR_2}Anzahl der Bahnen: {BLACK}{COMMA16}
+STR_5808    :{WINDOW_COLOUR_2}Anzahl der Läden und Stände: {BLACK}{COMMA16}
+STR_5809    :{WINDOW_COLOUR_2}Anzahl der Informationsstände und anderer Einrichtungen: {BLACK}{COMMA16}
+STR_5810    :Zuglängenlimit deaktivieren
+STR_5811    :{SMALLFONT}{BLACK}Dieser Cheat ermöglicht eine Zuglänge{NEWLINE}von bis zu 255 Wagen pro Zug
+STR_5812    :Mehrspielerstatus anzeigen
+STR_5813    :{OPENQUOTES}{STRING}{ENDQUOTES}
+STR_5814    :{WINDOW_COLOUR_1}{OPENQUOTES}{STRING}{ENDQUOTES}
 
 #############
 # Scenarios #
