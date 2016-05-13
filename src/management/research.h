@@ -19,7 +19,7 @@
 
 #include "../common.h"
 
-typedef struct {
+typedef struct rct_research_item {
 	// Bit 16 (0: scenery entry, 1: ride entry)
 	sint32 entryIndex;
 	uint8 category;
@@ -78,6 +78,7 @@ extern uint32 *gResearchedRideTypes;
 extern uint32 *gResearchedRideEntries;
 extern uint32 *gResearchedTrackTypesA;
 extern uint32 *gResearchedTrackTypesB;
+extern uint32 *gResearchedSceneryItems;
 extern bool gSilentResearch;
 
 void research_reset_items();

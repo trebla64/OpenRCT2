@@ -289,7 +289,7 @@ void S6Exporter::Export()
     _s6.mechanic_colour = gStaffMechanicColour;
     _s6.security_colour = gStaffSecurityColour;
 
-    memcpy(_s6.dword_01357BD0, RCT2_ADDRESS(0x01357BD0, uint32), sizeof(_s6.dword_01357BD0));
+    memcpy(_s6.researched_scenery_items, gResearchedSceneryItems, sizeof(_s6.researched_scenery_items));
 
     _s6.park_rating = gParkRating;
 
@@ -325,8 +325,8 @@ void S6Exporter::Export()
 
     _s6.current_expenditure = gCurrentExpenditure;
     _s6.current_profit = gCurrentProfit;
-    _s6.dword_01358334 = RCT2_GLOBAL(0x01358334, uint32);
-    _s6.word_01358338 = RCT2_GLOBAL(0x01358338, uint16);
+    _s6.weekly_profit_average_dividend = gWeeklyProfitAverageDividend;
+	_s6.weekly_profit_average_divisor = gWeeklyProfitAverageDivisor;
     // pad_0135833A
 
     memcpy(_s6.weekly_profit_history, gWeeklyProfitHistory, sizeof(_s6.weekly_profit_history));
@@ -339,15 +339,15 @@ void S6Exporter::Export()
     _s6.total_admissions = gTotalAdmissions;
     _s6.income_from_admissions = gTotalIncomeFromAdmissions;
     _s6.company_value = gCompanyValue;
-    memcpy(_s6.byte_01358750, RCT2_ADDRESS(0x01358750, uint8), sizeof(_s6.byte_01358750));
+    memcpy(_s6.peep_warning_throttle, gPeepWarningThrottle, sizeof(_s6.peep_warning_throttle));
     memcpy(_s6.awards, gCurrentAwards, sizeof(_s6.awards));
     _s6.land_price = gLandPrice;
     _s6.construction_rights_price = gConstructionRightsPrice;
     _s6.word_01358774 = RCT2_GLOBAL(0x01358774, uint16);
     // pad_01358776
-    memcpy(_s6.dword_01358778, RCT2_ADDRESS(0x01358778, uint32), sizeof(_s6.dword_01358778));
+    // _s6.cd_key
     // _s6.game_version_number
-    _s6.dword_013587C0 = RCT2_GLOBAL(0x013587C0, uint32);
+    _s6.completed_company_value_record = gScenarioCompanyValueRecord;
     _s6.loan_hash = RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32);
     _s6.ride_count = RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, uint16);
     // pad_013587CA

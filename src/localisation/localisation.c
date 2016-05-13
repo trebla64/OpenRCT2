@@ -32,7 +32,7 @@
 
 #pragma region Format codes
 
-typedef struct {
+typedef struct format_code_token {
 	uint32 code;
 	const char *token;
 } format_code_token;
@@ -188,7 +188,7 @@ void utf8_remove_formatting(utf8* string) {
 	utf8* writePtr = string;
 
 	while (true) {
-		uint32 code = utf8_get_next(readPtr, &readPtr);
+		uint32 code = utf8_get_next(readPtr, (const utf8**)&readPtr);
 
 		if (code == 0) {
 			*writePtr = 0;

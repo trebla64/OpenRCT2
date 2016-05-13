@@ -160,8 +160,9 @@ void window_editor_bottom_toolbar_jump_back_to_object_selection() {
  */
 static void sub_6DFED0()
 {
-	for (int i = 0; i < 56; i++)
-		RCT2_ADDRESS(0x01357BD0, sint32)[i] = -1;
+	for (int i = 0; i < 56; i++) {
+		gResearchedSceneryItems[i] = 0xFFFFFFFF;
+	}
 }
 
 /**
@@ -243,9 +244,14 @@ static void sub_66F6E3()
 		gResearchedRideTypes[i] = 0xFFFFFFFF;
 	}
 
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < countof(RideTypePossibleTrackConfigurations); i++) {
 		gResearchedTrackTypesA[i] = (RideTypePossibleTrackConfigurations[i]         ) & 0xFFFFFFFFULL;
 		gResearchedTrackTypesB[i] = (RideTypePossibleTrackConfigurations[i] >> 32ULL) & 0xFFFFFFFFULL;
+	}
+
+	for (int i = countof(RideTypePossibleTrackConfigurations); i < 128; i++) {
+		gResearchedTrackTypesA[i] = (uint32)-1;
+		gResearchedTrackTypesB[i] = (uint32)-1;
 	}
 
 	for (int i = 0; i < 8; i++) {

@@ -370,14 +370,14 @@ enum PEEP_RIDE_DECISION {
 	PEEP_RIDE_DECISION_THINKING = 1 << 2
 };
 
-typedef struct {
+typedef struct rct_peep_thought {
 	uint8 type;		//0
 	uint8 item;		//1
 	uint8 var_2;	//2
 	uint8 var_3;	//3
 } rct_peep_thought;
 
-typedef struct {
+typedef struct rct_peep {
 	uint8 sprite_identifier;		// 0x00
 	uint8 var_01;
 	uint16 next_in_quadrant;		// 0x02
@@ -606,6 +606,8 @@ enum {
 #define gGuestInitialThirst			RCT2_GLOBAL(RCT2_ADDRESS_GUEST_INITIAL_THIRST, uint8)
 
 #define gNextGuestNumber			RCT2_GLOBAL(RCT2_ADDRESS_NEXT_GUEST_NUMBER, uint32)
+
+extern uint8 *gPeepWarningThrottle;
 
 int peep_get_staff_count();
 int peep_can_be_picked_up(rct_peep* peep);

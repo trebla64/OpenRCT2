@@ -40,6 +40,8 @@
 #include "peep.h"
 #include "staff.h"
 
+uint8 *gPeepWarningThrottle = RCT2_ADDRESS(RCT2_ADDRESS_PEEP_WARNING_THROTTLE, uint8);
+
 enum {
 	PATH_SEARCH_DEAD_END,
 	PATH_SEARCH_RIDE_EXIT,
@@ -1109,7 +1111,7 @@ void set_sprite_type(rct_peep* peep, uint8 type){
 	}
 }
 
-typedef struct{
+typedef struct item_pref {
 	uint8 type; // 0 for standard, 1 for extra
 	uint32 item; // And this with the relevant flags
 	uint8 sprite_type;
@@ -5786,7 +5788,7 @@ void peep_problem_warnings_update()
 	uint16 guests_in_park = gNumGuestsInPark;
 	int hunger_counter = 0, lost_counter = 0, noexit_counter = 0, thirst_counter = 0,
 		litter_counter = 0, disgust_counter = 0, bathroom_counter = 0 ,vandalism_counter = 0;
-	uint8* warning_throttle = RCT2_ADDRESS(0x01358750, uint8);
+	uint8 *warning_throttle = gPeepWarningThrottle;
 
 	RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, sint16) = ride_get_count(); // refactor this to somewhere else
 

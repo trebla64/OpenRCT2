@@ -274,7 +274,7 @@ enum {
 	RIDE_SORT_RIDE
 };
 
-typedef struct {
+typedef struct list_item {
 	rct_object_entry *entry;
 	rct_object_filters *filter;
 	uint8 *flags;
@@ -1938,9 +1938,15 @@ static void window_editor_object_selection_manage_tracks()
 		gResearchedRideTypes[i] = 0xFFFFFFFF;
 	}
 
-	for (int i = 0; i < 128; i++) {
+	for (int i = 0; i < countof(RideTypePossibleTrackConfigurations); i++) {
 		gResearchedTrackTypesA[i] = (RideTypePossibleTrackConfigurations[i]         ) & 0xFFFFFFFFULL;
 		gResearchedTrackTypesB[i] = (RideTypePossibleTrackConfigurations[i] >> 32ULL) & 0xFFFFFFFFULL;
+	}
+
+
+	for (int i = countof(RideTypePossibleTrackConfigurations); i < 128; i++) {
+		gResearchedTrackTypesA[i] = (uint32)-1;
+		gResearchedTrackTypesB[i] = (uint32)-1;
 	}
 
 	for (int i = 0; i < 8; i++) {

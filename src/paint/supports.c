@@ -19,7 +19,7 @@
 #include "../paint/paint.h"
 #include "supports.h"
 
-typedef struct {
+typedef struct supports_id_desc {
 	uint16 full;
 	uint16 half;
 	uint16 flat;
@@ -58,7 +58,7 @@ const uint16 WoodenCurveSupportImageIds[] = {
 	0,
 };
 
-typedef struct {
+typedef struct unk_supports_desc_bound_box {
 	struct {
 		uint8 x, y, z;
 	} offset;
@@ -67,7 +67,7 @@ typedef struct {
 	} length;
 } unk_supports_desc_bound_box;
 
-typedef struct {
+typedef struct unk_supports_desc {
 	unk_supports_desc_bound_box bounding_box;
 	uint8 var_6;
 	uint8 var_7;
@@ -295,9 +295,10 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 				hasSupports = true;
 			} else {
 				hasSupports = true;
-				if (sub_98198C(imageId, 0, 0, bBox.length.x, bBox.length.y, bBox.length.z, z, bBox.offset.x, bBox.offset.y, bBox.offset.z + z, rotation)) {
-					int edi = RCT2_GLOBAL(0x009DEA58, uint32);
-					RCT2_GLOBAL(edi + 0x20, uint32) = imageColourFlags;
+				paint_struct* ps = sub_98198C(imageId, 0, 0, bBox.length.x, bBox.length.y, bBox.length.z, z, bBox.offset.x, bBox.offset.y, bBox.offset.z + z, rotation);
+				if (ps != NULL) {
+					paint_struct* edi = RCT2_GLOBAL(0x009DEA58, paint_struct*);
+					edi->var_20 = ps;
 				}
 			}
 		}

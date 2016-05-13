@@ -235,8 +235,8 @@ void scenario_begin()
 	memset((void*)0x001357848, 0, 56);
 	gCurrentExpenditure = 0;
 	gCurrentProfit = 0;
-	RCT2_GLOBAL(0x01358334, money32) = 0;
-	RCT2_GLOBAL(0x01358338, uint16) = 0;
+	gWeeklyProfitAverageDividend = 0;
+	gWeeklyProfitAverageDivisor = 0;
 	gScenarioCompletedCompanyValue = MONEY32_UNDEFINED;
 	gTotalAdmissions = 0;
 	gTotalIncomeFromAdmissions = 0;
@@ -324,7 +324,7 @@ void scenario_success()
 
 			// Allow name entry
 			gParkFlags |= PARK_FLAGS_SCENARIO_COMPLETE_NAME_INPUT;
-			RCT2_GLOBAL(0x013587C0, money32) = companyValue;
+			gScenarioCompanyValueRecord = companyValue;
 			scenario_scores_save();
 		}
 	}
@@ -339,7 +339,7 @@ void scenario_success_submit_name(const char *name)
 {
 	scenario_index_entry *scenario = scenario_list_find_by_filename(_scenarioFileName);
 	if (scenario != NULL) {
-		money32 scenarioWinCompanyValue = RCT2_GLOBAL(0x013587C0, money32);
+		money32 scenarioWinCompanyValue = gScenarioCompanyValueRecord;
 		if (scenario->highscore->company_value == scenarioWinCompanyValue) {
 			scenario->highscore->name = _strdup(name);
 			safe_strcpy(gScenarioCompletedBy, name, 32);
