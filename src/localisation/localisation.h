@@ -61,5 +61,18 @@ extern const char real_name_initials[16];
 extern const char *real_names[1024];
 
 extern utf8 *gUserStrings;
+extern uint8 gCommonFormatArgs[80];
+extern uint8 gMapTooltipFormatArgs[40];
+
+static inline void set_format_arg_body(uint8 *args, size_t offset, uintptr_t value, size_t size)
+{
+	memcpy(args + offset, &value, size);
+}
+
+#define set_format_arg(offset, type, value)	\
+	set_format_arg_body(gCommonFormatArgs, offset, (uintptr_t)value, sizeof(type))
+
+#define set_map_tooltip_format_arg(offset, type, value) \
+	set_format_arg_body(gMapTooltipFormatArgs, offset, (uintptr_t)value, sizeof(type))
 
 #endif

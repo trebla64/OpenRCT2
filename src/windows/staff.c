@@ -299,8 +299,6 @@ rct_window *window_staff_open(rct_peep* peep)
 	if (w == NULL) {
 		w = window_create_auto_pos(WW, WH, &window_staff_overview_events, WC_PEEP, WF_10 | WF_RESIZABLE);
 
-		w->widgets = RCT2_GLOBAL(0x9AF81C, rct_widget*);
-		w->enabled_widgets = RCT2_GLOBAL(0x9929B0, uint32);
 		w->number = peep->sprite_index;
 		w->page = 0;
 		w->viewport_focus_coordinates.y = 0;
@@ -556,8 +554,6 @@ void window_staff_overview_dropdown(rct_window *w, int widgetIndex, int dropdown
 	// Clear patrol
 	if (dropdownIndex == 1) {
 		rct_peep* peep = GET_PEEP(w->number);
-		int edi = peep->staff_id;
-		int ebx = edi << 9;
 
 		for (int i = 0; i < 128; i++)
 		{
@@ -571,7 +567,7 @@ void window_staff_overview_dropdown(rct_window *w, int widgetIndex, int dropdown
 	else {
 		if (!tool_set(w, widgetIndex, 22)) {
 			show_gridlines();
-			RCT2_GLOBAL(0x009DEA50, sint16) = w->number;
+			gStaffDrawPatrolAreas = w->number;
 			gfx_invalidate_screen();
 		}
 	}
@@ -732,8 +728,8 @@ void window_staff_stats_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
+	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(2, uint32, peep->id);
 
 	window_staff_stats_widgets[WIDX_BACKGROUND].right = w->width - 1;
 	window_staff_stats_widgets[WIDX_BACKGROUND].bottom = w->height - 1;
@@ -767,8 +763,8 @@ void window_staff_options_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
+	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(2, uint32, peep->id);
 
 	switch (peep->staff_type){
 	case STAFF_TYPE_ENTERTAINER:
@@ -842,8 +838,8 @@ void window_staff_overview_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
+	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(2, uint32, peep->id);
 
 	window_staff_overview_widgets[WIDX_BACKGROUND].right = w->width - 1;
 	window_staff_overview_widgets[WIDX_BACKGROUND].bottom = w->height - 1;
@@ -906,13 +902,13 @@ void window_staff_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	uint32 argument1, argument2;
 	rct_peep* peep = GET_PEEP(w->number);
 	get_arguments_from_action(peep, &argument1, &argument2);
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = argument1;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32) = argument2;
+	set_format_arg(0, uint32, argument1);
+	set_format_arg(4, uint32, argument2);
 	rct_widget* widget = &w->widgets[WIDX_BTM_LABEL];
 	int x = (widget->left + widget->right) / 2 + w->x;
 	int y = w->y + widget->top;
 	int width = widget->right - widget->left;
-	gfx_draw_string_centred_clipped(dpi, 1191, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, x, y, width);
+	gfx_draw_string_centred_clipped(dpi, 1191, gCommonFormatArgs, 0, x, y, width);
 }
 
 /**
@@ -1048,11 +1044,9 @@ void window_staff_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int x = w->x + window_staff_stats_widgets[WIDX_RESIZE].left + 4;
 	int y = w->y + window_staff_stats_widgets[WIDX_RESIZE].top + 4;
 
-	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)){
-
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS,uint32) = RCT2_ADDRESS(0x992A00,uint16)[peep->staff_type];
-		gfx_draw_string_left(dpi, 2349, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0,x, y);
-
+	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
+		set_format_arg(0, uint32, RCT2_ADDRESS(0x00992A00, uint16)[peep->staff_type]);
+		gfx_draw_string_left(dpi, 2349, gCommonFormatArgs, 0, x, y);
 		y += 10;
 	}
 
@@ -1094,17 +1088,17 @@ void window_staff_overview_tool_update(rct_window* w, int widgetIndex, int x, in
 
 	map_invalidate_selection_rect();
 
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) &= ~(1 << 0);
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE;
 
 	int map_x, map_y;
 	footpath_get_coordinates_from_pos(x, y + 16, &map_x, &map_y, NULL, NULL);
 	if (map_x != (sint16)0x8000) {
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) |= 1;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_TYPE, uint16) = 4;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_X, sint16) = map_x;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_X, sint16) = map_x;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_Y, sint16) = map_y;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_Y, sint16) = map_y;
+		gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE;
+		gMapSelectType = MAP_SELECT_TYPE_FULL;
+		gMapSelectPositionA.x = map_x;
+		gMapSelectPositionB.x = map_x;
+		gMapSelectPositionA.y = map_y;
+		gMapSelectPositionB.y = map_y;
 		map_invalidate_selection_rect();
 	}
 
@@ -1224,7 +1218,7 @@ void window_staff_overview_tool_abort(rct_window *w, int widgetIndex)
 	}
 	else if (widgetIndex == WIDX_PATROL){
 		hide_gridlines();
-		RCT2_GLOBAL(0x009DEA50, sint16) = -1;
+		gStaffDrawPatrolAreas = 0xFFFF;
 		gfx_invalidate_screen();
 	}
 }
@@ -1336,7 +1330,7 @@ void window_staff_options_mousedown(int widgetIndex, rct_window* w, rct_widget* 
 	int ebx = 0;
 	for (int i = 0; i < 19; i++) {
 		if (window_scenery_tab_entries[i][0] != -1) {
-			rct_scenery_set_entry* scenery_entry = g_scenerySetEntries[i];
+			rct_scenery_set_entry* scenery_entry = get_scenery_group_entry(i);
 			ebx |= scenery_entry->var_10A;
 		}
 	}

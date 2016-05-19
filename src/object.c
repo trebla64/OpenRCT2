@@ -97,10 +97,7 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 
 	// Calculate and check checksum
 	if (calculatedChecksum != openedEntry.checksum && !gConfigGeneral.allow_loading_with_incorrect_checksum) {
-		char buffer[100];
-		sprintf(buffer, "Object Load failed due to checksum failure: calculated checksum %d, object says %d.", calculatedChecksum, (int)openedEntry.checksum);
-		log_error(buffer);
-		RCT2_GLOBAL(0x00F42BD9, uint8) = 2;
+		log_error("Object Load failed due to checksum failure: calculated checksum %d, object says %d.", calculatedChecksum, (int)openedEntry.checksum);
 		free(chunk);
 		return 0;
 			
@@ -110,14 +107,12 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 
 	if (!object_test(objectType, chunk)) {
 		log_error("Object Load failed due to paint failure.");
-		RCT2_GLOBAL(0x00F42BD9, uint8) = 3;
 		free(chunk);
 		return 0;
 	}
 
 	if (RCT2_GLOBAL(RCT2_ADDRESS_TOTAL_NO_IMAGES, uint32) >= 0x4726E){
 		log_error("Object Load failed due to too many images loaded.");
-		RCT2_GLOBAL(0x00F42BD9, uint8) = 4;
 		free(chunk);
 		return 0;
 	}
@@ -127,7 +122,6 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 		for (groupIndex = 0; chunk_list[groupIndex] != (uint8*)-1; groupIndex++) {
 			if (groupIndex + 1 >= object_entry_group_counts[objectType]) {
 				log_error("Object Load failed due to too many objects of a certain type.");
-				RCT2_GLOBAL(0x00F42BD9, uint8) = 5;
 				free(chunk);
 				return 0;
 			}
@@ -162,7 +156,6 @@ int object_load_chunk(int groupIndex, rct_object_entry *entry, int* chunkSize)
 	RCT2_GLOBAL(0xF42B64, uint32) = groupIndex;
 
 	if (gInstalledObjectsCount == 0) {
-		RCT2_GLOBAL(0xF42BD9, uint8) = 0;
 		log_error("Object Load failed due to no items installed check.");
 		return 1;
 	}
@@ -359,7 +352,6 @@ int object_load_packed(SDL_RWops* rw)
 		for (char* curr_char = last_char - 1;; --curr_char){
 			if (*curr_char == '\\'){
 				substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), "00000000.DAT");
-				char* last_char = path + strlen(path);
 				break;
 			}
 			if (*curr_char < '0') *curr_char = '0';
@@ -401,6 +393,7 @@ void object_unload_chunk(rct_object_entry *entry)
 	object_unload(object_type, chunk);
 
 	free(chunk);
+	memset(&object_entry_groups[object_type].entries[object_index], 0, sizeof(rct_object_entry_extended));
 	object_entry_groups[object_type].chunks[object_index] = (uint8*)-1;
 }
 
@@ -1123,7 +1116,7 @@ static void object_type_wall_paint(void *objectEntry, rct_drawpixelinfo *dpi, si
 	if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG2){
 		imageId = sceneryEntry->image + 0x44500006;
 		gfx_draw_sprite(&clipDPI, imageId, x, y, 0);
-	} else if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG5){
+	} else if (sceneryEntry->wall.flags & WALL_SCENERY_IS_DOOR){
 		imageId++;
 		gfx_draw_sprite(&clipDPI, imageId, x, y, 0);
 	}
@@ -1213,7 +1206,7 @@ static const object_type_vtable object_type_banner_vtable[] = {
 
 static bool object_type_path_load(void *objectEntry, uint32 entryIndex)
 {
-	rct_path_type *pathEntry = (rct_path_type*)objectEntry;
+	rct_footpath_entry *pathEntry = (rct_footpath_entry*)objectEntry;
 	uint8 *extendedEntryData = (uint8*)((size_t)objectEntry + (size_t)0x0E);
 
 	pathEntry->string_idx = object_get_localised_text(&extendedEntryData, OBJECT_TYPE_PATHS, entryIndex, 0);
@@ -1226,26 +1219,12 @@ static bool object_type_path_load(void *objectEntry, uint32 entryIndex)
 		*RCT2_GLOBAL(0x9ADAF4, uint16*) = 0;
 	}
 
-	gFootpathSelectedId = 0;
-	// Set the default path for when opening footpath window
-	for (int i = 0; i < object_entry_group_counts[OBJECT_TYPE_PATHS]; i++) {
-		rct_path_type *pathEntry2 = (rct_path_type*)object_entry_groups[OBJECT_TYPE_PATHS].chunks[i];
-		if (pathEntry2 == (rct_path_type*)-1) {
-			continue;
-		}
-		if (!(pathEntry2->flags & 4)) {
-			gFootpathSelectedId = i;
-			break;
-		}
-		gFootpathSelectedId = i;
-	}
-
 	return true;
 }
 
 static void object_type_path_unload(void *objectEntry)
 {
-	rct_path_type *pathEntry = (rct_path_type*)objectEntry;
+	rct_footpath_entry *pathEntry = (rct_footpath_entry*)objectEntry;
 	pathEntry->string_idx = 0;
 	pathEntry->image = 0;
 	pathEntry->bridge_image = 0;
@@ -1253,14 +1232,14 @@ static void object_type_path_unload(void *objectEntry)
 
 static bool object_type_path_test(void *objectEntry)
 {
-	rct_path_type *pathEntry = (rct_path_type*)objectEntry;
+	rct_footpath_entry *pathEntry = (rct_footpath_entry*)objectEntry;
 	if (pathEntry->var_0A >= 2) return false;
 	return true;
 }
 
 static void object_type_path_paint(void *objectEntry, rct_drawpixelinfo *dpi, sint32 x, sint32 y)
 {
-	rct_path_type *pathEntry = (rct_path_type*)objectEntry;
+	rct_footpath_entry *pathEntry = (rct_footpath_entry*)objectEntry;
 	gfx_draw_sprite(dpi, pathEntry->image + 71, x - 49, y - 17, 0);
 	gfx_draw_sprite(dpi, pathEntry->image + 72, x + 4, y - 17, 0);
 }
@@ -1673,7 +1652,6 @@ int object_get_scenario_text(rct_object_entry *entry)
 
 	if (installedObject == NULL){
 		log_error("Object not found: %.8s", entry->name);
-		RCT2_GLOBAL(0x00F42BD9, uint8) = 0;
 		return 0;
 	}
 
@@ -1710,7 +1688,6 @@ int object_get_scenario_text(rct_object_entry *entry)
 			// Calculate and check checksum
 			if (object_calculate_checksum(&openedEntry, chunk, chunkSize) != openedEntry.checksum) {
 				log_error("Opened object failed calculated checksum.");
-				RCT2_GLOBAL(0x00F42BD9, uint8) = 2;
 				free(chunk);
 				return 0;
 			}
@@ -1718,7 +1695,6 @@ int object_get_scenario_text(rct_object_entry *entry)
 			if (!object_test(openedEntry.flags & 0x0F, chunk)) {
 				// This is impossible for STEX entries to fail.
 				log_error("Opened object failed paint test.");
-				RCT2_GLOBAL(0x00F42BD9, uint8) = 3;
 				free(chunk);
 				return 0;
 			}
@@ -1751,7 +1727,6 @@ int object_get_scenario_text(rct_object_entry *entry)
 		return 0;
 	}
 	log_error("File failed to open.");
-	RCT2_GLOBAL(0x00F42BD9, uint8) = 0;
 	return 0;
 }
 
@@ -1767,12 +1742,12 @@ void object_free_scenario_text()
 	}
 }
 
-int object_get_length(rct_object_entry *entry)
+uintptr_t object_get_length(const rct_object_entry *entry)
 {
-	return (int)object_get_next(entry) - (int)entry;
+	return (uintptr_t)object_get_next(entry) - (uintptr_t)entry;
 }
 
-rct_object_entry *object_get_next(rct_object_entry *entry)
+rct_object_entry *object_get_next(const rct_object_entry *entry)
 {
 	uint8 *pos = (uint8*)entry;
 

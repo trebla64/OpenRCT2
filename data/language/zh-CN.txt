@@ -60,7 +60,7 @@ STR_0051    :马戏表演
 STR_0052    :恐怖隧道
 STR_0053    :铁架旋转式过山车
 STR_0054    :木制过山车
-STR_0055    :Side-Friction Roller Coaster
+STR_0055    :侧向阻力式过山车
 STR_0056    :疯狂老鼠过山车
 STR_0057    :多维过山车
 STR_0058    :Unknown Ride (38)
@@ -73,7 +73,7 @@ STR_0064    :躺卧式过山车
 STR_0065    :悬挂式单轨电车
 STR_0066    :Unknown Ride (40)
 STR_0067    :反转过山车
-STR_0068    :Heartline Twister Coaster
+STR_0068    :心跳回旋过山车
 STR_0069    :迷你高尔夫
 STR_0070    :巨型过山车
 STR_0071    :旋转落体
@@ -999,13 +999,13 @@ STR_0988    :不能新建游乐设施/店铺...
 STR_0989    :{STRINGID}
 STR_0990    :{SMALLFONT}{BLACK}建造
 STR_0991    :车站站台
-STR_0992    :{SMALLFONT}{BLACK}Demolish entire ride/attraction
+STR_0992    :{SMALLFONT}{BLACK}拆除整个游乐设施/店铺
 STR_0993    :拆除游乐设施/店铺
 STR_0994    :拆除
 STR_0995    :{WINDOW_COLOUR_1}确定要完全拆除{STRINGID}?
 STR_0996    :整体外观
 STR_0997    :{SMALLFONT}{BLACK}View selection
-STR_0998    :No more stations allowed on this ride
+STR_0998    :此游乐设施的车站数量已达到上限
 STR_0999    :需要一个车站站台
 STR_1000    :轨道没有连接完整
 STR_1001    :轨道不适合此类型的车
@@ -1014,7 +1014,7 @@ STR_1003    :不能测试 {POP16}{POP16}{POP16}{STRINGID}...
 STR_1004    :不能关闭 {POP16}{POP16}{POP16}{STRINGID}...
 STR_1005    :Can't start construction on {POP16}{POP16}{POP16}{STRINGID}...
 STR_1006    :必须先关闭
-STR_1007    :Unable to create enough vehicles
+STR_1007    :不能创建足够的车辆
 STR_1008    :{SMALLFONT}{BLACK}开放, 关闭或测试游乐设施/店铺
 STR_1009    :{SMALLFONT}{BLACK}开放或关闭所有游乐设施/店铺
 STR_1010    :{SMALLFONT}{BLACK}开放或关闭游乐园
@@ -1024,7 +1024,7 @@ STR_1013    :关闭游乐园
 STR_1014    :开放游乐园
 STR_1015    :Unable to operate with more than one station platform in this mode
 STR_1016    :Unable to operate with less than two stations in this mode
-STR_1017    :Can't change operating mode...
+STR_1017    :不能改变运行模式...
 STR_1018    :Can't make changes...
 STR_1019    :Can't make changes...
 STR_1020    :Can't make changes...
@@ -1035,7 +1035,7 @@ STR_1024    :{COMMA16} car per train
 STR_1025    :{COMMA16} cars per train
 STR_1026    :车站站台太长!
 STR_1027    :{SMALLFONT}{BLACK}Locate this on Main View
-STR_1028    :Off edge of map!
+STR_1028    :离开地图边缘!
 STR_1029    :Cannot build partly above and partly below water!
 STR_1030    :Can only build this underwater!
 STR_1031    :Can't build this underwater!
@@ -1470,12 +1470,12 @@ STR_1459    :Track style
 STR_1460    :{SMALLFONT}{BLACK}'U' shaped open track
 STR_1461    :{SMALLFONT}{BLACK}'O' shaped enclosed track
 STR_1462    :Too steep for lift hill
-STR_1463    :Guests
+STR_1463    :游客
 STR_1464    :Helix up (small)
 STR_1465    :Helix up (large)
 STR_1466    :Helix down (small)
 STR_1467    :Helix down (large)
-STR_1468    :Staff
+STR_1468    :职员
 STR_1469    :Ride must start and end with stations
 STR_1470    :Station not long enough
 STR_1471    :{WINDOW_COLOUR_2}Speed:
@@ -2813,7 +2813,7 @@ STR_2794    :{WINDOW_COLOUR_2}Completed by: {BLACK}{STRINGID}{NEWLINE}{WINDOW_CO
 STR_2795    :Sort
 STR_2796    :{SMALLFONT}{BLACK}Sort the ride list into order using the information type displayed
 STR_2797    :当鼠标位于屏幕边缘时滚动视图
-STR_2798    :{SMALLFONT}{BLACK}选择当鼠标位于屏幕边缘时是否滚动视图
+STR_2798    :{SMALLFONT}{BLACK}当鼠标位于屏幕边缘时滚动视图
 STR_2799    :{SMALLFONT}{BLACK}查看或改变控制按键分配
 STR_2800    :{WINDOW_COLOUR_2}Total admissions: {BLACK}{COMMA32}
 STR_2801    :{WINDOW_COLOUR_2}Income from admissions: {BLACK}{CURRENCY2DP}
@@ -3130,8 +3130,8 @@ STR_3111    :{SMALLFONT}{BLACK}Click on design to build it
 STR_3112    :{SMALLFONT}{BLACK}Click on design to rename or delete it
 STR_3113    :Select a different design
 STR_3114    :{SMALLFONT}{BLACK}Go back to design selection window
-STR_3115    :{SMALLFONT}{BLACK}Save track design
-STR_3116    :{SMALLFONT}{BLACK}Save track design (Not possible until ride has been tested and statistics have been generated)
+STR_3115    :{SMALLFONT}{BLACK}保存轨道设计
+STR_3116    :{SMALLFONT}{BLACK}保存轨道设计(在测试完成及统计结果生成前不可用)
 STR_3117    :{BLACK}Calling mechanic...
 STR_3118    :{BLACK}{STRINGID} is heading for the ride
 STR_3119    :{BLACK}{STRINGID} is fixing the ride
@@ -3143,10 +3143,10 @@ STR_3124    :Broken {STRINGID}
 STR_3125    :{WINDOW_COLOUR_2}Excitement Factor: {BLACK}+{COMMA16}%
 STR_3126    :{WINDOW_COLOUR_2}Intensity Factor: {BLACK}+{COMMA16}%
 STR_3127    :{WINDOW_COLOUR_2}Nausea Factor: {BLACK}+{COMMA16}%
-STR_3128    :Save Track Design
-STR_3129    :Save Track Design with Scenery
-STR_3130    :Save
-STR_3131    :Cancel
+STR_3128    :保存轨道设计
+STR_3129    :保存轨道设计及周边景观
+STR_3130    :保存
+STR_3131    :取消
 STR_3132    :{BLACK}Click items of scenery to select them to be saved with track design...
 STR_3133    :Unable to build this on a slope
 STR_3134    :{RED}(Design includes scenery which is unavailable)
@@ -3350,8 +3350,8 @@ STR_3331    :Path from park entrance to map edge either not complete or too comp
 STR_3332    :Park entrance is the wrong way round or has no path leading to the map edge
 STR_3333    :在存档中导出附加物
 STR_3334    :{SMALLFONT}{BLACK}Select whether to save any additional plug-in object data required (add-in data not supplied with the main product) in saved game or scenario files, allowing them to be loaded by someone who doesn't have the additional object data
-STR_3335    :Roller Coaster Designer - Select Ride Types & Vehicles
-STR_3336    :Track Designs Manager - Select Ride Type
+STR_3335    :过山车设计工具 - 选择游乐设施的类型及车辆种类
+STR_3336    :轨道设计管理工具 - 选择游乐设施的类型
 STR_3337    :<not used anymore>
 STR_3338    :{BLACK}Custom-designed layout
 STR_3339    :{BLACK}{COMMA16} design available, or custom-designed layout
@@ -3359,16 +3359,16 @@ STR_3340    :{BLACK}{COMMA16} designs available, or custom-designed layout
 STR_3341    :{SMALLFONT}{BLACK}游戏工具
 STR_3342    :剧情编辑器
 STR_3343    :将游戏存档转换成剧情关
-STR_3344    :Roller Coaster Designer
-STR_3345    :Track Designs Manager
-STR_3346    :Can't save track design...
+STR_3344    :过山车设计工具
+STR_3345    :轨道设计管理工具
+STR_3346    :不能保存轨道设计...
 STR_3347    :Ride is too large, contains too many elements, or scenery is too spread out
-STR_3348    :Rename
-STR_3349    :Delete
-STR_3350    :Track design name
-STR_3351    :Enter new name for this track design:
-STR_3352    :Can't rename track design...
-STR_3353    :New name contains invalid characters
+STR_3348    :重命名
+STR_3349    :删除
+STR_3350    :轨道设计名称
+STR_3351    :请输入此轨道设计的新名称:
+STR_3352    :不能重命名此轨道设计...
+STR_3353    :新名称包含不可用的字符
 STR_3354    :Another file exists with this name, or file is write-protected
 STR_3355    :File is write-protected or locked
 STR_3356    :Delete File
@@ -3454,7 +3454,7 @@ STR_3434    :{SMALLFONT}{BLACK}Let's test the ride and see if it works!
 STR_3435    :{SMALLFONT}{BLACK}Great - It worked! Let's add the footpaths and let guests onto our new roller coaster...
 STR_3436    :{SMALLFONT}{BLACK}While waiting for our first riders, we could customise the ride a bit...
 # End of tutorial strings
-STR_3437    :{SMALLFONT}{BLACK}Clear large areas of scenery from landscape
+STR_3437    :{SMALLFONT}{BLACK}在地形中清理大范围内的景物Clear large areas of scenery from landscape
 STR_3438    :Unable to remove all scenery from here...
 STR_3439    :Clear Scenery
 STR_3440    :Page 1
@@ -3479,8 +3479,8 @@ STR_5129    :Enter selection size between {COMMA16} and {COMMA16}
 STR_5130    :Map size
 STR_5131    :Enter map size between {COMMA16} and {COMMA16}
 STR_5132    :Fix all rides
-STR_5133    :{SMALLFONT}{BLACK}Adjust smaller area of land rights
-STR_5134    :{SMALLFONT}{BLACK}Adjust larger area of land rights
+STR_5133    :{SMALLFONT}{BLACK}选择较小一些的土地范围
+STR_5134    :{SMALLFONT}{BLACK}选择较大一些的土地范围
 STR_5135    :{SMALLFONT}{BLACK}Buy land rights and construction rights
 STR_5136    :Land rights
 STR_5137    :Unlock operating limits
@@ -3495,7 +3495,7 @@ STR_5145    :更快速度
 STR_5146    :超快速度
 STR_5147    :作弊
 STR_5148    :{SMALLFONT}{BLACK}调整游戏速度
-STR_5149    :{SMALLFONT}{BLACK}Show cheat options
+STR_5149    :{SMALLFONT}{BLACK}显示作弊选项
 STR_5150    :开启调试工具
 STR_5151    :,
 STR_5152    :.
@@ -3512,13 +3512,13 @@ STR_5162    :日/月/年
 STR_5163    :月/日/年
 STR_5164    :Twitch频道名称
 STR_5165    :以关注者的用户名命名游客
-STR_5166    :{SMALLFONT}{BLACK}将会以Twitch频道的关注者命名游客
+STR_5166    :{SMALLFONT}{BLACK}用Twitch频道的关注者来命名游客
 STR_5167    :跟踪'关注者'游客
-STR_5168    :{SMALLFONT}{BLACK}将会开启跟踪关注者用户名的游客信息
+STR_5168    :{SMALLFONT}{BLACK}启用跟踪关注者用户名的游客信息
 STR_5169    :以Twitch聊天中的名字命名游客
-STR_5170    :{SMALLFONT}{BLACK}将会以Twitch聊天中的名字命名游客
+STR_5170    :{SMALLFONT}{BLACK}用Twitch聊天中的名字来命名游客
 STR_5171    :跟踪'聊天'游客
-STR_5172    :{SMALLFONT}{BLACK}将会开启跟踪参与聊天用户名的游客信息
+STR_5172    :{SMALLFONT}{BLACK}启用跟踪参与聊天用户名的游客信息
 STR_5173    :将Twitch聊天的内容以新闻的方式推送
 STR_5174    :{SMALLFONT}{BLACK}将Twitch聊天中所有标'!news'的内容以通知的方式推送
 STR_5175    :请输入你的Twitch频道名称
@@ -3657,15 +3657,15 @@ STR_5307    :过山车大亨1 (+资料片1&2 - AA+LL)
 STR_5308    :过山车大亨2(RCT2)
 STR_5309    :OpenRCT2
 STR_5310    :Random
-STR_5311    :{SMALLFONT}{BLACK}Debug tools
-STR_5312    :Show console
+STR_5311    :{SMALLFONT}{BLACK}调试工具
+STR_5312    :显示控制台
 STR_5313    :Show tile inspector
 STR_5314    :Tile inspector
-STR_5315    :Grass
-STR_5316    :Sand
-STR_5317    :Dirt
-STR_5318    :Rock
-STR_5319    :Martian
+STR_5315    :草地
+STR_5316    :沙地
+STR_5317    :泥地
+STR_5318    :石地
+STR_5319    :火星地
 STR_5320    :Checkerboard
 STR_5321    :Grass clumps
 STR_5322    :Ice
@@ -3718,7 +3718,7 @@ STR_5368    :Reset crash status
 STR_5369    :Park parameters...
 STR_5370    :{SMALLFONT}{BLACK}Click this button to modify park{NEWLINE}parameters like restrictions,{NEWLINE}guest generation and money.
 STR_5371    :Object Selection
-STR_5372    :拖拽时反转鼠标左键
+STR_5372    :拖拽时反转鼠标右键
 STR_5373    :Name {STRINGID}
 STR_5374    :日期 {STRINGID}
 STR_5375    :{UP}
@@ -3787,7 +3787,7 @@ STR_5437    :暂无存档被选中
 STR_5438    :Can't make changes while command editor is open
 STR_5439    :A wait command with at least 4 seconds is required with a restart command
 STR_5440    :当焦点失去时最小化全屏幕的游戏
-STR_5441    :{SMALLFONT}{BLACK}根据轨道类型区分游乐设施,{NEWLINE}使得车辆类型可以在建造后更改{NEWLINE}就像过山车大亨1(RCT1)一样.
+STR_5441    :{SMALLFONT}{BLACK}根据轨道类型区分游乐设施{NEWLINE}使得车辆类型可以在建造后更改{NEWLINE}(过山车大亨1行为).
 STR_5442    :Force park rating:
 STR_5443    :速度{MOVE_X}{87}{STRINGID}
 STR_5444    :速度:
@@ -3854,45 +3854,45 @@ STR_5505    :Unable to connect to server.
 STR_5506    :Guests ignore intensities
 STR_5507    :清洁工默认会修剪草皮
 STR_5508    :允许读取校验失败的文件
-STR_5509    :{SMALLFONT}{BLACK}允许读取校验失败的剧情和存档文件, 例如试玩版的剧情或损坏的存档.
+STR_5509    :{SMALLFONT}{BLACK}允许读取校验失败的剧情和存档文件,{NEWLINE}例如试玩版的剧情或损坏的存档.
 STR_5510    :默认音频设备
 STR_5511    :(UNKNOWN)
 STR_5512    :另存游戏
 STR_5513    :(快速)保存游戏
 STR_5514    :Disable vandalism
 STR_5515    :{SMALLFONT}{BLACK}Stops guests from vandalising your park when they're angry
-STR_5516    :{SMALLFONT}{BLACK}Black
-STR_5517    :{SMALLFONT}{BLACK}Grey
-STR_5518    :{SMALLFONT}{BLACK}White
-STR_5519    :{SMALLFONT}{BLACK}Dark purple
-STR_5520    :{SMALLFONT}{BLACK}Light purple
-STR_5521    :{SMALLFONT}{BLACK}Bright purple
-STR_5522    :{SMALLFONT}{BLACK}Dark blue
-STR_5523    :{SMALLFONT}{BLACK}Light blue
-STR_5524    :{SMALLFONT}{BLACK}Icy blue
-STR_5525    :{SMALLFONT}{BLACK}Dark water
-STR_5526    :{SMALLFONT}{BLACK}Light water
-STR_5527    :{SMALLFONT}{BLACK}Saturated green
-STR_5528    :{SMALLFONT}{BLACK}Dark green
-STR_5529    :{SMALLFONT}{BLACK}Moss green
-STR_5530    :{SMALLFONT}{BLACK}Bright green
-STR_5531    :{SMALLFONT}{BLACK}Olive green
-STR_5532    :{SMALLFONT}{BLACK}Dark olive green
-STR_5533    :{SMALLFONT}{BLACK}Bright yellow
-STR_5534    :{SMALLFONT}{BLACK}Yellow
-STR_5535    :{SMALLFONT}{BLACK}Dark yellow
-STR_5536    :{SMALLFONT}{BLACK}Light orange
-STR_5537    :{SMALLFONT}{BLACK}Dark orange
-STR_5538    :{SMALLFONT}{BLACK}Light brown
-STR_5539    :{SMALLFONT}{BLACK}Saturated brown
-STR_5540    :{SMALLFONT}{BLACK}Dark brown
-STR_5541    :{SMALLFONT}{BLACK}Salmon pink
-STR_5542    :{SMALLFONT}{BLACK}Bordeaux red
-STR_5543    :{SMALLFONT}{BLACK}Saturated red
-STR_5544    :{SMALLFONT}{BLACK}Bright red
-STR_5545    :{SMALLFONT}{BLACK}Dark pink
-STR_5546    :{SMALLFONT}{BLACK}Bright pink
-STR_5547    :{SMALLFONT}{BLACK}Light pink
+STR_5516    :{SMALLFONT}{BLACK}黑色
+STR_5517    :{SMALLFONT}{BLACK}灰色
+STR_5518    :{SMALLFONT}{BLACK}白色
+STR_5519    :{SMALLFONT}{BLACK}暗紫色
+STR_5520    :{SMALLFONT}{BLACK}淡紫色
+STR_5521    :{SMALLFONT}{BLACK}亮紫色
+STR_5522    :{SMALLFONT}{BLACK}深蓝色
+STR_5523    :{SMALLFONT}{BLACK}淡蓝色
+STR_5524    :{SMALLFONT}{BLACK}冰蓝色
+STR_5525    :{SMALLFONT}{BLACK}深水配色
+STR_5526    :{SMALLFONT}{BLACK}浅水配色
+STR_5527    :{SMALLFONT}{BLACK}深绿色
+STR_5528    :{SMALLFONT}{BLACK}暗绿色
+STR_5529    :{SMALLFONT}{BLACK}苔绿色
+STR_5530    :{SMALLFONT}{BLACK}亮绿色
+STR_5531    :{SMALLFONT}{BLACK}橄榄绿色
+STR_5532    :{SMALLFONT}{BLACK}暗橄榄绿色
+STR_5533    :{SMALLFONT}{BLACK}亮黄色
+STR_5534    :{SMALLFONT}{BLACK}黄色
+STR_5535    :{SMALLFONT}{BLACK}暗黄色
+STR_5536    :{SMALLFONT}{BLACK}亮橙色
+STR_5537    :{SMALLFONT}{BLACK}暗橙色
+STR_5538    :{SMALLFONT}{BLACK}亮棕色
+STR_5539    :{SMALLFONT}{BLACK}深棕色
+STR_5540    :{SMALLFONT}{BLACK}暗棕色
+STR_5541    :{SMALLFONT}{BLACK}橙红色
+STR_5542    :{SMALLFONT}{BLACK}波尔多红色
+STR_5543    :{SMALLFONT}{BLACK}深红色
+STR_5544    :{SMALLFONT}{BLACK}亮红色
+STR_5545    :{SMALLFONT}{BLACK}暗红色
+STR_5546    :{SMALLFONT}{BLACK}亮粉色
+STR_5547    :{SMALLFONT}{BLACK}浅粉色
 STR_5548    :Show all operating modes
 STR_5549    :年/月/日
 STR_5550    :{POP16}{POP16}Year {COMMA16}, {PUSH16}{PUSH16}{MONTH} {PUSH16}{PUSH16}{STRINGID}
@@ -3932,7 +3932,7 @@ STR_5583    :{COMMA1DP16}ms{POWERNEGATIVEONE}
 STR_5584    :SI
 STR_5585    :{SMALLFONT}{BLACK}Unlocks ride operation limits, allowing for things like {VELOCITY} lift hills
 STR_5586    :自动开放商店和摊位
-STR_5587    :{SMALLFONT}{BLACK}当选中此设定时, 商店和摊位将在建造好后自动开放
+STR_5587    :{SMALLFONT}{BLACK}商店和摊位将在建造好后自动开放
 STR_5588    :{SMALLFONT}{BLACK}与其他玩家一起玩
 STR_5589    :Notification Settings
 STR_5590    :Park awards
@@ -4128,6 +4128,53 @@ STR_5811    :{SMALLFONT}{BLACK}若选中此选项, 每列车将最多{NEWLINE}�
 STR_5812    :显示多人模式窗口
 STR_5813    :{OPENQUOTES}{STRING}{ENDQUOTES}
 STR_5814    :{WINDOW_COLOUR_1}{OPENQUOTES}{STRING}{ENDQUOTES}
+
+#tooltips
+STR_5815    :{SMALLFONT}{BLACK}游戏内显示FPS帧数
+STR_5816    :{SMALLFONT}{BLACK}设置比例去缩放游戏.{NEWLINE}高分辨率时很有用
+STR_5817    :{SMALLFONT}{BLACK}[需要开启硬件渲染]{NEWLINE}设置UI缩放类型
+STR_5818    :{SMALLFONT}{BLACK}[需要开启硬件渲染]{NEWLINE}使用最近相邻缩放{NEWLINE}当窗口缩放比例设置为{NEWLINE}整数值时 (例如1, 2, 3等等)
+STR_5819    :{SMALLFONT}{BLACK}[需要开启硬件渲染]{NEWLINE}暂停游戏当游戏内{NEWLINE}Steam overlay打开时
+STR_5820    :{SMALLFONT}{BLACK}全屏模式时若游戏失焦{NEWLINE}则最小化游戏
+STR_5821    :{SMALLFONT}{BLACK}当修建游乐设施, 道路, 商店, 景观等时{NEWLINE}调整建造的颜色.
+STR_5822    :{SMALLFONT}{BLACK}日夜循环.{NEWLINE}完成一个循环花费游戏内一个月时间
+STR_5823    :{SMALLFONT}{BLACK}横幅上显示全大写英文(RCT1效果)
+STR_5824    :{SMALLFONT}{BLACK}当暴风雨来临时{NEWLINE}禁用闪电效果
+STR_5825    :{SMALLFONT}{BLACK}在窗口内保持鼠标指针
+STR_5826    :{SMALLFONT}{BLACK}拖拽视野时时反转鼠标右键
+STR_5827    :{SMALLFONT}{BLACK}设置游戏界面使用的配色主题
+STR_5828    :{SMALLFONT}{BLACK}修改距离, 速度等度量单位.
+STR_5829    :{SMALLFONT}{BLACK}修改游戏使用的货币. 只是纯视觉效果并没有根据汇率换算
+STR_5830    :{SMALLFONT}{BLACK}修改游戏使用的语言
+STR_5831    :{SMALLFONT}{BLACK}修改温度显示的单位
+STR_5832    :{SMALLFONT}{BLACK}高度用通用单位替换"距离和速度单位"中设置的单位
+STR_5833    :{SMALLFONT}{BLACK}修改日期格式
+STR_5834    :{SMALLFONT}{BLACK}选择OpenRCT2使用的音频设备
+STR_5835    :{SMALLFONT}{BLACK}游戏窗口失焦时静音
+STR_5836    :{SMALLFONT}{BLACK}选择主菜单使用的音乐.{NEWLINE}选择过山车大亨1的主题音乐时需要手动将过山车大亨1游戏目录下的'data/css17.dat'拷贝并重命名为过山车大亨2游戏目录下的'data/css50.dat'.
+STR_5837    :{SMALLFONT}{BLACK}创建并管理自定义游戏界面配色主题
+STR_5838    :{SMALLFONT}{BLACK}在工具栏上为财务窗口显示一个单独的按钮
+STR_5839    :{SMALLFONT}{BLACK}在工具栏上为研发窗口显示一个单独的按钮
+STR_5840    :{SMALLFONT}{BLACK}在工具栏上为作弊窗口显示一个单独的按钮
+STR_5841    :{SMALLFONT}{BLACK}在工具栏上为最近消息窗口显示一个单独的按钮
+STR_5842    :{SMALLFONT}{BLACK}对剧情排序是根据困难度(过山车大亨2行为)还是游戏出处(过山车大亨1行为)
+STR_5843    :{SMALLFONT}{BLACK}允许剧情解锁 (过山车大亨1行为)
+STR_5844    :{SMALLFONT}{BLACK}即使发生不同步或错误{NEWLINE}依然保持和多人服务器的连接
+STR_5845    :{SMALLFONT}{BLACK}在工具栏上为调试工具增加一个按钮.{NEWLINE}允许在调试控制台使用快捷键
+STR_5846    :{SMALLFONT}{BLACK}设置自动保存的频率
+STR_5847    :{SMALLFONT}{BLACK}选择主菜单界面使用的游乐园动画. 过山车大亨1/2的主菜单动画需要导入响应的文件
+STR_5848    :{SMALLFONT}{BLACK}创建并管理自定义主菜单动画
+STR_5849    :{SMALLFONT}{BLACK}自动放置新雇佣的员工
+STR_5850    :{SMALLFONT}{BLACK}新雇佣的清洁工默认会修剪草坪(过山车大亨1行为)
+STR_5851    :{SMALLFONT}{BLACK}设置新建游乐设施的默认检查的时间间隔
+STR_5852    :{SMALLFONT}{BLACK}设置Twitch集成中使用的TwitchTV频道名
+STR_5853    :{SMALLFONT}{BLACK}开启/关闭音效
+STR_5854    :{SMALLFONT}{BLACK}开启/关闭游乐设施音乐
+STR_5855    :{SMALLFONT}{BLACK}设置全屏, 窗口或无边框窗口显示
+STR_5856    :{SMALLFONT}{BLACK}全屏模式时设置游戏分辨率
+STR_5857    :{SMALLFONT}{BLACK}游戏选项
+STR_5858    :{SMALLFONT}{BLACK}使用GPU代替CPU渲染画面. 提高截屏软件的兼容性. 可能会轻微降低游戏性能.
+STR_5859    :{SMALLFONT}{BLACK}启用补帧从而平滑游戏表现. {NEWLINE}当禁用时,{NEWLINE}游戏帧数会稳定在40 FPS.
 
 #############
 # Scenarios #

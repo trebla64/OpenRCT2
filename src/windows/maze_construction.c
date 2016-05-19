@@ -163,7 +163,7 @@ static void window_maze_construction_close(rct_window *w)
 	viewport_set_visibility(0);
 
 	map_invalidate_map_selection_tiles();
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) &= ~(1 << 1);
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_CONSTRUCT;
 
 	// In order to cancel the yellow arrow correctly the
 	// selection tool should be cancelled.
@@ -187,9 +187,9 @@ static void window_maze_construction_entrance_mouseup(rct_window *w, int widgetI
 	if (tool_set(w, widgetIndex, 12))
 		return;
 
-	RCT2_GLOBAL(0x00F44191, uint8) = widgetIndex == WIDX_MAZE_ENTRANCE ? 0 : 1;
-	RCT2_GLOBAL(0x00F44192, uint8) = (uint8)w->number;
-	RCT2_GLOBAL(0x00F44193, uint8) = 0;
+	gRideEntranceExitPlaceType = widgetIndex == WIDX_MAZE_ENTRANCE ? ENTRANCE_TYPE_RIDE_ENTRANCE : ENTRANCE_TYPE_RIDE_EXIT;
+	gRideEntranceExitPlaceRideIndex = (uint8)w->number;
+	gRideEntranceExitPlaceStationIndex = 0;
 	gInputFlags |= INPUT_FLAG_6;
 
 	sub_6C9627();
@@ -302,7 +302,7 @@ static void window_maze_construction_update(rct_window *w)
 		break;
 	case RIDE_CONSTRUCTION_STATE_ENTRANCE_EXIT:
 		if (!widget_is_active_tool(w, WIDX_MAZE_ENTRANCE) && !widget_is_active_tool(w, WIDX_MAZE_EXIT)) {
-			_rideConstructionState = RCT2_GLOBAL(0x00F440CC, uint8);
+			_rideConstructionState = gRideEntranceExitPlacePreviousRideConstructionState;
 			window_maze_construction_update_pressed_widgets();
 		}
 		break;
@@ -349,25 +349,26 @@ static void window_maze_construction_entrance_tooldown(int x, int y, rct_window*
 
 	map_invalidate_selection_rect();
 
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) &= ~((1 << 0) | (1 << 2));
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_ARROW;
 
 	int direction = 0;
 	ride_get_entrance_or_exit_position_from_screen_position(x, y, &x, &y, &direction);
 
-	if (RCT2_GLOBAL(0x00F44194, uint8) == 0xFF)
+	if (gRideEntranceExitPlaceDirection == 0xFF)
 		return;
 
-	uint8 rideIndex = RCT2_GLOBAL(0x00F44192, uint8);
-	uint8 is_exit = RCT2_GLOBAL(0x00F44191, uint8);
-	gGameCommandErrorTitle = is_exit ? 1144 : 1145;
+	uint8 rideIndex = gRideEntranceExitPlaceRideIndex;
+	uint8 entranceExitType = gRideEntranceExitPlaceType;
+	gGameCommandErrorTitle = entranceExitType ? 1144 : 1145;
 
 	money32 cost = game_do_command(
 		x,
 		GAME_COMMAND_FLAG_APPLY | ((direction ^ 2) << 8),
 		y,
-		rideIndex | (is_exit << 8),
+		rideIndex | (entranceExitType << 8),
 		GAME_COMMAND_PLACE_RIDE_ENTRANCE_OR_EXIT,
-		RCT2_GLOBAL(0x00F44193, uint8),
+		gRideEntranceExitPlaceStationIndex,
 		0);
 
 	if (cost == MONEY32_UNDEFINED)
@@ -386,9 +387,9 @@ static void window_maze_construction_entrance_tooldown(int x, int y, rct_window*
 			window_close(w);
 	}
 	else{
-		RCT2_GLOBAL(0x00F44191, uint8) = is_exit ^ 1;
+		gRideEntranceExitPlaceType = entranceExitType ^ 1;
 		window_invalidate_by_class(WC_RIDE_CONSTRUCTION);
-		gCurrentToolWidget.widget_index = is_exit ? WIDX_MAZE_ENTRANCE : WIDX_MAZE_EXIT;
+		gCurrentToolWidget.widget_index = entranceExitType ? WIDX_MAZE_ENTRANCE : WIDX_MAZE_EXIT;
 	}
 }
 
@@ -418,8 +419,8 @@ static void window_maze_construction_invalidate(rct_window *w)
 	rct_ride *ride = get_ride(_currentRideIndex);
 
 	// Set window title arguments
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, rct_string_id) = ride->name;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, uint32) = ride->name_arguments;
+	set_format_arg(4, rct_string_id, ride->name);
+	set_format_arg(6, uint32, ride->name_arguments);
 }
 
 /**

@@ -348,7 +348,7 @@ static void window_tile_inspector_tool_update(rct_window* w, int widgetIndex, in
 	short mapX, mapY;
 
 	map_invalidate_selection_rect();
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) &= ~(1 << 0);
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE;
 
 	mapX = x;
 	mapY = y;
@@ -357,12 +357,12 @@ static void window_tile_inspector_tool_update(rct_window* w, int widgetIndex, in
 		return;
 	}
 
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) |= (1 << 0);
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_X, sint16) = mapX;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_A_Y, sint16) = mapY;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_X, sint16) = mapX;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_B_Y, sint16) = mapY;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_TYPE, uint16) = 4;
+	gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE;
+	gMapSelectPositionA.x = mapX;
+	gMapSelectPositionA.y = mapY;
+	gMapSelectPositionB.x = mapX;
+	gMapSelectPositionB.y = mapY;
+	gMapSelectType = MAP_SELECT_TYPE_FULL;
 
 	map_invalidate_selection_rect();
 
@@ -514,27 +514,27 @@ static void window_tile_inspector_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	// Draw column headers
 	rct_widget *widget;
 	if ((widget= &w->widgets[WIDX_COLUMN_TYPE])->type != WWT_EMPTY) {
-		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_ELEMENT_TYPE, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
+		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_ELEMENT_TYPE, gCommonFormatArgs, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
 	}
 	if ((widget = &w->widgets[WIDX_COLUMN_BASEHEIGHT])->type != WWT_EMPTY)
 	{
-		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_BASE_HEIGHT_SHORT, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
+		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_BASE_HEIGHT_SHORT, gCommonFormatArgs, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
 	}
 	if ((widget = &w->widgets[WIDX_COLUMN_CLEARANCEHEIGHT])->type != WWT_EMPTY)
 	{
-		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_CLEARANGE_HEIGHT_SHORT, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
+		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_CLEARANGE_HEIGHT_SHORT, gCommonFormatArgs, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
 	}
 	if ((widget = &w->widgets[WIDX_COLUMN_GHOSTFLAG])->type != WWT_EMPTY)
 	{
-		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_FLAG_GHOST_SHORT, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
+		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_FLAG_GHOST_SHORT, gCommonFormatArgs, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
 	}
 	if ((widget = &w->widgets[WIDX_COLUMN_BROKENFLAG])->type != WWT_EMPTY)
 	{
-		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_FLAG_BROKEN_SHORT, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
+		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_FLAG_BROKEN_SHORT, gCommonFormatArgs, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
 	}
 	if ((widget = &w->widgets[WIDX_COLUMN_LASTFLAG])->type != WWT_EMPTY)
 	{
-		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_FLAG_LAST_SHORT, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
+		gfx_draw_string_left_clipped(dpi, STR_TILE_INSPECTOR_FLAG_LAST_SHORT, gCommonFormatArgs, w->colours[1], w->x + widget->left + 1, w->y + widget->top + 1, widget->right - widget->left);
 	}
 
 	// Draw coordinates
@@ -602,17 +602,17 @@ static void window_tile_inspector_scrollpaint(rct_window *w, rct_drawpixelinfo *
 				if (footpath_element_is_queue(element)) {
 					sprintf(
 						buffer, "Queue (%s)%s%s for (%d)",
-						language_get_string(g_pathSceneryEntries[pathType]->name), // Path name
+						language_get_string(get_footpath_entry(pathType)->string_idx), // Path name
 						pathHasScenery ? " with " : "", // Adds " with " when there is something on the path
-						pathHasScenery ? language_get_string(g_pathBitSceneryEntries[pathAdditionType]->name) : "", // Path addition name
+						pathHasScenery ? language_get_string(get_footpath_item_entry(pathAdditionType)->name) : "", // Path addition name
 						element->properties.path.ride_index // Ride index for queue
 					);
 				} else {
 					sprintf(
 						buffer, "Path (%s)%s%s",
-						language_get_string(g_pathSceneryEntries[pathType]->name), // Path name
+						language_get_string(get_footpath_item_entry(pathType)->name), // Path name
 						pathHasScenery ? " with " : "", // Adds " with " when there is something on the path
-						pathHasScenery ? language_get_string(g_pathBitSceneryEntries[pathAdditionType]->name) : "" // Path addition name
+						pathHasScenery ? language_get_string(get_footpath_item_entry(pathAdditionType)->name) : "" // Path addition name
 					);
 				}
 			}
@@ -630,7 +630,7 @@ static void window_tile_inspector_scrollpaint(rct_window *w, rct_drawpixelinfo *
 				sprintf(
 					buffer,
 					"Scenery (%s)",
-					language_get_string(g_smallSceneryEntries[element->properties.scenery.type]->name)
+					language_get_string(get_small_scenery_entry(element->properties.scenery.type)->name)
 				);
 				type_name = buffer;
 				break;
@@ -646,7 +646,7 @@ static void window_tile_inspector_scrollpaint(rct_window *w, rct_drawpixelinfo *
 				sprintf(
 					buffer,
 					"Fence (%s)",
-					language_get_string(g_wallSceneryEntries[element->properties.scenery.type]->name)
+					language_get_string(get_wall_entry(element->properties.scenery.type)->name)
 					);
 				type_name = buffer;
 				break;

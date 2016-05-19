@@ -232,7 +232,6 @@ void S4Importer::AddAvailableEntriesFromMap()
         {
             uint8 pathColour = mapElement->type & 3;
             uint8 pathType = (mapElement->properties.path.type & 0xF0) >> 4;
-            uint8 supportsType = (mapElement->flags & 0x60) >> 5;
 
             pathType = (pathType << 2) | pathColour;
             uint8 pathAdditionsType = mapElement->properties.path.additions & 0x0F;
@@ -993,9 +992,15 @@ void S4Importer::ImportParkFlags()
     // Flags
     gParkFlags = _s4.park_flags;
     gParkFlags &= ~PARK_FLAGS_ANTI_CHEAT_DEPRECATED;
-    if (!(_s4.park_flags & PARK_FLAGS_PARK_FREE_ENTRY))
+    if (!(_s4.park_flags & RCT1_PARK_FLAGS_PARK_ENTRY_LOCKED_AT_FREE))
     {
         gCheatsUnlockAllPrices = true;
+    }
+    // RCT2 uses two flags for no money (for cheat detection). RCT1 used only one. 
+    // Copy its value to make no money scenarios such as Arid Heights work properly.
+    if (_s4.park_flags & RCT1_PARK_FLAGS_NO_MONEY)
+    {
+        gParkFlags |= PARK_FLAGS_NO_MONEY_SCENARIO;
     }
 }
 
@@ -1062,7 +1067,7 @@ void S4Importer::ImportSavedView()
 
 void S4Importer::ClearExtraTileEntries()
 {
-	// Reset the map tile pointers
+    // Reset the map tile pointers
     for (int i = 0; i < 0x10000; i++)
     {
         gMapElementTilePointers[i] = (rct_map_element *)-1;
@@ -1103,7 +1108,7 @@ void S4Importer::ClearExtraTileEntries()
         }
     }
 
-	// 128 extra rows left to fill with blank tiles
+    // 128 extra rows left to fill with blank tiles
     for (int y = 0; y < 128 * 256; y++)
     {
         nextFreeMapElement->type = MAP_ELEMENT_TYPE_SURFACE;
@@ -1233,7 +1238,6 @@ void S4Importer::FixPaths()
             // Type
             uint8 pathColour = mapElement->type & 3;
             uint8 pathType = (mapElement->properties.path.type & 0xF0) >> 4;
-            uint8 supportsType = (mapElement->flags & 0x60) >> 5;
 
             pathType = (pathType << 2) | pathColour;
             uint8 entryIndex = _pathTypeToEntryMap[pathType];

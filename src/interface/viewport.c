@@ -21,6 +21,7 @@
 #include "../game.h"
 #include "../input.h"
 #include "../localisation/localisation.h"
+#include "../peep/staff.h"
 #include "../ride/ride_data.h"
 #include "../ride/track_data.h"
 #include "../sprites.h"
@@ -51,7 +52,6 @@ void viewport_init_all()
 
 	// Setting up windows
 	gWindowNextSlot = g_window_list;
-	RCT2_GLOBAL(0x01423604, sint32) = 0;
 
 	// Setting up viewports
 	for (int i = 0; i < MAX_VIEWPORT_COUNT; i++) {
@@ -64,8 +64,8 @@ void viewport_init_all()
 	gPressedWidget.window_classification = 255;
 	gPickupPeepImage = UINT32_MAX;
 	gTooltipNotShownTicks = -1;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, sint16) = 0;
-	RCT2_GLOBAL(0x009DEA50, sint16) = -1;
+	gMapSelectFlags = 0;
+	gStaffDrawPatrolAreas = 0xFFFF;
 	textinput_cancel();
 	format_string((char*)0x0141FA44, STR_CANCEL, NULL);
 	format_string((char*)0x0141F944, STR_OK, NULL);
@@ -197,6 +197,7 @@ void sub_689174(sint16* x, sint16* y, sint16 *z)
 	sint16 start_y = *y;
 	sint16 height = 0;
 
+	uint32 rotation = get_current_rotation();
 	rct_xy16 pos;
 	for (int i = 0; i < 6; i++) {
 		pos = viewport_coord_to_map_coord(start_x, start_y, height);
@@ -208,7 +209,6 @@ void sub_689174(sint16* x, sint16* y, sint16 *z)
 		if (pos.x > max && pos.y > max) {
 			int x_corr[] = { -1, 1, 1, -1 };
 			int y_corr[] = { -1, -1, 1, 1 };
-			uint32 rotation = get_current_rotation();
 			pos.x += x_corr[rotation] * height;
 			pos.y += y_corr[rotation] * height;
 		}
@@ -662,7 +662,9 @@ void viewport_render(rct_drawpixelinfo *dpi, rct_viewport *viewport, int left, i
 	if (left >= viewport->x + viewport->width)return;
 	if (top >= viewport->y + viewport->height)return;
 
+#ifdef DEBUG_SHOW_DIRTY_BOX
 	int l = left, t = top, r = right, b = bottom;
+#endif
 
 	left = max(left - viewport->x, 0);
 	right = min(right - viewport->x, viewport->width);
@@ -783,7 +785,6 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 		}
 		RCT2_GLOBAL(0xEE7880, uint32) = 0xF1A4CC;
 		RCT2_GLOBAL(0x140E9A8, uint32) = (int)dpi2;
-		int ebp = 0, ebx = 0, esi = 0, ecx = 0;
 		painter_setup();
 		viewport_paint_setup();
 		sub_688217();
@@ -874,10 +875,9 @@ rct_xy16 viewport_coord_to_map_coord(int x, int y, int z)
  */
 void show_gridlines()
 {
-	rct_window *mainWindow;
-
 	if (RCT2_GLOBAL(0x009E32B0, uint8) == 0) {
-		if ((mainWindow = window_get_main()) != NULL) {
+		rct_window *mainWindow = window_get_main();
+		if (mainWindow != NULL) {
 			if (!(mainWindow->viewport->flags & VIEWPORT_FLAG_GRIDLINES)) {
 				mainWindow->viewport->flags |= VIEWPORT_FLAG_GRIDLINES;
 				window_invalidate(mainWindow);
@@ -893,11 +893,10 @@ void show_gridlines()
  */
 void hide_gridlines()
 {
-	rct_window *mainWindow;
-
 	RCT2_GLOBAL(0x009E32B0, uint8)--;
 	if (RCT2_GLOBAL(0x009E32B0, uint8) == 0) {
-		if ((mainWindow = window_get_main()) != NULL) {
+		rct_window *mainWindow = window_get_main();
+		if (mainWindow != NULL) {
 			if (!gConfigGeneral.always_show_gridlines) {
 				mainWindow->viewport->flags &= ~VIEWPORT_FLAG_GRIDLINES;
 				window_invalidate(mainWindow);
@@ -912,10 +911,9 @@ void hide_gridlines()
  */
 void show_land_rights()
 {
-	rct_window *mainWindow;
-
 	if (RCT2_GLOBAL(0x009E32B2, uint8) == 0) {
-		if ((mainWindow = window_get_main()) != NULL) {
+		rct_window *mainWindow = window_get_main();
+		if (mainWindow != NULL) {
 			if (!(mainWindow->viewport->flags & VIEWPORT_FLAG_LAND_OWNERSHIP)) {
 				mainWindow->viewport->flags |= VIEWPORT_FLAG_LAND_OWNERSHIP;
 				window_invalidate(mainWindow);
@@ -931,11 +929,10 @@ void show_land_rights()
  */
 void hide_land_rights()
 {
-	rct_window *mainWindow;
-
 	RCT2_GLOBAL(0x009E32B2, uint8)--;
 	if (RCT2_GLOBAL(0x009E32B2, uint8) == 0) {
-		if ((mainWindow = window_get_main()) != NULL) {
+		rct_window *mainWindow = window_get_main();
+		if (mainWindow != NULL) {
 			if (mainWindow->viewport->flags & VIEWPORT_FLAG_LAND_OWNERSHIP) {
 				mainWindow->viewport->flags &= ~VIEWPORT_FLAG_LAND_OWNERSHIP;
 				window_invalidate(mainWindow);
@@ -950,10 +947,9 @@ void hide_land_rights()
  */
 void show_construction_rights()
 {
-	rct_window *mainWindow;
-
 	if (RCT2_GLOBAL(0x009E32B3, uint8) == 0) {
-		if ((mainWindow = window_get_main()) != NULL) {
+		rct_window *mainWindow = window_get_main();
+		if (mainWindow != NULL) {
 			if (!(mainWindow->viewport->flags & VIEWPORT_FLAG_CONSTRUCTION_RIGHTS)) {
 				mainWindow->viewport->flags |= VIEWPORT_FLAG_CONSTRUCTION_RIGHTS;
 				window_invalidate(mainWindow);
@@ -969,11 +965,10 @@ void show_construction_rights()
  */
 void hide_construction_rights()
 {
-	rct_window *mainWindow;
-
 	RCT2_GLOBAL(0x009E32B3, uint8)--;
 	if (RCT2_GLOBAL(0x009E32B3, uint8) == 0) {
-		if ((mainWindow = window_get_main()) != NULL) {
+		rct_window *mainWindow = window_get_main();
+		if (mainWindow != NULL) {
 			if (mainWindow->viewport->flags & VIEWPORT_FLAG_CONSTRUCTION_RIGHTS) {
 				mainWindow->viewport->flags &= ~VIEWPORT_FLAG_CONSTRUCTION_RIGHTS;
 				window_invalidate(mainWindow);
@@ -1160,7 +1155,8 @@ static bool sub_67933B_679788_679C4A_67A117(uint8 *esi, sint16 x_start_point, si
  * @param y (dx)
  * @return value originally stored in 0x00141F569
  */
-static bool new_sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y) {
+static bool sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y)
+{
 	rct_g1_element *image = gfx_get_g1_element(imageId & 0x7FFFF);
 
 	if (dpi->zoom_level != 0) {
@@ -1180,7 +1176,7 @@ static bool new_sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16
 					.zoom_level = dpi->zoom_level - 1
 			};
 
-			return new_sub_679074(&zoomed_dpi, imageId - image->zoomed_offset, x / 2, y / 2);
+			return sub_679074(&zoomed_dpi, imageId - image->zoomed_offset, x / 2, y / 2);
 		}
 	}
 
@@ -1320,26 +1316,6 @@ static bool new_sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16
 	return output;
 }
 
-static bool sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y) {
-	sint16 before_x = RCT2_GLOBAL(0x9ABDAE, sint16);
-	uint8 before_output = RCT2_GLOBAL(0x00141F569, uint8);
-
-	RCT2_CALLPROC_X(0x00679074, 0, imageId, x, y, 0, (int) dpi, 0);
-	sint16 original_x = RCT2_GLOBAL(0x9ABDAE, sint16);
-	uint8 original_output = RCT2_GLOBAL(0x00141F569, uint8);
-
-	RCT2_GLOBAL(0x9ABDAE, sint16) = before_x;
-	RCT2_GLOBAL(0x00141F569, uint8) = before_output;
-
-	bool new_output = new_sub_679074(dpi, imageId, x, y);
-	sint16 new_x = RCT2_GLOBAL(0x9ABDAE, sint16);
-
-	assert(new_x == original_x);
-	assert(new_output == original_output);
-
-	return new_output;
-}
-
 /**
  *
  *  rct2: 0x00679023
@@ -1370,7 +1346,6 @@ void sub_68862C()
 {
 	rct_drawpixelinfo *dpi = RCT2_GLOBAL(0x0140E9A8, rct_drawpixelinfo*);
 	paint_struct *ps = RCT2_GLOBAL(0x00EE7884, paint_struct*), *old_ps, *next_ps;
-	attached_paint_struct* attached_ps;
 
 	while ((ps = ps->next_quadrant_ps) != NULL) {
 		old_ps = ps;
@@ -1384,7 +1359,7 @@ void sub_68862C()
 			next_ps = ps->var_20;
 		}
 
-		for (attached_ps = ps->attached_ps; attached_ps != NULL; attached_ps = attached_ps->next) {
+		for (attached_paint_struct *attached_ps = ps->attached_ps; attached_ps != NULL; attached_ps = attached_ps->next) {
 			sub_679023(
 				dpi,
 				attached_ps->image_id,
@@ -1488,14 +1463,11 @@ void viewport_invalidate(rct_viewport *viewport, int left, int top, int right, i
 
 rct_viewport *viewport_find_from_point(int screenX, int screenY)
 {
-	rct_window *w;
-	rct_viewport *viewport;
-
-	w = window_find_from_point(screenX, screenY);
+	rct_window *w = window_find_from_point(screenX, screenY);
 	if (w == NULL)
 		return NULL;
 
-	viewport = w->viewport;
+	rct_viewport *viewport = w->viewport;
 	if (viewport == NULL)
 		return NULL;
 
@@ -1521,7 +1493,7 @@ rct_viewport *viewport_find_from_point(int screenX, int screenY)
  */
 void screen_get_map_xy(int screenX, int screenY, sint16 *x, sint16 *y, rct_viewport **viewport) {
 	sint16 my_x, my_y;
-	int z, interactionType;
+	int interactionType;
 	rct_viewport *myViewport;
 	get_map_coordinates_from_pos(screenX, screenY, VIEWPORT_INTERACTION_MASK_TERRAIN, &my_x, &my_y, &interactionType, NULL, &myViewport);
 	if (interactionType == VIEWPORT_INTERACTION_ITEM_NONE) {
@@ -1538,7 +1510,7 @@ void screen_get_map_xy(int screenX, int screenY, sint16 *x, sint16 *y, rct_viewp
 	rct_xy16 map_pos = { my_x + 16, my_y + 16 };
 
 	for (int i = 0; i < 5; i++) {
-		z = map_element_height(map_pos.x, map_pos.y);
+		int z = map_element_height(map_pos.x, map_pos.y);
 		map_pos = viewport_coord_to_map_coord(start_vp_pos.x, start_vp_pos.y, z);
 		map_pos.x = clamp(RCT2_GLOBAL(0x00F1AD34, sint16), map_pos.x, RCT2_GLOBAL(0x00F1AD38, sint16));
 		map_pos.y = clamp(RCT2_GLOBAL(0x00F1AD36, sint16), map_pos.y, RCT2_GLOBAL(0x00F1AD3A, sint16));

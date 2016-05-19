@@ -605,11 +605,11 @@ int track_design_place_scenery(rct_td6_scenery_element *scenery_start, uint8 rid
 					}
 
 					entry_index = 0;
-					for (rct_path_type *path = g_pathTypeEntries[0];
+					for (rct_footpath_entry *path = get_footpath_entry(0);
 						entry_index < object_entry_group_counts[OBJECT_TYPE_PATHS];
-						path = g_pathTypeEntries[entry_index], entry_index++
+						path = get_footpath_entry(entry_index), entry_index++
 					) {
-						if (path == (rct_path_type*)-1) {
+						if (path == (rct_footpath_entry*)-1) {
 							continue;
 						}
 						if (path->flags & (1 << 2)) {
@@ -634,7 +634,7 @@ int track_design_place_scenery(rct_td6_scenery_element *scenery_start, uint8 rid
 
 					uint8 bh = rotation | (quadrant << 6) | MAP_ELEMENT_TYPE_SCENERY;
 
-					rct_scenery_entry* small_scenery = g_smallSceneryEntries[entry_index];
+					rct_scenery_entry* small_scenery = get_small_scenery_entry(entry_index);
 					if (!(small_scenery->small_scenery.flags & SMALL_SCENERY_FLAG_FULL_TILE) &&
 						(small_scenery->small_scenery.flags & SMALL_SCENERY_FLAG9)){
 						bh = bh;
@@ -710,11 +710,11 @@ int track_design_place_scenery(rct_td6_scenery_element *scenery_start, uint8 rid
 					}
 
 					entry_index = 0;
-					for (rct_path_type* path = g_pathTypeEntries[0];
+					for (rct_footpath_entry* path = get_footpath_entry(0);
 						entry_index < object_entry_group_counts[OBJECT_TYPE_PATHS];
-						path = g_pathTypeEntries[entry_index], entry_index++){
+						path = get_footpath_entry(entry_index), entry_index++){
 
-						if (path == (rct_path_type*)-1)
+						if (path == (rct_footpath_entry*)-1)
 							continue;
 						if (path->flags & (1 << 2))
 							continue;
@@ -851,7 +851,7 @@ int track_design_place_scenery(rct_td6_scenery_element *scenery_start, uint8 rid
 						if (map_element == NULL)
 							continue;
 
-						sub_6A7594();
+						footpath_queue_chain_reset();
 						footpath_remove_edges_at(mapCoord.x, mapCoord.y, map_element);
 
 						bl = 1;
@@ -891,11 +891,10 @@ int track_design_place_maze(rct_track_td6 *td6, sint16 x, sint16 y, sint16 z, ui
 {
 	if (_trackDesignPlaceOperation == PTD_OPERATION_DRAW_OUTLINES) {
 		gMapSelectionTiles->x = -1;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_X, sint16) = x;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_Y, sint16) = y;
-
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_Z, sint16) = map_element_height(x, y) & 0xFFFF;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_DIRECTION, uint8) = _currentTrackPieceDirection;
+		gMapSelectArrowPosition.x = x;
+		gMapSelectArrowPosition.y = y;
+		gMapSelectArrowPosition.z = map_element_height(x, y) & 0xFFFF;
+		gMapSelectArrowDirection = _currentTrackPieceDirection;
 	}
 
 	_trackDesignPlaceZ = 0;
@@ -1026,10 +1025,10 @@ bool track_design_place_ride(rct_track_td6 *td6, sint16 x, sint16 y, sint16 z, u
 	gTrackPreviewOrigin = (rct_xyz16) { x, y, z };
 	if (_trackDesignPlaceOperation == PTD_OPERATION_DRAW_OUTLINES) {
 		gMapSelectionTiles->x = -1;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_X, sint16) = x;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_Y, sint16) = y;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_Z, sint16) = map_element_height(x, y) & 0xFFFF;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_DIRECTION, uint8) = _currentTrackPieceDirection;
+		gMapSelectArrowPosition.x = x;
+		gMapSelectArrowPosition.y = y;
+		gMapSelectArrowPosition.z = map_element_height(x, y) & 0xFFFF;
+		gMapSelectArrowDirection = _currentTrackPieceDirection;
 	}
 
 	_trackDesignPlaceZ = 0;
@@ -1077,7 +1076,6 @@ bool track_design_place_ride(rct_track_td6 *td6, sint16 x, sint16 y, sint16 z, u
 
 			//di
 			sint16 tempZ = z - trackCoordinates->z_begin;
-			uint32 trackFlags = track->flags;
 			uint32 edi =
 				((track->flags & 0x0F) << 17) |
 				((track->flags & 0x0F) << 28) |
@@ -1295,8 +1293,9 @@ int sub_6D01B3(rct_track_td6 *td6, uint8 bl, uint8 rideIndex, int x, int y, int 
 
 	// 0x6D0FE6
 	if (_trackDesignPlaceOperation == PTD_OPERATION_DRAW_OUTLINES) {
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) |= 0x6;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) &= ~(1 << 3);
+		gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE_CONSTRUCT;
+		gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE_ARROW;
+		gMapSelectFlags &= ~MAP_SELECT_FLAG_GREEN;
 		map_invalidate_map_selection_tiles();
 	}
 
@@ -1576,7 +1575,7 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 			return MONEY32_UNDEFINED;
 		}
 
-		uint8 elctgaw = RCT2_GLOBAL(RCT2_ADDRESS_ELEMENT_LOCATION_COMPARED_TO_GROUND_AND_WATER, uint8);
+		uint8 elctgaw = gMapGroundFlags;
 		if (elctgaw & ELEMENT_IS_UNDERWATER) {
 			gGameCommandErrorText = STR_RIDE_CANT_BUILD_THIS_UNDERWATER;
 			return MONEY32_UNDEFINED;
@@ -1599,7 +1598,7 @@ money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry, sint16
 	cost += price;
 
 	if (flags & GAME_COMMAND_FLAG_APPLY) {
-		if (RCT2_GLOBAL(0x009A8C28, uint8) == 1 && !(flags & GAME_COMMAND_FLAG_GHOST)) {
+		if (gGameCommandNestLevel == 1 && !(flags & GAME_COMMAND_FLAG_GHOST)) {
 			rct_xyz16 coord;
 			coord.x = x + 8;
 			coord.y = y + 8;

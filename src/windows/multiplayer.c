@@ -338,10 +338,6 @@ static void window_multiplayer_players_scrollmousedown(rct_window *w, int scroll
 	w->selected_list_item = index;
 	window_invalidate(w);
 
-	rct_widget *listWidget = &w->widgets[WIDX_LIST];
-	int ddx = w->x + listWidget->left + x - w->scrolls[0].h_left;
-	int ddy = w->y + listWidget->top + y - w->scrolls[0].v_top;
-
 	window_player_open(network_get_player_id(index));
 }
 
@@ -432,11 +428,11 @@ static void window_multiplayer_players_scrollpaint(rct_window *w, rct_drawpixeli
 
 			// Draw last action
 			int action = network_get_player_last_action(i, 2000);
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = STR_ACTION_NA;
+			set_format_arg(0, uint16, STR_ACTION_NA);
 			if (action != -999) {
-				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = network_get_action_name_string_id(action);
+				set_format_arg(0, uint16, network_get_action_name_string_id(action));
 			}
-			gfx_draw_string_left_clipped(dpi, 1191, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, 256, y - 1, 100);
+			gfx_draw_string_left_clipped(dpi, 1191, gCommonFormatArgs, 0, 256, y - 1, 100);
 
 			// Draw ping
 			lineCh = buffer;
@@ -559,10 +555,6 @@ static void window_multiplayer_groups_scrollmousedown(rct_window *w, int scrollI
 	w->selected_list_item = index;
 	window_invalidate(w);
 
-	rct_widget *listWidget = &w->widgets[WIDX_LIST];
-	int ddx = w->x + listWidget->left + x - w->scrolls[0].h_left;
-	int ddy = w->y + listWidget->top + y - w->scrolls[0].v_top;
-
 	game_do_command(2 | (_selectedGroup << 8), GAME_COMMAND_FLAG_APPLY, index, 0, GAME_COMMAND_MODIFY_GROUPS, 0, 0);
 }
 
@@ -618,11 +610,11 @@ static void window_multiplayer_groups_paint(rct_window *w, rct_drawpixelinfo *dp
 		lineCh = buffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WINDOW_COLOUR_2);
 		strcpy(lineCh, network_get_group_name(group));
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, const char *) = buffer;
+		set_format_arg(0, const char *, buffer);
 		gfx_draw_string_centred_clipped(
 			dpi,
 			STR_STRING,
-			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS,
+			gCommonFormatArgs,
 			0,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
@@ -647,11 +639,11 @@ static void window_multiplayer_groups_paint(rct_window *w, rct_drawpixelinfo *dp
 		lineCh = buffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WINDOW_COLOUR_2);
 		strcpy(lineCh, network_get_group_name(group));
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, const char *) = buffer;
+		set_format_arg(0, const char *, buffer);
 		gfx_draw_string_centred_clipped(
 			dpi,
 			STR_STRING,
-			(void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS,
+			gCommonFormatArgs,
 			0,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
@@ -688,8 +680,8 @@ static void window_multiplayer_groups_scrollpaint(rct_window *w, rct_drawpixelin
 			}
 
 			// Draw action name
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = network_get_action_name_string_id(i);
-			gfx_draw_string_left(dpi, 1193, (void*)RCT2_ADDRESS_COMMON_FORMAT_ARGS, 0, 10, y - 1);
+			set_format_arg(0, uint16, network_get_action_name_string_id(i));
+			gfx_draw_string_left(dpi, 1193, gCommonFormatArgs, 0, 10, y - 1);
 		}
 		y += 10;
 	}

@@ -44,7 +44,6 @@ static uint8 _trackSaveDirection;
 
 static bool track_design_save_should_select_scenery_around(int rideIndex, rct_map_element *mapElement);
 static void track_design_save_select_nearby_scenery_for_tile(int rideIndex, int cx, int cy);
-static bool track_design_save_contains_map_element(rct_map_element *mapElement);
 static bool track_design_save_add_map_element(int interactionType, int x, int y, rct_map_element *mapElement);
 static void track_design_save_remove_map_element(int interactionType, int x, int y, rct_map_element *mapElement);
 static bool track_design_save_copy_scenery_to_td6(rct_track_td6 *td6);
@@ -210,7 +209,7 @@ bool track_design_save(uint8 rideIndex)
 	return true;
 }
 
-static bool track_design_save_contains_map_element(rct_map_element *mapElement)
+bool track_design_save_contains_map_element(rct_map_element *mapElement)
 {
 	for (size_t i = 0; i < _trackSavedMapElementsCount; i++) {
 		if (_trackSavedMapElements[i] == mapElement) {
@@ -233,7 +232,7 @@ static int map_element_get_total_element_count(rct_map_element *mapElement)
 		return 1;
 
 	case MAP_ELEMENT_TYPE_SCENERY_MULTIPLE:
-		sceneryEntry = g_largeSceneryEntries[mapElement->properties.scenerymultiple.type & 0x3FF];
+		sceneryEntry = get_large_scenery_entry(mapElement->properties.scenerymultiple.type & 0x3FF);
 		tile = sceneryEntry->large_scenery.tiles;
 		elementCount = 0;
 		do {
@@ -325,7 +324,7 @@ static void track_design_save_add_large_scenery(int x, int y, rct_map_element *m
 
 	int entryType = mapElement->properties.scenerymultiple.type & 0x3FF;
 	rct_object_entry *entry = (rct_object_entry*)&object_entry_groups[OBJECT_TYPE_LARGE_SCENERY].entries[entryType];
-	sceneryTiles = g_largeSceneryEntries[entryType]->large_scenery.tiles;
+	sceneryTiles = get_large_scenery_entry(entryType)->large_scenery.tiles;
 
 	z = mapElement->base_height;
 	direction = mapElement->type & 3;
@@ -508,7 +507,7 @@ static void track_design_save_remove_large_scenery(int x, int y, rct_map_element
 
 	int entryType = mapElement->properties.scenerymultiple.type & 0x3FF;
 	rct_object_entry *entry = (rct_object_entry*)&object_entry_groups[OBJECT_TYPE_LARGE_SCENERY].entries[entryType];
-	sceneryTiles = g_largeSceneryEntries[entryType]->large_scenery.tiles;
+	sceneryTiles = get_large_scenery_entry(entryType)->large_scenery.tiles;
 
 	z = mapElement->base_height;
 	direction = mapElement->type & 3;
@@ -953,8 +952,9 @@ static bool track_design_save_to_td6_for_maze(uint8 rideIndex, rct_track_td6 *td
 	sub_6D01B3(td6, PTD_OPERATION_DRAW_OUTLINES, 0, 4096, 4096, 0);
 	gTrackPreviewOrigin = (rct_xyz16) { startX, startY, startZ };
 
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, sint16) &= 0xFFF9;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, sint16) &= 0xFFF7;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_CONSTRUCT;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_ARROW;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_GREEN;
 
 	td6->space_required_x = ((gTrackPreviewMax.x - gTrackPreviewMin.x) / 32) + 1;
 	td6->space_required_y = ((gTrackPreviewMax.y - gTrackPreviewMin.y) / 32) + 1;
@@ -1189,8 +1189,9 @@ static bool track_design_save_to_td6_for_tracked_ride(uint8 rideIndex, rct_track
 	// Resave global vars for scenery reasons.
 	gTrackPreviewOrigin = (rct_xyz16) { start_x, start_y, start_z };
 
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, sint16) &= 0xFFF9;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, sint16) &= 0xFFF7;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_CONSTRUCT;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_ARROW;
+	gMapSelectFlags &= ~MAP_SELECT_FLAG_GREEN;
 
 	td6->space_required_x = ((gTrackPreviewMax.x - gTrackPreviewMin.x) / 32) + 1;
 	td6->space_required_y = ((gTrackPreviewMax.y - gTrackPreviewMin.y) / 32) + 1;

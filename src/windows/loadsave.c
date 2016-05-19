@@ -282,7 +282,7 @@ static void window_loadsave_mouseup(rct_window *w, int widgetIndex)
 	}
 	case WIDX_NEW:
 	{		
-		rct_string_id templateStringId = 3165;
+		rct_string_id templateStringId = STR_PLACEHOLDER;
 		char *templateString;
 		
 		templateString = (char *)language_get_string(templateStringId);
@@ -478,7 +478,7 @@ static void window_loadsave_textinput(rct_window *w, int widgetIndex, char *text
 
 static void window_loadsave_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = STR_LIST;
+	set_format_arg(0, uint16, STR_LIST);
 }
 
 static void window_loadsave_invalidate(rct_window *w)
@@ -524,7 +524,7 @@ static void window_loadsave_paint(rct_window *w, rct_drawpixelinfo *dpi)
 static void window_loadsave_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scrollIndex)
 {
 	int i, y;
-	rct_string_id stringId, templateStringId = 3165;
+	rct_string_id stringId, templateStringId = STR_PLACEHOLDER;
 	char *templateString;
 
 	gfx_fill_rect(dpi, dpi->x, dpi->y, dpi->x + dpi->width - 1, dpi->y + dpi->height - 1, ColourMapA[w->colours[1]].mid_light);
@@ -717,7 +717,7 @@ static void window_loadsave_select(rct_window *w, const char *path)
 			if (_stricmp(extension, ".sv6") != 0 && _stricmp(extension, ".sc6") != 0)
 				strcat(newName, ".sv6");
 			if (title_sequence_save_exists(gCurrentTitleSequence, newName)) {
-				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 0, uint32) = (uint32)&_listItems[w->selected_list_item].name;
+				set_format_arg(0, uint32, (uint32)&_listItems[w->selected_list_item].name);
 				window_text_input_open(w, WIDX_SCROLL, 5435, 5404, 1170, (uint32)_listItems[w->selected_list_item].name, TITLE_SEQUENCE_MAX_SAVE_LENGTH - 1);
 			}
 			else {
@@ -931,7 +931,7 @@ static void window_overwrite_prompt_paint(rct_window *w, rct_drawpixelinfo *dpi)
 {
 	window_draw_widgets(w, dpi);
 
-	rct_string_id templateStringId = 3165;
+	rct_string_id templateStringId = STR_PLACEHOLDER;
 	char *templateString;
 
 	templateString = (char*)language_get_string(templateStringId);

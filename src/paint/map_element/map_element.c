@@ -36,30 +36,23 @@
 static void blank_tiles_paint(int x, int y);
 static void sub_68B3FB(int x, int y);
 
+const int SEGMENTS_ALL = SEGMENT_B4 | SEGMENT_B8 | SEGMENT_BC | SEGMENT_C0 | SEGMENT_C4 | SEGMENT_C8 | SEGMENT_CC | SEGMENT_D0 | SEGMENT_D4;
+
 /**
  *
  *  rct2: 0x0068B35F
  */
 void map_element_paint_setup(int x, int y)
 {
-	rct_drawpixelinfo *dpi = RCT2_GLOBAL(0x0140E9A8, rct_drawpixelinfo*);
 	if (
 		x < gMapSizeUnits &&
 		y < gMapSizeUnits &&
 		x >= 32 &&
 		y >= 32
 	) {
-		RCT2_GLOBAL(0x0141E9B4, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9B8, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9BC, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9C0, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9C4, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9C8, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9CC, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9D0, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9D4, uint32) = 0xFFFF;
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) = -1;
-		RCT2_GLOBAL(0x0141E9DA, sint16) = 0;
+		paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);
+		paint_util_force_set_general_support_height(-1, 0);
+		RCT2_GLOBAL(0x0141E9DB, uint8) = 0;
 		RCT2_GLOBAL(0x0141E9DC, uint32) = 0xFFFF;
 
 		sub_68B3FB(x, y);
@@ -80,19 +73,10 @@ void sub_68B2B7(int x, int y)
 		x >= 32 &&
 		y >= 32
 	) {
-		RCT2_GLOBAL(0x0141E9B4, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9B8, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9BC, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9C0, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9C4, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9C8, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9CC, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9D0, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9D4, uint32) = 0xFFFF;
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) = -1;
-		RCT2_GLOBAL(0x0141E9DA, uint16) = 0;
+		paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);
+		paint_util_force_set_general_support_height(-1, 0);
 		RCT2_GLOBAL(0x0141E9DC, uint32) = 0xFFFF;
-		RCT2_GLOBAL(0x0141E9DB, uint8) |= 2;
+		RCT2_GLOBAL(0x0141E9DB, uint8) = 2;
 
 		sub_68B3FB(x, y);
 	} else {
@@ -181,18 +165,19 @@ static void sub_68B3FB(int x, int y)
 	}
 	dx >>= 1;
 	// Display little yellow arrow when building footpaths?
-	if ((RCT2_GLOBAL(RCT2_ADDRESS_MAP_SELECTION_FLAGS, uint16) & 4) &&
-		RCT2_GLOBAL(0x9DE56A, uint16) == RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_X, uint16) &&
-		RCT2_GLOBAL(0x9DE56E, uint16) == RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_Y, uint16)){
+	if ((gMapSelectFlags & MAP_SELECT_FLAG_ENABLE_ARROW) &&
+		RCT2_GLOBAL(0x9DE56A, uint16) == gMapSelectArrowPosition.x &&
+		RCT2_GLOBAL(0x9DE56E, uint16) == gMapSelectArrowPosition.y
+	) {
 		uint8 arrowRotation =
 			(rotation
-			+ (RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_DIRECTION, uint8) & 3)) & 3;
+			+ (gMapSelectArrowDirection & 3)) & 3;
 
 		uint32 imageId =
 			arrowRotation +
-			(RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_DIRECTION, uint8) & 0xFC) +
+			(gMapSelectArrowDirection & 0xFC) +
 			0x20900C27;
-		int arrowZ = RCT2_GLOBAL(RCT2_ADDRESS_MAP_ARROW_Z, uint16);
+		int arrowZ = gMapSelectArrowPosition.z;
 
 		RCT2_GLOBAL(0x9DE568, sint16) = x;
 		RCT2_GLOBAL(0x9DE56C, sint16) = y;
@@ -276,4 +261,65 @@ static void sub_68B3FB(int x, int y)
 		}
 		RCT2_GLOBAL(0x9DE574, uint32_t) = dword_9DE574;
 	} while (!map_element_is_last_for_tile(map_element++));
+}
+
+void paint_util_push_tunnel_left(uint16 height, uint8 type)
+{
+	uint32 eax = 0xFFFF0000 | ((height / 16) & 0xFF) | type << 8;
+	RCT2_ADDRESS(0x009E3138, uint32)[RCT2_GLOBAL(0x141F56A, uint8) / 2] = eax;
+	RCT2_GLOBAL(0x141F56A, uint8)++;
+}
+
+void paint_util_push_tunnel_right(uint16 height, uint8 type)
+{
+	uint32 eax = 0xFFFF0000 | ((height / 16) & 0xFF) | type << 8;
+	RCT2_ADDRESS(0x009E30B6, uint32)[RCT2_GLOBAL(0x141F56B, uint8) / 2] = eax;
+	RCT2_GLOBAL(0x141F56B, uint8)++;
+}
+
+void paint_util_set_general_support_height(sint16 height, uint8 slope)
+{
+	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) >= height) {
+		return;
+	}
+
+	paint_util_force_set_general_support_height(height, slope);
+}
+
+void paint_util_force_set_general_support_height(sint16 height, uint8 slope)
+{
+	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) = height;
+	RCT2_GLOBAL(0x141E9DA, uint8) = slope;
+}
+
+const uint16 segment_offsets[9] = {
+	SEGMENT_B4,
+	SEGMENT_B8,
+	SEGMENT_BC,
+	SEGMENT_C0,
+	SEGMENT_C4,
+	SEGMENT_C8,
+	SEGMENT_CC,
+	SEGMENT_D0,
+	SEGMENT_D4
+};
+
+void paint_util_set_segment_support_height(int segments, uint16 height, uint8 slope)
+{
+	for (int s = 0; s < 9; s++) {
+		if (segments & segment_offsets[s]) {
+			RCT2_GLOBAL(0x0141E9B4 + s * 4, uint16) = height;
+			if (height != 0xFFFF) {
+				RCT2_GLOBAL(0x0141E9B6 + s * 4, uint8) = slope;
+			}
+		}
+	}
+}
+
+uint16 paint_util_rotate_segments(uint16 segments, uint8 rotation)
+{
+	uint8 temp = segments & 0xFF;
+	temp = rol8(temp, rotation * 2);
+
+	return (segments & 0xFF00) | temp;
 }

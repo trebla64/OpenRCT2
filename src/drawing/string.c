@@ -67,7 +67,6 @@ int gfx_get_string_width_new_lined(utf8 *text)
 	utf8 backup;
 	int codepoint;
 
-	int width = 0;
 	int maxWidth = 0;
 	while ((codepoint = utf8_get_next(ch, (const utf8**)&nextCh)) != 0) {
 		if (codepoint == FORMAT_NEWLINE || codepoint == FORMAT_NEWLINE_SMALLER) {
@@ -246,9 +245,7 @@ int gfx_wrap_string(utf8 *text, int width, int *outNumLines, int *outFontHeight)
  */
 void gfx_draw_string_left_clipped(rct_drawpixelinfo* dpi, int format, void* args, int colour, int x, int y, int width)
 {
-	char* buffer;
-
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+	char* buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
 	format_string(buffer, format, args);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
@@ -273,16 +270,13 @@ void gfx_draw_string_left_clipped(rct_drawpixelinfo* dpi, int format, void* args
  */
 void gfx_draw_string_centred_clipped(rct_drawpixelinfo *dpi, int format, void *args, int colour, int x, int y, int width)
 {
-	char* buffer;
-	int text_width;
-
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+	char* buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
 	format_string(buffer, format, args);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
 	// Clip text
-	text_width = gfx_clip_string(buffer, width);
+	int text_width = gfx_clip_string(buffer, width);
 
 	// Draw the text centred
 	if (text_width <= 0xFFFF && text_width >= 0) {
@@ -305,14 +299,11 @@ void gfx_draw_string_centred_clipped(rct_drawpixelinfo *dpi, int format, void *a
  */
 void gfx_draw_string_right(rct_drawpixelinfo* dpi, int format, void* args, int colour, int x, int y)
 {
-	char* buffer;
-	short text_width;
-
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+	char* buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
 	format_string(buffer, format, args);
 
 	// Measure text width
-	text_width = gfx_get_string_width(buffer);
+	short text_width = gfx_get_string_width(buffer);
 
 	// Draw the text right aligned
 	x -= text_width;
@@ -434,9 +425,7 @@ int gfx_draw_string_left_wrapped(rct_drawpixelinfo *dpi, void *args, int x, int 
  */
 void gfx_draw_string_left(rct_drawpixelinfo *dpi, int format, void *args, int colour, int x, int y)
 {
-	char* buffer;
-
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+	char* buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
 	format_string(buffer, format, args);
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 	gfx_draw_string(dpi, buffer, colour, x, y);
@@ -447,10 +436,8 @@ void gfx_draw_string_left(rct_drawpixelinfo *dpi, int format, void *args, int co
  */
 void gfx_draw_string_left_centred(rct_drawpixelinfo *dpi, rct_string_id format, void *args, int colour, int x, int y)
 {
-	char* buffer;
-
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
-	buffer = (char*)RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER;
+	char *buffer = (char*)RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER;
 	format_string(buffer, format, args);
 	int height = string_get_height_raw(buffer);
 	gfx_draw_string(dpi, buffer, colour, x, y - (height / 2));
@@ -979,7 +966,6 @@ static void ttf_draw_string_raw_ttf(rct_drawpixelinfo *dpi, const utf8 *text, te
 			}
 		}
 
-		int fontSize = font_get_size_from_sprite_base(info->font_sprite_base);
 		int drawX = info->x + fontDesc->offset_x;
 		int drawY = info->y + fontDesc->offset_y;
 		int width = surface->w;

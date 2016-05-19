@@ -19,6 +19,8 @@
 
 #include "../common.h"
 #include "../world/map.h"
+#include "../interface/colour.h"
+#include "../drawing/drawing.h"
 
 typedef struct attached_paint_struct attached_paint_struct;
 
@@ -43,9 +45,9 @@ typedef struct paint_struct paint_struct;
 struct paint_struct {
 	uint32 image_id;		// 0x00
 	union {
-		uint32 tertiary_colour;
+		uint32 tertiary_colour;	// 0x04
 		// If masked image_id is masked_id
-		uint32 colour_image_id;
+		uint32 colour_image_id;	// 0x04
 	};
 	uint16 bound_box_x;		// 0x08
 	uint16 bound_box_y;		// 0x0A
@@ -85,12 +87,15 @@ enum PAINT_STRUCT_FLAGS {
 	PAINT_STRUCT_FLAG_IS_MASKED = (1 << 0)
 };
 
+/** rct2: 0x00993CC4 */
+extern const uint32 construction_markers[];
+
 void painter_setup();
 
-paint_struct * sub_98196C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, uint16 z_offset, uint32 rotation);
-paint_struct * sub_98197C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, uint16 z_offset, sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z, uint32 rotation);
-paint_struct * sub_98198C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, uint16 z_offset, sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z, uint32 rotation);
-paint_struct * sub_98199C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, uint16 z_offset, sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z, uint32 rotation);
+paint_struct * sub_98196C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, sint16 z_offset, uint32 rotation);
+paint_struct * sub_98197C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, sint16 z_offset, sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z, uint32 rotation);
+paint_struct * sub_98198C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, sint16 z_offset, sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z, uint32 rotation);
+paint_struct * sub_98199C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint16 bound_box_length_x, sint16 bound_box_length_y, sint8 bound_box_length_z, sint16 z_offset, sint16 bound_box_offset_x, sint16 bound_box_offset_y, sint16 bound_box_offset_z, uint32 rotation);
 
 bool paint_attach_to_previous_attach(uint32 image_id, uint16 x, uint16 y);
 bool paint_attach_to_previous_ps(uint32 image_id, uint16 x, uint16 y);

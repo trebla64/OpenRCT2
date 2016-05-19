@@ -215,7 +215,7 @@ static void window_server_list_mouseup(rct_window *w, int widgetIndex)
 		int serverIndex = w->selected_list_item;
 		if (serverIndex >= 0 && serverIndex < _numServerEntries) {
 			if (strcmp(_serverEntries[serverIndex].version, NETWORK_STREAM_ID) != 0 && strcmp(_serverEntries[serverIndex].version, "") != 0) {
-				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void *) = _serverEntries[serverIndex].version;
+				set_format_arg(0, void *, _serverEntries[serverIndex].version);
 				window_error_open(STR_UNABLE_TO_CONNECT_TO_SERVER, STR_MULTIPLAYER_INCORRECT_SOFTWARE_VERSION);
 				break;
 			}
@@ -251,7 +251,7 @@ static void window_server_list_dropdown(rct_window *w, int widgetIndex, int drop
 	switch (dropdownIndex) {
 	case DDIDX_JOIN:
 		if (strcmp(_serverEntries[serverIndex].version, NETWORK_STREAM_ID) != 0 && strcmp(_serverEntries[serverIndex].version, "") != 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void *) = _serverEntries[serverIndex].version;
+			set_format_arg(0, void *, _serverEntries[serverIndex].version);
 			window_error_open(STR_UNABLE_TO_CONNECT_TO_SERVER, STR_MULTIPLAYER_INCORRECT_SOFTWARE_VERSION);
 			break;
 		}
@@ -283,8 +283,6 @@ static void window_server_list_scroll_mousedown(rct_window *w, int scrollIndex, 
 	int serverIndex = w->selected_list_item;
 	if (serverIndex < 0) return;
 	if (serverIndex >= _numServerEntries) return;
-
-	char *serverAddress = _serverEntries[serverIndex].address;
 
 	rct_widget *listWidget = &w->widgets[WIDX_LIST];
 	int ddx = w->x + listWidget->left + x + 2 - w->scrolls[0].h_left;
@@ -377,7 +375,7 @@ static void window_server_list_invalidate(rct_window *w)
 {
 	colour_scheme_update(w);
 
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, char *) = gVersion;
+	set_format_arg(0, char *, gVersion);
 	window_server_list_widgets[WIDX_BACKGROUND].right = w->width - 1;
 	window_server_list_widgets[WIDX_BACKGROUND].bottom = w->height - 1;
 	window_server_list_widgets[WIDX_TITLE].right = w->width - 2;
@@ -782,7 +780,6 @@ static void fetch_servers_callback(http_json_response* response)
 		json_t *maxPlayers = json_object_get(server, "maxPlayers");
 		json_t *ip = json_object_get(server, "ip");
 		json_t *ip4 = json_object_get(ip, "v4");
-		json_t *ip6 = json_object_get(ip, "v6");
 		json_t *addressIp = json_array_get(ip4, 0);
 
 		if (name == NULL || version == NULL)

@@ -175,12 +175,12 @@ bool language_open(int id)
 			gUseTrueTypeFont = false;
 			gCurrentTTFFontSet = nullptr;
 		} else {
-			if (gConfigFonts.file_name != nullptr) {
+			if (!String::IsNullOrEmpty(gConfigFonts.file_name)) {
 				static TTFFontSetDescriptor TTFFontCustom = {{
-					{ gConfigFonts.file_name,		gConfigFonts.font_name,	11,		gConfigFonts.x_offset,		gConfigFonts.y_offset,		15,		nullptr },
-					{ gConfigFonts.file_name,		gConfigFonts.font_name,	11,		gConfigFonts.x_offset,		gConfigFonts.y_offset,		17,		nullptr },
-					{ gConfigFonts.file_name,		gConfigFonts.font_name,	11,		gConfigFonts.x_offset,		gConfigFonts.y_offset,		17,		nullptr },
-					{ gConfigFonts.file_name,		gConfigFonts.font_name,	11,		gConfigFonts.x_offset,		gConfigFonts.y_offset,		20,		nullptr },
+					{ gConfigFonts.file_name,	gConfigFonts.font_name,	gConfigFonts.size_tiny,		gConfigFonts.x_offset,	gConfigFonts.y_offset,	gConfigFonts.height_tiny,	nullptr },
+					{ gConfigFonts.file_name,	gConfigFonts.font_name,	gConfigFonts.size_small,	gConfigFonts.x_offset,	gConfigFonts.y_offset,	gConfigFonts.height_small,	nullptr },
+					{ gConfigFonts.file_name,	gConfigFonts.font_name,	gConfigFonts.size_medium,	gConfigFonts.x_offset,	gConfigFonts.y_offset,	gConfigFonts.height_medium,	nullptr },
+					{ gConfigFonts.file_name,	gConfigFonts.font_name,	gConfigFonts.size_big,		gConfigFonts.x_offset,	gConfigFonts.y_offset,	gConfigFonts.height_big,	nullptr },
 				}};
 				ttf_dispose();
 				gUseTrueTypeFont = true;

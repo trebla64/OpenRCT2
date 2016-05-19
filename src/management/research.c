@@ -19,6 +19,7 @@
 #include "../game.h"
 #include "../interface/window.h"
 #include "../localisation/date.h"
+#include "../localisation/localisation.h"
 #include "../localisation/string_ids.h"
 #include "../management/finance.h"
 #include "../scenario.h"
@@ -209,8 +210,8 @@ void research_finish_item(sint32 entryIndex)
 
 		// I don't think 0x009AC06C is ever not 0, so probably redundant
 		if (RCT2_GLOBAL(0x009AC06C, uint8) == 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = ((rideEntry->flags & RIDE_ENTRY_FLAG_SEPARATE_RIDE_NAME)) ?
-				rideEntry->name : base_ride_type + 2;
+			set_format_arg(0, rct_string_id, ((rideEntry->flags & RIDE_ENTRY_FLAG_SEPARATE_RIDE_NAME)) ?
+				rideEntry->name : base_ride_type + 2);
 			if (!gSilentResearch) {
 				if (gConfigNotifications.ride_researched) {
 					news_item_add_to_queue(NEWS_ITEM_RESEARCH, STR_NEWS_ITEM_RESEARCH_NEW_RIDE_AVAILABLE, entryIndex);
@@ -221,7 +222,7 @@ void research_finish_item(sint32 entryIndex)
 		research_invalidate_related_windows();
 	} else {
 		// Scenery
-		scenerySetEntry = g_scenerySetEntries[entryIndex & 0xFFFF];
+		scenerySetEntry = get_scenery_group_entry(entryIndex & 0xFFFF);
 		for (i = 0; i < scenerySetEntry->entry_count; i++) {
 			subSceneryEntryIndex = scenerySetEntry->scenery_entries[i];
 			gResearchedSceneryItems[subSceneryEntryIndex >> 5] |= 1UL << (subSceneryEntryIndex & 0x1F);
@@ -229,7 +230,7 @@ void research_finish_item(sint32 entryIndex)
 
 		// I don't think 0x009AC06C is ever not 0, so probably redundant
 		if (RCT2_GLOBAL(0x009AC06C, uint8) == 0) {
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = scenerySetEntry->name;
+			set_format_arg(0, rct_string_id, scenerySetEntry->name);
 			if (!gSilentResearch) {
 				if (gConfigNotifications.ride_researched) {
 					news_item_add_to_queue(NEWS_ITEM_RESEARCH, STR_NEWS_ITEM_RESEARCH_NEW_SCENERY_SET_AVAILABLE, entryIndex);
@@ -330,7 +331,7 @@ void sub_684AC3(){
 	}
 
 	for (int i = 0; i < 19; ++i){
-		rct_scenery_set_entry* scenery_set = g_scenerySetEntries[i];
+		rct_scenery_set_entry* scenery_set = get_scenery_group_entry(i);
 		if ((int)scenery_set == -1)continue;
 
 		for (int j = 0; j < scenery_set->entry_count; ++j){
@@ -505,7 +506,7 @@ void research_populate_list_random()
 
 	// Scenery
 	for (int i = 0; i < 19; i++) {
-		scenerySetEntry = g_scenerySetEntries[i];
+		scenerySetEntry = get_scenery_group_entry(i);
 		if (scenerySetEntry == (rct_scenery_set_entry*)-1)
 			continue;
 
@@ -535,7 +536,7 @@ void research_populate_list_researched()
 
 	// Scenery
 	for (int i = 0; i < 19; i++) {
-		scenerySetEntry = g_scenerySetEntries[i];
+		scenerySetEntry = get_scenery_group_entry(i);
 		if (scenerySetEntry == (rct_scenery_set_entry*)-1)
 			continue;
 
@@ -598,7 +599,6 @@ void research_insert_ride_entry(uint8 entryIndex, bool researched)
 
 void research_insert_scenery_group_entry(uint8 entryIndex, bool researched)
 {
-	rct_scenery_set_entry *scenerySetEntry = g_scenerySetEntries[entryIndex];
 	research_insert(researched, entryIndex, RESEARCH_CATEGORY_SCENERYSET);
 }
 

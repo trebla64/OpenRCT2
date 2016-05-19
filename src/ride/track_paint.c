@@ -28,6 +28,245 @@
 #include "ride_data.h"
 #include "track_data.h"
 #include "track_paint.h"
+#include "../paint/map_element/map_element.h"
+
+/* rct2: 0x007667AC */
+static rct_xy16 loc_7667AC[] = {
+	{.x = -1, .y = 0},
+	{.x = 0, .y = -1},
+	{.x = 1, .y = 0},
+	{.x = 0, .y = 1},
+};
+
+/* rct2: 0x007667AE */
+static rct_xy16 loc_7667AE[] = {
+	{.x = 0, .y = -1},
+	{.x = 1, .y = 0},
+	{.x = 0, .y = 1},
+	{.x = -1, .y = 0},
+};
+
+const uint8 track_map_2x2[][4] = {
+	{0, 1, 2, 3},
+	{1, 3, 0, 2},
+	{3, 2, 1, 0},
+	{2, 0, 3, 1}
+};
+
+const uint8 edges_2x2[] = {
+	EDGE_NE | EDGE_NW,
+	EDGE_NE | EDGE_SE,
+	EDGE_SW | EDGE_NW,
+	EDGE_SW | EDGE_SE,
+};
+
+const uint8 track_map_3x3[][9] = {
+	{0, 1, 2, 3, 4, 5, 6, 7, 8},
+	{0, 3, 5, 7, 2, 8, 1, 6, 4},
+	{0, 7, 8, 6, 5, 4, 3, 1, 2},
+	{0, 6, 4, 1, 8, 2, 7, 3, 5}
+};
+
+const uint8 edges_3x3[] = {
+	0,
+	EDGE_NE | EDGE_NW,
+	EDGE_NE,
+	EDGE_NE | EDGE_SE,
+	EDGE_NW,
+	EDGE_SE,
+	EDGE_SW | EDGE_NW,
+	EDGE_SW | EDGE_SE,
+	EDGE_SW,
+};
+
+const uint8 track_map_4x4[][16] = {
+	{0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15},
+	{3,  7,  11, 15, 2,  6,  10, 14, 1,  5,  9,  13, 0,  4,  8,  12},
+	{15, 14, 13, 12, 11, 10, 9,  8,  7,  6,  5,  4,  3,  2,  1,  0},
+	{12, 8,  4,  0,  13, 9,  5,  1,  14, 10, 6,  2,  15, 11, 7,  3},
+};
+
+const uint8 edges_4x4[] = {
+	EDGE_NE | EDGE_NW,
+	EDGE_NE,
+	EDGE_NE,
+	EDGE_NE | EDGE_SE,
+	EDGE_NW,
+	0,
+	0,
+	EDGE_SE,
+	EDGE_NW,
+	0,
+	0,
+	EDGE_SE,
+	EDGE_NW | EDGE_SW,
+	EDGE_SW,
+	EDGE_SW,
+	EDGE_SW | EDGE_SE
+};
+
+const uint32 floorSpritesCork[] = {
+	SPR_FLOOR_CORK_SE_SW,
+	SPR_FLOOR_CORK_SW,
+	SPR_FLOOR_CORK_SE,
+	SPR_FLOOR_CORK
+};
+
+const uint32 fenceSpritesRope[] = {
+	SPR_FENCE_ROPE_NE,
+	SPR_FENCE_ROPE_SE,
+	SPR_FENCE_ROPE_SW,
+	SPR_FENCE_ROPE_NW
+};
+
+enum
+{
+	SPR_STATION_COVER_OFFSET_NE_SW_BACK_0 = 0,
+	SPR_STATION_COVER_OFFSET_NE_SW_BACK_1,
+	SPR_STATION_COVER_OFFSET_NE_SW_FRONT,
+	SPR_STATION_COVER_OFFSET_SE_NW_BACK_0,
+	SPR_STATION_COVER_OFFSET_SE_NW_BACK_1,
+	SPR_STATION_COVER_OFFSET_SE_NW_FRONT,
+	SPR_STATION_COVER_OFFSET_HIGH
+};
+
+bool track_paint_util_has_fence(enum edge edge, rct_xy16 position, rct_map_element * mapElement, rct_ride * ride, uint8 rotation)
+{
+	rct_xy16 offset;
+	switch (edge) {
+		case EDGE_NE:
+			offset = loc_7667AC[rotation];
+			break;
+		case EDGE_SE:
+			offset = loc_7667AE[(rotation + 2) & 3];
+			break;
+		case EDGE_SW:
+			offset = loc_7667AC[(rotation + 2) & 3];
+			break;
+		case EDGE_NW:
+			offset = loc_7667AE[rotation];
+			break;
+	}
+
+	uint16 entranceLoc =
+		((position.x / 32) + offset.x) |
+		(((position.y / 32) + offset.y) << 8);
+
+	int entranceId = map_get_station(mapElement);
+
+	return (ride->entrances[entranceId] != entranceLoc && ride->exits[entranceId] != entranceLoc);
+}
+
+void track_paint_util_paint_floor(uint8 edges, uint32 colourFlags, uint16 height, const uint32 floorSprites[4], uint8 rotation)
+{
+	uint32 imageId;
+
+	if (edges & EDGE_SW && edges & EDGE_SE) {
+		imageId = floorSprites[0];
+	} else if (edges & EDGE_SW) {
+		imageId = floorSprites[1];
+	} else if (edges & EDGE_SE) {
+		imageId = floorSprites[2];
+	} else {
+		imageId = floorSprites[3];
+	}
+
+	sub_98197C(imageId | colourFlags, 0, 0, 32, 32, 1, height, 0, 0, height, rotation);
+}
+
+void track_paint_util_paint_fences(uint8 edges, rct_xy16 position, rct_map_element * mapElement, rct_ride * ride, uint32 colourFlags, uint16 height, const uint32 fenceSprites[4], uint8 rotation)
+{
+	uint32 imageId;
+
+	if (edges & EDGE_NW && track_paint_util_has_fence(EDGE_NW, position, mapElement, ride, rotation)) {
+		imageId = fenceSprites[3] | colourFlags;
+		sub_98199C(imageId, 0, 0, 32, 1, 7, height, 0, 2, height + 2, rotation);
+	}
+	if (edges & EDGE_NE && track_paint_util_has_fence(EDGE_NE, position, mapElement, ride, rotation)) {
+		imageId = fenceSprites[0] | colourFlags;
+		sub_98199C(imageId, 0, 0, 1, 32, 7, height, 2, 0, height + 2, rotation);
+	}
+	if (edges & EDGE_SE && track_paint_util_has_fence(EDGE_SE, position, mapElement, ride, rotation)) {
+		imageId = fenceSprites[1] | colourFlags;
+		sub_98197C(imageId, 0, 0, 32, 1, 7, height, 0, 30, height + 2, rotation);
+	}
+	if (edges & EDGE_SW && track_paint_util_has_fence(EDGE_SW, position, mapElement, ride, rotation)) {
+		imageId = fenceSprites[2] | colourFlags;
+		sub_98197C(imageId, 0, 0, 1, 32, 7, height, 30, 0, height + 2, rotation);
+	}
+}
+
+/* Supports are only placed every 2 tiles for flat pieces*/
+bool track_paint_util_should_paint_supports(rct_xy16 position)
+{
+	if ((position.x & (1 << 5)) == (position.y & (1 << 5)))
+		return true;
+
+	if ((!(position.x & (1 << 5))) && (!(position.y & (1 << 5))))
+		return true;
+
+	return false;
+}
+
+bool track_paint_util_draw_station_covers(enum edge edge, bool hasFence, const rct_ride_entrance_definition * entranceStyle, uint8 direction, uint16 height)
+{
+	if (RCT2_GLOBAL(0x0141E9DB, uint8) & 3) {
+		return false;
+	}
+
+	uint32 imageId;
+	uint32 baseImageId = entranceStyle->base_image_id;
+	int imageOffset;
+	rct_xyz16 offset, bounds, boundsOffset;
+
+	offset = (rct_xyz16) {0, 0, height};
+	switch (edge) {
+		case EDGE_NE:
+			bounds = (rct_xyz16) {1, 30, 0};
+			boundsOffset = (rct_xyz16) {0, 1, height + 1};
+			imageOffset = hasFence ? SPR_STATION_COVER_OFFSET_SE_NW_BACK_1 : SPR_STATION_COVER_OFFSET_SE_NW_BACK_0;
+			break;
+		case EDGE_SE:
+			bounds = (rct_xyz16) {32, 32, 0};
+			boundsOffset = (rct_xyz16) {1, 0, height + 31};
+			imageOffset = SPR_STATION_COVER_OFFSET_NE_SW_FRONT;
+			break;
+		case EDGE_SW:
+			bounds = (rct_xyz16) {32, 32, 0};
+			boundsOffset = (rct_xyz16) {0, 0, height + 31};
+			imageOffset = SPR_STATION_COVER_OFFSET_SE_NW_FRONT;
+			break;
+		case EDGE_NW:
+			bounds = (rct_xyz16) {30, 1, 30};
+			boundsOffset = (rct_xyz16) {1, 0, height + 1};
+			imageOffset = hasFence ? SPR_STATION_COVER_OFFSET_NE_SW_BACK_1 : SPR_STATION_COVER_OFFSET_NE_SW_BACK_0;
+			break;
+	}
+
+	if (RCT2_GLOBAL(0x00F441A0, uint32) != 0x20000000) {
+		baseImageId &= 0x7FFFF;
+	}
+
+	if (baseImageId <= 0x20) {
+		return false;
+	}
+
+	if (baseImageId & 0x40000000) {
+		imageId = (baseImageId & 0xBFFFFFFF) + imageOffset;
+		sub_98197C(imageId, (sint8)offset.x, (sint8)offset.y, bounds.x, bounds.y, (sint8)bounds.z, offset.z, boundsOffset.x, boundsOffset.y, boundsOffset.z, get_current_rotation());
+
+		uint32 edi = RCT2_GLOBAL(0x00F44198, uint32) & (0b11111 << 19);
+
+		// weird jump
+		imageId = (baseImageId | edi) + 0x3800000 + imageOffset + 12;
+		sub_98199C(imageId, (sint8)offset.x, (sint8)offset.y, bounds.x, bounds.y, (sint8)bounds.z, offset.z, boundsOffset.x, boundsOffset.y, boundsOffset.z, get_current_rotation());
+		return true;
+	}
+
+	imageId = (baseImageId + imageOffset) | RCT2_GLOBAL(0x00F44198, uint32);
+	sub_98197C(imageId, (sint8)offset.x, (sint8)offset.y, bounds.x, bounds.y, (sint8)bounds.z, offset.z, boundsOffset.x, boundsOffset.y, boundsOffset.z, get_current_rotation());
+	return true;
+}
 
 /**
  *
@@ -81,7 +320,7 @@ void track_paint(uint8 direction, int height, rct_map_element *mapElement)
 			RCT2_GLOBAL(0x00F441A4, uint32) = 0x21600000;
 		}
 		if (mapElement->flags & MAP_ELEMENT_FLAG_GHOST) {
-			uint32 ghost_id = RCT2_ADDRESS(0x00993CC4, uint32)[gConfigGeneral.construction_marker_colour];
+			uint32 ghost_id = construction_markers[gConfigGeneral.construction_marker_colour];
 			RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8) = 0;
 			RCT2_GLOBAL(0x00F44198, uint32) = ghost_id;
 			RCT2_GLOBAL(0x00F4419C, uint32) = ghost_id;

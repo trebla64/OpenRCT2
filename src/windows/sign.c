@@ -168,7 +168,7 @@ void window_sign_open(rct_windownumber number)
 
 	while (1){
 		if (map_element_get_type(map_element) == MAP_ELEMENT_TYPE_SCENERY_MULTIPLE) {
-			rct_scenery_entry* scenery_entry = g_largeSceneryEntries[map_element->properties.scenerymultiple.type & MAP_ELEMENT_LARGE_TYPE_MASK];
+			rct_scenery_entry* scenery_entry = get_large_scenery_entry(map_element->properties.scenerymultiple.type & MAP_ELEMENT_LARGE_TYPE_MASK);
 			if (scenery_entry->large_scenery.var_11 != 0xFF){
 				int id = (map_element->type & 0xC0) |
 					((map_element->properties.scenerymultiple.colour[0] & 0xE0) >> 2) |
@@ -231,7 +231,7 @@ static void window_sign_mouseup(rct_window *w, int widgetIndex)
 	case WIDX_SIGN_DEMOLISH:
 		while (1){
 			if (map_element_get_type(map_element) == MAP_ELEMENT_TYPE_SCENERY_MULTIPLE) {
-				rct_scenery_entry* scenery_entry = g_largeSceneryEntries[map_element->properties.scenerymultiple.type & MAP_ELEMENT_LARGE_TYPE_MASK];
+				rct_scenery_entry* scenery_entry = get_large_scenery_entry(map_element->properties.scenerymultiple.type & MAP_ELEMENT_LARGE_TYPE_MASK);
 				if (scenery_entry->large_scenery.var_11 != 0xFF){
 					int id = (map_element->type & 0xC0) |
 						((map_element->properties.scenerymultiple.colour[0] & 0xE0) >> 2) |
@@ -254,7 +254,7 @@ static void window_sign_mouseup(rct_window *w, int widgetIndex)
 	case WIDX_SIGN_TEXT:
 		if (banner->flags&BANNER_FLAG_2){
 			rct_ride* ride = get_ride(banner->colour);
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 16, uint32) = ride->name_arguments;
+			set_format_arg(16, uint32, ride->name_arguments);
 			string_id = ride->name;
 		}
 		else
@@ -330,7 +330,7 @@ static void window_sign_invalidate(rct_window *w)
 	rct_widget* main_colour_btn = &window_sign_widgets[WIDX_MAIN_COLOUR];
 	rct_widget* text_colour_btn = &window_sign_widgets[WIDX_TEXT_COLOUR];
 
-	rct_scenery_entry* scenery_entry = g_largeSceneryEntries[w->var_48C];
+	rct_scenery_entry* scenery_entry = get_large_scenery_entry(w->var_48C);
 
 	main_colour_btn->type = WWT_EMPTY;
 	text_colour_btn->type = WWT_EMPTY;
@@ -435,7 +435,7 @@ void window_sign_small_open(rct_windownumber number){
 
 	while (1){
 		if (map_element_get_type(map_element) == MAP_ELEMENT_TYPE_FENCE) {
-			rct_scenery_entry* scenery_entry = g_wallSceneryEntries[map_element->properties.fence.type];
+			rct_scenery_entry* scenery_entry = get_wall_entry(map_element->properties.fence.type);
 			if (scenery_entry->wall.var_0D != 0xFF){
 				if (map_element->properties.fence.item[0] == w->number)
 					break;
@@ -497,7 +497,7 @@ static void window_sign_small_mouseup(rct_window *w, int widgetIndex)
 	case WIDX_SIGN_DEMOLISH:
 		while (1){
 			if (map_element_get_type(map_element) == MAP_ELEMENT_TYPE_FENCE) {
-				rct_scenery_entry* scenery_entry = g_wallSceneryEntries[map_element->properties.fence.type];
+				rct_scenery_entry* scenery_entry = get_wall_entry(map_element->properties.fence.type);
 				if (scenery_entry->wall.var_0D != 0xFF){
 					if (map_element->properties.fence.item[0] == w->number)
 						break;
@@ -518,7 +518,7 @@ static void window_sign_small_mouseup(rct_window *w, int widgetIndex)
 	case WIDX_SIGN_TEXT:
 		if (banner->flags&BANNER_FLAG_2){
 			rct_ride* ride = get_ride(banner->colour);
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 16, uint32) = ride->name_arguments;
+			set_format_arg(16, uint32, ride->name_arguments);
 			string_id = ride->name;
 		}
 		else
@@ -536,8 +536,6 @@ static void window_sign_small_mouseup(rct_window *w, int widgetIndex)
  */
 static void window_sign_small_dropdown(rct_window *w, int widgetIndex, int dropdownIndex)
 {
-	rct_banner* banner = &gBanners[w->number];
-
 	switch (widgetIndex){
 	case WIDX_MAIN_COLOUR:
 		if (dropdownIndex == -1) return;
@@ -567,7 +565,7 @@ static void window_sign_small_invalidate(rct_window *w)
 	rct_widget* main_colour_btn = &window_sign_widgets[WIDX_MAIN_COLOUR];
 	rct_widget* text_colour_btn = &window_sign_widgets[WIDX_TEXT_COLOUR];
 
-	rct_scenery_entry* scenery_entry = g_wallSceneryEntries[w->var_48C];
+	rct_scenery_entry* scenery_entry = get_wall_entry(w->var_48C);
 
 	main_colour_btn->type = WWT_EMPTY;
 	text_colour_btn->type = WWT_EMPTY;

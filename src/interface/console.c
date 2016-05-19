@@ -54,7 +54,6 @@ static utf8 _consoleBuffer[CONSOLE_BUFFER_SIZE] = { 0 };
 static utf8 *_consoleBufferPointer = _consoleBuffer;
 static utf8 *_consoleViewBufferStart = _consoleBuffer;
 static utf8 _consoleCurrentLine[CONSOLE_INPUT_SIZE];
-static utf8 *_consoleCurrentLinePointer = _consoleCurrentLine;
 static int _consoleCaretTicks;
 static utf8 _consolePrintfBuffer[CONSOLE_BUFFER_2_SIZE];
 static utf8 _consoleErrorBuffer[CONSOLE_BUFFER_2_SIZE];
@@ -202,13 +201,13 @@ void console_draw(rct_drawpixelinfo *dpi)
 			break;
 		drawLines++;
 
-		int lineLength = min(sizeof(lineBuffer) - (size_t)utf8_get_codepoint_length(FORMAT_GREEN), (size_t)(nextLine - ch));
+		int lineLength = min(sizeof(lineBuffer) - (size_t)utf8_get_codepoint_length(FORMAT_WHITE), (size_t)(nextLine - ch));
 		lineCh = lineBuffer;
-		lineCh = utf8_write_codepoint(lineCh, FORMAT_GREEN);
+		lineCh = utf8_write_codepoint(lineCh, FORMAT_WHITE);
 		strncpy(lineCh, ch, lineLength);
 		lineCh[lineLength] = 0;
 
-		gfx_draw_string(dpi, lineBuffer, 255, x, y);
+		gfx_draw_string(dpi, lineBuffer, 100, x, y);	  //Value 100 outlines the letters
 
 		x = gLastDrawStringX;
 
@@ -225,7 +224,7 @@ void console_draw(rct_drawpixelinfo *dpi)
 
 	// Draw current line
 	lineCh = lineBuffer;
-	lineCh = utf8_write_codepoint(lineCh, FORMAT_GREEN);
+	lineCh = utf8_write_codepoint(lineCh, FORMAT_WHITE);
 	strcpy(lineCh, _consoleCurrentLine);
 	gfx_draw_string(dpi, lineBuffer, 255, x, y);
 
@@ -236,7 +235,7 @@ void console_draw(rct_drawpixelinfo *dpi)
 		int caretX = x + gfx_get_string_width(lineBuffer);
 		int caretY = y + lineHeight;
 
-		gfx_fill_rect(dpi, caretX, caretY, caretX + 6, caretY + 1, FORMAT_GREEN);
+		gfx_fill_rect(dpi, caretX, caretY, caretX + 6, caretY + 1, FORMAT_WHITE);
 	}
 	gfx_fill_rect(dpi, _consoleLeft, _consoleBottom - 21, _consoleRight, _consoleBottom - 21, 14);
 	gfx_fill_rect(dpi, _consoleLeft, _consoleBottom - 20, _consoleRight, _consoleBottom - 20, 11);
@@ -806,8 +805,6 @@ static int cc_load_object(const utf8 **argv, int argc) {
 		utf8 path[MAX_PATH];
 
 		substitute_path(path, RCT2_ADDRESS(RCT2_ADDRESS_OBJECT_DATA_PATH, char), argv[0]);
-		// Require pointer to start of filename
-		utf8* last_char = path + strlen(path);
 		strcat(path, ".DAT\0");
 
 		rct_object_entry entry;
@@ -855,7 +852,7 @@ static int cc_load_object(const utf8 **argv, int argc) {
 							else if (type == OBJECT_TYPE_SCENERY_SETS) {
 								rct_scenery_set_entry *scenerySetEntry;
 
-								scenerySetEntry = g_scenerySetEntries[entryGroupIndex];
+								scenerySetEntry = get_scenery_group_entry(entryGroupIndex);
 
 								research_insert(true, entryGroupIndex, RESEARCH_CATEGORY_SCENERYSET);
 
@@ -1124,7 +1121,7 @@ void console_execute_silent(const utf8 *src)
 	if (!validCommand) {
 		utf8 output[128];
 		utf8 *dst = output;
-		dst = utf8_write_codepoint(dst, FORMAT_RED);
+		dst = utf8_write_codepoint(dst, FORMAT_TOPAZ);
 		strcpy(dst, "Unknown command. Type help to list available commands.");
 		console_writeline(output);
 	}

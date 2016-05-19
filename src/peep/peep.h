@@ -609,6 +609,10 @@ enum {
 
 extern uint8 *gPeepWarningThrottle;
 
+extern rct_xyz16 gPeepPathFindGoalPosition;
+extern bool gPeepPathFindIgnoreForeignQueues;
+extern uint8 gPeepPathFindQueueRideIndex;
+
 int peep_get_staff_count();
 int peep_can_be_picked_up(rct_peep* peep);
 void peep_update_all();

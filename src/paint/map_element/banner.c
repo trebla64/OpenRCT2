@@ -38,7 +38,7 @@ void banner_paint(uint8 direction, int height, rct_map_element* map_element)
 
 	height -= 16;
 
-	rct_scenery_entry* banner_scenery = g_bannerSceneryEntries[gBanners[map_element->properties.banner.index].type];
+	rct_scenery_entry* banner_scenery = get_banner_entry(gBanners[map_element->properties.banner.index].type);
 
 	direction += map_element->properties.banner.position;
 	direction &= 3;
@@ -53,7 +53,7 @@ void banner_paint(uint8 direction, int height, rct_map_element* map_element)
 	if (map_element->flags & MAP_ELEMENT_FLAG_GHOST)//if being placed
 	{
 		RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8_t) = VIEWPORT_INTERACTION_ITEM_NONE;
-		image_id |= RCT2_ADDRESS(0x993CC4, uint32_t)[gConfigGeneral.construction_marker_colour];
+		image_id |= construction_markers[gConfigGeneral.construction_marker_colour];
 	}
 	else{
 		image_id |=
@@ -77,19 +77,19 @@ void banner_paint(uint8 direction, int height, rct_map_element* map_element)
 	uint16 scrollingMode = banner_scenery->banner.scrolling_mode;
 	scrollingMode += direction;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = 0;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32_t) = 0;
+	set_format_arg(0, uint32, 0);
+	set_format_arg(4, uint32_t, 0);
 
 	rct_string_id string_id = STR_NO_ENTRY;
 	if (!(gBanners[map_element->properties.banner.index].flags & BANNER_FLAG_NO_ENTRY))
 	{
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = gBanners[map_element->properties.banner.index].string_idx;
+		set_format_arg(0, uint16, gBanners[map_element->properties.banner.index].string_idx);
 		string_id = STR_BANNER_TEXT;
 	}
 	if (gConfigGeneral.upper_case_banners) {
-		format_string_to_upper(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+		format_string_to_upper(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, gCommonFormatArgs);
 	} else {
-		format_string(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+		format_string(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, gCommonFormatArgs);
 	}
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;

@@ -20,6 +20,7 @@
 #include "../drawing/drawing.h"
 #include "../game.h"
 #include "../image_io.h"
+#include "../intro.h"
 #include "../localisation/localisation.h"
 #include "../openrct2.h"
 #include "../platform/platform.h"
@@ -86,7 +87,7 @@ static int screenshot_get_next_path(char *path, int format)
 
 	int i;
 	for (i = 1; i < 1000; i++) {
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = i;
+		set_format_arg(0, uint16, i);
 
 		// Glue together path and filename
 		sprintf(path, "%sSCR%d%s", screenshotPath, i, _screenshot_format_extension[format]);
@@ -246,9 +247,9 @@ void screenshot_giant()
 	free(dpi.bits);
 
 	// Show user that screenshot saved successfully
-	rct_string_id stringId = 3165;
+	rct_string_id stringId = STR_PLACEHOLDER;
 	strcpy((char*)language_get_string(stringId), path_get_filename(path));
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = stringId;
+	set_format_arg(0, uint16, stringId);
 	window_error_open(STR_SCREENSHOT_SAVED_AS, -1);
 }
 
@@ -301,7 +302,7 @@ int cmdline_for_screenshot(const char **argv, int argc)
 	if (openrct2_initialise()) {
 		rct2_open_file(inputPath);
 
-		RCT2_GLOBAL(RCT2_ADDRESS_RUN_INTRO_TICK_PART, uint8) = 0;
+		gIntroState = INTRO_STATE_NONE;
 		gScreenFlags = SCREEN_FLAGS_PLAYING;
 
 		int mapSize = gMapSize;

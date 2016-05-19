@@ -24,6 +24,7 @@
 #include "../../ride/ride_data.h"
 #include "../../world/entrance.h"
 #include "../../world/footpath.h"
+#include "map_element.h"
 
 /**
  *
@@ -31,7 +32,6 @@
  */
 void ride_entrance_exit_paint(uint8 direction, int height, rct_map_element* map_element)
 {
-	rct_drawpixelinfo* dpi = RCT2_GLOBAL(0x140E9A8, rct_drawpixelinfo*);
 	uint8 is_exit = map_element->properties.entrance.type == ENTRANCE_TYPE_RIDE_EXIT;
 
 	if (RCT2_GLOBAL(0x9DEA6F, uint8_t) & 1){
@@ -46,7 +46,7 @@ void ride_entrance_exit_paint(uint8 direction, int height, rct_map_element* map_
 
 	uint8 colour_1, colour_2;
 	uint32 transparant_image_id = 0, image_id = 0;
-	if (style->flags & (1 << 30)) {
+	if (style->base_image_id & 0x40000000) {
 		colour_1 = ride->track_colour_main[0] + 0x70;
 		transparant_image_id = (colour_1 << 19) | 0x40000000;
 	}
@@ -60,7 +60,7 @@ void ride_entrance_exit_paint(uint8 direction, int height, rct_map_element* map_
 
 	if (map_element->flags & MAP_ELEMENT_FLAG_GHOST){
 		RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8) = VIEWPORT_INTERACTION_ITEM_NONE;
-		image_id = RCT2_ADDRESS(0x993CC4, uint32_t)[gConfigGeneral.construction_marker_colour];
+		image_id = construction_markers[gConfigGeneral.construction_marker_colour];
 		RCT2_GLOBAL(0x009E32BC, uint32) = image_id;
 		if (transparant_image_id)
 			transparant_image_id = image_id;
@@ -104,39 +104,35 @@ void ride_entrance_exit_paint(uint8 direction, int height, rct_map_element* map_
 		sub_98199C(transparant_image_id, 0, 0, lengthX, lengthY, ah, height, (direction & 1) ? 28 : 2, (direction & 1) ? 2 : 28, height, get_current_rotation());
 	}
 
-	uint32 eax = 0xFFFF0600 | ((height / 16) & 0xFF);
-	if (direction & 1){
-		RCT2_ADDRESS(0x009E30B6, uint32)[RCT2_GLOBAL(0x141F56B, uint8) / 2] = eax;
-		RCT2_GLOBAL(0x141F56B, uint8)++;
-	}
-	else{
-		RCT2_ADDRESS(0x009E3138, uint32)[RCT2_GLOBAL(0x141F56A, uint8) / 2] = eax;
-		RCT2_GLOBAL(0x141F56A, uint8)++;
+	if (direction & 1) {
+		paint_util_push_tunnel_right(height, TUNNEL_6);
+	} else {
+		paint_util_push_tunnel_left(height, TUNNEL_6);
 	}
 
 	if (!is_exit &&
 		!(map_element->flags & MAP_ELEMENT_FLAG_GHOST) &&
 		map_element->properties.entrance.ride_index != 0xFF){
 
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = 0;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32) = 0;
+		set_format_arg(0, uint32, 0);
+		set_format_arg(4, uint32, 0);
 
 		rct_string_id string_id = STR_RIDE_ENTRANCE_CLOSED;
 
 		if (ride->status == RIDE_STATUS_OPEN &&
 			!(ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN)){
 
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 0, rct_string_id) = ride->name;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = ride->name_arguments;
+			set_format_arg(0, rct_string_id, ride->name);
+			set_format_arg(2, uint32, ride->name_arguments);
 
 			string_id = STR_RIDE_ENTRANCE_NAME;
 		}
 
 		utf8 entrance_string[MAX_PATH];
 		if (gConfigGeneral.upper_case_banners) {
-			format_string_to_upper(entrance_string, string_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+			format_string_to_upper(entrance_string, string_id, gCommonFormatArgs);
 		} else {
-			format_string(entrance_string, string_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+			format_string(entrance_string, string_id, gCommonFormatArgs);
 		}
 
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
@@ -153,21 +149,10 @@ void ride_entrance_exit_paint(uint8 direction, int height, rct_map_element* map_
 	}
 	wooden_a_supports_paint_setup(direction & 1, 0, height, image_id, NULL);
 
-	RCT2_GLOBAL(0x141E9B4, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9B8, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9BC, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9C0, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9C4, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9C8, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9CC, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9D0, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9D4, uint16) = 0xFFFF;
+	paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);
 
 	height += is_exit ? 40 : 56;
-	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) < height){
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) = height;
-		RCT2_GLOBAL(0x141E9DA, uint8) = 32;
-	}
+	paint_util_set_general_support_height(height, 0x20);
 }
 
 /**
@@ -183,11 +168,11 @@ void park_entrance_paint(uint8 direction, int height, rct_map_element* map_eleme
 	uint32 image_id, ghost_id = 0;
 	if (map_element->flags & MAP_ELEMENT_FLAG_GHOST){
 		RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8) = VIEWPORT_INTERACTION_ITEM_NONE;
-		ghost_id = RCT2_ADDRESS(0x993CC4, uint32)[gConfigGeneral.construction_marker_colour];
+		ghost_id = construction_markers[gConfigGeneral.construction_marker_colour];
 		RCT2_GLOBAL(0x009E32BC, uint32) = ghost_id;
 	}
 
-	rct_path_type* path_entry = g_pathTypeEntries[map_element->properties.entrance.path_type];
+	rct_footpath_entry* path_entry = get_footpath_entry(map_element->properties.entrance.path_type);
 
 	// Index to which part of the entrance
 	// Middle, left, right
@@ -210,21 +195,21 @@ void park_entrance_paint(uint8 direction, int height, rct_map_element* map_eleme
 			break;
 
 		rct_string_id park_text_id = 1730;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = 0;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32) = 0;
+		set_format_arg(0, uint32, 0);
+		set_format_arg(4, uint32, 0);
 
 		if (gParkFlags & PARK_FLAGS_PARK_OPEN){
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = gParkName;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = gParkNameArgs;
+			set_format_arg(0, rct_string_id, gParkName);
+			set_format_arg(2, uint32, gParkNameArgs);
 
 			park_text_id = 1731;
 		}
 
 		utf8 park_name[MAX_PATH];
 		if (gConfigGeneral.upper_case_banners) {
-			format_string_to_upper(park_name, park_text_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+			format_string_to_upper(park_name, park_text_id, gCommonFormatArgs);
 		} else {
-			format_string(park_name, park_text_id, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+			format_string(park_name, park_text_id, gCommonFormatArgs);
 		}
 
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
@@ -234,7 +219,7 @@ void park_entrance_paint(uint8 direction, int height, rct_map_element* map_eleme
 		if (entrance->scrolling_mode == 0xFF)
 			break;
 
-			sub_98199C(scrolling_text_setup(park_text_id, scroll, entrance->scrolling_mode + direction / 2), 0, 0, 0x1C, 0x1C, 0x2F, height + entrance->text_height, 2, 2, height + entrance->text_height, get_current_rotation());
+		sub_98199C(scrolling_text_setup(park_text_id, scroll, entrance->scrolling_mode + direction / 2), 0, 0, 0x1C, 0x1C, 0x2F, height + entrance->text_height, 2, 2, height + entrance->text_height, get_current_rotation());
 		break;
 	case 1:
 	case 2:
@@ -250,21 +235,8 @@ void park_entrance_paint(uint8 direction, int height, rct_map_element* map_eleme
 	}
 	wooden_a_supports_paint_setup(direction & 1, 0, height, image_id, NULL);
 
-	RCT2_GLOBAL(0x141E9B4, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9B8, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9BC, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9C0, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9C4, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9C8, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9CC, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9D0, uint16) = 0xFFFF;
-	RCT2_GLOBAL(0x141E9D4, uint16) = 0xFFFF;
-
-	height += 80;
-	if (RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) < height){
-		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, sint16) = height;
-		RCT2_GLOBAL(0x141E9DA, uint8) = 32;
-	}
+	paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);
+	paint_util_set_general_support_height(height + 80, 0x20);
 }
 
 /**

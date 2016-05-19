@@ -42,6 +42,10 @@
 
 uint8 *gPeepWarningThrottle = RCT2_ADDRESS(RCT2_ADDRESS_PEEP_WARNING_THROTTLE, uint8);
 
+rct_xyz16 gPeepPathFindGoalPosition;
+bool gPeepPathFindIgnoreForeignQueues;
+uint8 gPeepPathFindQueueRideIndex;
+
 enum {
 	PATH_SEARCH_DEAD_END,
 	PATH_SEARCH_RIDE_EXIT,
@@ -220,7 +224,7 @@ static uint8 peep_assess_surroundings(sint16 center_x, sint16 center_y, sint16 c
 					if (!footpath_element_has_path_scenery(mapElement))
 						break;
 
-					scenery = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(mapElement)];
+					scenery = get_footpath_item_entry(footpath_element_get_path_scenery_index(mapElement));
 					if (footpath_element_path_scenery_is_ghost(mapElement))
 						break;
 
@@ -617,7 +621,7 @@ static void sub_68F41A(rct_peep *peep, int index)
 					// Check if the footpath has ghost path scenery on it
 					if (footpath_element_has_path_scenery(mapElement) && footpath_element_path_scenery_is_ghost(mapElement)){
 						uint8 pathSceneryIndex = footpath_element_get_path_scenery_index(mapElement);
-						rct_scenery_entry *sceneryEntry = g_pathBitSceneryEntries[pathSceneryIndex];
+						rct_scenery_entry *sceneryEntry = get_footpath_item_entry(pathSceneryIndex);
 						if (sceneryEntry->path_bit.var_06 & (1 << 8)){
 							found = 1;
 						}
@@ -1340,8 +1344,8 @@ void peep_update_falling(rct_peep* peep){
 		if (peep->action == PEEP_ACTION_DROWNING) return;
 
 		if (gConfigNotifications.guest_died) {
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
+			set_format_arg(0, uint16, peep->name_string_idx);
+			set_format_arg(2, uint32, peep->id);
 			news_item_add_to_queue(NEWS_ITEM_BLANK, STR_NEWS_ITEM_GUEST_DROWNED, peep->x | (peep->y << 16));
 		}
 
@@ -1578,7 +1582,8 @@ void remove_peep_from_queue(rct_peep* peep)
 		return;
 	}
 
-	for (rct_peep* other_peep = GET_PEEP(ride->last_peep_in_queue[cur_station]);;
+	for (rct_peep* other_peep = GET_PEEP(ride->last_peep_in_queue[cur_station]);
+		ride->last_peep_in_queue[cur_station] != 0xFFFF;
 		other_peep = GET_PEEP(other_peep->next_in_queue)){
 		if (peep->sprite_index == other_peep->next_in_queue){
 			other_peep->next_in_queue = peep->next_in_queue;
@@ -2126,10 +2131,10 @@ static void peep_update_ride_sub_state_2_enter_ride(rct_peep* peep, rct_ride* ri
 	}
 
 	if (peep->peep_flags & PEEP_FLAGS_TRACKING){
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, uint16) = ride->name;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 8, uint32) = ride->name_arguments;
+		set_format_arg(0, uint16, peep->name_string_idx);
+		set_format_arg(2, uint32, peep->id);
+		set_format_arg(6, uint16, ride->name);
+		set_format_arg(8, uint32, ride->name_arguments);
 
 		rct_string_id msg_string;
 		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_IN_RIDE))
@@ -3179,10 +3184,10 @@ static void peep_update_ride_sub_state_18(rct_peep* peep){
 	peep_on_enter_or_exit_ride(peep, peep->current_ride, 1);
 
 	if (peep->peep_flags & PEEP_FLAGS_TRACKING){
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = peep->name_string_idx;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, uint16) = ride->name;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 8, uint32) = ride->name_arguments;
+		set_format_arg(0, uint16, peep->name_string_idx);
+		set_format_arg(2, uint32, peep->id);
+		set_format_arg(6, uint16, ride->name);
+		set_format_arg(8, uint32, ride->name_arguments);
 
 		if (gConfigNotifications.guest_left_ride) {
 			news_item_add_to_queue(NEWS_ITEM_PEEP_ON_RIDE, STR_PEEP_TRACKING_LEFT_RIDE_X, peep->sprite_index);
@@ -4192,7 +4197,7 @@ static void peep_update_watering(rct_peep* peep){
 			if (abs(((int)peep->next_z) - map_element->base_height) > 4)
 				continue;
 
-			rct_scenery_entry* scenery_entry = g_smallSceneryEntries[map_element->properties.scenery.type];
+			rct_scenery_entry* scenery_entry = get_small_scenery_entry(map_element->properties.scenery.type);
 
 			if (!(scenery_entry->small_scenery.flags & SMALL_SCENERY_FLAG_CAN_BE_WATERED))
 				continue;
@@ -4259,7 +4264,7 @@ static void peep_update_emptying_bin(rct_peep* peep){
 			return;
 		}
 
-		rct_scenery_entry* scenery_entry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+		rct_scenery_entry* scenery_entry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 		if (
 			!(scenery_entry->path_bit.var_06 & 1)
 			|| map_element->flags & (1 << 5)
@@ -4519,7 +4524,7 @@ static int peep_update_walking_find_bench(rct_peep* peep){
 	}
 
 	if (!footpath_element_has_path_scenery(map_element)) return 0;
-	rct_scenery_entry* sceneryEntry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+	rct_scenery_entry* sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 
 	if (!(sceneryEntry->path_bit.var_06 & 0x2))return 0;
 
@@ -4594,7 +4599,7 @@ static int peep_update_walking_find_bin(rct_peep* peep){
 	}
 
 	if (!footpath_element_has_path_scenery(map_element)) return 0;
-	rct_scenery_entry* sceneryEntry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+	rct_scenery_entry* sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 
 	if (!(sceneryEntry->path_bit.var_06 & 0x1))return 0;
 
@@ -4675,7 +4680,7 @@ static void peep_update_walking_break_scenery(rct_peep* peep){
 	}
 
 	if (!footpath_element_has_path_scenery(map_element)) return;
-	rct_scenery_entry* sceneryEntry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+	rct_scenery_entry* sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 
 	if (!(sceneryEntry->path_bit.var_06 & 0x4))return;
 
@@ -4847,7 +4852,7 @@ static void peep_update_using_bin(rct_peep* peep){
 			return;
 		}
 
-		rct_scenery_entry* sceneryEntry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+		rct_scenery_entry* sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 		if (!(sceneryEntry->path_bit.var_06 & 1)){
 			peep_state_reset(peep);
 			return;
@@ -5187,7 +5192,7 @@ static int peep_update_patrolling_find_watering(rct_peep* peep){
 				continue;
 			}
 
-			rct_scenery_entry* sceneryEntry = g_smallSceneryEntries[map_element->properties.scenery.type];
+			rct_scenery_entry* sceneryEntry = get_small_scenery_entry(map_element->properties.scenery.type);
 
 			if (!(sceneryEntry->small_scenery.flags & SMALL_SCENERY_FLAG_CAN_BE_WATERED)){
 				continue;
@@ -5243,7 +5248,7 @@ static int peep_update_patrolling_find_bin(rct_peep* peep){
 	}
 
 	if (!footpath_element_has_path_scenery(map_element)) return 0;
-	rct_scenery_entry* sceneryEntry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+	rct_scenery_entry* sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 
 	if (!(sceneryEntry->path_bit.var_06 & 1))
 		return 0;
@@ -5547,7 +5552,7 @@ static void peep_update_walking(rct_peep* peep){
 
 	if (footpath_element_has_path_scenery(map_element)) {
 		if (!footpath_element_path_scenery_is_ghost(map_element)) {
-			rct_scenery_entry* sceneryEntry = g_pathBitSceneryEntries[footpath_element_get_path_scenery_index(map_element)];
+			rct_scenery_entry* sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
 
 			if (!(sceneryEntry->path_bit.var_06 & 0x2)) ebp = 9;
 		}
@@ -6719,24 +6724,24 @@ static void peep_stop_purchase_thought(rct_peep* peep, uint8 ride_type){
 void peep_set_map_tooltip(rct_peep *peep)
 {
 	if (peep->type == PEEP_TYPE_GUEST) {
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 0, uint16) = peep->peep_flags & PEEP_FLAGS_TRACKING ? 1450 : 1449;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 2, uint32) = get_peep_face_sprite_small(peep);
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 6, uint16) = peep->name_string_idx;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 8, uint32) = peep->id;
+		set_map_tooltip_format_arg(0, uint16, peep->peep_flags & PEEP_FLAGS_TRACKING ? 1450 : 1449);
+		set_map_tooltip_format_arg(2, uint32, get_peep_face_sprite_small(peep));
+		set_map_tooltip_format_arg(6, uint16, peep->name_string_idx);
+		set_map_tooltip_format_arg(8, uint32, peep->id);
 
 		uint32 arg0, arg1;
 		get_arguments_from_action(peep, &arg0, &arg1);
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 12, uint32) = arg0;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 16, uint32) = arg1;
+		set_map_tooltip_format_arg(12, uint32, arg0);
+		set_map_tooltip_format_arg(16, uint32, arg1);
 	} else {
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 0, uint16) = 1451;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 2, uint16) = peep->name_string_idx;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 4, uint32) = peep->id;
+		set_map_tooltip_format_arg(0, uint16, 1451);
+		set_map_tooltip_format_arg(2, uint16, peep->name_string_idx);
+		set_map_tooltip_format_arg(4, uint32, peep->id);
 
 		uint32 arg0, arg1;
 		get_arguments_from_action(peep, &arg0, &arg1);
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 8, uint32) = arg0;
-		RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 12, uint32) = arg1;
+		set_map_tooltip_format_arg(8, uint32, arg0);
+		set_map_tooltip_format_arg(12, uint32, arg1);
 	}
 }
 
@@ -6898,10 +6903,10 @@ static int peep_interact_with_entrance(rct_peep* peep, sint16 x, sint16 y, rct_m
 		peep->sub_state = 11;
 		peep->time_in_queue = 0;
 		if (peep->peep_flags & PEEP_FLAGS_TRACKING){
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = peep->name_string_idx;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, rct_string_id) = ride->name;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 8, uint32) = ride->name_arguments;
+			set_format_arg(0, rct_string_id, peep->name_string_idx);
+			set_format_arg(2, uint32, peep->id);
+			set_format_arg(6, rct_string_id, ride->name);
+			set_format_arg(8, uint32, ride->name_arguments);
 			if (gConfigNotifications.guest_queuing_for_ride) {
 				news_item_add_to_queue(NEWS_ITEM_PEEP_ON_RIDE, STR_PEEP_TRACKING_PEEP_JOINED_QUEUE_FOR_X, peep->sprite_index);
 			}
@@ -6944,8 +6949,8 @@ static int peep_interact_with_entrance(rct_peep* peep, sint16 x, sint16 y, rct_m
 
 			peep->var_37 = 0;
 			if (peep->peep_flags & PEEP_FLAGS_TRACKING){
-				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = peep->name_string_idx;
-				RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
+				set_format_arg(0, rct_string_id, peep->name_string_idx);
+				set_format_arg(2, uint32, peep->id);
 				if (gConfigNotifications.guest_left_park) {
 					news_item_add_to_queue(NEWS_ITEM_PEEP_ON_RIDE, STR_PEEP_TRACKING_LEFT_PARK, peep->sprite_index);
 				}
@@ -7279,10 +7284,10 @@ static int peep_interact_with_path(rct_peep* peep, sint16 x, sint16 y, rct_map_e
 		peep->destination_tolerence = 2;
 		peep->time_in_queue = 0;
 		if (peep->peep_flags & PEEP_FLAGS_TRACKING){
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = peep->name_string_idx;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, rct_string_id) = ride->name;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 8, uint32) = ride->name_arguments;
+			set_format_arg(0, rct_string_id, peep->name_string_idx);
+			set_format_arg(2, uint32, peep->id);
+			set_format_arg(6, rct_string_id, ride->name);
+			set_format_arg(8, uint32, ride->name_arguments);
 			if (gConfigNotifications.guest_queuing_for_ride) {
 				news_item_add_to_queue(NEWS_ITEM_PEEP_ON_RIDE, STR_PEEP_TRACKING_PEEP_JOINED_QUEUE_FOR_X, peep->sprite_index);
 			}
@@ -7352,10 +7357,10 @@ static int peep_interact_with_shop(rct_peep* peep, sint16 x, sint16 y, rct_map_e
 		peep->time_on_ride = 0;
 		ride->cur_num_customers++;
 		if (peep->peep_flags & PEEP_FLAGS_TRACKING){
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id) = peep->name_string_idx;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint32) = peep->id;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, rct_string_id) = ride->name;
-			RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 8, uint32) = ride->name_arguments;
+			set_format_arg(0, rct_string_id, peep->name_string_idx);
+			set_format_arg(2, uint32, peep->id);
+			set_format_arg(6, rct_string_id, ride->name);
+			set_format_arg(8, uint32, ride->name_arguments);
 			rct_string_id string_id = ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_IN_RIDE) ? STR_PEEP_TRACKING_PEEP_IS_IN_X : STR_PEEP_TRACKING_PEEP_IS_ON_X;
 			if (gConfigNotifications.guest_used_facility) {
 				news_item_add_to_queue(NEWS_ITEM_PEEP_ON_RIDE, string_id, peep->sprite_index);
@@ -7724,12 +7729,12 @@ static uint16 sub_69A997(sint16 x, sint16 y, uint8 z, uint8 counter, uint16 scor
 	if (--RCT2_GLOBAL(0x00F1AED4, sint32) < 0) return score;
 	if (counter > 200) return score;
 
-	uint16 x_delta = abs(RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_X, sint16) - x);
-	uint16 y_delta = abs(RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Y, sint16) - y);
+	uint16 x_delta = abs(gPeepPathFindGoalPosition.x - x);
+	uint16 y_delta = abs(gPeepPathFindGoalPosition.y - y);
 	if (x_delta < y_delta) x_delta >>= 4;
 	else y_delta >>= 4;
 	uint16 new_score = x_delta + y_delta;
-	uint16 z_delta = abs(RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Z, uint8) - z);
+	uint16 z_delta = abs(gPeepPathFindGoalPosition.z - z);
 	z_delta <<= 1;
 	new_score += z_delta;
 
@@ -7753,9 +7758,11 @@ static uint16 sub_69A997(sint16 x, sint16 y, uint8 z, uint8 counter, uint16 scor
 			if (footpath_element_is_wide(path)) continue;
 		}
 
-		if (!footpath_element_is_queue(path) ||
-			RCT2_GLOBAL(0x00F1AEE1, uint8) != path->properties.path.ride_index) {
-			if (path->type & RCT2_GLOBAL(0x00F1AEE0, uint8)) continue;
+		if (footpath_element_is_queue(path) && path->properties.path.ride_index != gPeepPathFindQueueRideIndex) {
+			if (gPeepPathFindIgnoreForeignQueues) {
+				// Path is a queue we aren't interested in
+				continue;
+			}
 		}
 
 		found = true;
@@ -7804,16 +7811,20 @@ static uint16 sub_69A997(sint16 x, sint16 y, uint8 z, uint8 counter, uint16 scor
  *
  *  rct2: 0x0069A5F0
  */
-int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep) {
+int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep)
+{
 	RCT2_GLOBAL(0x00F1AEDC, uint8) = sub_69A60A(peep);
-	uint8 x_goal = RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_X, sint16) / 32;
-	uint8 y_goal = RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Y, sint16) / 32;
-	uint8 z_goal = RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Z, uint8);
+	rct_xyz8 goal = {
+		.x = (uint8)(gPeepPathFindGoalPosition.x >> 5),
+		.y = (uint8)(gPeepPathFindGoalPosition.y >> 5),
+		.z = (uint8)(gPeepPathFindGoalPosition.z)
+	};
 
 	uint8 edges = 0xF;
-	if (peep->pathfind_goal.x == x_goal &&
-            peep->pathfind_goal.y == y_goal &&
-            peep->pathfind_goal.z == z_goal) {
+	if (peep->pathfind_goal.x == goal.x &&
+		peep->pathfind_goal.y == goal.y &&
+		peep->pathfind_goal.z == goal.z
+	) {
 		for (int i = 0; i < 4; ++i) {
 			if (peep->pathfind_history[i].x == x / 32 &&
 					peep->pathfind_history[i].y == y / 32 &&
@@ -7847,8 +7858,10 @@ int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep) 
 			uint8 height = z;
 			int saved_f1aedc = *RCT2_ADDRESS(0x00F1AEDC, int);
 			if (footpath_element_is_sloped(dest_map_element) &&
-					footpath_element_get_slope_direction(dest_map_element) == test_edge)
+				footpath_element_get_slope_direction(dest_map_element) == test_edge
+			) {
 				height += 0x2;
+			}
 
 			RCT2_GLOBAL(0x00F1AED3, uint8) = 0xFF;
 			RCT2_GLOBAL(0x00F1AED4, int) = RCT2_GLOBAL(0x00F1AED8, int);
@@ -7865,30 +7878,34 @@ int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep) 
 	}
 
 	if (peep->pathfind_goal.direction > 3 ||
-			peep->pathfind_goal.x != x_goal ||
-			peep->pathfind_goal.y != y_goal ||
-			peep->pathfind_goal.z != z_goal) {
-		peep->pathfind_goal.x = x_goal;
-		peep->pathfind_goal.y = y_goal;
-		peep->pathfind_goal.z = z_goal;
+		peep->pathfind_goal.x != goal.x ||
+		peep->pathfind_goal.y != goal.y ||
+		peep->pathfind_goal.z != goal.z
+	) {
+		peep->pathfind_goal.x = goal.x;
+		peep->pathfind_goal.y = goal.y;
+		peep->pathfind_goal.z = goal.z;
 		peep->pathfind_goal.direction = 0;
-		memset(peep->pathfind_history, 0xFF, sizeof(peep->pathfind_history)); // Clear pathfinding history
+
+		// Clear pathfinding history
+		memset(peep->pathfind_history, 0xFF, sizeof(peep->pathfind_history));
 	}
 
 	for (int i = 0; i < 4; ++i) {
-		if (peep->pathfind_history[i].x == x / 32 &&
-				peep->pathfind_history[i].y == y / 32 &&
-				peep->pathfind_history[i].z == z) {
+		if (peep->pathfind_history[i].x == x >> 5 &&
+			peep->pathfind_history[i].y == y >> 5 &&
+			peep->pathfind_history[i].z == z
+		) {
 			peep->pathfind_history[i].direction &= ~(1 << chosen_edge);
 			return chosen_edge;
 		}
 	}
 
 	int i = peep->pathfind_goal.direction++;
-	peep->pathfind_goal.direction &= 0x3;
-	peep->pathfind_history[i].x = x / 32;
-	peep->pathfind_history[i].y = y / 32;
-	peep->pathfind_history[i].z = (uint8)z;
+	peep->pathfind_goal.direction &= 3;
+	peep->pathfind_history[i].x = x >> 5;
+	peep->pathfind_history[i].y = y >> 5;
+	peep->pathfind_history[i].z = z;
 	peep->pathfind_history[i].direction = 0xF;
 	peep->pathfind_history[i].direction &= ~(1 << chosen_edge);
 
@@ -7922,12 +7939,10 @@ static int guest_path_find_entering_park(rct_peep *peep, rct_map_element *map_el
 	sint16 x = gParkEntranceX[chosenEntrance];
 	sint16 y = gParkEntranceY[chosenEntrance];
 	sint16 z = gParkEntranceZ[chosenEntrance];
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_X, sint16) = x;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Y, sint16) = y;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Z, uint8) = z / 8;
 
-	RCT2_GLOBAL(0x00F1AEE0, uint8) = 1;
-	RCT2_GLOBAL(0x00F1AEE1, uint8) = 0xFF;
+	gPeepPathFindGoalPosition = (rct_xyz16){ x, y, z >> 3 };
+	gPeepPathFindIgnoreForeignQueues = true;
+	gPeepPathFindQueueRideIndex = 255;
 
 	int chosenDirection = peep_pathfind_choose_direction(peep->next_x, peep->next_y, peep->next_z, peep);
 
@@ -7954,16 +7969,13 @@ static int guest_path_find_leaving_park(rct_peep *peep, rct_map_element *map_ele
 	uint8 z = peepSpawn->z * 2;
 	uint8 direction = peepSpawn->direction;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_X, sint16) = x;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Y, sint16) = y;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Z, uint8) = z;
-
+	gPeepPathFindGoalPosition = (rct_xyz16){ x, y, z };
 	if (x == peep->next_x && y == peep->next_y){
 		return peep_move_one_tile(direction, peep);
 	}
 
-	RCT2_GLOBAL(0x00F1AEE0, uint8) = 1;
-	RCT2_GLOBAL(0x00F1AEE1, uint8) = 0xFF;
+	gPeepPathFindIgnoreForeignQueues = true;
+	gPeepPathFindQueueRideIndex = 255;
 	direction = peep_pathfind_choose_direction(peep->next_x, peep->next_y, peep->next_z, peep);
 	if (direction == 0xFF)
 		return guest_path_find_aimless(peep, edges);
@@ -8013,12 +8025,10 @@ static int guest_path_find_park_entrance(rct_peep* peep, rct_map_element *map_el
 	sint16 x = gParkEntranceX[entranceNum];
 	sint16 y = gParkEntranceY[entranceNum];
 	sint16 z = gParkEntranceZ[entranceNum];
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_X, sint16) = x;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Y, sint16) = y;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Z, uint8) = z / 8;
 
-	RCT2_GLOBAL(0x00F1AEE0, uint8) = 1;
-	RCT2_GLOBAL(0x00F1AEE1, uint8) = 0xFF;
+	gPeepPathFindGoalPosition = (rct_xyz16) { x, y, z >> 3 };
+	gPeepPathFindIgnoreForeignQueues = true;
+	gPeepPathFindQueueRideIndex = 255;
 
 	int chosenDirection = peep_pathfind_choose_direction(peep->next_x, peep->next_y, peep->next_z, peep);
 
@@ -8264,7 +8274,7 @@ static int guest_path_finding(rct_peep* peep)
 	if (ride->status != RIDE_STATUS_OPEN)
 		return guest_path_find_aimless(peep, edges);
 
-	RCT2_GLOBAL(0x00F1AEE1, uint8) = rideIndex;
+	gPeepPathFindQueueRideIndex = rideIndex;
 
 	RCT2_GLOBAL(0x00F1AEBC, uint32) = 4;
 
@@ -8324,10 +8334,9 @@ static int guest_path_finding(rct_peep* peep)
 	z = ride->station_heights[closestStationNum];
 
 	get_ride_queue_end(&x, &y, &z, closestDist);
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_X, sint16) = x;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Y, sint16) = y;
-	RCT2_GLOBAL(RCT2_ADDRESS_PEEP_PATHFINDING_GOAL_Z, uint8) = (uint8)z;
-	RCT2_GLOBAL(0x00F1AEE0, uint8) = 1;
+
+	gPeepPathFindGoalPosition = (rct_xyz16) { x, y, z };
+	gPeepPathFindIgnoreForeignQueues = true;
 
 	direction = peep_pathfind_choose_direction(peep->next_x, peep->next_y, peep->next_z, peep);
 	if (direction == -1){
@@ -9022,9 +9031,9 @@ loc_69B221:
 	peep->window_invalidate_flags |= PEEP_INVALIDATE_PEEP_INVENTORY;
 	peep_update_sprite_type(peep);
 	if (peep->peep_flags & PEEP_FLAGS_TRACKING) {
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS,uint16) = peep->name_string_idx;
-		RCT2_GLOBAL((RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2), uint32) = peep->id;
-		RCT2_GLOBAL((RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6), uint16) = (shopItem >= 32 ? STR_SHOP_ITEM_INDEFINITE_PHOTO2 + (shopItem - 32) : STR_SHOP_ITEM_INDEFINITE_BALLOON + shopItem);
+		set_format_arg(0, uint16, peep->name_string_idx);
+		set_format_arg(2, uint32, peep->id);
+		set_format_arg(6, uint16, (shopItem >= 32 ? STR_SHOP_ITEM_INDEFINITE_PHOTO2 + (shopItem - 32) : STR_SHOP_ITEM_INDEFINITE_BALLOON + shopItem));
 		if (gConfigNotifications.guest_bought_item) {
 			news_item_add_to_queue(2, STR_PEEP_TRACKING_NOTIFICATION_BOUGHT_X, peep->sprite_index);
 		}
@@ -9308,7 +9317,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 	do {
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_FENCE) continue;
 		if (map_element_get_direction(mapElement) != edge) continue;
-		if (g_wallSceneryEntries[mapElement->properties.fence.type]->wall.flags2 & WALL_SCENERY_FLAG4) continue;
+		if (get_wall_entry(mapElement->properties.fence.type)->wall.flags2 & WALL_SCENERY_FLAG4) continue;
 		if (peep->next_z + 4 <= mapElement->base_height) continue;
 		if (peep->next_z + 1 >= mapElement->clearance_height) continue;
 
@@ -9329,7 +9338,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 	do {
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_FENCE) continue;
 		if ((map_element_get_direction(mapElement) ^ 0x2) != edge) continue;
-		if (g_wallSceneryEntries[mapElement->properties.fence.type]->wall.flags2 & WALL_SCENERY_FLAG4) continue;
+		if (get_wall_entry(mapElement->properties.fence.type)->wall.flags2 & WALL_SCENERY_FLAG4) continue;
 		// TODO: Check whether this shouldn't be <=, as the other loops use. If so, also extract as loop A.
 		if (peep->next_z + 4 >= mapElement->base_height) continue;
 		if (peep->next_z + 1 >= mapElement->clearance_height) continue;
@@ -9351,7 +9360,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 		}
 
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_SCENERY_MULTIPLE) {
-			if (!(g_largeSceneryEntries[mapElement->properties.scenerymultiple.type & 0x3FF]->large_scenery.flags & 0x10)) {
+			if (!(get_large_scenery_entry(mapElement->properties.scenerymultiple.type & 0x3FF)->large_scenery.flags & 0x10)) {
 				continue;
 			}
 
@@ -9376,7 +9385,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_PATH) continue;
 
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_FENCE) {
-			if (g_wallSceneryEntries[mapElement->properties.fence.type]->wall.flags2 & WALL_SCENERY_FLAG4) {
+			if (get_wall_entry(mapElement->properties.fence.type)->wall.flags2 & WALL_SCENERY_FLAG4) {
 				continue;
 			}
 		}
@@ -9399,7 +9408,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 	do {
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_FENCE) continue;
 		if ((map_element_get_direction(mapElement) ^ 0x2) != edge) continue;
-		if (g_wallSceneryEntries[mapElement->properties.fence.type]->wall.flags2 & WALL_SCENERY_FLAG4) continue;
+		if (get_wall_entry(mapElement->properties.fence.type)->wall.flags2 & WALL_SCENERY_FLAG4) continue;
 		if (peep->next_z + 6 <= mapElement->base_height) continue;
 		if (peep->next_z >= mapElement->clearance_height) continue;
 
@@ -9420,7 +9429,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 		}
 
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_SCENERY_MULTIPLE) {
-			if (!(g_largeSceneryEntries[mapElement->properties.scenerymultiple.type & 0x3FF]->large_scenery.flags & 0x10)) {
+			if (!(get_large_scenery_entry(mapElement->properties.scenerymultiple.type & 0x3FF)->large_scenery.flags & 0x10)) {
 				continue;
 			}
 
@@ -9445,7 +9454,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_PATH) continue;
 
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_FENCE) {
-			if (g_wallSceneryEntries[mapElement->properties.fence.type]->wall.flags2 & WALL_SCENERY_FLAG4) {
+			if (get_wall_entry(mapElement->properties.fence.type)->wall.flags2 & WALL_SCENERY_FLAG4) {
 				continue;
 			}
 		}
@@ -9467,7 +9476,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 	do {
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_FENCE) continue;
 		if ((map_element_get_direction(mapElement) ^ 0x2) != edge) continue;
-		if (g_wallSceneryEntries[mapElement->properties.fence.type]->wall.flags2 & WALL_SCENERY_FLAG4) continue;
+		if (get_wall_entry(mapElement->properties.fence.type)->wall.flags2 & WALL_SCENERY_FLAG4) continue;
 		if (peep->next_z + 8 <= mapElement->base_height) continue;
 		if (peep->next_z >= mapElement->clearance_height) continue;
 
@@ -9488,7 +9497,7 @@ static bool peep_find_ride_to_look_at(rct_peep *peep, uint8 edge, uint8 *rideToV
 		}
 
 		if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_SCENERY_MULTIPLE) {
-			if (!(g_largeSceneryEntries[mapElement->properties.scenerymultiple.type & 0x3FF]->large_scenery.flags & 0x10)) {
+			if (!(get_large_scenery_entry(mapElement->properties.scenerymultiple.type & 0x3FF)->large_scenery.flags & 0x10)) {
 				continue;
 			}
 
@@ -10456,10 +10465,10 @@ money32 set_peep_name(int flags, int state, uint16 sprite_index, uint8* text_1, 
 		return 0;
 
 	rct_peep* peep = GET_PEEP(sprite_index);
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint32) = peep->id;
+	set_format_arg(0, uint32, peep->id);
 	utf8* curName = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, utf8);
 	rct_string_id curId = peep->name_string_idx;
-	format_string(curName, curId, RCT2_ADDRESS(RCT2_ADDRESS_COMMON_FORMAT_ARGS, void));
+	format_string(curName, curId, gCommonFormatArgs);
 
 	if (strcmp(curName, fullText) == 0)
 		return 0;

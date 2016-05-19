@@ -183,7 +183,7 @@ static bool map_animation_invalidate_small_scenery(int x, int y, int baseZ)
 		if (mapElement->flags & (1 << 4))
 			continue;
 
-		sceneryEntry = g_smallSceneryEntries[mapElement->properties.scenery.type];
+		sceneryEntry = get_small_scenery_entry(mapElement->properties.scenery.type);
 		if (sceneryEntry->small_scenery.flags & 0xD800) {
 			map_invalidate_tile_zoom1(x, y, mapElement->base_height * 8, mapElement->clearance_height * 8);
 			return false;
@@ -310,7 +310,6 @@ static bool map_animation_invalidate_track_onridephoto(int x, int y, int baseZ)
 {
 	rct_map_element *mapElement;
 
-	bool wasInvalidated = false;
 	mapElement = map_get_first_element_at(x >> 5, y >> 5);
 	do {
 		if (mapElement->base_height != baseZ)
@@ -319,7 +318,6 @@ static bool map_animation_invalidate_track_onridephoto(int x, int y, int baseZ)
 			continue;
 
 		if (mapElement->properties.track.type == TRACK_ELEM_ON_RIDE_PHOTO) {
-			int z = mapElement->base_height * 8;
 			map_invalidate_tile_zoom1(x, y, mapElement->base_height * 8, mapElement->clearance_height * 8);
 			if (game_is_paused()) {
 				return false;
@@ -435,7 +433,7 @@ static bool map_animation_invalidate_large_scenery(int x, int y, int baseZ)
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_SCENERY_MULTIPLE)
 			continue;
 
-		sceneryEntry = g_largeSceneryEntries[mapElement->properties.scenery.type & 0x3FF];
+		sceneryEntry = get_large_scenery_entry(mapElement->properties.scenery.type & 0x3FF);
 		if (sceneryEntry->large_scenery.flags & (1 << 3)) {
 			int z = mapElement->base_height * 8;
 			map_invalidate_tile_zoom1(x, y, z, z + 16);
@@ -466,7 +464,7 @@ static bool map_animation_invalidate_wall_door(int x, int y, int baseZ)
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_FENCE)
 			continue;
 
-		sceneryEntry = g_wallSceneryEntries[mapElement->properties.scenery.type];
+		sceneryEntry = get_wall_entry(mapElement->properties.scenery.type);
 		if (!(sceneryEntry->wall.flags & (1 << 4)))
 			continue;
 
@@ -521,7 +519,7 @@ static bool map_animation_invalidate_wall(int x, int y, int baseZ)
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_FENCE)
 			continue;
 
-		sceneryEntry = g_wallSceneryEntries[mapElement->properties.scenery.type];
+		sceneryEntry = get_wall_entry(mapElement->properties.scenery.type);
 		if (!(sceneryEntry->wall.flags2 & (1 << 4)) && sceneryEntry->wall.var_0D == 255)
 			continue;
 

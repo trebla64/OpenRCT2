@@ -924,6 +924,12 @@ extern uint16 _previousTrackPieceZ;
 
 extern uint8 _currentSeatRotationAngle;
 
+extern uint8 gRideEntranceExitPlaceType;
+extern uint8 gRideEntranceExitPlaceRideIndex;
+extern uint8 gRideEntranceExitPlaceStationIndex;
+extern uint8 gRideEntranceExitPlacePreviousRideConstructionState;
+extern uint8 gRideEntranceExitPlaceDirection;
+
 extern bool gGotoStartPlacementMode;
 extern int gRideRemoveTrackPieceCallbackX;
 extern int gRideRemoveTrackPieceCallbackY;

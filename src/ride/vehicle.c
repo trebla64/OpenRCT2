@@ -150,11 +150,55 @@ const uint8 _soundParams[SOUND_MAXID][2] = {
 	{ 0, 0 }	// SOUND_62
 };
 
+bool vehicle_move_info_valid(int cd, int typeAndDirection, int offset)
+{
+	if (cd >= countof(gTrackVehicleInfo)) {
+		return false;
+	}
+	int size = 0;
+	switch (cd) {
+	case 0: size = 1024; break;
+	case 1: size = 692; break;
+	case 2: size = 404; break;
+	case 3: size = 404; break;
+	case 4: size = 404; break;
+	case 5: size = 208; break;
+	case 6: size = 208; break;
+	case 7: size = 208; break;
+	case 8: size = 208; break;
+	case 9: size = 824; break;
+	case 10: size = 824; break;
+	case 11: size = 824; break;
+	case 12: size = 824; break;
+	case 13: size = 824; break;
+	case 14: size = 824; break;
+	case 15: size = 868; break;
+	case 16: size = 868; break;
+	}
+	if (typeAndDirection >= size) {
+		return false;
+	}
+	if (offset >= gTrackVehicleInfo[cd][typeAndDirection]->size) {
+		return false;
+	}
+	return true;
+}
+
 const rct_vehicle_info *vehicle_get_move_info(int cd, int typeAndDirection, int offset)
 {
-	const rct_vehicle_info **infoListList = RCT2_ADDRESS(0x008B8F30, const rct_vehicle_info**)[cd];
-	const rct_vehicle_info *infoList = infoListList[typeAndDirection];
-	return &infoList[offset];
+	if (!vehicle_move_info_valid(cd, typeAndDirection, offset)) {
+		static const rct_vehicle_info zero = { 0 };
+		return &zero;
+	}
+	return &gTrackVehicleInfo[cd][typeAndDirection]->info[offset];
+}
+
+uint16 vehicle_get_move_info_size(int cd, int typeAndDirection)
+{
+	if (!vehicle_move_info_valid(cd, typeAndDirection, 0)) {
+		return 0;
+	}
+	return gTrackVehicleInfo[cd][typeAndDirection]->size;
 }
 
 const uint8 DoorOpenSoundIds[] = {
@@ -1077,7 +1121,7 @@ static void vehicle_update_measurements(rct_vehicle *vehicle)
 			if (map_element_get_type(map_element) != MAP_ELEMENT_TYPE_SCENERY)
 				continue;
 
-			rct_scenery_entry* scenery = g_smallSceneryEntries[map_element->properties.scenery.type];
+			rct_scenery_entry* scenery = get_small_scenery_entry(map_element->properties.scenery.type);
 			if (scenery->small_scenery.flags & SMALL_SCENERY_FLAG_FULL_TILE) {
 				cover_found = true;
 				break;
@@ -1836,21 +1880,21 @@ static void vehicle_update_waiting_to_depart(rct_vehicle* vehicle) {
 	}
 }
 
-typedef struct rct_synchrnoised_vehicle {
+typedef struct rct_synchronised_vehicle {
 	uint8 ride_id;
 	uint8 station_id;
 	uint16 vehicle_id;
-} rct_synchrnoised_vehicle;
+} rct_synchronised_vehicle;
 
-// 8 synchrnoised vehicle info
-rct_synchrnoised_vehicle *_synchrnoisedVehicles = (rct_synchrnoised_vehicle*)0x00F64E4C;
+// 8 synchronised vehicle info
+rct_synchronised_vehicle *_synchronisedVehicles = (rct_synchronised_vehicle*)0x00F64E4C;
 
-#define _lastSynchrnoisedVehicle	RCT2_GLOBAL(0x00F64E48, rct_synchrnoised_vehicle*)
-#define MaxSynchrnoisedVehicle		((rct_synchrnoised_vehicle*)0x00F64E6C)
+#define _lastSynchronisedVehicle	RCT2_GLOBAL(0x00F64E48, rct_synchronised_vehicle*)
+#define MaxSynchronisedVehicle		((rct_synchronised_vehicle*)0x00F64E6C)
 
 /**
- * Checks if a map position contains a synchrnoised ride station and adds the vehicle
- * to synchrnoise to the vehicle synchronisation list.
+ * Checks if a map position contains a synchronised ride station and adds the vehicle
+ * to synchronise to the vehicle synchronisation list.
  *  rct2: 0x006DE1A4
  */
 static bool try_add_synchronised_station(int x, int y, int z)
@@ -1883,11 +1927,11 @@ static bool try_add_synchronised_station(int x, int y, int z)
 
 	int stationIndex = map_get_station(mapElement);
 
-	rct_synchrnoised_vehicle *sv = _lastSynchrnoisedVehicle;
+	rct_synchronised_vehicle *sv = _lastSynchronisedVehicle;
 	sv->ride_id = rideIndex;
 	sv->station_id = stationIndex;
 	sv->vehicle_id = SPRITE_INDEX_NULL;
-	_lastSynchrnoisedVehicle++;
+	_lastSynchronisedVehicle++;
 
 	if (!(ride->lifecycle_flags & RIDE_LIFECYCLE_ON_TRACK)) {
 		return false;
@@ -1910,7 +1954,7 @@ static bool try_add_synchronised_station(int x, int y, int z)
 }
 
 /**
- * Checks whether a vehicle can depart a station when set to synchrnoise with adjacent stations.
+ * Checks whether a vehicle can depart a station when set to synchronise with adjacent stations.
  *  rct2: 0x006DE287
  * @param vehicle The vehicle waiting to depart.
  * @returns true if the vehicle can depart (all adjacent trains are ready or broken down), otherwise false.
@@ -1925,10 +1969,13 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle)
 	int z = ride->station_heights[station];
 
 	rct_map_element *mapElement = map_get_track_element_at(x, y, z);
+	if (mapElement == NULL) {
+		return false;
+	}
 	int direction = (mapElement->type + 1) & 3;
-	_lastSynchrnoisedVehicle = _synchrnoisedVehicles;
+	_lastSynchronisedVehicle = _synchronisedVehicles;
 
-	while (_lastSynchrnoisedVehicle < MaxSynchrnoisedVehicle) {
+	while (_lastSynchronisedVehicle < MaxSynchronisedVehicle) {
 		x += TileDirectionDelta[direction].x;
 		y += TileDirectionDelta[direction].y;
 		if (!try_add_synchronised_station(x, y, z)) {
@@ -1936,7 +1983,7 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle)
 		}
 	}
 
-	while (_lastSynchrnoisedVehicle < MaxSynchrnoisedVehicle) {
+	while (_lastSynchronisedVehicle < MaxSynchronisedVehicle) {
 		x += TileDirectionDelta[direction].x;
 		y += TileDirectionDelta[direction].y;
 		if (!try_add_synchronised_station(x, y, z)) {
@@ -1944,17 +1991,17 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle)
 		}
 	}
 
-	if (_lastSynchrnoisedVehicle == _synchrnoisedVehicles) {
+	if (_lastSynchronisedVehicle == _synchronisedVehicles) {
 		// No adjacent stations, allow depart
 		return true;
 	}
 
-	for (rct_synchrnoised_vehicle *sv = _synchrnoisedVehicles; sv < _lastSynchrnoisedVehicle; sv++) {
+	for (rct_synchronised_vehicle *sv = _synchronisedVehicles; sv < _lastSynchronisedVehicle; sv++) {
 		if (ride_is_block_sectioned(ride)) {
 			if (!(ride->station_depart[sv->station_id] & 0x80)) {
-				sv = _synchrnoisedVehicles;
+				sv = _synchronisedVehicles;
 				uint8 rideId = 0xFF;
-				for (; sv < _lastSynchrnoisedVehicle; sv++) {
+				for (; sv < _lastSynchronisedVehicle; sv++) {
 					if (rideId == 0xFF) {
 						rideId = sv->ride_id;
 					}
@@ -1978,11 +2025,11 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle)
 		if (!(ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN)) {
 			if (ride->status != RIDE_STATUS_CLOSED) {
 				if (sv->vehicle_id == SPRITE_INDEX_NULL) {
-					if (_lastSynchrnoisedVehicle > &_synchrnoisedVehicles[1]) {
+					if (_lastSynchronisedVehicle > &_synchronisedVehicles[1]) {
 						return true;
 					}
-					uint8 someRideIndex = _synchrnoisedVehicles[0].ride_id;
-					// uint8 currentStation = _synchrnoisedVehicles[0].station_id
+					uint8 someRideIndex = _synchronisedVehicles[0].ride_id;
+					// uint8 currentStation = _synchronisedVehicles[0].station_id
 					if (someRideIndex != vehicle->ride) {
 						return true;
 					}
@@ -2021,7 +2068,7 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle)
 		}
 	}
 
-	for (rct_synchrnoised_vehicle *sv = _synchrnoisedVehicles; sv < _lastSynchrnoisedVehicle; sv++) {
+	for (rct_synchronised_vehicle *sv = _synchronisedVehicles; sv < _lastSynchronisedVehicle; sv++) {
 		if (sv->vehicle_id != SPRITE_INDEX_NULL) {
 			rct_vehicle *v = GET_VEHICLE(sv->vehicle_id);
 			v->update_flags &= ~VEHICLE_UPDATE_FLAG_WAIT_ON_ADJACENT;
@@ -2482,19 +2529,17 @@ static void vehicle_check_if_missing(rct_vehicle* vehicle) {
 
 	ride->lifecycle_flags |= RIDE_LIFECYCLE_11;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, rct_string_id)
-		= RCT2_ADDRESS(0x0097C98E, rct_string_id)[ride->type * 4] + 6;
+	set_format_arg(0, rct_string_id, RCT2_ADDRESS(0x0097C98E, rct_string_id)[ride->type * 4] + 6);
 
 	uint8 vehicleIndex = 0;
 	for (; vehicleIndex < ride->num_vehicles; ++vehicleIndex)
 		if (ride->vehicles[vehicleIndex] == vehicle->sprite_index) break;
 
 	vehicleIndex++;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint16) = vehicleIndex;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, rct_string_id) = ride->name;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 6, uint32) = ride->name_arguments;
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 10, rct_string_id) =
-		RCT2_ADDRESS(0x0097C98E, rct_string_id)[ride->type * 4 + 2];
+	set_format_arg(2, uint16, vehicleIndex);
+	set_format_arg(4, rct_string_id, ride->name);
+	set_format_arg(6, uint32, ride->name_arguments);
+	set_format_arg(10, rct_string_id, RCT2_ADDRESS(0x0097C98E, rct_string_id)[ride->type * 4 + 2]);
 
 	news_item_add_to_queue(NEWS_ITEM_RIDE, 2218, vehicle->ride);
 }
@@ -3159,9 +3204,6 @@ static void vehicle_update_travelling_cable_lift(rct_vehicle* vehicle) {
 			}
 		}
 	}
-
-	rct_ride_entry* rideEntry = get_ride_entry(vehicle->ride_subtype);
-	rct_ride_entry_vehicle* vehicleEntry = &rideEntry->vehicles[vehicle->vehicle_type];
 
 	if (vehicle->velocity <= 439800) {
 		vehicle->acceleration = 4398;
@@ -4053,7 +4095,7 @@ static void vehicle_kill_all_passengers(rct_vehicle* vehicle) {
 	}
 
 	rct_ride* ride = get_ride(vehicle->ride);
-	RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS, uint16) = numFatalities;
+	set_format_arg(0, uint16, numFatalities);
 
 	uint8 crashType = numFatalities == 0 ?
 		RIDE_CRASH_TYPE_NO_FATALITIES :
@@ -4063,8 +4105,8 @@ static void vehicle_kill_all_passengers(rct_vehicle* vehicle) {
 		ride->last_crash_type = crashType;
 
 	if (numFatalities != 0) {
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 2, uint16) = ride->name;
-		RCT2_GLOBAL(RCT2_ADDRESS_COMMON_FORMAT_ARGS + 4, uint32) = ride->name_arguments;
+		set_format_arg(2, uint16, ride->name);
+		set_format_arg(4, uint32, ride->name_arguments);
 		news_item_add_to_queue(NEWS_ITEM_RIDE, STR_X_PEOPLE_DIED_ON_X, vehicle->ride);
 
 		if (RCT2_GLOBAL(0x135882E, uint16) < 500) {
@@ -5004,17 +5046,17 @@ void vehicle_set_map_toolbar(rct_vehicle *vehicle)
 		if (ride->vehicles[vehicleIndex] == vehicle->sprite_index)
 			break;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 0, uint16) = 2215;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 2, uint16) = 1165;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 4, uint16) = ride->name;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 6, uint32) = ride->name_arguments;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 10, uint16) = RideNameConvention[ride->type].vehicle_name + 2;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 12, uint16) = vehicleIndex + 1;
+	set_map_tooltip_format_arg(0, uint16, 2215);
+	set_map_tooltip_format_arg(2, uint16, 1165);
+	set_map_tooltip_format_arg(4, uint16, ride->name);
+	set_map_tooltip_format_arg(6, uint32, ride->name_arguments);
+	set_map_tooltip_format_arg(10, uint16, RideNameConvention[ride->type].vehicle_name + 2);
+	set_map_tooltip_format_arg(12, uint16, vehicleIndex + 1);
 
 	int arg0, arg1;
 	ride_get_status(vehicle->ride, &arg0, &arg1);
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 14, uint16) = (uint16)arg0;
-	RCT2_GLOBAL(RCT2_ADDRESS_MAP_TOOLTIP_ARGS + 16, uint32) = (uint16)arg1;
+	set_map_tooltip_format_arg(14, uint16, (uint16)arg0);
+	set_map_tooltip_format_arg(16, uint32, (uint16)arg1);
 }
 
 rct_vehicle *vehicle_get_head(rct_vehicle *vehicle)
@@ -6229,7 +6271,7 @@ static void sub_6D63D4(rct_vehicle *vehicle)
  */
 static void vehicle_play_scenery_door_open_sound(rct_vehicle *vehicle, rct_map_element *mapElement)
 {
-	rct_scenery_entry *wallEntry = g_wallSceneryEntries[mapElement->properties.fence.type];
+	rct_scenery_entry *wallEntry = get_wall_entry(mapElement->properties.fence.type);
 	int doorSoundType = (wallEntry->wall.flags2 >> 1) & 3;
 	if (doorSoundType != 0) {
 		int soundId = DoorOpenSoundIds[doorSoundType - 1];
@@ -6245,7 +6287,7 @@ static void vehicle_play_scenery_door_open_sound(rct_vehicle *vehicle, rct_map_e
  */
 static void vehicle_play_scenery_door_close_sound(rct_vehicle *vehicle, rct_map_element *mapElement)
 {
-	rct_scenery_entry *wallEntry = g_wallSceneryEntries[mapElement->properties.fence.type];
+	rct_scenery_entry *wallEntry = get_wall_entry(mapElement->properties.fence.type);
 	int doorSoundType = (wallEntry->wall.flags2 >> 1) & 3;
 	if (doorSoundType != 0) {
 		int soundId = DoorCloseSoundIds[doorSoundType - 1];
@@ -6959,7 +7001,7 @@ loc_6DAEB9:
 		);
 
 	// Track Total Progress is in the two bytes before the move info list
-	uint16 trackTotalProgress = *((uint16*)((int)moveInfo - 2));
+	uint16 trackTotalProgress = vehicle_get_move_info_size(vehicle->var_CD, vehicle->track_type);
 	if (regs.ax >= trackTotalProgress) {
 		if (!vehicle_update_track_motion_forwards_get_new_track(vehicle, trackType, ride, rideEntry)) {
 			goto loc_6DB94A;
@@ -7240,7 +7282,7 @@ bool vehicle_update_track_motion_backwards_get_new_track(rct_vehicle *vehicle, u
 		);
 
 	// There are two bytes before the move info list
-	uint16 trackTotalProgress = *((uint16*)((int)moveInfo - 2));
+	uint16 trackTotalProgress = vehicle_get_move_info_size(vehicle->var_CD, vehicle->track_type);
 	*progress = trackTotalProgress - 1;
 	return true;
 }
@@ -7477,7 +7519,7 @@ loc_6DC476:
 	// There are two bytes before the move info list
 	{
 		uint16 unk16_v34 = vehicle->track_progress + 1;
-		uint16 unk16 = *((uint16*)((int)moveInfo - 2));
+		uint16 unk16 = vehicle_get_move_info_size(vehicle->var_CD, vehicle->track_type);
 		if (unk16_v34 < unk16) {
 			regs.ax = unk16_v34;
 			goto loc_6DC743;
@@ -7550,7 +7592,7 @@ loc_6DC743:
 
 	for (;;) {
 		moveInfo = vehicle_get_move_info(vehicle->var_CD, vehicle->track_type, vehicle->track_progress);
-		if (moveInfo->x != (uint16)0x8000) {
+		if (moveInfo->x != (sint16)0x8000) {
 			break;
 		}
 		switch (moveInfo->y) {
@@ -7752,7 +7794,7 @@ loc_6DCA9A:
 	moveInfo = vehicle_get_move_info(vehicle->var_CD, vehicle->track_type, 0);
 
 	// There are two bytes before the move info list
-	regs.ax = *((uint16*)((int)moveInfo - 2)) - 1;
+	regs.ax = vehicle_get_move_info_size(vehicle->var_CD, vehicle->track_type);
 
 loc_6DCC2C:
 	vehicle->track_progress = regs.ax;
@@ -8013,8 +8055,6 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 	rct_ride_entry *rideEntry = get_ride_entry(vehicle->ride_subtype);
 	rct_ride_entry_vehicle *vehicleEntry = vehicle_get_vehicle_entry(vehicle);
 
-	rct_map_element *mapElement = NULL;
-
 	if (vehicleEntry->flags_a & VEHICLE_ENTRY_FLAG_A_MINI_GOLF) {
 		return vehicle_update_track_motion_mini_golf(vehicle, outStation);
 	}
@@ -8170,7 +8210,10 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 	}
 	regs.edx >>= 4;
 	regs.eax = regs.edx;
-	regs.eax = regs.eax / totalFriction;
+	// OpenRCT2: vehicles from different track types can have  0 friction.
+	if (totalFriction != 0) {
+		regs.eax = regs.eax / totalFriction;
+	}
 	regs.ecx -= regs.eax;
 
 	if (!(vehicleEntry->flags_b & VEHICLE_ENTRY_FLAG_B_3)) {
