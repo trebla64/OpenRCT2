@@ -20,6 +20,7 @@
 #include "../localisation/localisation.h"
 #include "drawing.h"
 
+#pragma pack(push, 1)
 /* size: 0xA12 */
 typedef struct rct_draw_scroll_text {
 	rct_string_id string_id;	// 0x00
@@ -30,6 +31,8 @@ typedef struct rct_draw_scroll_text {
 	uint32 id;					// 0x0E
 	uint8 bitmap[64 * 8 * 5];	// 0x12
 } rct_draw_scroll_text;
+assert_struct_size(rct_draw_scroll_text, 0xA12);
+#pragma pack(pop)
 
 rct_draw_scroll_text *gDrawScrollTextList = RCT2_ADDRESS(RCT2_ADDRESS_DRAW_SCROLL_LIST, rct_draw_scroll_text);
 uint8 *gCharacterBitmaps = RCT2_ADDRESS(RCT2_ADDRESS_CHARACTER_BITMAP, uint8);
@@ -109,7 +112,7 @@ static int scrolling_text_get_matching_or_oldest(rct_string_id stringId, uint16 
 static uint8 scrolling_text_get_colour(uint32 character)
 {
 	int colour = character & 0x7F;
-	if (colour & (1 << 7)) {
+	if (character & (1 << 7)) {
 		return ColourMapA[colour].light;
 	} else {
 		return ColourMapA[colour].mid_dark;

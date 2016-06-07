@@ -893,7 +893,7 @@ STR_0886    :Quitter la partie
 STR_0887    :Quitter l'éditeur de scénario
 STR_0888    :Quitter le concepteur de montagnes russes
 STR_0889    :Quitter le gestionnaire des voies
-STR_0890    :SCR{COMMA16}.BMP
+STR_0890    :<removed string - do not use>
 STR_0891    :Capture d'écran
 STR_0892    :Capture d'écran sauvegardée en tant que '{STRINGID}'
 STR_0893    :Echec de la capture d'écran!
@@ -948,7 +948,7 @@ STR_0941    :Supprimer surfaces verticales
 STR_0942    :Attractions transparentes
 STR_0943    :Décor transparent
 STR_0944    :Sauvegarder
-STR_0945    :Ne pas sauvegarder
+STR_0945    :Ne pas sauv.
 STR_0946    :Annuler
 STR_0947    :Sauvegarder ceci avant de charger ?
 STR_0948    :Sauvegarder ceci avant de quitter ?
@@ -1078,8 +1078,8 @@ STR_1071    :Tours illimités par entrée
 STR_1072    :Mode labyrinthe
 STR_1073    :Mode course
 STR_1074    :Mode auto-tamponneuses
-STR_1075    :Mode Balancement
-STR_1076    :Mode Magasins et boutiques
+STR_1075    :Mode balancement
+STR_1076    :Mode magasins et boutiques
 STR_1077    :Mode rotation
 STR_1078    :Rotation avant
 STR_1079    :Rotation arrière
@@ -1553,7 +1553,7 @@ STR_1546    :
 STR_1547    :
 STR_1548    :
 STR_1549    :
-STR_1550    :{SMALLFONT}{OPENQUOTES}Ouah!{ENDQUOTES}
+STR_1550    :{SMALLFONT}{OPENQUOTES}Ouah !{ENDQUOTES}
 STR_1551    :{SMALLFONT}{OPENQUOTES}J'ai l'étrange impression que quelqu'un m'observe{ENDQUOTES}
 STR_1552    :{SMALLFONT}{OPENQUOTES}Je ne paierai pas si cher pour un ballon de {STRINGID}{ENDQUOTES}
 STR_1553    :{SMALLFONT}{OPENQUOTES}Je ne paierai pas si cher pour une peluche de {STRINGID}{ENDQUOTES}
@@ -1653,10 +1653,11 @@ STR_1646    :
 STR_1647    :
 STR_1648    :{SMALLFONT}{OPENQUOTES}À l'aide ! Déposez-moi !{ENDQUOTES}
 STR_1649    :{SMALLFONT}{OPENQUOTES}Je n'ai plus d'argent !{ENDQUOTES}
-STR_1650    :{SMALLFONT}{OPENQUOTES}Ouah! Ils construisent une nouvelle attraction !{ENDQUOTES}
-STR_1651    :{SMALLFONT}{OPENQUOTES}Super attraction ! Mais pas aussi bien que le Phoenix...{ENDQUOTES}
-STR_1652    :{SMALLFONT}{OPENQUOTES}Je suis tellement excité: c'est une attraction Intamin!{ENDQUOTES}
-STR_1653    :{SMALLFONT}{OPENQUOTES}... et là nous sommes sur {STRINGID}!{ENDQUOTES}
+STR_1650    :{SMALLFONT}{OPENQUOTES}Ouah ! Ils construisent une nouvelle attraction !{ENDQUOTES}
+# Two removed inside jokes about Intamin and Phoenix
+STR_1651    :<removed string - do not use>
+STR_1652    :<removed string - do not use>
+STR_1653    :{SMALLFONT}{OPENQUOTES}... et là nous sommes sur {STRINGID} !{ENDQUOTES}
 STR_1654    :{WINDOW_COLOUR_2}Pensées récentes :
 STR_1655    :{SMALLFONT}{BLACK}Construire une allée sur le terrain
 STR_1656    :{SMALLFONT}{BLACK}Construire un pont ou un tunnel
@@ -1738,7 +1739,7 @@ STR_1731    :{WHITE}{STRINGID} - -
 STR_1732    :Construction
 STR_1733    :Mode
 STR_1734    :{WINDOW_COLOUR_2}Nombre de tours :
-STR_1735    :{SMALLFONT}{BLACK}Nombre de tours du circuit
+STR_1735    :{SMALLFONT}{BLACK}Nombre de tours de circuit
 STR_1736    :{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{COMMA16}
 STR_1737    :{COMMA16}
 STR_1738    :Impossible de changer le nombre de tours...
@@ -1960,8 +1961,8 @@ STR_1951    :Graphique valeur du parc
 STR_1952    :Graphique bénéfices
 STR_1953    :Marketing
 STR_1954    :Financement recherches
-STR_1955    :{WINDOW_COLOUR_2}Nombre de circuits :
-STR_1956    :{SMALLFONT}{BLACK}Nombre de circuits de voie par attraction
+STR_1955    :{WINDOW_COLOUR_2}Nombre de tours :
+STR_1956    :{SMALLFONT}{BLACK}Nombre de tours de circuit à effectuer
 STR_1957    :{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{POP16}{COMMA16}
 STR_1958    :{COMMA16}
 STR_1959    :Impossible de changer le nombre de circuits...
@@ -3167,7 +3168,7 @@ STR_3156    :
 STR_3157    :plan
 STR_3158    :graphique
 STR_3159    :liste
-STR_3160    :<not used anymore>
+STR_3160    :{SMALLFONT}{BLACK}Sélectionne le nombre de tours de circuit à effectuer
 STR_3161    :<not used anymore>
 STR_3162    :Impossible d'allouer assez de mémoire
 STR_3163    :Installation des nouvelles données : 
@@ -3511,7 +3512,7 @@ STR_5169    :Nommer les visiteurs d'après les participants du chat
 STR_5170    :{SMALLFONT}{BLACK}Renomme les visiteurs d'après les participants du chat Twitch
 STR_5171    :Suivre les visiteurs du chat
 STR_5172    :{SMALLFONT}{BLACK}Active les informations de suivi pour les visiteurs nommés d'après les participants du chat Twitch
-STR_5173    :Passer les messages Twitch dans les actualités
+STR_5173    :Passer les messages Twitch dans les notifications
 STR_5174    :{SMALLFONT}{BLACK}Utilise les messages de chat Twitch précédés de !news pour les notifications durant le jeu
 STR_5175    :Saisir le nom de votre chaîne Twitch
 STR_5176    :Activer l'intégration Twitch
@@ -3839,7 +3840,7 @@ STR_5497    :Ping :
 STR_5498    :Liste des serveurs
 STR_5499    :Nom du joueur :
 STR_5500    :Ajouter un serveur
-STR_5501    :Démarrer un serveur
+STR_5501    :Créer un serveur
 STR_5502    :Multijoueur
 STR_5503    :Saisir nom d'hôte ou adresse IP :
 STR_5504    :{SMALLFONT}{BLACK}Afficher le statut multijoueur
@@ -4003,6 +4004,8 @@ STR_5661    :Définir groupe
 STR_5662    :N/A
 STR_5663    :Nettoyer paysage
 STR_5664    :Triche
+STR_5665    :Placement d'ensemble aléatoire
+STR_5666    :Connexion sans mot de passe
 STR_5701    :{WINDOW_COLOUR_2}Dernière action : {BLACK}{STRINGID}
 STR_5702    :{SMALLFONT}{BLACK}Localise l'action la plus récente du joueur
 STR_5703    :Imposible d'expulser l'hébergeur
@@ -4075,7 +4078,7 @@ STR_5767    :Revenu
 STR_5768    :Clients total
 STR_5769    :Bénéfice total
 STR_5770    :Clients par heure
-STR_5771    :Coûts d'exploitation
+STR_5771    :Coût d'exploitation
 STR_5772    :Age
 STR_5773    :Clients total : {COMMA32}
 STR_5774    :Bénéf. total : {CURRENCY2DP}
@@ -4166,6 +4169,17 @@ STR_5856    :{SMALLFONT}{BLACK}Définit la résolution du jeu en plein écran
 STR_5857    :{SMALLFONT}{BLACK}Options du jeu
 STR_5858    :{SMALLFONT}{BLACK}Utilise la carte graphique au lieu du processeur pour l'affichage. Améliore la compatibilité avec les logiciels de capture. Peut dégrader légèrement les performances
 STR_5859    :{SMALLFONT}{BLACK}Active l'extrapolation des frames pour des animations plus fluides. Désactivé, le jeu s'affichera à 40FPS
+#STR_5860    :Dessin des voies original/décompilé
+STR_5861    :Echec de la vérification de clé
+STR_5862    :Bloquer les joueurs inconnus
+STR_5863    :{SMALLFONT}{BLACK}Seuls les joueurs ayant une clé connue peuvent rejoindre la partie
+STR_5864    :Ce serveur n'autorise que les joueurs sur liste blanche à se connecter
+STR_5865    :Enregistrer un historique des conversations
+STR_5866    :{SMALLFONT}{BLACK}Enregistre toutes les conversations dans des fichiers de votre répertoire utilisateur
+STR_5867    :{WINDOW_COLOUR_2}Nom du fournisseur : {BLACK}{STRING}
+STR_5868    :{WINDOW_COLOUR_2}E-mail du fournisseur : {BLACK}{STRING}
+STR_5869    :{WINDOW_COLOUR_2}Site web du fournisseur : {BLACK}{STRING}
+STR_5870    :{SMALLFONT}{BLACK}Affiche les informations du serveur
 
 #############
 # Scenarios #

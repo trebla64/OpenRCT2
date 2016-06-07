@@ -172,8 +172,8 @@ enum PEEP_THOUGHT_TYPE {
 	PEEP_THOUGHT_TYPE_HELP = 168, // "Help! Put me down!"
 	PEEP_THOUGHT_TYPE_RUNNING_OUT = 169, // "I'm running out of cash!"
 	PEEP_THOUGHT_TYPE_NEW_RIDE = 170, // "Wow! A new ride being built!"
-	PEEP_THOUGHT_TYPE_NICE_RIDE = 171, // "Nice ride! But not as good as the Phoenix..."
-	PEEP_THOUGHT_TYPE_EXCITED = 172, // "I'm so excited - It's an Intamin ride!"
+	PEEP_THOUGHT_TYPE_NICE_RIDE_DEPRECATED = 171, // "Nice ride! But not as good as the Phoenix..."
+	PEEP_THOUGHT_TYPE_EXCITED_DEPRECATED = 172, // "I'm so excited - It's an Intamin ride!"
 	PEEP_THOUGHT_TYPE_HERE_WE_ARE = 173, // "...and here we are on X!"
 
 	PEEP_THOUGHT_TYPE_NONE = 255
@@ -272,8 +272,8 @@ enum PEEP_FLAGS {
 	PEEP_FLAGS_JOY = (1 << 23), // Makes the peep jump in joy
 	PEEP_FLAGS_ANGRY = (1 << 24),
 	PEEP_FLAGS_ICE_CREAM = (1 << 25), // Gives passing peeps ice cream and they wave back
-	PEEP_FLAGS_NICE_RIDE = (1 << 26), // Makes the peep think "Nice ride! But not as good as the Phoenix..." on exiting a ride
-	PEEP_FLAGS_INTAMIN = (1 << 27), // Makes the peep think "I'm so excited - It's an Intamin ride!" while riding on a Intamin
+	PEEP_FLAGS_NICE_RIDE_DEPRECATED = (1 << 26), // Used to make the peep think "Nice ride! But not as good as the Phoenix..." on exiting a ride
+	PEEP_FLAGS_INTAMIN_DEPRECATED = (1 << 27), // Used to make the peep think "I'm so excited - It's an Intamin ride!" while riding on a Intamin ride.
 	PEEP_FLAGS_HERE_WE_ARE = (1 << 28), // Makes the peep think  "...and here we are on X!" while riding a ride
 	PEEP_FLAGS_TWITCH = (1 << 31)		// Added for twitch integration
 };
@@ -370,12 +370,14 @@ enum PEEP_RIDE_DECISION {
 	PEEP_RIDE_DECISION_THINKING = 1 << 2
 };
 
+#pragma pack(push, 1)
 typedef struct rct_peep_thought {
 	uint8 type;		//0
 	uint8 item;		//1
 	uint8 var_2;	//2
 	uint8 var_3;	//3
 } rct_peep_thought;
+assert_struct_size(rct_peep_thought, 4);
 
 typedef struct rct_peep {
 	uint8 sprite_identifier;		// 0x00
@@ -546,6 +548,8 @@ typedef struct rct_peep {
 	uint8 pad_FB;
 	uint32 item_standard_flags;		// 0xFC
 } rct_peep;
+assert_struct_size(rct_peep, 0x100);
+#pragma pack(pop)
 
 enum {
 	EASTEREGG_PEEP_NAME_MICHAEL_SCHUMACHER,
@@ -571,8 +575,6 @@ enum {
 	EASTEREGG_PEEP_NAME_KATIE_SMITH,
 	EASTEREGG_PEEP_NAME_EILIDH_BELL,
 	EASTEREGG_PEEP_NAME_NANCY_STILLWAGON,
-	EASTEREGG_PEEP_NAME_ANDY_HINE,
-	EASTEREGG_PEEP_NAME_ELISSA_WHITE,
 	EASTEREGG_PEEP_NAME_DAVID_ELLIS
 };
 
@@ -651,6 +653,7 @@ void remove_peep_from_queue(rct_peep* peep);
 
 void sub_693BE5(rct_peep* peep, uint8 al);
 void peep_update_name_sort(rct_peep *peep);
+void peep_sort();
 void peep_update_names(bool realNames);
 
 money32 set_peep_name(int flags, int state, uint16 sprite_index, uint8* text_1, uint8* text_2, uint8* text_3);

@@ -19,6 +19,7 @@
 #include "../audio/audio.h"
 #include "../config.h"
 #include "../game.h"
+#include "../editor.h"
 #include "../interface/themes.h"
 #include "../interface/widget.h"
 #include "../interface/window.h"
@@ -774,8 +775,7 @@ static void window_editor_object_selection_close(rct_window *w)
 	}
 	else {
 		// Used for in-game object selection cheat
-		research_reset_items();
-		research_populate_list_researched();
+		// This resets the ride selection list and resets research to 0 on current item
 		gSilentResearch = true;
 		sub_684AC3();
 		gSilentResearch = false;
@@ -1238,7 +1238,7 @@ static void window_editor_object_selection_paint(rct_window *w, rct_drawpixelinf
 
 		x = w->x + widget->left;
 		y = w->y + widget->top;
-		gfx_draw_sprite(dpi, 5458 + i, x, y, 0);
+		gfx_draw_sprite(dpi, STR_ROTATE_CLOCKWISE + i, x, y, 0);
 	}
 
 	const int ride_tabs[] = { 5458, 0x200015A1, 5542, 0x200015AA, 5557, 5551, 5530, 5327 };
@@ -1391,7 +1391,7 @@ static void window_editor_object_selection_paint(rct_window *w, rct_drawpixelinf
 		if (type == OBJECT_TYPE_SCENARIO_TEXT) {
 			gfx_draw_string_left_wrapped(dpi, &stringId, x, y, width, 3168, 0);
 		} else {
-			gfx_draw_string_left_wrapped(dpi, &stringId, x, y + 5, width, 1191, 0);
+			gfx_draw_string_left_wrapped(dpi, &stringId, x, y + 5, width, STR_BLACK_STRING, 0);
 		}
 	}
 
@@ -1946,7 +1946,7 @@ static void window_editor_object_selection_manage_tracks()
 		gResearchedRideEntries[i] = 0xFFFFFFFF;
 	}
 
-	RCT2_GLOBAL(0x141F570, uint8) = 7;
+	gS6Info->editor_step = EDITOR_STEP_TRACK_DESIGNS_MANAGER;
 
 	int entry_index = 0;
 	for (; ((int)object_entry_groups[0].chunks[entry_index]) == -1; ++entry_index);
@@ -1984,6 +1984,20 @@ static void editor_load_selected_objects()
 				int chunk_size;
 				if (!object_load_chunk(-1, installed_entry, &chunk_size)) {
 					log_error("Failed to load entry %.8s", installed_entry->name);
+				}
+
+				// For in game use (cheat)
+				if (!(gScreenFlags & SCREEN_FLAGS_EDITOR)) {
+					// Defaults selected items to researched.
+					if (find_object_in_entry_group(installed_entry, &entry_type, &entry_index)) {
+						if (entry_type == OBJECT_TYPE_RIDE) {
+							rct_ride_entry* rideType = get_ride_entry(entry_index);
+							research_insert(1, 0x10000 | (rideType->ride_type[0] << 8) | entry_index, rideType->category[0]);
+						}
+						else if (entry_type == OBJECT_TYPE_SCENERY_SETS) {
+							research_insert(1, entry_index, RESEARCH_CATEGORY_SCENERYSET);
+						}
+					}
 				}
 			}
 		}

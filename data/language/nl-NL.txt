@@ -889,7 +889,7 @@ STR_0886    :Spel afsluiten
 STR_0887    :Scenariobewerker afsluiten
 STR_0888    :Achtbaanontwerper afsluiten
 STR_0889    :Baanontwerpbeheer afsluiten
-STR_0890    :SCR{COMMA16}.PNG
+STR_0890    :<removed string - do not use>
 STR_0891    :Screenshot
 STR_0892    :Screenshot opgeslagen als '{STRINGID}'
 STR_0893    :Screenshot maken mislukt!
@@ -1650,8 +1650,9 @@ STR_1647    :
 STR_1648    :{SMALLFONT}{OPENQUOTES}Help! Zet me neer!{ENDQUOTES}
 STR_1649    :{SMALLFONT}{OPENQUOTES}Mijn geld is bijna op!{ENDQUOTES}
 STR_1650    :{SMALLFONT}{OPENQUOTES}Wauw! Hier wordt een nieuwe attractie gebouwd!{ENDQUOTES}
-STR_1651    :{SMALLFONT}{OPENQUOTES}Leuke attractie! Maar niet zo goed als de Phoenix...{ENDQUOTES}
-STR_1652    :{SMALLFONT}{OPENQUOTES}Ik ben zo enthousiast - het is een attractie van Intamin!{ENDQUOTES}
+# Two removed inside jokes about Intamin and Phoenix
+STR_1651    :<removed string - do not use>
+STR_1652    :<removed string - do not use>
 STR_1653    :{SMALLFONT}{OPENQUOTES}...en nu zijn we in {STRINGID}!{ENDQUOTES}
 STR_1654    :{WINDOW_COLOUR_2}Recente gedachten:
 STR_1655    :{SMALLFONT}{BLACK}Voetpaden op land aanleggen
@@ -3161,7 +3162,7 @@ STR_3156    :
 STR_3157    :kaart
 STR_3158    :grafiek
 STR_3159    :lijst
-STR_3160    :<not used anymore>
+STR_3160    :{SMALLFONT}{BLACK}Selecteer het aantal rondes dat de trein per rit zal afleggen
 STR_3161    :<not used anymore>
 STR_3162    :Kan niet voldoende geheugen toewijzen
 STR_3163    :Nieuwe data installeren: 
@@ -3998,6 +3999,7 @@ STR_5662    :n.v.t.
 STR_5663    :Landschap leegmaken
 STR_5664    :Cheaten
 STR_5665    :Clusters van decoritems bouwen
+STR_5666    :Inloggen zonder wachtwoord
 STR_5701    :{WINDOW_COLOUR_2}Laatste actie: {BLACK}{STRINGID}
 STR_5702    :{SMALLFONT}{BLACK}Laatste actie van deze speler localiseren
 STR_5703    :De host kan niet worden verwijderd
@@ -4159,6 +4161,16 @@ STR_5856    :{SMALLFONT}{BLACK}Stelt de gebruikte schermresolutie bij volledig s
 STR_5857    :{SMALLFONT}{BLACK}Spelopties
 STR_5858    :{SMALLFONT}{BLACK}Leidt de grafische uitvoer door de GPU. Dit verbetert de compatibiliteit met schermopnamesoftware, maar kan de prestaties iets verminderen.
 STR_5859    :{SMALLFONT}{BLACK}Frame tweening gebruiken om de weergave vloeiender te maken. Als dit is uitgeschakeld zal het spel draaien op 40 FPS.
+STR_5861    :Kon de sleutel niet verifiëren.
+STR_5862    :Onbekende spelers blokkeren
+STR_5863    :{SMALLFONT}{BLACK}Alleen spelers met bekende sleutels toelaten.
+STR_5864    :Deze server laat enkel spelers toe die op de witte lijst staan.
+STR_5865    :Chatgeschiedenis bewaren
+STR_5866    :{SMALLFONT}{BLACK}Slaat de chatgeschiedenis op in je gebruikersmap.
+STR_5867    :{WINDOW_COLOUR_2}Naam provider: {BLACK}{STRING}
+STR_5868    :{WINDOW_COLOUR_2}E-mailadres provider: {BLACK}{STRING}
+STR_5869    :{WINDOW_COLOUR_2}Website provider: {BLACK}{STRING}
+STR_5870    :{SMALLFONT}{BLACK}Serverinformatie tonen
 
 #############
 # Scenarios #

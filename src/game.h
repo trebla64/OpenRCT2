@@ -88,7 +88,8 @@ enum GAME_COMMAND {
 	GAME_COMMAND_SET_PLAYER_GROUP,
 	GAME_COMMAND_MODIFY_GROUPS,
 	GAME_COMMAND_KICK_PLAYER,
-	GAME_COMMAND_CHEAT
+	GAME_COMMAND_CHEAT,
+	GAME_COMMAND_RESET_SPRITES,
 };
 
 enum {
@@ -128,15 +129,18 @@ extern rct_string_id gGameCommandErrorText;
 extern uint8 gErrorType;
 extern uint16 gErrorStringId;
 
-extern GAME_COMMAND_POINTER* new_game_command_table[67];
+extern GAME_COMMAND_POINTER* new_game_command_table[68];
 
-#define gCurrentTicks		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32)
+#define gCurrentTicks				RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_TICKS, uint32)
 
+extern uint16 gTicksSinceLastUpdate;
+extern uint32 gLastTickCount;
 extern uint8 gGamePaused;
 extern int gGameSpeed;
 extern float gDayNightCycle;
 extern bool gInUpdateCode;
 extern int gGameCommandNestLevel;
+extern bool gGameCommandIsNetworked;
 
 void game_increase_game_speed();
 void game_reduce_game_speed();

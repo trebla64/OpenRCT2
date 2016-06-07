@@ -389,8 +389,6 @@ static void window_editor_objective_options_set_objective(rct_window *w, int obj
  */
 static void window_editor_objective_options_main_mouseup(rct_window *w, int widgetIndex)
 {
-	rct_s6_info *s6Info = (rct_s6_info*)0x00141F570;
-
 	switch (widgetIndex) {
 	case WIDX_CLOSE:
 		window_close(w);
@@ -404,11 +402,11 @@ static void window_editor_objective_options_main_mouseup(rct_window *w, int widg
 		window_text_input_open(w, WIDX_PARK_NAME, STR_PARK_NAME, STR_ENTER_PARK_NAME, gParkName, 0, 32);
 		break;
 	case WIDX_SCENARIO_NAME:
-		safe_strcpy((char*)0x009BC677, s6Info->name, 64);
+		safe_strcpy((char*)0x009BC677, gS6Info->name, 64);
 		window_text_input_open(w, WIDX_SCENARIO_NAME, STR_SCENARIO_NAME, STR_ENTER_SCENARIO_NAME, STR_PLACEHOLDER, 0, 64);
 		break;
 	case WIDX_DETAILS:
-		safe_strcpy((char*)0x009BC677, s6Info->details, 256);
+		safe_strcpy((char*)0x009BC677, gS6Info->details, 256);
 		window_text_input_open(w, WIDX_DETAILS, STR_PARK_SCENARIO_DETAILS, STR_ENTER_SCENARIO_DESCRIPTION, STR_PLACEHOLDER, 0, 256);
 		break;
 	}
@@ -526,7 +524,6 @@ static void window_editor_objective_options_show_climate_dropdown(rct_window *w)
 
 static void window_editor_objective_options_show_category_dropdown(rct_window *w)
 {
-	rct_s6_info *s6Info = (rct_s6_info*)0x00141F570;
 	int i;
 	rct_widget *dropdownWidget;
 
@@ -545,7 +542,7 @@ static void window_editor_objective_options_show_category_dropdown(rct_window *w
 		5,
 		dropdownWidget->right - dropdownWidget->left - 3
 	);
-	dropdown_set_checked(s6Info->category, true);
+	dropdown_set_checked(gS6Info->category, true);
 }
 
 static void window_editor_objective_options_arg_1_increase(rct_window *w)
@@ -701,7 +698,6 @@ static void window_editor_objective_options_main_mousedown(int widgetIndex, rct_
  */
 static void window_editor_objective_options_main_dropdown(rct_window *w, int widgetIndex, int dropdownIndex)
 {
-	rct_s6_info *s6Info = (rct_s6_info*)0x00141F570;
 	uint8 newObjectiveType;
 
 	if (dropdownIndex == -1)
@@ -709,7 +705,7 @@ static void window_editor_objective_options_main_dropdown(rct_window *w, int wid
 
 	switch (widgetIndex) {
 	case WIDX_OBJECTIVE_DROPDOWN:
-		newObjectiveType = (uint8)(gDropdownItemsArgs[dropdownIndex] - 2397);
+		newObjectiveType = (uint8)(gDropdownItemsArgs[dropdownIndex] - STR_OBJECTIVE_DROPDOWN_NONE);
 		if (gScenarioObjectiveType != newObjectiveType)
 			window_editor_objective_options_set_objective(w, newObjectiveType);
 		break;
@@ -720,8 +716,8 @@ static void window_editor_objective_options_main_dropdown(rct_window *w, int wid
 		}
 		break;
 	case WIDX_CATEGORY_DROPDOWN:
-		if (s6Info->category != (uint8)dropdownIndex) {
-			s6Info->category = (uint8)dropdownIndex;
+		if (gS6Info->category != (uint8)dropdownIndex) {
+			gS6Info->category = (uint8)dropdownIndex;
 			window_invalidate(w);
 		}
 		break;
@@ -770,7 +766,7 @@ static void window_editor_objective_options_main_update(rct_window *w)
  */
 static void window_editor_objective_options_main_textinput(rct_window *w, int widgetIndex, char *text)
 {
-	rct_s6_info *s6Info = (rct_s6_info*)0x00141F570;
+	rct_s6_info *s6Info = gS6Info;
 
 	if (text == NULL)
 		return;
@@ -876,7 +872,6 @@ static void window_editor_objective_options_main_invalidate(rct_window *w)
  */
 static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpixelinfo *dpi)
 {
-	rct_s6_info *s6Info = (rct_s6_info*)0x00141F570;
 	rct_stex_entry *stex;
 	int x, y, width;
 	rct_string_id stringId;
@@ -941,7 +936,7 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 		case OBJECTIVE_REPLAY_LOAN_AND_PARK_VALUE:
 		case OBJECTIVE_MONTHLY_RIDE_INCOME:
 		case OBJECTIVE_MONTHLY_FOOD_INCOME:
-			stringId = 3246;
+			stringId = STR_CURRENCY_FORMAT_LABEL;
 			arg = gScenarioObjectiveCurrency;
 			break;
 		case OBJECTIVE_10_ROLLERCOASTERS_LENGTH:
@@ -972,13 +967,13 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 	// Climate label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_CLIMATE].top;
-	gfx_draw_string_left(dpi, 3289, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_CLIMATE_LABEL, NULL, 0, x, y);
 
 	// Climate value
 	x = w->x + w->widgets[WIDX_CLIMATE].left + 1;
 	y = w->y + w->widgets[WIDX_CLIMATE].top;
 	stringId = STR_CLIMATE_COOL_AND_WET + gClimate;
-	gfx_draw_string_left(dpi, 1193, &stringId, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRING, &stringId, 0, x, y);
 
 	// Park name
 	x = w->x + 8;
@@ -991,7 +986,7 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 		set_format_arg(0, uint16, gParkName);
 	}
 	set_format_arg(2, uint32, gParkNameArgs);
-	gfx_draw_string_left_clipped(dpi, 3298, gCommonFormatArgs, 0, x, y, width);
+	gfx_draw_string_left_clipped(dpi, STR_CLIMATE_LABEL, gCommonFormatArgs, 0, x, y, width);
 
 	// Scenario name
 	x = w->x + 8;
@@ -1001,7 +996,7 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 	if (stex != NULL) {
 		set_format_arg(0, uint16, stex->scenario_name);
 	} else {
-		safe_strcpy((char*)0x009BC677, s6Info->name, 64);
+		safe_strcpy((char*)0x009BC677, gS6Info->name, 64);
 		set_format_arg(0, uint16, STR_PLACEHOLDER);
 	}
 	set_format_arg(2, uint32, gParkNameArgs);
@@ -1010,7 +1005,7 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 	// Scenario details label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_DETAILS].top;
-	gfx_draw_string_left(dpi, 3299, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_PARK_DETAILS, NULL, 0, x, y);
 
 	// Scenario details value
 	x = w->x + 16;
@@ -1020,22 +1015,22 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 	if (stex != NULL) {
 		set_format_arg(0, uint16, stex->details);
 	} else {
-		safe_strcpy((char*)0x009BC677, s6Info->details, 256);
+		safe_strcpy((char*)0x009BC677, gS6Info->details, 256);
 		set_format_arg(0, uint16, STR_PLACEHOLDER);
 	}
 	set_format_arg(2, uint32, gParkNameArgs);
-	gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, 1191, 0);
+	gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, STR_BLACK_STRING, 0);
 
 	// Scenario category label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_CATEGORY].top;
-	gfx_draw_string_left(dpi, 3319, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_SCENARIO_GROUP, NULL, 0, x, y);
 
 	// Scenario category value
 	x = w->x + w->widgets[WIDX_CATEGORY].left + 1;
 	y = w->y + w->widgets[WIDX_CATEGORY].top;
-	stringId = ScenarioCategoryStringIds[s6Info->category];
-	gfx_draw_string_left(dpi, 1193, &stringId, 0, x, y);
+	stringId = ScenarioCategoryStringIds[gS6Info->category];
+	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRING, &stringId, 0, x, y);
 }
 
 /**
@@ -1197,16 +1192,16 @@ static void window_editor_objective_options_rides_scrollpaint(rct_window *w, rct
 
 		// Highlighted
 		if (i == w->selected_list_item) {
-			stringId = 1193;
+			stringId = STR_WINDOW_COLOUR_2_STRING;
 			gfx_fill_rect(dpi, 0, y, w->width, y + 11, 0x2000031);
 		} else {
-			stringId = 1191;
+			stringId = STR_BLACK_STRING;
 		}
 
 		// Checkbox mark
 		ride = get_ride(i);
 		if (ride->lifecycle_flags & RIDE_LIFECYCLE_INDESTRUCTIBLE) {
-			gCurrentFontSpriteBase = stringId == 1193 ? -2 : -1;
+			gCurrentFontSpriteBase = stringId == STR_WINDOW_COLOUR_2_STRING ? -2 : -1;
 			gfx_draw_string(dpi, (char*)CheckBoxMarkString, w->colours[1] & 0x7F, 2, y);
 		}
 

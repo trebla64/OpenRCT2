@@ -17,6 +17,7 @@
 #include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
+#include "../editor.h"
 #include "../interface/chat.h"
 #include "../input.h"
 #include "../localisation/localisation.h"
@@ -27,6 +28,7 @@
 #include "widget.h"
 #include "../audio/audio.h"
 #include "../platform/platform.h"
+#include "../ride/track_paint.h"
 
 typedef void (*shortcut_action)();
 
@@ -131,7 +133,7 @@ static void shortcut_close_all_floating_windows()
 {
 	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR))
 		window_close_all();
-	else if (RCT2_GLOBAL(0x0141F570, uint8) == 1)
+	else if (gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR)
 		window_close_top();
 }
 
@@ -163,7 +165,7 @@ static void shortcut_zoom_view_out()
 {
 	rct_window *window;
 
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR) {
 		if (!(gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER)) {
 			window = window_find_by_class(WC_TOP_TOOLBAR);
 			if (window != NULL) {
@@ -178,7 +180,7 @@ static void shortcut_zoom_view_in()
 {
 	rct_window *window;
 
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR) {
 		if (!(gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER)) {
 			window = window_find_by_class(WC_TOP_TOOLBAR);
 			if (window != NULL) {
@@ -318,7 +320,7 @@ static void shortcut_adjust_land()
 {
 	rct_window *window;
 
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR) {
 		if (!(gScreenFlags & (SCREEN_FLAGS_TRACK_DESIGNER | SCREEN_FLAGS_TRACK_MANAGER))) {
 			window = window_find_by_class(WC_TOP_TOOLBAR);
 			if (window != NULL) {
@@ -333,7 +335,7 @@ static void shortcut_adjust_water()
 {
 	rct_window *window;
 
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR) {
 		if (!(gScreenFlags & (SCREEN_FLAGS_TRACK_DESIGNER | SCREEN_FLAGS_TRACK_MANAGER))) {
 			window = window_find_by_class(WC_TOP_TOOLBAR);
 			if (window != NULL) {
@@ -348,7 +350,7 @@ static void shortcut_build_scenery()
 {
 	rct_window *window;
 
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR) {
 		if (!(gScreenFlags & (SCREEN_FLAGS_TRACK_DESIGNER | SCREEN_FLAGS_TRACK_MANAGER))) {
 			window = window_find_by_class(WC_TOP_TOOLBAR);
 			if (window != NULL) {
@@ -363,7 +365,7 @@ static void shortcut_build_paths()
 {
 	rct_window *window;
 
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR) {
 		if (!(gScreenFlags & (SCREEN_FLAGS_TRACK_DESIGNER | SCREEN_FLAGS_TRACK_MANAGER))) {
 			window = window_find_by_class(WC_TOP_TOOLBAR);
 			if (window != NULL) {
@@ -466,7 +468,7 @@ static void shortcut_show_recent_messages()
 
 static void shortcut_show_map()
 {
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || RCT2_GLOBAL(0x0141F570, uint8) == 1)
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gS6Info->editor_step == EDITOR_STEP_LANDSCAPE_EDITOR)
 		if (!(gScreenFlags & (SCREEN_FLAGS_TRACK_DESIGNER | SCREEN_FLAGS_TRACK_MANAGER)))
 			window_map_open();
 }
@@ -517,8 +519,7 @@ static void shortcut_quick_save_game()
 		save_game();
 	}
 	else if (gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) {
-		rct_s6_info *s6Info = (rct_s6_info*)0x0141F570;
-		window_loadsave_open(LOADSAVETYPE_SAVE | LOADSAVETYPE_LANDSCAPE, s6Info->name);
+		window_loadsave_open(LOADSAVETYPE_SAVE | LOADSAVETYPE_LANDSCAPE, gS6Info->name);
 	}
 }
 
@@ -541,6 +542,12 @@ static void shortcut_show_multiplayer()
 {
 	if (network_get_mode() != NETWORK_MODE_NONE)
 		window_multiplayer_open();
+}
+
+static void shortcut_orginal_painting_toggle()
+{
+	gUseOriginalRidePaint = !gUseOriginalRidePaint;
+	gfx_invalidate_screen();
 }
 
 static const shortcut_action shortcut_table[SHORTCUT_COUNT] = {
@@ -593,6 +600,7 @@ static const shortcut_action shortcut_table[SHORTCUT_COUNT] = {
 	shortcut_mute_sound,
 	shortcut_windowed_mode_toggle,
 	shortcut_show_multiplayer,
+	shortcut_orginal_painting_toggle,
 };
 
 #pragma endregion

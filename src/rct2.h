@@ -18,6 +18,7 @@
 #define _RCT2_H_
 
 #include <SDL_platform.h>
+#include <SDL_config.h>
 
 #ifndef _USE_MATH_DEFINES
 	#define _USE_MATH_DEFINES
@@ -109,11 +110,6 @@ typedef uint8 colour_t;
 	#define countof(arr)			(sizeof(arr) / sizeof((arr)[0]))
 #endif // __GNUC__
 #endif // __cplusplus
-
-#ifndef _MSC_VER
-// use similar struct packing as MSVC for our structs
-#pragma pack(1)
-#endif
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>

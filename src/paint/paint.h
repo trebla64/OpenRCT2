@@ -24,6 +24,7 @@
 
 typedef struct attached_paint_struct attached_paint_struct;
 
+#pragma pack(push, 1)
 /* size 0x12 */
 struct attached_paint_struct {
     uint32 image_id;		// 0x00
@@ -38,6 +39,10 @@ struct attached_paint_struct {
     uint8 pad_0D;
     attached_paint_struct* next;	//0x0E
 };
+#ifdef PLATFORM_32BIT
+// TODO: drop packing from this when all rendering is done.
+assert_struct_size(attached_paint_struct, 0x12);
+#endif
 
 typedef struct paint_struct paint_struct;
 
@@ -70,6 +75,10 @@ struct paint_struct {
 	uint16 map_y;			// 0x2E
 	rct_map_element *mapElement; // 0x30 (or sprite pointer)
 };
+#ifdef PLATFORM_32BIT
+// TODO: drop packing from this when all rendering is done.
+assert_struct_size(paint_struct, 0x34);
+#endif
 
 typedef struct paint_string_struct paint_string_struct;
 
@@ -82,10 +91,23 @@ struct paint_string_struct {
 	uint32 args[4];					// 0x0A
 	uint8 *y_offsets;				// 0x1A
 };
+#ifdef PLATFORM_32BIT
+assert_struct_size(paint_string_struct, 0x1e);
+#endif
+#pragma pack(pop)
+
+typedef struct sprite_bb {
+	uint32 sprite_id;
+	rct_xyz16 offset;
+	rct_xyz16 bb_offset;
+	rct_xyz16 bb_size;
+} sprite_bb;
 
 enum PAINT_STRUCT_FLAGS {
 	PAINT_STRUCT_FLAG_IS_MASKED = (1 << 0)
 };
+
+#define gPaintInteractionType		RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8)
 
 /** rct2: 0x00993CC4 */
 extern const uint32 construction_markers[];

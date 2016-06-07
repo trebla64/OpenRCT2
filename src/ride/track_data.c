@@ -5485,38 +5485,38 @@ const uint32 RideTypeTrackPaintFunctionsOld[91] = {
 	0x008A5B88,						// RIDE_TYPE_LOOPING_ROLLER_COASTER
 	0x0070EDB4,						// RIDE_TYPE_DINGHY_SLIDE
 	0x0071BC40,						// RIDE_TYPE_MINE_TRAIN_COASTER
-	0,						// RIDE_TYPE_CHAIRLIFT
+	0x00743EC8,						// RIDE_TYPE_CHAIRLIFT
 	0x008A7784,						// RIDE_TYPE_CORKSCREW_ROLLER_COASTER
-	0,						// RIDE_TYPE_MAZE
-	0,						// RIDE_TYPE_SPIRAL_SLIDE
+	0x008A81E8,						// RIDE_TYPE_MAZE
+	0x0074840C,						// RIDE_TYPE_SPIRAL_SLIDE
 	0x0074A668,						// RIDE_TYPE_GO_KARTS
 	0x0074DDEC,						// RIDE_TYPE_LOG_FLUME
 	0x0075745C,						// RIDE_TYPE_RIVER_RAPIDS
-	0,						// RIDE_TYPE_DODGEMS
+	0x0075C9D0,						// RIDE_TYPE_DODGEMS
 	0x008A83E0,						// RIDE_TYPE_PIRATE_SHIP
 	0x00760070,						// RIDE_TYPE_SWINGING_INVERTER_SHIP
-	0,						// RIDE_TYPE_FOOD_STALL
-	0,						// RIDE_TYPE_1D
-	0,						// RIDE_TYPE_DRINK_STALL
-	0,						// RIDE_TYPE_1F
-	0,						// RIDE_TYPE_SHOP
-	0,						// RIDE_TYPE_MERRY_GO_ROUND
-	0,						// RIDE_TYPE_22
-	0,						// RIDE_TYPE_INFORMATION_KIOSK
-	0,						// RIDE_TYPE_TOILETS
-	0,						// RIDE_TYPE_FERRIS_WHEEL
+	0x00761160,						// RIDE_TYPE_FOOD_STALL
+	0x00761160,						// RIDE_TYPE_1D
+	0x00761160,						// RIDE_TYPE_DRINK_STALL
+	0x00761160,						// RIDE_TYPE_1F
+	0x00761160,						// RIDE_TYPE_SHOP
+	0x0076190C,						// RIDE_TYPE_MERRY_GO_ROUND
+	0x00761160,						// RIDE_TYPE_22
+	0x00761160,						// RIDE_TYPE_INFORMATION_KIOSK
+	0x00762D44,						// RIDE_TYPE_TOILETS
+	0x008A8CC8,						// RIDE_TYPE_FERRIS_WHEEL
 	0x00763520,						// RIDE_TYPE_MOTION_SIMULATOR
-	0,						// RIDE_TYPE_3D_CINEMA
-	0,						// RIDE_TYPE_TOP_SPIN
+	0x0076554C,						// RIDE_TYPE_3D_CINEMA
+	0x0076659C,						// RIDE_TYPE_TOP_SPIN
 	0x00767A40,						// RIDE_TYPE_SPACE_RINGS
 	0x00768BAC,						// RIDE_TYPE_REVERSE_FREEFALL_COASTER
 	0x0076C5BC,						// RIDE_TYPE_LIFT
 	0x008A9C08,						// RIDE_TYPE_VERTICAL_DROP_ROLLER_COASTER
-	0,						// RIDE_TYPE_CASH_MACHINE
+	0x00761160,						// RIDE_TYPE_CASH_MACHINE
 	0x0076D658,						// RIDE_TYPE_TWIST
-	0,						// RIDE_TYPE_HAUNTED_HOUSE
-	0,						// RIDE_TYPE_FIRST_AID
-	0,						// RIDE_TYPE_CIRCUS_SHOW
+	0x0076E7B0,						// RIDE_TYPE_HAUNTED_HOUSE
+	0x00762D44,						// RIDE_TYPE_FIRST_AID
+	0x0076F8D4,						// RIDE_TYPE_CIRCUS_SHOW
 	0x00770924,						// RIDE_TYPE_GHOST_TRAIN
 	0x008AB2A0,						// RIDE_TYPE_TWISTER_ROLLER_COASTER
 	0x008AC164,						// RIDE_TYPE_WOODEN_ROLLER_COASTER
@@ -5537,21 +5537,21 @@ const uint32 RideTypeTrackPaintFunctionsOld[91] = {
 	0x0087EDC4,						// RIDE_TYPE_MINI_GOLF
 	0x008AD280,						// RIDE_TYPE_GIGA_COASTER
 	0x00886074,						// RIDE_TYPE_ROTO_DROP
-	0,						// RIDE_TYPE_FLYING_SAUCERS
-	0,						// RIDE_TYPE_CROOKED_HOUSE
+	0x00887208,						// RIDE_TYPE_FLYING_SAUCERS
+	0x00889C28,						// RIDE_TYPE_CROOKED_HOUSE
 	0x0088AC88,						// RIDE_TYPE_MONORAIL_CYCLES
 	0x008AE36C,						// RIDE_TYPE_COMPACT_INVERTED_COASTER
 	0x008AEDE0,						// RIDE_TYPE_WATER_COASTER
 	0x008AF764,						// RIDE_TYPE_AIR_POWERED_VERTICAL_COASTER
 	0x00890940,						// RIDE_TYPE_INVERTED_HAIRPIN_COASTER
 	0x00898384,						// RIDE_TYPE_MAGIC_CARPET
-	0/*x008995D4*/,						// RIDE_TYPE_SUBMARINE_RIDE
+	0x008995D4,						// RIDE_TYPE_SUBMARINE_RIDE
 	0x0089B0C0,						// RIDE_TYPE_RIVER_RAFTS
-	0,						// RIDE_TYPE_50
+	0x00761160,						// RIDE_TYPE_50
 	0x008A13B4,						// RIDE_TYPE_ENTERPRISE
-	0,						// RIDE_TYPE_52
-	0,						// RIDE_TYPE_53
-	0,						// RIDE_TYPE_54
+	0x00761160,						// RIDE_TYPE_52
+	0x00761160,						// RIDE_TYPE_53
+	0x00761160,						// RIDE_TYPE_54
 	0x00000000,						// RIDE_TYPE_55
 	0x008B005C,						// RIDE_TYPE_INVERTED_IMPULSE_COASTER
 	0x008A46D8,						// RIDE_TYPE_MINI_ROLLER_COASTER
@@ -5568,15 +5568,15 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	0,						// RIDE_TYPE_INVERTED_ROLLER_COASTER
 	0,						// RIDE_TYPE_JUNIOR_ROLLER_COASTER
 	0,						// RIDE_TYPE_MINIATURE_RAILWAY
-	0,						// RIDE_TYPE_MONORAIL
+	get_track_paint_function_monorail,		// RIDE_TYPE_MONORAIL
 	0,						// RIDE_TYPE_MINI_SUSPENDED_COASTER
-	0,						// RIDE_TYPE_BOAT_RIDE
+	get_track_paint_function_boat_ride,		// RIDE_TYPE_BOAT_RIDE
 	0,						// RIDE_TYPE_WOODEN_WILD_MOUSE
 	0,						// RIDE_TYPE_STEEPLECHASE
-	0,						// RIDE_TYPE_CAR_RIDE
-	0,						// RIDE_TYPE_LAUNCHED_FREEFALL
+	get_track_paint_function_car_ride,			// RIDE_TYPE_CAR_RIDE
+	get_track_paint_function_launched_freefall,	// RIDE_TYPE_LAUNCHED_FREEFALL
 	0,						// RIDE_TYPE_BOBSLEIGH_COASTER
-	0,						// RIDE_TYPE_OBSERVATION_TOWER
+	get_track_paint_function_observation_tower,	// RIDE_TYPE_OBSERVATION_TOWER
 	0,						// RIDE_TYPE_LOOPING_ROLLER_COASTER
 	0,						// RIDE_TYPE_DINGHY_SLIDE
 	0,						// RIDE_TYPE_MINE_TRAIN_COASTER
@@ -5584,12 +5584,12 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	0,						// RIDE_TYPE_CORKSCREW_ROLLER_COASTER
 	get_track_paint_function_maze,			// RIDE_TYPE_MAZE
 	get_track_paint_function_spiral_slide,	// RIDE_TYPE_SPIRAL_SLIDE
-	0,						// RIDE_TYPE_GO_KARTS
+	get_track_paint_function_go_karts,		// RIDE_TYPE_GO_KARTS
 	0,						// RIDE_TYPE_LOG_FLUME
-	0,						// RIDE_TYPE_RIVER_RAPIDS
+	get_track_paint_function_river_rapids,	// RIDE_TYPE_RIVER_RAPIDS
 	get_track_paint_function_dodgems,		// RIDE_TYPE_DODGEMS
-	0,						// RIDE_TYPE_PIRATE_SHIP
-	0,						// RIDE_TYPE_SWINGING_INVERTER_SHIP
+	get_track_paint_function_pirate_ship,	// RIDE_TYPE_PIRATE_SHIP
+	get_track_paint_function_swinging_inverter_ship,			// RIDE_TYPE_SWINGING_INVERTER_SHIP
 	get_track_paint_function_shop,			// RIDE_TYPE_FOOD_STALL
 	get_track_paint_function_shop,			// RIDE_TYPE_1D
 	get_track_paint_function_shop,			// RIDE_TYPE_DRINK_STALL
@@ -5600,19 +5600,19 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	get_track_paint_function_shop,			// RIDE_TYPE_INFORMATION_KIOSK
 	get_track_paint_function_facility,		// RIDE_TYPE_TOILETS
 	get_track_paint_function_ferris_wheel,	// RIDE_TYPE_FERRIS_WHEEL
-	0,						// RIDE_TYPE_MOTION_SIMULATOR
+	get_track_paint_function_motionsimulator,				// RIDE_TYPE_MOTION_SIMULATOR
 	get_track_paint_function_3d_cinema,						// RIDE_TYPE_3D_CINEMA
 	get_track_paint_function_topspin,		// RIDE_TYPE_TOP_SPIN
-	0,						// RIDE_TYPE_SPACE_RINGS
+	get_track_paint_function_space_rings,	// RIDE_TYPE_SPACE_RINGS
 	0,						// RIDE_TYPE_REVERSE_FREEFALL_COASTER
-	0,						// RIDE_TYPE_LIFT
+	get_track_paint_function_lift,			// RIDE_TYPE_LIFT
 	0,						// RIDE_TYPE_VERTICAL_DROP_ROLLER_COASTER
 	get_track_paint_function_shop,			// RIDE_TYPE_CASH_MACHINE
-	0,						// RIDE_TYPE_TWIST
+	get_track_paint_function_twist,						// RIDE_TYPE_TWIST
 	get_track_paint_function_haunted_house,	// RIDE_TYPE_HAUNTED_HOUSE
 	get_track_paint_function_facility,		// RIDE_TYPE_FIRST_AID
 	get_track_paint_function_circus_show,	// RIDE_TYPE_CIRCUS_SHOW
-	0,						// RIDE_TYPE_GHOST_TRAIN
+	get_track_paint_function_ghost_train,	// RIDE_TYPE_GHOST_TRAIN
 	0,						// RIDE_TYPE_TWISTER_ROLLER_COASTER
 	0,						// RIDE_TYPE_WOODEN_ROLLER_COASTER
 	0,						// RIDE_TYPE_SIDE_FRICTION_ROLLER_COASTER
@@ -5621,29 +5621,29 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	0,						// RIDE_TYPE_38
 	0,						// RIDE_TYPE_FLYING_ROLLER_COASTER
 	0,						// RIDE_TYPE_3A
-	0,						// RIDE_TYPE_VIRGINIA_REEL
+	get_track_paint_function_virginia_reel,		// RIDE_TYPE_VIRGINIA_REEL
 	0,						// RIDE_TYPE_SPLASH_BOATS
-	0,						// RIDE_TYPE_MINI_HELICOPTERS
+	get_track_paint_function_mini_helicopters,	// RIDE_TYPE_MINI_HELICOPTERS
 	0,						// RIDE_TYPE_LAY_DOWN_ROLLER_COASTER
 	0,						// RIDE_TYPE_SUSPENDED_MONORAIL
 	0,						// RIDE_TYPE_40
 	0,						// RIDE_TYPE_REVERSER_ROLLER_COASTER
 	0,						// RIDE_TYPE_HEARTLINE_TWISTER_COASTER
-	0,						// RIDE_TYPE_MINI_GOLF
+	get_track_paint_function_mini_golf,		// RIDE_TYPE_MINI_GOLF
 	0,						// RIDE_TYPE_GIGA_COASTER
-	0,						// RIDE_TYPE_ROTO_DROP
+	get_track_paint_function_roto_drop,		// RIDE_TYPE_ROTO_DROP
 	get_track_paint_function_flying_saucers,// RIDE_TYPE_FLYING_SAUCERS
 	get_track_paint_function_crooked_house,	// RIDE_TYPE_CROOKED_HOUSE
-	0,						// RIDE_TYPE_MONORAIL_CYCLES
+	get_track_paint_function_monorail_cycles,	// RIDE_TYPE_MONORAIL_CYCLES
 	0,						// RIDE_TYPE_COMPACT_INVERTED_COASTER
 	0,						// RIDE_TYPE_WATER_COASTER
 	0,						// RIDE_TYPE_AIR_POWERED_VERTICAL_COASTER
 	0,						// RIDE_TYPE_INVERTED_HAIRPIN_COASTER
-	0,						// RIDE_TYPE_MAGIC_CARPET
+	get_track_paint_function_magic_carpet,							// RIDE_TYPE_MAGIC_CARPET
 	get_track_paint_function_submarine_ride,						// RIDE_TYPE_SUBMARINE_RIDE
-	0,						// RIDE_TYPE_RIVER_RAFTS
+	get_track_paint_function_river_rafts,							// RIDE_TYPE_RIVER_RAFTS
 	get_track_paint_function_shop,						// RIDE_TYPE_50
-	0,						// RIDE_TYPE_ENTERPRISE
+	get_track_paint_function_enterprise,				// RIDE_TYPE_ENTERPRISE
 	get_track_paint_function_shop,						// RIDE_TYPE_52
 	get_track_paint_function_shop,						// RIDE_TYPE_53
 	get_track_paint_function_shop,						// RIDE_TYPE_54

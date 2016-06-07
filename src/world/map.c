@@ -611,7 +611,7 @@ void map_update_path_wide_flags()
 		return;
 	}
 
-	// Presumebly update_path_wide_flags is too computationally expensive to call for every
+	// Presumably update_path_wide_flags is too computationally expensive to call for every
 	// tile every update, so gWidePathTileLoopX and gWidePathTileLoopY store the x and y
 	// progress. A maximum of 128 calls is done per update.
 	uint16 x = gWidePathTileLoopX;
@@ -730,6 +730,10 @@ void game_command_remove_scenery(int* eax, int* ebx, int* ecx, int* edx, int* es
 {
 	int x = *eax;
 	int y = *ecx;
+	if (!map_is_location_valid(x, y)) {
+		*ebx = MONEY32_UNDEFINED;
+		return;
+	}
 	uint8 base_height = *edx;
 	uint8 scenery_type = *edx >> 8;
 	uint8 map_element_type = *ebx >> 8;
@@ -789,7 +793,7 @@ void game_command_remove_scenery(int* eax, int* ebx, int* ecx, int* edx, int* es
 		break;
 	} while (!map_element_is_last_for_tile(map_element++));
 
-	if (sceneryFound == false){
+	if (sceneryFound == false) {
 		*ebx = 0;
 		return;
 	}
@@ -1645,15 +1649,16 @@ static money32 map_set_land_height(int flags, int x, int y, int height, int styl
 		return MONEY32_UNDEFINED;
 	}
 
-	if (height > 62) {
+	// Divide by 2 and subtract 7 to get the ingame units.
+	if (height > 142) {
 		gGameCommandErrorText = STR_TOO_HIGH;
 		return MONEY32_UNDEFINED;
-	} else if (height == 62 && (style & 0x1F) != 0) {
+	} else if (height > 140 && (style & 0x1F) != 0) {
 		gGameCommandErrorText = STR_TOO_HIGH;
 		return MONEY32_UNDEFINED;
 	}
 
-	if (height == 60 && (style & 0x10)) {
+	if (height == 140 && (style & 0x10)) {
 		gGameCommandErrorText = STR_TOO_HIGH;
 		return MONEY32_UNDEFINED;
 	}
@@ -2667,37 +2672,47 @@ void game_command_remove_fence(int* eax, int* ebx, int* ecx, int* edx, int* esi,
 {
 	int x = *eax;
 	int y = *ecx;
+	if (!map_is_location_valid(x, y)) {
+		*ebx = MONEY32_UNDEFINED;
+		return;
+	}
 	uint8 base_height = (*edx >> 8);
 	uint8 direction = *edx;
+	uint8 flags = *ebx & 0xFF;
 
 	gCommandExpenditureType = RCT_EXPENDITURE_TYPE_LANDSCAPING;
-	if(!(*ebx & 0x40) && game_is_paused() && !gCheatsBuildInPauseMode){
+	if(!(flags & GAME_COMMAND_FLAG_GHOST) && game_is_paused() && !gCheatsBuildInPauseMode){
 		gGameCommandErrorText = STR_CONSTRUCTION_NOT_POSSIBLE_WHILE_GAME_IS_PAUSED;
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}
-	if(!(*ebx & 0x40) && !(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) && !gCheatsSandboxMode && !map_is_location_owned(x, y, base_height * 8)){
+	if(!(flags & GAME_COMMAND_FLAG_GHOST) && !(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) && !gCheatsSandboxMode && !map_is_location_owned(x, y, base_height * 8)){
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}
-	rct_map_element* map_element = map_get_first_element_at(x / 32, y / 32);
-	while(map_element_get_type(map_element) != MAP_ELEMENT_TYPE_FENCE ||
-	map_element->base_height != base_height ||
-	(map_element->type & MAP_ELEMENT_DIRECTION_MASK) != direction ||
-	((*ebx & 0x40) && !(map_element->flags & MAP_ELEMENT_FLAG_GHOST))){
-		map_element++;
-		if((map_element - 1)->flags & MAP_ELEMENT_FLAG_LAST_TILE){
-			*ebx = 0;
-			return;
-		}
-	}
 
-	if (!(*ebx & GAME_COMMAND_FLAG_APPLY)){
+	bool sceneryFound = false;
+	rct_map_element* map_element = map_get_first_element_at(x / 32, y / 32);
+	do {
+		if (map_element_get_type(map_element) != MAP_ELEMENT_TYPE_FENCE)
+			continue;
+		if (map_element->base_height != base_height)
+			continue;
+		if ((map_element->type & MAP_ELEMENT_DIRECTION_MASK) != direction)
+			continue;
+		if ((flags & GAME_COMMAND_FLAG_GHOST) && !(map_element->flags & MAP_ELEMENT_FLAG_GHOST))
+			continue;
+
+		sceneryFound = true;
+		break;
+	} while (!map_element_is_last_for_tile(map_element++));
+
+	if (!(*ebx & GAME_COMMAND_FLAG_APPLY) || (sceneryFound == false)) {
 		*ebx = 0;
 		return;
 	}
 
-	if (gGameCommandNestLevel == 1 && !(*ebx & GAME_COMMAND_FLAG_GHOST)) {
+	if (gGameCommandNestLevel == 1 && !(flags & GAME_COMMAND_FLAG_GHOST)) {
 		rct_xyz16 coord;
 		coord.x = x + 16;
 		coord.y = y + 16;
@@ -2945,8 +2960,8 @@ void game_command_place_scenery(int* eax, int* ebx, int* ecx, int* edx, int* esi
 					x2 += 16;
 					y2 += 16;
 				}else{
-					x2 += RCT2_ADDRESS(0x009A3E74, uint8)[(quadrant & 3) * 2] - 1;
-					y2 += RCT2_ADDRESS(0x009A3E75, uint8)[(quadrant & 3) * 2] - 1;
+					x2 += ScenerySubTileOffsets[quadrant & 3].x - 1;
+					y2 += ScenerySubTileOffsets[quadrant & 3].y - 1;
 				}
 				int base_height2 = map_element_height(x2, y2);
 				if(base_height2 & 0xFFFF0000){
@@ -4284,7 +4299,7 @@ static void map_update_grass_length(int x, int y, rct_map_element *mapElement)
 	}
 
 	// Grass can't grow any further than CLUMPS_2 but this code also cuts grass
-	// if there is an object placed ontop of it.
+	// if there is an object placed on top of it.
 
 	int z0 = mapElement->base_height;
 	int z1 = mapElement->base_height + 2;

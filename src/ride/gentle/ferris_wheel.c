@@ -19,13 +19,6 @@
 #include "../../paint/supports.h"
 #include "../track_paint.h"
 
-static const uint8 track_map_1x4[][4] = {
-	{0, 1, 2, 3},
-	{2, 3, 0, 1},
-	{2, 3, 0, 1},
-	{0, 1, 2, 3},
-};
-
 static const uint8 edges_1x4_ne_sw[] = {
 	EDGE_NW | EDGE_SE,
 	EDGE_NW | EDGE_SE | EDGE_NE,
@@ -81,7 +74,7 @@ static void paint_ferris_wheel_structure(uint8 rideIndex, uint8 direction, sint8
 	    && ride->vehicles[0] != SPRITE_INDEX_NULL) {
 		vehicle = GET_VEHICLE(ride->vehicles[0]);
 
-		RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8) = VIEWPORT_INTERACTION_ITEM_SPRITE;
+		gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_SPRITE;
 		RCT2_GLOBAL(0x009DE578, rct_vehicle*) = vehicle;
 	}
 
@@ -127,7 +120,7 @@ static void paint_ferris_wheel_structure(uint8 rideIndex, uint8 direction, sint8
 	sub_98199C(imageId, xOffset, yOffset, boundBox.length_x, boundBox.length_y, 127, height, boundBox.offset_x, boundBox.offset_y, height, get_current_rotation());
 
 	RCT2_GLOBAL(0x009DE578, rct_map_element*) = savedMapElement;
-	RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8) = VIEWPORT_INTERACTION_ITEM_RIDE;
+	gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_RIDE;
 }
 
 
@@ -174,10 +167,10 @@ static void paint_ferris_wheel(uint8 rideIndex, uint8 trackSequence, uint8 direc
 	}
 
 	switch (relativeTrackSequence) {
-		case 1: paint_ferris_wheel_structure(rideIndex, rotation, 48, height); break;
-		case 2: paint_ferris_wheel_structure(rideIndex, rotation, 16, height); break;
-		case 0: paint_ferris_wheel_structure(rideIndex, rotation, -16, height); break;
-		case 3: paint_ferris_wheel_structure(rideIndex, rotation, -48, height); break;
+		case 1: paint_ferris_wheel_structure(rideIndex, direction, 48, height); break;
+		case 2: paint_ferris_wheel_structure(rideIndex, direction, 16, height); break;
+		case 0: paint_ferris_wheel_structure(rideIndex, direction, -16, height); break;
+		case 3: paint_ferris_wheel_structure(rideIndex, direction, -48, height); break;
 	}
 
 	paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);

@@ -39,6 +39,7 @@
 #include "console.h"
 #include "window.h"
 #include "viewport.h"
+#include "../paint/map_element/map_element.h"
 
 #define CONSOLE_BUFFER_SIZE 8192
 #define CONSOLE_BUFFER_2_SIZE 256
@@ -138,7 +139,7 @@ void console_update()
 			}
 		}
 
-		// Remove unwated characters in console input
+		// Remove unwanted characters in console input
 		utf8_remove_format_codes(_consoleCurrentLine, false);
 	}
 
@@ -471,6 +472,68 @@ static int cc_rides(const utf8 **argv, int argc)
 						ride->subtype = int_val[2];
 					}
 				}
+			} else if (strcmp(argv[1], "friction") == 0) {
+				bool int_valid[2] = { 0 };
+				int ride_index = console_parse_int(argv[2], &int_valid[0]);
+				int friction = console_parse_int(argv[3], &int_valid[1]);
+					
+				if (ride_index < 0) {
+					console_printf("Ride index must not be negative");
+				} else if (!int_valid[0] || !int_valid[1]) {
+					console_printf("This command expects integer arguments");
+				} else {
+					rct_ride *ride = get_ride(ride_index);
+					if (friction <= 0) {
+						console_printf("Friction value must be strictly positive");
+					} else if (ride->type == RIDE_TYPE_NULL) {
+						console_printf("No ride found with index %d",ride_index);
+					} else {
+						for (int i = 0; i < ride->num_vehicles; i++) {
+							uint16 vehicle_index = ride->vehicles[i];
+ 							while (vehicle_index != SPRITE_INDEX_NULL) {
+								rct_vehicle *vehicle=GET_VEHICLE(vehicle_index);
+								vehicle->friction=friction;
+								vehicle_index=vehicle->next_vehicle_on_train;
+							}
+						}			
+					}
+				}
+			}
+		}
+	} else {
+		console_printf("subcommands: list, set");
+	}
+	return 0;
+}
+
+static int cc_staff(const utf8 **argv, int argc)
+{
+	if (argc > 0) {
+		if (strcmp(argv[0], "list") == 0) {
+			rct_peep *peep;
+			int i;
+			FOR_ALL_STAFF(i, peep) {
+				char name[128];
+				format_string(name, peep->name_string_idx, &peep->id);
+				console_printf("staff id %03d type: %02u energy %03u name %s", i, peep->staff_type, peep->energy, name);
+			}
+		} else if (strcmp(argv[0], "set") == 0) {
+			if (argc < 4) {
+				console_printf("staff set energy <staff id> [value 0-255]");
+				return 0;
+			}
+			if (strcmp(argv[1], "energy") == 0) {
+				int int_val[3];
+				bool int_valid[3] = { 0 };
+				int_val[0] = console_parse_int(argv[2], &int_valid[0]);
+				int_val[1] = console_parse_int(argv[3], &int_valid[1]);
+				
+				if (int_valid[0] && int_valid[1] && ((GET_PEEP(int_val[0])) != NULL)) {
+					rct_peep *peep = GET_PEEP(int_val[0]);
+
+					peep->energy = int_val[1];
+					peep->energy_growth_rate = int_val[1];
+				}
 			}
 		}
 	} else {
@@ -487,6 +550,9 @@ static int cc_get(const utf8 **argv, int argc)
 		}
 		else if (strcmp(argv[0], "money") == 0) {
 			console_printf("money %d.%d0", DECRYPT_MONEY(gCashEncrypted) / 10, DECRYPT_MONEY(gCashEncrypted) % 10);
+		}
+		else if (strcmp(argv[0], "scenario_initial_cash") == 0) {
+			console_printf("scenario_initial_cash %d", gInitialCash / 10);
 		}
 		else if (strcmp(argv[0], "current_loan") == 0) {
 			console_printf("current_loan %d", gBankLoan / 10);
@@ -589,6 +655,9 @@ static int cc_get(const utf8 **argv, int argc)
 		else if (strcmp(argv[0], "window_scale") == 0) {
 			console_printf("window_scale %.3f", gConfigGeneral.window_scale);
 		}
+		else if (strcmp(argv[0], "paint_segments") == 0) {
+			console_printf("paint_segments %d", gShowSupportSegmentHeights);
+		}
 		else {
 			console_writeline_warning("Invalid variable.");
 		}
@@ -619,6 +688,10 @@ static int cc_set(const utf8 **argv, int argc)
 		if (strcmp(argv[0], "money") == 0 && invalidArguments(&invalidArgs, double_valid[0])) {
 			gCashEncrypted = ENCRYPT_MONEY(MONEY((int)double_val[0], ((int)(double_val[0] * 100)) % 100));
 			console_execute_silent("get money");
+		}
+		else if (strcmp(argv[0], "scenario_initial_cash") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			gInitialCash = clamp(MONEY(int_val[0], 0), MONEY(0, 0), MONEY(1000000, 00));
+			console_execute_silent("get scenario_initial_cash");
 		}
 		else if (strcmp(argv[0], "current_loan") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
 			gBankLoan = clamp(MONEY(int_val[0] - (int_val[0] % 1000), 0), MONEY(0, 0), gMaxBankLoan);
@@ -752,6 +825,11 @@ static int cc_set(const utf8 **argv, int argc)
 			gfx_invalidate_screen();
 			platform_trigger_resize();
 			console_execute_silent("get window_scale");
+		}
+		else if (strcmp(argv[0], "paint_segments") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			gShowSupportSegmentHeights = (bool)(int_val[0]);
+			gfx_invalidate_screen();
+			console_execute_silent("get paint_segments");
 		}
 		else if (invalidArgs) {
 			console_writeline_error("Invalid arguments.");
@@ -952,6 +1030,7 @@ typedef struct console_command {
 utf8* console_variable_table[] = {
 	"park_rating",
 	"money",
+	"scenario_initial_cash",
 	"current_loan",
 	"max_loan",
 	"guest_initial_cash",
@@ -977,7 +1056,8 @@ utf8* console_variable_table[] = {
 	"test_unfinished_tracks",
 	"no_test_crashes",
 	"location",
-	"window_scale"
+	"window_scale",
+	"paint_segments",
 };
 utf8* console_window_table[] = {
 	"object_selection",
@@ -991,7 +1071,7 @@ utf8* console_window_table[] = {
 console_command console_command_table[] = {
 	{ "clear", cc_clear, "Clears the console.", "clear"},
 	{ "hide", cc_hide, "Hides the console.", "hide"},
-	{ "echo", cc_echo, "Echos the text to the console.", "echo <text>" },
+	{ "echo", cc_echo, "Echoes the text to the console.", "echo <text>" },
 	{ "help", cc_help, "Lists commands or info about a command.", "help [command]" },
 	{ "get", cc_get, "Gets the value of the specified variable.", "get <variable>" },
 	{ "set", cc_set, "Sets the variable to the specified value.", "set <variable> <value>" },
@@ -1007,6 +1087,7 @@ console_command console_command_table[] = {
 	{ "reset_user_strings", cc_reset_user_strings, "Resets all user-defined strings, to fix incorrectly occurring 'Chosen name in use already' errors.", "reset_user_strings" },
 	{ "fix_banner_count", cc_fix_banner_count, "Fixes incorrectly appearing 'Too many banners' error by marking every banner entry without a map element as null.", "fix_banner_count" },
 	{ "rides", cc_rides, "Ride management.", "rides <subcommand>" },
+	{ "staff", cc_staff, "Staff management.", "staff <subcommand>"},
 };
 
 static int cc_windows(const utf8 **argv, int argc) {

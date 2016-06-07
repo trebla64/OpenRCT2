@@ -16,6 +16,7 @@
 
 #include "../core/Exception.hpp"
 #include "../core/IStream.hpp"
+#include "../network/network.h"
 #include "S6Importer.h"
 
 extern "C"
@@ -173,7 +174,7 @@ void S6Importer::LoadScenario(SDL_RWops *rw)
 void S6Importer::Import()
 {
     RCT2_GLOBAL(0x009E34E4, rct_s6_header) = _s6.header;
-    RCT2_GLOBAL(0x0141F570, rct_s6_info) = _s6.info;
+    *gS6Info = _s6.info;
 
     gDateMonthsElapsed = _s6.elapsed_months;
     gDateMonthTicks = _s6.current_day;
@@ -357,7 +358,8 @@ void S6Importer::Import()
     gClimateUpdateTimer = _s6.climate_update_timer;
     gClimateCurrentWeather = _s6.current_weather;
     gClimateNextWeather = _s6.next_weather;
-    gClimateNextTemperature = _s6.temperature;
+    gClimateCurrentTemperature = _s6.temperature;
+    gClimateNextTemperature = _s6.next_temperature;
     gClimateCurrentWeatherEffect = _s6.current_weather_effect;
     gClimateNextWeatherEffect = _s6.next_weather_effect;
     gClimateCurrentWeatherGloom = _s6.current_weather_gloom;
@@ -377,7 +379,15 @@ void S6Importer::Import()
     }
     reset_loaded_objects();
     map_update_tile_pointers();
-    reset_0x69EBE4();
+    if (network_get_mode() == NETWORK_MODE_CLIENT)
+    {
+        reset_sprite_spatial_index();
+        game_do_command(0, GAME_COMMAND_FLAG_APPLY, 0, 0, GAME_COMMAND_RESET_SPRITES, 0, 0);
+    }
+    else
+    {
+        reset_sprite_spatial_index();
+    }
     game_convert_strings_to_utf8();
     if (FixIssues)
     {
@@ -517,6 +527,7 @@ extern "C"
         gCheatsDisableLittering = SDL_ReadU8(rw) != 0;
         gCheatsNeverendingMarketing = SDL_ReadU8(rw) != 0;
         gCheatsFreezeClimate = SDL_ReadU8(rw) != 0;
+        gCheatsDisablePlantAging = SDL_ReadU8(rw) != 0;
 
         gLastAutoSaveTick = SDL_GetTicks();
         return 1;

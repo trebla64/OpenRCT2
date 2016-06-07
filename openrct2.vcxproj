@@ -83,6 +83,14 @@
     <ClCompile Include="src\management\research.c" />
     <ClCompile Include="src\network\http.cpp" />
     <ClCompile Include="src\network\network.cpp" />
+    <ClCompile Include="src\network\NetworkAction.cpp" />
+    <ClCompile Include="src\network\NetworkConnection.cpp" />
+    <ClCompile Include="src\network\NetworkGroup.cpp" />
+    <ClCompile Include="src\network\NetworkKey.cpp" />
+    <ClCompile Include="src\network\NetworkPacket.cpp" />
+    <ClCompile Include="src\network\NetworkPlayer.cpp" />
+    <ClCompile Include="src\network\NetworkUser.cpp" />
+    <ClCompile Include="src\network\TcpSocket.cpp" />
     <ClCompile Include="src\network\twitch.cpp" />
     <ClCompile Include="src\object.c" />
     <ClCompile Include="src\object_list.c" />
@@ -313,6 +321,7 @@
     <ClInclude Include="src\core\List.hpp" />
     <ClInclude Include="src\core\Math.hpp" />
     <ClInclude Include="src\core\Memory.hpp" />
+    <ClInclude Include="src\core\Nullable.hpp" />
     <ClInclude Include="src\core\Path.hpp" />
     <ClInclude Include="src\core\stopwatch.h" />
     <ClInclude Include="src\core\Stopwatch.hpp" />
@@ -355,8 +364,17 @@
     <ClInclude Include="src\management\news_item.h" />
     <ClInclude Include="src\management\research.h" />
     <ClInclude Include="src\network\http.h" />
+    <ClInclude Include="src\network\NetworkAction.h" />
+    <ClInclude Include="src\network\NetworkConnection.h" />
+    <ClInclude Include="src\network\NetworkGroup.h" />
+    <ClInclude Include="src\network\NetworkPacket.h" />
+    <ClInclude Include="src\network\NetworkPlayer.h" />
+    <ClInclude Include="src\network\NetworkTypes.h" />
+    <ClInclude Include="src\network\NetworkUser.h" />
+    <ClInclude Include="src\network\TcpSocket.h" />
     <ClInclude Include="src\network\twitch.h" />
     <ClInclude Include="src\network\network.h" />
+    <ClInclude Include="src\network\NetworkKey.h" />
     <ClInclude Include="src\object.h" />
     <ClInclude Include="src\openrct2.h" />
     <ClInclude Include="src\paint\map_element\map_element.h" />
@@ -467,13 +485,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <StructMemberAlignment>1Byte</StructMemberAlignment>
       <PreprocessorDefinitions>$(OpenRCT2_DEFINES);DEBUG;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
       <MinimalRebuild>false</MinimalRebuild>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -491,7 +509,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck />
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <StructMemberAlignment>1Byte</StructMemberAlignment>
       <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
       <OmitFramePointers />
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -499,6 +516,7 @@
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -271,7 +271,7 @@ static void input_scroll_right(int x, int y, int state)
 
 	switch (state) {
 	case MOUSE_STATE_RELEASED:
-		_ticksSinceDragStart += RCT2_GLOBAL(RCT2_ADDRESS_TICKS_SINCE_LAST_UPDATE, sint16);
+		_ticksSinceDragStart += gTicksSinceLastUpdate;
 		if (x != 0 || y != 0) {
 			_ticksSinceDragStart = 1000;
 			input_scroll_drag_continue(x, y, w);
@@ -541,7 +541,7 @@ static void input_viewport_drag_continue()
 	}
 
 	viewport = w->viewport;
-	_ticksSinceDragStart += RCT2_GLOBAL(RCT2_ADDRESS_TICKS_SINCE_LAST_UPDATE, sint16);
+	_ticksSinceDragStart += gTicksSinceLastUpdate;
 	if (viewport == NULL) {
 		platform_show_cursor();
 		gInputState = INPUT_STATE_RESET;
@@ -553,8 +553,8 @@ static void input_viewport_drag_continue()
 			// As the user moved the mouse, don't interpret it as right click in any case.
 			_ticksSinceDragStart = 1000;
 
-			dx <<= viewport->zoom + 1;
-			dy <<= viewport->zoom + 1;
+			dx *= 1 << (viewport->zoom + 1);
+			dy *= 1 << (viewport->zoom + 1);
 			if (gConfigGeneral.invert_viewport_drag){
 				w->saved_view_x -= dx;
 				w->saved_view_y -= dy;
@@ -1346,7 +1346,7 @@ static void input_update_tooltip(rct_window *w, int widgetIndex, int x, int y)
 {
 	if (gTooltipWidget.window_classification == 255) {
 		if (gTooltipNotShownTicks < 500 || (gTooltipCursorX == x && gTooltipCursorY == y)) {
-			gTooltipTimeout = RCT2_GLOBAL(RCT2_ADDRESS_TICKS_SINCE_LAST_UPDATE, uint16);
+			gTooltipTimeout = gTicksSinceLastUpdate;
 
 			int time = 2000;
 			if (gTooltipNotShownTicks >= 1) {
@@ -1368,7 +1368,7 @@ static void input_update_tooltip(rct_window *w, int widgetIndex, int x, int y)
 		) {
 			window_tooltip_close();
 		}
-		gTooltipTimeout += RCT2_GLOBAL(RCT2_ADDRESS_TICKS_SINCE_LAST_UPDATE, uint16);
+		gTooltipTimeout += gTicksSinceLastUpdate;
 		if (gTooltipTimeout >= 8000) {
 			window_close_by_class(WC_TOOLTIP);
 		}

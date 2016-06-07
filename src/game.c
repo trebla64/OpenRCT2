@@ -59,11 +59,14 @@
 
 #define NUMBER_OF_AUTOSAVES_TO_KEEP 9
 
+uint16 gTicksSinceLastUpdate;
+uint32 gLastTickCount;
 uint8 gGamePaused = 0;
 int gGameSpeed = 1;
 float gDayNightCycle = 0;
 bool gInUpdateCode = false;
 int gGameCommandNestLevel;
+bool gGameCommandIsNetworked;
 
 extern void game_command_callback_place_banner(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp);
 
@@ -261,7 +264,7 @@ void game_update()
 	if (gGameSpeed > 1) {
 		numUpdates = 1 << (gGameSpeed - 1);
 	} else {
-		numUpdates = RCT2_GLOBAL(RCT2_ADDRESS_TICKS_SINCE_LAST_UPDATE, uint16) / 31;
+		numUpdates = gTicksSinceLastUpdate / 31;
 		numUpdates = clamp(1, numUpdates, 4);
 	}
 
@@ -349,7 +352,7 @@ void game_logic_update()
 	network_update();
 	if (network_get_mode() == NETWORK_MODE_CLIENT && network_get_status() == NETWORK_STATUS_CONNECTED && network_get_authstatus() == NETWORK_AUTH_OK) {
 		if (gCurrentTicks >= network_get_server_tick()) {
-			// dont run past the server
+			// don't run past the server
 			return;
 		}
 	}
@@ -456,6 +459,10 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 	flags = *ebx;
 	gGameCommandErrorText = 0xFFFF;
 
+	if (gGameCommandNestLevel == 0) {
+		gGameCommandIsNetworked = (flags & GAME_COMMAND_FLAG_NETWORKED) != 0;
+	}
+	
 	// Increment nest count
 	gGameCommandNestLevel++;
 
@@ -553,7 +560,7 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 		}
 	}
 
-	// Error occured
+	// Error occurred
 
 	// Decrement nest count
 	gGameCommandNestLevel--;
@@ -746,6 +753,8 @@ void game_fix_save_vars() {
 	}
 
 	gNumGuestsInPark = peepCount;
+
+	peep_sort();
 
 	// Fixes broken saves where a surface element could be null
 	for (int y = 0; y < 256; y++) {
@@ -1069,7 +1078,7 @@ void game_load_or_quit_no_save_prompt()
 	}
 }
 
-GAME_COMMAND_POINTER* new_game_command_table[67] = {
+GAME_COMMAND_POINTER* new_game_command_table[68] = {
 	game_command_set_ride_appearance,
 	game_command_set_land_height,
 	game_pause_toggle,
@@ -1136,5 +1145,6 @@ GAME_COMMAND_POINTER* new_game_command_table[67] = {
 	game_command_set_player_group,
 	game_command_modify_groups,
 	game_command_kick_player,
-	game_command_cheat
+	game_command_cheat,
+	game_command_reset_sprites,
 };

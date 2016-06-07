@@ -892,7 +892,7 @@ STR_0886    :Ukončit hru
 STR_0887    :Ukončit editor scénáře
 STR_0888    :Ukončit návrh horské dráhy
 STR_0889    :Ukončit správu návrhů tratí
-STR_0890    :SCR{COMMA16}.BMP
+STR_0890    :<removed string - do not use>
 STR_0891    :Snímek obrazovky
 STR_0892    :Snímek obrazovky byl uložen jako '{STRINGID}'
 STR_0893    :Snímaní obrazovky selhalo!
@@ -1654,8 +1654,9 @@ STR_1647    :
 STR_1648    :{SMALLFONT}{OPENQUOTES}Pomoc! Polož mě dolů!{ENDQUOTES}
 STR_1649    :{SMALLFONT}{OPENQUOTES}Dochází mi hotovost!{ENDQUOTES}
 STR_1650    :{SMALLFONT}{OPENQUOTES}Wow! Tady se staví nová atrakce!{ENDQUOTES}
-STR_1651    :{SMALLFONT}{OPENQUOTES}Dobrá atrakce! Ale ne tak dobrá, jako Fénix...{ENDQUOTES}
-STR_1652    :{SMALLFONT}{OPENQUOTES}Tolik se těším! - It's an Intamin ride!{ENDQUOTES}
+# Two removed inside jokes about Intamin and Phoenix
+STR_1651    :<removed string - do not use>
+STR_1652    :<removed string - do not use>
 STR_1653    :{SMALLFONT}{OPENQUOTES}...a teď jsme na {STRINGID}!{ENDQUOTES}
 STR_1654    :{WINDOW_COLOUR_2}Poslední myšlenky:
 STR_1655    :{SMALLFONT}{BLACK}Stavět cestu na povrchu
@@ -4005,6 +4006,7 @@ STR_5662    :N/A
 STR_5663    :Vyčistit krajinu
 STR_5664    :Cheaty
 STR_5665    :Přepínat skupinové stavění kulis
+STR_5666    :Přihlášení bez hesla
 STR_5701    :{WINDOW_COLOUR_2}Poslední akce: {BLACK}{STRINGID}
 STR_5702    :{SMALLFONT}{BLACK}Najít hráčovu poslední akci
 STR_5703    :Nelze vyhodit zakladatele hry
@@ -4167,6 +4169,18 @@ STR_5856    :{SMALLFONT}{BLACK}Nastavit rozlišení hry v režimu celé obrazovk
 STR_5857    :{SMALLFONT}{BLACK}Herní nastavení
 STR_5858    :{SMALLFONT}{BLACK}Použít GPU pro vykreslování místo CPU. Zvyšuje kompatibilitu se softwarem pro nahrávání obrazovky. Může lehce snížit výkonnost hry.
 STR_5859    :{SMALLFONT}{BLACK}Zapnout generování mezilehlých snímků{NEWLINE}pro jemnější obraz. Hra dosahuje{NEWLINE} 40 FPS, když je tato možnost zakázaná.
+STR_5861    :Selhalo ověření klíče.
+STR_5862    :Blokovat neznámé hráče.
+STR_5863    :{SMALLFONT}{BLACK}Připojit se smí pouze hráči s ověřenými klíči.
+STR_5864    :K tomuto serveru se mohou připojit jen ověření hráči.
+STR_5865    :Archivovat historii chatu
+STR_5866    :{SMALLFONT}{BLACK}Archivovat všechny zprávy chatu do souborů v domovském adresáři.
+STR_5867    :{WINDOW_COLOUR_2}Jméno provozovatele: {BLACK}{STRING}
+STR_5868    :{WINDOW_COLOUR_2}E-mail provozovatele: {BLACK}{STRING}
+STR_5869    :{WINDOW_COLOUR_2}Web provozovatele: {BLACK}{STRING}
+STR_5870    :{SMALLFONT}{BLACK}Zobrazovat informace o serveru
+STR_5871    :Nevadnoucí květiny.
+STR_5872    :{SMALLFONT}{BLACK}Vypnout stárnutí a uvadání květin.
 
 
 ###############################################################################

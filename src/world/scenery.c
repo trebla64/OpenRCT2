@@ -19,6 +19,7 @@
 #include "../common.h"
 #include "../localisation/localisation.h"
 #include "../scenario.h"
+#include "../cheats.h"
 #include "climate.h"
 #include "fountain.h"
 #include "map.h"
@@ -60,6 +61,14 @@ sint16 gSceneryCtrlPressZ;
 
 uint8 gSceneryGroundFlags;
 
+// rct2: 0x009A3E74
+const rct_xy8 ScenerySubTileOffsets[] = {
+	{  7,  7 },
+	{  7, 23 },
+	{ 23, 23 },
+	{ 23,  7 }
+};
+
 void scenery_increase_age(int x, int y, rct_map_element *mapElement);
 
 void scenery_update_tile(int x, int y)
@@ -74,9 +83,9 @@ void scenery_update_tile(int x, int y)
 			if (footpath_element_has_path_scenery(mapElement) && !footpath_element_path_scenery_is_ghost(mapElement)) {
 				rct_scenery_entry *sceneryEntry;
 				sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(mapElement));
-				if (sceneryEntry->path_bit.var_06 & PATH_BIT_FLAG_JUMPING_FOUNTAIN_WATER) {
+				if (sceneryEntry->path_bit.flags & PATH_BIT_FLAG_JUMPING_FOUNTAIN_WATER) {
 					jumping_fountain_begin(JUMPING_FOUNTAIN_TYPE_WATER, x, y, mapElement);
-				} else if (sceneryEntry->path_bit.var_06 & PATH_BIT_FLAG_JUMPING_FOUNTAIN_SNOW) {
+				} else if (sceneryEntry->path_bit.flags & PATH_BIT_FLAG_JUMPING_FOUNTAIN_SNOW) {
 					jumping_fountain_begin(JUMPING_FOUNTAIN_TYPE_SNOW, x, y, mapElement);
 				}
 			}
@@ -94,6 +103,11 @@ void scenery_update_age(int x, int y, rct_map_element *mapElement)
 	rct_scenery_entry *sceneryEntry;
 
 	sceneryEntry = get_small_scenery_entry(mapElement->properties.scenery.type);
+	if (gCheatsDisablePlantAging &&
+		(sceneryEntry->small_scenery.flags & SMALL_SCENERY_FLAG_CAN_BE_WATERED)) {
+		return;
+	}
+
 	if (
 		!(sceneryEntry->small_scenery.flags & SMALL_SCENERY_FLAG_CAN_BE_WATERED) ||
 		(gClimateCurrentWeather < WEATHER_RAIN) ||
@@ -103,7 +117,7 @@ void scenery_update_age(int x, int y, rct_map_element *mapElement)
 		return;
 	}
 
-	// Check map elements above, presumebly to see if map element is blocked from rain
+	// Check map elements above, presumably to see if map element is blocked from rain
 	mapElementAbove = mapElement;
 	while (!(mapElementAbove->flags & 7)) {
 		mapElementAbove++;

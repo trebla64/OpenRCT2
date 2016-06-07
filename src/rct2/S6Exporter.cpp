@@ -226,7 +226,7 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
 
 void S6Exporter::Export()
 {
-    _s6.info = *(RCT2_ADDRESS(0x0141F570, rct_s6_info));
+    _s6.info = *gS6Info;
 
     for (int i = 0; i < 721; i++)
     {
@@ -424,7 +424,8 @@ void S6Exporter::Export()
     _s6.climate_update_timer = gClimateUpdateTimer;
     _s6.current_weather = gClimateCurrentWeather;
     _s6.next_weather = gClimateNextWeather;
-    _s6.temperature = gClimateNextTemperature;
+    _s6.temperature = gClimateCurrentTemperature;
+    _s6.next_temperature = gClimateNextTemperature;
     _s6.current_weather_effect = gClimateCurrentWeatherEffect;
     _s6.next_weather_effect = gClimateNextWeatherEffect;
     _s6.current_weather_gloom = gClimateCurrentWeatherGloom;
@@ -479,7 +480,7 @@ extern "C"
         }
 
         map_reorganise_elements();
-        reset_0x69EBE4();
+        game_do_command(0, GAME_COMMAND_FLAG_APPLY, 0, 0, GAME_COMMAND_RESET_SPRITES, 0, 0);
         sprite_clear_all_unused();
 
         viewport_set_saved_view();
@@ -561,6 +562,7 @@ extern "C"
         SDL_WriteU8(rw, gCheatsDisableLittering);
         SDL_WriteU8(rw, gCheatsNeverendingMarketing);
         SDL_WriteU8(rw, gCheatsFreezeClimate);
+        SDL_WriteU8(rw, gCheatsDisablePlantAging);
 
         gfx_invalidate_screen();
         return 1;

@@ -67,7 +67,7 @@ STR_0062    :Barche con lo schizzo
 STR_0063    :Mini-elicotteri
 STR_0064    :Ottovolante sdraiato
 STR_0065    :Monorotaia sospesa
-STR_0066    :Unknown Ride (40)
+STR_0066    :Attrazione sconosciuta (40)
 STR_0067    :Ottovolante al contrario
 STR_0068    :Serpentone volante
 STR_0069    :Mini golf
@@ -83,16 +83,16 @@ STR_0078    :Inverted Hairpin Coaster
 STR_0079    :Tappeto magico
 STR_0080    :Corsa sottomarina
 STR_0081    :River Rafts
-STR_0082    :Unknown Ride (50)
+STR_0082    :Attrazione sconosciuta (50)
 STR_0083    :Enterprise
-STR_0084    :Unknown Ride (52)
-STR_0085    :Unknown Ride (53)
-STR_0086    :Unknown Ride (54)
-STR_0087    :Unknown Ride (55)
+STR_0084    :Attrazione sconosciuta (52)
+STR_0085    :Attrazione sconosciuta (53)
+STR_0086    :Attrazione sconosciuta (54)
+STR_0087    :Attrazione sconosciuta (55)
 STR_0088    :Ottovolante invertito a impulso
 STR_0089    :Mini-ottovolante
 STR_0090    :Corsa nella miniera
-STR_0091    :Unknown Ride (59)
+STR_0091    :Attrazione sconosciuta (59)
 STR_0092    :Ottovolante a lancio LIM
 STR_0093    :
 STR_0094    :
@@ -525,19 +525,19 @@ STR_0520    :Una piattaforma dalla quale i passeggeri possono guidare una piccol
 STR_0521    :Un ottovolante veloce e snodato con curve strette e discese ripide. L'intensità non può essere che alta.
 STR_0522    :Un piccolo ottovolante dove i passeggeri siedono sopra al percorso senza un vagone attorno
 STR_0523    :I passeggeri viaggiano lentamente su veicoli elettrici lungo un percorso basato su un circuito
-STR_0524    :Freefall car is pneumatically launched up a tall steel tower and then allowed to freefall down
+STR_0524    :Le macchine in caduta libera sono lanciate pneumaticamente su una torre alta di acciaio e poi scendono in caduta libera
 STR_0525    :Riders career down a twisting track guided only by the curvature and banking of the semi-circular track
-STR_0526    :Passengers travel in a rotating observation cabin which travels up a tall tower
+STR_0526    :I passeggeri viaggiano in una cabina di osservazione rotante mentre salgono su un'alta torre
 STR_0527    :Un rapido ottovolante d'acciaio caratterizzato da cadute verticali
 STR_0528    :Riders travel in inflatable dinghies down a twisting semi-circular or completely enclosed tube track
-STR_0529    :Mine train themed roller coaster trains career along steel roller coaster track made to look like old railway track
+STR_0529    :Il treno della miniera è una montagna russa a tema fatta in acciaio realizzata per ricordare una vecchia ferrovia
 STR_0530    :Le carrozze pendono da un cavo d'acciaio che fa avanti e indietro per tutto il tracciato
 STR_0531    :A compact steel-tracked roller coaster where the train travels through corkscrews and loops
 STR_0532    :
 STR_0533    :
 STR_0534    :Go kart guidati con motore a benzina
-STR_0535    :Barche a forma di tronchi viaggiano lungo un canale d'acqua, schizzando i passeggeri mentre volano giù per ripide discese
-STR_0536    :Barche rotonde scorrono lungo un largo canale d'acqua, schizzando attraverso cascate e spaventando i passeggeri attraverso schiumose rapide
+STR_0535    :Delle barche a forma di tronchi viaggiano lungo un canale d'acqua, schizzando i passeggeri mentre volano giù per ripide discese
+STR_0536    :Delle barche rotonde scorrono lungo un largo canale d'acqua, schizzando attraverso cascate e spaventando i passeggeri con delle rapide schiumose
 STR_0537    :
 STR_0538    :
 STR_0539    :
@@ -555,8 +555,8 @@ STR_0550    :
 STR_0551    :
 STR_0552    :
 STR_0553    :
-STR_0554    :La carrozza acquista accelerazione a partire dalla stazione attraverso un lungo tratto pianeggiante grazie a dei motori a induzione lineare, quindi percorre una ripida salita per poi scendere in caduta libera e tornare alla stazione
-STR_0555    :Guests ride in an elevator up or down a vertical tower to get from one level to another
+STR_0554    :La carrozza acquista velocità a partire dalla stazione attraverso un lungo tratto pianeggiante grazie a dei motori a induzione lineare, quindi percorre una salita ripida per poi scendere in caduta libera e tornare alla stazione
+STR_0555    :Gli ospiti della attrazione usano l'ascensore su una torre verticale per andare da un livello all'altro
 STR_0556    :Extra-wide cars descend completely vertical sloped track for the ultimate freefall roller coaster experience
 STR_0557    :
 STR_0558    :
@@ -582,7 +582,7 @@ STR_0577    :Bogied cars run on wooden tracks, turning around on special reversi
 STR_0578    :Le carrozze corrono per il tracciato caratterizzato da vari giri,  ripide discese e curve ondulanti
 STR_0579    :
 STR_0580    :A giant steel roller coaster capable of smooth drops and hills of over 300ft
-STR_0581    :A ring of seats is pulled to the top of a tall tower while gently rotating, then allowed to free-fall down, stopping gently at the bottom using magnetic brakes
+STR_0581    :Un anello di sedie è posizionato in cima alla torre mentre ruota piano, quindi precipita fermandosi gentilmente alla base tramite freni magnetici
 STR_0582    :
 STR_0583    :
 STR_0584    :Special bicycles run on a steel monorail track, propelled by the pedalling of the riders
@@ -601,7 +601,7 @@ STR_0596    :
 STR_0597    :
 STR_0598    :Inverted roller coaster trains are accelerated out of the station to travel up a vertical spike of track, then reverse back through the station to travel backwards up another vertical spike of track
 STR_0599    :Un ottovolante compatto con carrozze individuali e rapide curve in discesa
-STR_0600    :Powered mine trains career along a smooth and twisted track layout
+STR_0600    :La ferrovia della miniera potenziata che percorre un percorso morbido e emozionante
 STR_0601    :
 STR_0602    :Roller coaster trains are accelerated out of the station by linear induction motors to speed through twisting inversions
 STR_0603    :Visitatore {INT32}
@@ -892,7 +892,7 @@ STR_0886    :Abbandona la partita
 STR_0887    :Abbandona l'editor degli scenari
 STR_0888    :Abbandona la progettazione degli ottovolanti
 STR_0889    :Abbandona il programma di progettazione dei tracciati
-STR_0890    :SCR{COMMA16}.BMP
+STR_0890    :<removed string - do not use>
 STR_0891    :Schermata
 STR_0892    :Schermata salvata su disco come '{STRINGID}'
 STR_0893    :Cattura della schermata fallita!!
@@ -1456,7 +1456,7 @@ STR_1450    :{INLINE_SPRITE}{09}{20}{00}{00}{SPRITE} {STRINGID}{NEWLINE}({STRING
 STR_1451    :{STRINGID}{NEWLINE}({STRINGID})
 STR_1452    :Nome del visitatore
 STR_1453    :Digita il nome di questo visitatore:
-STR_1454    :Impossibile battezzare il visitatore...
+STR_1454    :Impossibile nominare il visitatore...
 STR_1455    :Il nome del visitatore non è valido
 STR_1456    :{WINDOW_COLOUR_2}Denaro speso: {BLACK}{CURRENCY2DP}
 STR_1457    :{WINDOW_COLOUR_2}Denaro in tasca: {BLACK}{CURRENCY2DP}
@@ -1489,7 +1489,7 @@ STR_1483    :{SMALLFONT}{OPENQUOTES}Mi sento molto male{ENDQUOTES}
 STR_1484    :{SMALLFONT}{OPENQUOTES}Voglio provare qualcosa di più eccitante {STRINGID}{ENDQUOTES}
 STR_1485    :{SMALLFONT}{OPENQUOTES}{STRINGID}sembra troppo intenso per me{ENDQUOTES}
 STR_1486    :{SMALLFONT}{OPENQUOTES}Non ho ancora finito {STRINGID}{ENDQUOTES}
-STR_1487    :{SMALLFONT}{OPENQUOTES}Solo guardando {STRINGID} mi fa stare male{ENDQUOTES}
+STR_1487    :{SMALLFONT}{OPENQUOTES}Solo guardando {STRINGID} mi sento male{ENDQUOTES}
 STR_1488    :{SMALLFONT}{OPENQUOTES}Non pagherò così tanto per andare su {STRINGID}{ENDQUOTES}
 STR_1489    :{SMALLFONT}{OPENQUOTES}Voglio tornare a casa{ENDQUOTES}
 STR_1490    :{SMALLFONT}{OPENQUOTES}{STRINGID} è a buon mercato{ENDQUOTES}
@@ -1508,44 +1508,44 @@ STR_1502    :{SMALLFONT}{OPENQUOTES}Devo andare in bagno{ENDQUOTES}
 STR_1503    :{SMALLFONT}{OPENQUOTES}Non riesco a trovare: {STRINGID}{ENDQUOTES}
 STR_1504    :{SMALLFONT}{OPENQUOTES}Non pagherò così tanto per usare: {STRINGID}{ENDQUOTES}
 STR_1505    :{SMALLFONT}{OPENQUOTES}Non andrò su {STRINGID} durante un temporale{ENDQUOTES}
-STR_1506    :{SMALLFONT}{OPENQUOTES}Qui c'è troppa spazzatura in giro{ENDQUOTES}
+STR_1506    :{SMALLFONT}{OPENQUOTES}C'è troppa spazzatura in giro{ENDQUOTES}
 STR_1507    :{SMALLFONT}{OPENQUOTES}Non riesco a trovare l'uscita del parco{ENDQUOTES}
 STR_1508    :{SMALLFONT}{OPENQUOTES}Voglio scendere da {STRINGID}{ENDQUOTES}
 STR_1509    :{SMALLFONT}{OPENQUOTES}Voglio uscire da {STRINGID}{ENDQUOTES}
 STR_1510    :{SMALLFONT}{OPENQUOTES}Non andrò su {STRINGID} - Non è sicuro{ENDQUOTES}
 STR_1511    :{SMALLFONT}{OPENQUOTES}Questo percorso è disgustoso{ENDQUOTES}
 STR_1512    :{SMALLFONT}{OPENQUOTES}È troppo affollato qui{ENDQUOTES}
-STR_1513    :{SMALLFONT}{OPENQUOTES}Qui ci sono troppi atti vandalici{ENDQUOTES}
+STR_1513    :{SMALLFONT}{OPENQUOTES}Ci sono troppi atti vandalici{ENDQUOTES}
 STR_1514    :{SMALLFONT}{OPENQUOTES}Bello scenario!{ENDQUOTES}
 STR_1515    :{SMALLFONT}{OPENQUOTES}Questo parco è davvero pulito e ordinato{ENDQUOTES}
 STR_1516    :{SMALLFONT}{OPENQUOTES}Le fontane zampillanti sono fantastiche{ENDQUOTES}
 STR_1517    :{SMALLFONT}{OPENQUOTES}La musica qui è gradevole{ENDQUOTES}
-STR_1518    :{SMALLFONT}{OPENQUOTES}Questo palloncino comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1519    :{SMALLFONT}{OPENQUOTES}Questo peluche comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1520    :{SMALLFONT}{OPENQUOTES}Questa mappa del parco comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1521    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da  {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1522    :{SMALLFONT}{OPENQUOTES}Quest'ombrello comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1523    :{SMALLFONT}{OPENQUOTES}Questa bevanda comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1524    :{SMALLFONT}{OPENQUOTES}Questo panino comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1525    :{SMALLFONT}{OPENQUOTES}Queste patatine comprate da {STRINGID} valgono il loro prezzo{ENDQUOTES}
-STR_1526    :{SMALLFONT}{OPENQUOTES}Questo gelato comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1527    :{SMALLFONT}{OPENQUOTES}Questo zucchero filato comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
+STR_1518    :{SMALLFONT}{OPENQUOTES}Questo palloncino comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1519    :{SMALLFONT}{OPENQUOTES}Questo peluche comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1520    :{SMALLFONT}{OPENQUOTES}Questa mappa del parco comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1521    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da  {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1522    :{SMALLFONT}{OPENQUOTES}Quest'ombrello comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1523    :{SMALLFONT}{OPENQUOTES}Questa bevanda comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1524    :{SMALLFONT}{OPENQUOTES}Questo panino comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1525    :{SMALLFONT}{OPENQUOTES}Queste patatine comprate da {STRINGID} valgono quanto costa{ENDQUOTES}
+STR_1526    :{SMALLFONT}{OPENQUOTES}Questo gelato comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1527    :{SMALLFONT}{OPENQUOTES}Questo zucchero filato comprato da {STRINGID} vale quanto costa{ENDQUOTES}
 STR_1528    :
 STR_1529    :
 STR_1530    :
-STR_1531    :{SMALLFONT}{OPENQUOTES}Questa pizza comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
+STR_1531    :{SMALLFONT}{OPENQUOTES}Questa pizza comprata da {STRINGID} vale quanto costa{ENDQUOTES}
 STR_1532    :
-STR_1533    :{SMALLFONT}{OPENQUOTES}Questi pop-corn comprati da {STRINGID} valgono il loro prezzo{ENDQUOTES}
-STR_1534    :{SMALLFONT}{OPENQUOTES}Questo hot dog comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1535    :{SMALLFONT}{OPENQUOTES}Questo tentacolo comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1536    :{SMALLFONT}{OPENQUOTES}Questo cappellino comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1537    :{SMALLFONT}{OPENQUOTES}Questa mela caramellata comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1538    :{SMALLFONT}{OPENQUOTES}Questa maglietta comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1539    :{SMALLFONT}{OPENQUOTES}Questa ciambella comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1540    :{SMALLFONT}{OPENQUOTES}Questo caffè comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
+STR_1533    :{SMALLFONT}{OPENQUOTES}Questi pop-corn comprati da {STRINGID} valgono quanto costa{ENDQUOTES}
+STR_1534    :{SMALLFONT}{OPENQUOTES}Questo hot dog comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1535    :{SMALLFONT}{OPENQUOTES}Questo tentacolo comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1536    :{SMALLFONT}{OPENQUOTES}Questo cappellino comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1537    :{SMALLFONT}{OPENQUOTES}Questa mela caramellata comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1538    :{SMALLFONT}{OPENQUOTES}Questa maglietta comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1539    :{SMALLFONT}{OPENQUOTES}Questa ciambella comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1540    :{SMALLFONT}{OPENQUOTES}Questo caffè comprato da {STRINGID} vale quanto costa{ENDQUOTES}
 STR_1541    :
-STR_1542    :{SMALLFONT}{OPENQUOTES}Questo pollo fritto comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1543    :{SMALLFONT}{OPENQUOTES}Questa limonata comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
+STR_1542    :{SMALLFONT}{OPENQUOTES}Questo pollo fritto comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1543    :{SMALLFONT}{OPENQUOTES}Questa limonata comprata da {STRINGID} vale quanto costa{ENDQUOTES}
 STR_1544    :
 STR_1545    :
 STR_1546    :
@@ -1554,55 +1554,55 @@ STR_1548    :
 STR_1549    :
 STR_1550    :{SMALLFONT}{OPENQUOTES}Wow!!{ENDQUOTES}
 STR_1551    :{SMALLFONT}{OPENQUOTES}Ho la strana sensazione che qualcuno mi stia osservando{ENDQUOTES}
-STR_1552    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un palloncino da {STRINGID}{ENDQUOTES}
-STR_1553    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un peluche da {STRINGID}{ENDQUOTES}
-STR_1554    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una mappa del parco da {STRINGID}{ENDQUOTES}
-STR_1555    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una foto-in-corsa da {STRINGID}{ENDQUOTES}
-STR_1556    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un ombrello da {STRINGID}{ENDQUOTES}
-STR_1557    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una bevanda da {STRINGID}{ENDQUOTES}
-STR_1558    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un panino da {STRINGID}{ENDQUOTES}
-STR_1559    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per delle patatine da {STRINGID}{ENDQUOTES}
-STR_1560    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un gelato da {STRINGID}{ENDQUOTES}
-STR_1561    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per dello zucchero filato da {STRINGID}{ENDQUOTES}
+STR_1552    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un palloncino da {STRINGID}{ENDQUOTES}
+STR_1553    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un peluche da {STRINGID}{ENDQUOTES}
+STR_1554    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una mappa del parco da {STRINGID}{ENDQUOTES}
+STR_1555    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una foto-in-corsa da {STRINGID}{ENDQUOTES}
+STR_1556    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un ombrello da {STRINGID}{ENDQUOTES}
+STR_1557    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una bevanda da {STRINGID}{ENDQUOTES}
+STR_1558    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un panino da {STRINGID}{ENDQUOTES}
+STR_1559    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per delle patatine da {STRINGID}{ENDQUOTES}
+STR_1560    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un gelato da {STRINGID}{ENDQUOTES}
+STR_1561    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per dello zucchero filato da {STRINGID}{ENDQUOTES}
 STR_1562    :
 STR_1563    :
 STR_1564    :
-STR_1565    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una pizza da {STRINGID}{ENDQUOTES}
+STR_1565    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una pizza da {STRINGID}{ENDQUOTES}
 STR_1566    :
-STR_1567    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per dei pop-corn da {STRINGID}{ENDQUOTES}
-STR_1568    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un hot dog da {STRINGID}{ENDQUOTES}
-STR_1569    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un tentacolo da {STRINGID}{ENDQUOTES}
-STR_1570    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un cappellino da {STRINGID}{ENDQUOTES}
-STR_1571    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una mela caramellata da {STRINGID}{ENDQUOTES}
-STR_1572    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una maglietta da {STRINGID}{ENDQUOTES}
-STR_1573    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per una ciambella da {STRINGID}{ENDQUOTES}
-STR_1574    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per un caffè da {STRINGID}{ENDQUOTES}
+STR_1567    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per dei pop-corn da {STRINGID}{ENDQUOTES}
+STR_1568    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un hot dog da {STRINGID}{ENDQUOTES}
+STR_1569    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un tentacolo da {STRINGID}{ENDQUOTES}
+STR_1570    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un cappellino da {STRINGID}{ENDQUOTES}
+STR_1571    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una mela caramellata da {STRINGID}{ENDQUOTES}
+STR_1572    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una maglietta da {STRINGID}{ENDQUOTES}
+STR_1573    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per una ciambella da {STRINGID}{ENDQUOTES}
+STR_1574    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per un caffè da {STRINGID}{ENDQUOTES}
 STR_1575    :
-STR_1576    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per del pollo fritto da {STRINGID}{ENDQUOTES}
-STR_1577    :{SMALLFONT}{OPENQUOTES}Non pagherò quel prezzo per della limonata da {STRINGID}{ENDQUOTES}
+STR_1576    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per del pollo fritto da {STRINGID}{ENDQUOTES}
+STR_1577    :{SMALLFONT}{OPENQUOTES}Non pagherò quella cifra per della limonata da {STRINGID}{ENDQUOTES}
 STR_1578    :
 STR_1579    :
 STR_1580    :
 STR_1581    :
 STR_1582    :
 STR_1583    :
-STR_1584    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1585    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1586    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1587    :{SMALLFONT}{OPENQUOTES}Questo biscottino comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1588    :{SMALLFONT}{OPENQUOTES}Questa cioccolata calda comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1589    :{SMALLFONT}{OPENQUOTES}Questo tè freddo comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1590    :{SMALLFONT}{OPENQUOTES}Questa torta a ciambella comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1591    :{SMALLFONT}{OPENQUOTES}Questi occhiali da sole comprati da {STRINGID} valgono il loro prezzo{ENDQUOTES}
-STR_1592    :{SMALLFONT}{OPENQUOTES}Questi spaghetti al ragù comprati da {STRINGID} valgono il loro prezzo{ENDQUOTES}
-STR_1593    :{SMALLFONT}{OPENQUOTES}Questi spaghetti di riso fritto comprati da {STRINGID} valgono il loro prezzo{ENDQUOTES}
-STR_1594    :{SMALLFONT}{OPENQUOTES}Questa zuppa di wonton comprata da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1595    :{SMALLFONT}{OPENQUOTES}Queste polpette in salsa comprate da {STRINGID} valgono il loro prezzo{ENDQUOTES}
-STR_1596    :{SMALLFONT}{OPENQUOTES}Questo succo di frutta comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1597    :{SMALLFONT}{OPENQUOTES}Questo latte di soia comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1598    :{SMALLFONT}{OPENQUOTES}Questo sujongkwa {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1599    :{SMALLFONT}{OPENQUOTES}Questo sandwich comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
-STR_1600    :{SMALLFONT}{OPENQUOTES}Questo biscotto comprato da {STRINGID} vale il suo prezzo{ENDQUOTES}
+STR_1584    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1585    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1586    :{SMALLFONT}{OPENQUOTES}Questa foto-in-corsa comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1587    :{SMALLFONT}{OPENQUOTES}Questo biscottino comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1588    :{SMALLFONT}{OPENQUOTES}Questa cioccolata calda comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1589    :{SMALLFONT}{OPENQUOTES}Questo tè freddo comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1590    :{SMALLFONT}{OPENQUOTES}Questa torta a ciambella comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1591    :{SMALLFONT}{OPENQUOTES}Questi occhiali da sole comprati da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1592    :{SMALLFONT}{OPENQUOTES}Questi spaghetti al ragù comprati da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1593    :{SMALLFONT}{OPENQUOTES}Questi spaghetti di riso fritto comprati da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1594    :{SMALLFONT}{OPENQUOTES}Questa zuppa di wonton comprata da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1595    :{SMALLFONT}{OPENQUOTES}Queste polpette in salsa comprate da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1596    :{SMALLFONT}{OPENQUOTES}Questo succo di frutta comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1597    :{SMALLFONT}{OPENQUOTES}Questo latte di soia comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1598    :{SMALLFONT}{OPENQUOTES}Questo sujongkwa {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1599    :{SMALLFONT}{OPENQUOTES}Questo sandwich comprato da {STRINGID} vale quanto costa{ENDQUOTES}
+STR_1600    :{SMALLFONT}{OPENQUOTES}Questo biscotto comprato da {STRINGID} vale quanto costa{ENDQUOTES}
 STR_1601    :
 STR_1602    :
 STR_1603    :
@@ -1653,8 +1653,9 @@ STR_1647    :
 STR_1648    :{SMALLFONT}{OPENQUOTES}Aiuto!! Voglio scendere!!{ENDQUOTES}
 STR_1649    :{SMALLFONT}{OPENQUOTES}Sto finendo i soldi!!{ENDQUOTES}
 STR_1650    :{SMALLFONT}{OPENQUOTES}Wow!! Presto ci sarà una nuova attrazione!!{ENDQUOTES}
-STR_1651    :{SMALLFONT}{OPENQUOTES}Bell'attrazione!! Ma mai come la Phoenix...{ENDQUOTES}
-STR_1652    :{SMALLFONT}{OPENQUOTES}Che eccitazione - è un'attrazione Intamin!!{ENDQUOTES}
+# Two removed inside jokes about Intamin and Phoenix
+STR_1651    :<removed string - do not use>
+STR_1652    :<removed string - do not use>
 STR_1653    :{SMALLFONT}{OPENQUOTES}...e qui siamo su {STRINGID}!!{ENDQUOTES}
 STR_1654    :{WINDOW_COLOUR_2}Pensieri più recenti:
 STR_1655    :{SMALLFONT}{BLACK}Costruisci un sentiero sul terreno
@@ -1714,10 +1715,10 @@ STR_1708    :{SMALLFONT}{BLACK}Fissa la zona che questo dipendente deve controll
 STR_1709    :Licenzia il personale
 STR_1710    :Sì
 STR_1711    :{WINDOW_COLOUR_1}Sei sicuro di voler licenziare{NEWLINE}{STRINGID}?
-STR_1712    :{INLINE_SPRITE}{247}{19}{00}{00}{WINDOW_COLOUR_2}Sweep footpaths
-STR_1713    :{INLINE_SPRITE}{248}{19}{00}{00}{WINDOW_COLOUR_2}Water gardens
-STR_1714    :{INLINE_SPRITE}{249}{19}{00}{00}{WINDOW_COLOUR_2}Empty litter bins
-STR_1715    :{INLINE_SPRITE}{250}{19}{00}{00}{WINDOW_COLOUR_2}Mow grass
+STR_1712    :{INLINE_SPRITE}{247}{19}{00}{00}{WINDOW_COLOUR_2}Scopa per terra
+STR_1713    :{INLINE_SPRITE}{248}{19}{00}{00}{WINDOW_COLOUR_2}Annaffia i giardini
+STR_1714    :{INLINE_SPRITE}{249}{19}{00}{00}{WINDOW_COLOUR_2}Svuota i cassonetti
+STR_1715    :{INLINE_SPRITE}{250}{19}{00}{00}{WINDOW_COLOUR_2}Taglia l'erba
 STR_1716    :Non è un nome valido per il parco
 STR_1717    :Impossibile ribattezzare il parco...
 STR_1718    :Nome del parco
@@ -1849,8 +1850,8 @@ STR_1843    :La preferita da: {COMMA16} visitatori
 STR_1844    :{SMALLFONT}{BLACK}Scegli il tipo di informazione da mostrare nella lista delle attrazioni
 STR_1845    :{MONTHYEAR}
 STR_1846    :{COMMA16} visitatori
-STR_1847    :{INLINE_SPRITE}{11}{20}{00}{00}{COMMA16} guests
-STR_1848    :{INLINE_SPRITE}{10}{20}{00}{00}{COMMA16} guests
+STR_1847    :{INLINE_SPRITE}{11}{20}{00}{00}{COMMA16} visitatori
+STR_1848    :{INLINE_SPRITE}{10}{20}{00}{00}{COMMA16} visitatori
 STR_1849    :{WINDOW_COLOUR_2}Suona la musica
 STR_1850    :{SMALLFONT}{BLACK}Scegli quale musica dev'essere suonata in quest'attrazione
 STR_1851    :{WINDOW_COLOUR_2}Costo mantenim.: {BLACK}{CURRENCY2DP} l'ora
@@ -1878,8 +1879,8 @@ STR_1872    :{COMMA16}
 STR_1873    :{WINDOW_COLOUR_2}Entrate: {BLACK}{CURRENCY} all'ora
 STR_1874    :{WINDOW_COLOUR_2}Profitto: {BLACK}{CURRENCY} all'ora
 STR_1875    :{BLACK} {SPRITE}{BLACK} {STRINGID}
-STR_1876    :{WINDOW_COLOUR_2}{INLINE_SPRITE}{251}{19}{00}{00}Inspect Rides
-STR_1877    :{WINDOW_COLOUR_2}{INLINE_SPRITE}{252}{19}{00}{00}Fix Rides
+STR_1876    :{WINDOW_COLOUR_2}{INLINE_SPRITE}{251}{19}{00}{00}Ispeziona le attrazioni
+STR_1877    :{WINDOW_COLOUR_2}{INLINE_SPRITE}{252}{19}{00}{00}Ripara le attrazioni
 STR_1878    :{WINDOW_COLOUR_2}Ispezione:
 STR_1879    :Ogni 10 minuti
 STR_1880    :Ogni 20 minuti
@@ -2337,7 +2338,7 @@ STR_2329    :{WINDOW_COLOUR_2}Distanza e velocità:
 STR_2330    :{WINDOW_COLOUR_2}Temperatura:
 STR_2331    :{WINDOW_COLOUR_2}Indicazioni altezza:
 STR_2332    :Unità
-STR_2333    :Audio
+STR_2333    :Impostazioni Audio
 STR_2334    :Sterline ({POUND})
 STR_2335    :Dollari ($)
 STR_2336    :Franchi (F)
@@ -3165,7 +3166,7 @@ STR_3156    :
 STR_3157    :mappa
 STR_3158    :grafico
 STR_3159    :lista
-STR_3160    :<not used anymore>
+STR_3160    :{SMALLFONT}{BLACK}Seleziona il numero di circuiti per corsa
 STR_3161    :<not used anymore>
 STR_3162    :Impossibile assegnare abbastanza memoria
 STR_3163    :Installazione dei nuovi dati: 
@@ -3605,37 +3606,37 @@ STR_5261    :Filtro
 STR_5262    :Wacky Worlds
 STR_5263    :Time Twister
 STR_5264    :Personalizzato
-STR_5265    :{SMALLFONT}{BLACK}Select which content sources are visible
+STR_5265    :{SMALLFONT}{BLACK}Seleziona quali risorse sono visibili
 STR_5266    :{SMALLFONT}{BLACK}Display
-STR_5267    :{SMALLFONT}{BLACK}Culture and Units
+STR_5267    :{SMALLFONT}{BLACK}Cultura and Unità
 STR_5268    :{SMALLFONT}{BLACK}Audio
-STR_5269    :{SMALLFONT}{BLACK}Controls and interface
-STR_5270    :{SMALLFONT}{BLACK}Miscellaneous
+STR_5269    :{SMALLFONT}{BLACK}Controlli e interfaccia
+STR_5270    :{SMALLFONT}{BLACK}Varie
 STR_5271    :{SMALLFONT}{BLACK}Twitch
-STR_5272    :{SMALLFONT}{BLACK}Small Scenery
-STR_5273    :{SMALLFONT}{BLACK}Large Scenery
-STR_5274    :{SMALLFONT}{BLACK}Footpath
-STR_5275    :Search for Objects
-STR_5276    :Enter the name of an object to search for
+STR_5272    :{SMALLFONT}{BLACK}Sceneri piccoli
+STR_5273    :{SMALLFONT}{BLACK}Sceneri grandi
+STR_5274    :{SMALLFONT}{BLACK}Percorso
+STR_5275    :Cerca per oggetti
+STR_5276    :Inserisci il nome di un oggetto da cercare
 STR_5277    :Pulisci
-STR_5278    :Sandbox mode
-STR_5279    :Sandbox mode off
-STR_5280    :{SMALLFONT}{BLACK}Allow editing land ownership settings through the Map window and other options that are normally restricted to the Scenario Editor
-STR_5281    :{SMALLFONT}{BLACK}Features
+STR_5278    :Modalità Sandbox
+STR_5279    :Disattiva modalità sandbox
+STR_5280    :{SMALLFONT}{BLACK}Permetti la modifica delle impostazioni del terreno tramite la finestra Mappa e altre opzioni che sono solitamente non disponibili nella modifica Scenario
+STR_5281    :{SMALLFONT}{BLACK}Feature
 STR_5282    :RCT1 Ride Open/Close Lights
 STR_5283    :RCT1 Park Open/Close Lights
-STR_5284    :RCT1 Scenario Selection Font
+STR_5284    :RCT1 Selezione Font Scenario
 STR_5285    :ESPLODE!!!
 STR_5286    :{SMALLFONT}{BLACK}Qualche visitatore esplode
-STR_5287    :Ride is already broken down
+STR_5287    :L'attrazione è già partita
 STR_5288    :Corsa chiusa
-STR_5289    :No breakdowns available for this ride
+STR_5289    :Nessun guasto per questa attrazione
 STR_5290    :Ripara corsa
-STR_5291    :Can't force breakdown
-STR_5292    :{SMALLFONT}{BLACK}Force a breakdown
-STR_5293    :{SMALLFONT}{BLACK}Close ride/attraction
-STR_5294    :{SMALLFONT}{BLACK}Test ride/attraction
-STR_5295    :{SMALLFONT}{BLACK}Open ride/attraction
+STR_5291    :non puoi forzare un guasto
+STR_5292    :{SMALLFONT}{BLACK}Forza un guasto
+STR_5293    :{SMALLFONT}{BLACK}Chiudi attrazione
+STR_5294    :{SMALLFONT}{BLACK}Testa attrazione
+STR_5295    :{SMALLFONT}{BLACK}Apri attrazione
 STR_5296    :{SMALLFONT}{BLACK}Chiudi parco
 STR_5297    :{SMALLFONT}{BLACK}Apri parco
 STR_5298    :{RED}{STRINGID}
@@ -3643,7 +3644,7 @@ STR_5299    :{LIGHTPINK}{STRINGID}
 STR_5300    :{SMALLFONT}{BLACK}Licenzia velocemente lo staff
 STR_5301    :{MEDIUMFONT}{BLACK}Cancella il prestito
 STR_5302    :Azzera prestito
-STR_5303    :Allow building in pause mode
+STR_5303    :Permetti la costruzione in pausa
 STR_5304    :Sequenza Titolo:
 STR_5305    :RollerCoaster Tycoon 1
 STR_5306    :RollerCoaster Tycoon 1 (AA)
@@ -3651,7 +3652,7 @@ STR_5307    :RollerCoaster Tycoon 1 (AA + LL)
 STR_5308    :RollerCoaster Tycoon 2
 STR_5309    :OpenRCT2
 STR_5310    :Casuale
-STR_5311    :{SMALLFONT}{BLACK}Debug tools
+STR_5311    :{SMALLFONT}{BLACK}Strumenti di debug
 STR_5312    :Mostra console
 STR_5313    :Show tile inspector
 STR_5314    :Tile inspector
@@ -3663,23 +3664,23 @@ STR_5319    :Marziano
 STR_5320    :Checkerboard
 STR_5321    :Grass clumps
 STR_5322    :Ghiaccio
-STR_5323    :Grid (red)
-STR_5324    :Grid (yellow)
-STR_5325    :Grid (blue)
-STR_5326    :Grid (green)
-STR_5327    :Sabbia (dark)
-STR_5328    :Sabbia (light)
+STR_5323    :Griglia (rosso)
+STR_5324    :Griglia (giallo)
+STR_5325    :Griglia (blu)
+STR_5326    :Griglia (verde)
+STR_5327    :Sabbia (scuro)
+STR_5328    :Sabbia (chiaro)
 STR_5329    :Checkerboard (inverted)
 STR_5330    :Visione sotterranea
 STR_5331    :Roccia
-STR_5332    :Legno (red)
-STR_5333    :Legno (black)
+STR_5332    :Legno (rosso)
+STR_5333    :Legno (nero)
 STR_5334    :Ghiaccio
 STR_5335    :Entrata corsa
 STR_5336    :Uscita corsa
 STR_5337    :Entrata Parco
 STR_5338    :Tipo elemento
-STR_5339    :{SMALLFONT}{BLACK}Base height
+STR_5339    :{SMALLFONT}{BLACK}Altezza base
 STR_5340    :{SMALLFONT}{BLACK}Clearance height
 STR_5341    :Bandiere
 STR_5342    :Scegli una mappatura
@@ -3702,22 +3703,22 @@ STR_5358    :{BLACK}Necessità Bagno:
 STR_5359    :Rimuovi Visitatori
 STR_5360    :{SMALLFONT}{BLACK}Rimuovi tutti i visitatori dalla mappa
 STR_5361    :Su titti i visitatori:
-STR_5362    :{BLACK}Imposta a tutti i visitatori l'intensità attrazione:
-STR_5363    :Piu di 1
+STR_5362    :{BLACK}Imposta ai visitatori l'intensità attrazione:
+STR_5363    :Più di 1
 STR_5364    :Meno di 15
-STR_5365    :{BLACK}Velocita staff:
+STR_5365    :{BLACK}Velocità staff:
 STR_5366    :Normale
 STR_5367    :Veloce
-STR_5368    :Reset crash status
+STR_5368    :Resetta lo stato dei crash
 STR_5369    :Parametri Parco...
-STR_5370    :{SMALLFONT}{BLACK}Click this button to modify park{NEWLINE}parameters like restrictions,{NEWLINE}guest generation and money.
-STR_5371    :Object Selection
-STR_5372    :Invert right mouse dragging
+STR_5370    :{SMALLFONT}{BLACK}Clicca questo pulsante per modificare il parco{NEWLINE}parametri come restrizione,{NEWLINE}generazione visitatori e soldi.
+STR_5371    :Selezione oggetti
+STR_5372    :Inverti il drag destra del mouse
 STR_5373    :Nome {STRINGID}
 STR_5374    :Data {STRINGID}
 STR_5375    :{UP}
 STR_5376    :{DOWN}
-STR_5377    :{SMALLFONT}{BLACK}Saves
+STR_5377    :{SMALLFONT}{BLACK}Salva
 STR_5378    :{SMALLFONT}{BLACK}Script
 STR_5379    :{SMALLFONT}{BLACK}Skip to next wait command
 STR_5380    :{SMALLFONT}{BLACK}Start playing title sequence
@@ -3744,7 +3745,7 @@ STR_5400    :Can't change this title sequence
 STR_5401    :Create a new title sequence to make changes to
 STR_5402    :Failed to load title sequence
 STR_5403    :There may be no Load or Wait command or a save may be invalid
-STR_5404    :Il nome é già utilizzato
+STR_5404    :Il nome è già utilizzato
 STR_5405    :Inserisci un nome per il salvataggio
 STR_5406    :Inserisci un nome per la sequenza del titolo
 STR_5407    :Aggiungi
@@ -3778,14 +3779,14 @@ STR_5434    :Editor Comandi
 STR_5435    :Rinomina salvataggio
 STR_5436    :Modifica Sequenza dei Titoli...
 STR_5437    :Nessun salvataggio selezionato
-STR_5438    :Can't make changes while command editor is open
+STR_5438    :Non puoi fare modifiche mentre l'editor dei comandi è aperto
 STR_5439    :A wait command with at least 4 seconds is required with a restart command
 STR_5440    :Minimizza la schermata a tutto quando si perde il focus
 STR_5441    :{SMALLFONT}{BLACK}Identifica per tipologia,{NEWLINE}i veicoli possono essere diversi{NEWLINE}, come in RCT1.
-STR_5442    :Forza voto del parco:
-STR_5443    :Velocita{MOVE_X}{87}{STRINGID}
-STR_5444    :Velocita:
-STR_5445    :Velocita
+STR_5442    :Voto del parco:
+STR_5443    :Velocità{MOVE_X}{87}{STRINGID}
+STR_5444    :Velocità:
+STR_5445    :Velocità
 STR_5446    :Ottieni
 STR_5447    :Tipo {STRINGID}
 STR_5448    :Corsa / Veicolo {STRINGID}
@@ -3849,16 +3850,16 @@ STR_5505    :Connessione al server non possibile.
 STR_5506    :I visitatori ignorano l'intensità
 STR_5507    :Il tuttofare taglia l'erba di default
 STR_5508    :Allow loading files with incorrect checksums
-STR_5509    :{SMALLFONT}{BLACK}Allows loading scenarios and saves that have an incorrect checksum, like the scenarios from the demo or damaged saves.
+STR_5509    :{SMALLFONT}{BLACK}Permetti il caricamenti di scenari e salvataggi{NEWLINE}che hanno un checksum errato,{NEWLINE}come gli scenari del demo{NEWLINE}o salvataggi danneggiati.
 STR_5510    :Scheda audio predefinita
 STR_5511    :(UNKNOWN)
 STR_5512    :Salva Gioco Come
 STR_5513    :Salvataggio veloce
 STR_5514    :Disabilita vandalismo
 STR_5515    :{SMALLFONT}{BLACK}Disabilita il vandalismo quando i visitatori sono arrabbiati
-STR_5516    :{SMALLFONT}{BLACK}Black
-STR_5517    :{SMALLFONT}{BLACK}Grey
-STR_5518    :{SMALLFONT}{BLACK}White
+STR_5516    :{SMALLFONT}{BLACK}Nero
+STR_5517    :{SMALLFONT}{BLACK}Grigio
+STR_5518    :{SMALLFONT}{BLACK}Bianco
 STR_5519    :{SMALLFONT}{BLACK}Dark purple
 STR_5520    :{SMALLFONT}{BLACK}Light purple
 STR_5521    :{SMALLFONT}{BLACK}Bright purple
@@ -3893,17 +3894,17 @@ STR_5549    :Anno/Mese/Giorno
 STR_5550    :{POP16}{POP16}Year {COMMA16}, {PUSH16}{PUSH16}{MONTH} {PUSH16}{PUSH16}{STRINGID}
 STR_5551    :Anno/Giorno/Mese
 STR_5552    :{POP16}{POP16}Year {COMMA16}, {PUSH16}{PUSH16}{PUSH16}{STRINGID} {MONTH}
-STR_5553    :Gioco in pausa quando l'overlay di Steam é aperto
+STR_5553    :Gioco in pausa quando l'overlay di Steam è aperto
 STR_5554    :{SMALLFONT}{BLACK}Enable mountain tool
 STR_5555    :Mostra i veicoli di altre attrazioni
 STR_5556    :{SMALLFONT}{BLACK}Caccia giocatore
 STR_5557    :Rimani connesso dopo la desincronizzazione (Multiplayer)
-STR_5558    :Un riavvio é richiesto per questa opzione per essere attivata
+STR_5558    :Un riavvio è richiesto per questa opzione per essere attivata
 STR_5559    :ispezioni da 10 min.
 STR_5560    :{SMALLFONT}{BLACK}Sets the inspection time to 'Every 10 minutes' on all rides
 STR_5561    :Caricamento lingua fallito
 STR_5562    :ATTENZIONE!
-STR_5563    :Questa funzionalità é instabile utilizzala con attenzione.
+STR_5563    :Questa funzionalità è instabile utilizzala con attenzione.
 STR_5564    :Inserisci Elemento Corrotto
 STR_5565    :{SMALLFONT}{BLACK}Inserisci un elemento della mappa corrotto. Questo nasconderà ogni elemento sopra l'elemento corrotto.
 STR_5566    :Password:
@@ -3917,7 +3918,7 @@ STR_5573    :Rimuovi dai Preferiti
 STR_5574    :Nome del Server:
 STR_5575    :Giocatori Massimi:
 STR_5576    :Porta:
-STR_5577    :South Korean Won (W)
+STR_5577    :Won sudcoreani (W)
 STR_5578    :Rubli Russi (R)
 STR_5579    :Window scale factor:
 STR_5580    :Corona Ceca (Kc)
@@ -3927,26 +3928,26 @@ STR_5583    :{COMMA1DP16}ms{POWERNEGATIVEONE}
 STR_5584    :SI
 STR_5585    :{SMALLFONT}{BLACK}Sblocca i limiti delle attrazioni, permettendo cose come la {VELOCITY} nelle salite
 STR_5586    :Automaticamente apri i negozi e code
-STR_5587    :{SMALLFONT}{BLACK}When enabled, shops and stalls will be automatically opened after building them
+STR_5587    :{SMALLFONT}{BLACK}Negozi e attività saranno automaticamente aperti dopo la creazione
 STR_5588    :{SMALLFONT}{BLACK}Gioca con altri giocatori
 STR_5589    :Impostazioni Notifiche
 STR_5590    :Premi del Parco
 STR_5591    :Campagna Marketing finita
 STR_5592    :Avvisi del Parco
 STR_5593    :Avvisi di votazione del Parco
-STR_5594    :La corsa é ripartita
-STR_5595    :La corsa é danneggiata
+STR_5594    :La corsa è ripartita
+STR_5595    :La corsa è danneggiata
 STR_5596    :Avvisi della Corsa
 STR_5597    :Corsa / scenario cercati
 STR_5598    :Avvisi Visitatori
-STR_5599    :Il visitatore si é perso
+STR_5599    :Il visitatore si è perso
 STR_5600    :Il visitatore ha lasciato il parco
 STR_5601    :Il visitatore sta aspettando la corsa
-STR_5602    :Il visitatore é sulla corsa
+STR_5602    :Il visitatore è sulla corsa
 STR_5603    :Il visitatore ha lasciato la corsa
 STR_5604    :Il visitatore ha comprato
 STR_5605    :Il visitatore usa con facilità
-STR_5606    :Il visitatore é morto
+STR_5606    :Il visitatore è morto
 STR_5607    :{SMALLFONT}{BLACK}Rimuovi forzatamente l'elemento della mappa selezionato.
 STR_5608    :BH
 STR_5609    :CH
@@ -4006,6 +4007,7 @@ STR_5662    :N/A
 STR_5663    :Pulisci Paesaggio
 STR_5664    :Trucchi
 STR_5665    :Toggle Scenery Cluster
+STR_5666    :Login senza password
 STR_5701    :{WINDOW_COLOUR_2}Ultima azione: {BLACK}{STRINGID}
 STR_5702    :{SMALLFONT}{BLACK}Localizza l'ultima azione del giocatore
 STR_5703    :Non puoi cacciare l'host
@@ -4059,16 +4061,16 @@ STR_5748    :Cacciato
 STR_5749    :Esci dal server!
 STR_5750    :Connessione Chiusa
 STR_5751    :Nessun Dato
-STR_5752    :{OUTLINE}{RED}{STRING} si é disconnesso
-STR_5753    :{OUTLINE}{RED}{STRING} si é disconnesso ({STRING})
+STR_5752    :{OUTLINE}{RED}{STRING} si è disconnesso
+STR_5753    :{OUTLINE}{RED}{STRING} si è disconnesso ({STRING})
 STR_5754    :Nome Giocatore errato
 STR_5755    :Versione del Software errata (il Server usa {STRING})
 STR_5756    :Password Sbagliata
 STR_5757    :Server Pieno
-STR_5758    :{OUTLINE}{GREEN}{STRING} é entrato in gioco
+STR_5758    :{OUTLINE}{GREEN}{STRING} è entrato in gioco
 STR_5759    :Scaricamento mappa ... ({INT32} / {INT32}) KiB
-STR_5760    :Hong Kong Dollars (HK$)
-STR_5761    :Nuovi Dollari Taiwan (NT$)
+STR_5760    :Dollari di Hong Kong (HK$)
+STR_5761    :Nuovi Dollari Taiwanesi (NT$)
 STR_5762    :Yuan Cinesi (CN{YEN})
 STR_5763    :Tutti i file
 STR_5764    :Tipo di corsa non valida
@@ -4107,7 +4109,7 @@ STR_5796    :{SMALLFONT}{BLACK}Forza il parco a chiudere o riaprire
 STR_5797    :{SMALLFONT}{BLACK}Disattiva modifiche al tempo atmosferico{NEWLINE}e blocca quello attuale
 STR_5798    :{SMALLFONT}{BLACK}Permette di costruire mentre il gioco è in pausa
 STR_5799    :{SMALLFONT}{BLACK}Disattiva rotture dei freni nelle attrazioni
-STR_5800    :{SMALLFONT}{BLACK}Impedisce alle attrazioni di rompersi
+STR_5800    :{SMALLFONT}{BLACK}Impedisci alle attrazioni di rompersi
 STR_5801    :Disattiva spazzatura
 STR_5802    :{SMALLFONT}{BLACK}Impedisce ai visitatori di sporcare e vomitare
 STR_5803    :{SMALLFONT}{BLACK}Ruota elemento della mappa selezionato
@@ -4118,11 +4120,68 @@ STR_5807    :{WINDOW_COLOUR_2}Numero di attrazioni: {BLACK}{COMMA16}
 STR_5808    :{WINDOW_COLOUR_2}Numero di negozi e chioschi: {BLACK}{COMMA16}
 STR_5809    :{WINDOW_COLOUR_2}Numero di punti informativi e altri servizi: {BLACK}{COMMA16}
 STR_5810    :Disabilita limite di lunghezza del treno
-STR_5811    :{SMALLFONT}{BLACK}If selezionato, puoi avere{NEWLINE}255 macchine per treno
-
-
+STR_5811    :{SMALLFONT}{BLACK}Se selezionato, puoi avere{NEWLINE}255 macchine per treno
+STR_5812    :Mostra la finestra multiplayer
 STR_5813    :{OPENQUOTES}{STRING}{ENDQUOTES}
 STR_5814    :{WINDOW_COLOUR_1}{OPENQUOTES}{STRING}{ENDQUOTES}
+#tooltips
+STR_5815    :{SMALLFONT}{BLACK}Mostra il contatore FPS in gioco
+STR_5816    :{SMALLFONT}{BLACK}Imposta la ratio del gioco.{NEWLINE}Molto utile quando si gioca ad{NEWLINE}alta risoluzione
+STR_5817    :{SMALLFONT}{BLACK}[Richiedi hardware display]{NEWLINE}Imposta la tipologia di scalatura UI
+STR_5818    :{SMALLFONT}{BLACK}[Richiedi hardware display]{NEWLINE}Utilizza la scalatura più vicina {NEWLINE}quando il fattore di scalatura è{NEWLINE}un valore intero (1, 2, 3, ecc)
+STR_5819    :{SMALLFONT}{BLACK}[Richiedi hardware display]{NEWLINE}Gioco in pausa quando Steam{NEWLINE} in overlay è aperto
+STR_5820    :{SMALLFONT}{BLACK}Minimizza il gioco se il focus è{NEWLINE}perso quando è a tutto schermo
+STR_5821    :{SMALLFONT}{BLACK}Cambia il colore del marker della construzione con le attrazioni di corse,{NEWLINE}trattorie, negozi, scenari, ecc.
+STR_5822    :{SMALLFONT}{BLACK}Ciclo giorno e notte.{NEWLINE}Il ciclo completo dura un mese di gioco 
+STR_5823    :{SMALLFONT}{BLACK}Mostra gli avvisi in maiuscolo (RCT1)
+STR_5824    :{SMALLFONT}{BLACK}Disabilita gli effetti luminosi{NEWLINE}durante una tempesta
+STR_5825    :{SMALLFONT}{BLACK}Mantieni il cursore del mouse nella finestra
+STR_5826    :{SMALLFONT}{BLACK}Inverti il trascinamento del mouse
+STR_5827    :{SMALLFONT}{BLACK}Imposta il colore dello schema nella interfaccia
+STR_5828    :{SMALLFONT}{BLACK}Cambia le unità di misura usate per le distanze, velocità, ecc.
+STR_5829    :{SMALLFONT}{BLACK}Cambia la moneta utilizzata. Questo valore è solo visuale e non cambia l'implementazione interna monetaria
+STR_5830    :{SMALLFONT}{BLACK}Cambia la lingua utilizzata
+STR_5831    :{SMALLFONT}{BLACK}Cambia il formato della{NEWLINE}temperatura visualizzata
+STR_5832    :{SMALLFONT}{BLACK}Mostra l'altezza in unita generiche invece del formato impostato in "Distanza e Velocità"
+STR_5833    :{SMALLFONT}{BLACK}Cambia il formato della data utilizzato
+STR_5834    :{SMALLFONT}{BLACK}Seleziona il dispositivo audio utilizzato da OpenRCT2
+STR_5835    :{SMALLFONT}{BLACK}Muta il gioco se la finestra perde il focus
+STR_5836    :{SMALLFONT}{BLACK}Seleziona la musica da usare nel menu.{NEWLINE}Il tema RCT1 richiede di copiare 'data/css17.dat' dal tuo gioco RCT1 in 'data/css50.dat' nella tua cartella RCT2.
+STR_5837    :{SMALLFONT}{BLACK}Crea e imposta il tema della interfaccia
+STR_5838    :{SMALLFONT}{BLACK}Mostra un pulsante differente per le finanze nella barra
+STR_5839    :{SMALLFONT}{BLACK}Mostra un pulsante differente per le ricerche e sviluppo nella barra
+STR_5840    :{SMALLFONT}{BLACK}Mostra un pulsante differente per i trucchi nella barra
+STR_5841    :{SMALLFONT}{BLACK}Mostra un pulsante differente per le novità nella barra
+STR_5842    :{SMALLFONT}{BLACK}Ordina gli scenari nelle schede per difficultà (RCT2) o nel sorgente del gioco (RCT1)
+STR_5843    :{SMALLFONT}{BLACK}Abilita lo sblocco dello scenario (RCT1)
+STR_5844    :{SMALLFONT}{BLACK}Connettiti al server multiplayer {NEWLINE}anche se c'è il desync o errori
+STR_5845    :{SMALLFONT}{BLACK}Aggiungi un pulsante{NEWLINE}per debuggare nella barra.{NEWLINE}Abilita le shortcut nellatastiera per la console sviluppatori
+STR_5846    :{SMALLFONT}{BLACK}Imposta i salvataggi automatici di OpenRCT2 spesso
+STR_5847    :{SMALLFONT}{BLACK}Seleziona la sequenza del parco utilizzata nei titoli.{NEWLINE}La sequenza del titolo in RCT1/2 richiede l'importazione degli scenari per funzionare
+STR_5848    :{SMALLFONT}{BLACK}Crea e gestici sequenze di titoli personalizzate
+STR_5849    :{SMALLFONT}{BLACK}Posiziona automaticante{NEWLINE}i nuovi membri dello staff
+STR_5850    :{SMALLFONT}{BLACK}I nuovi tuttofare tagliano{NEWLINE}l'erba di default (RCT1)
+STR_5851    :{SMALLFONT}{BLACK}Imposta l'intervallo predefinito di inspezione{NEWLINE}nelle nuove attrazioni
+STR_5852    :{SMALLFONT}{BLACK}Imposta il nome del canale TwitchTV che sarà utilizzato per l'integrazione di Twitch
+STR_5853    :{SMALLFONT}{BLACK}Abilita/Disabilita gli effetti sonori
+STR_5854    :{SMALLFONT}{BLACK}Abilita/Disabilita le musiche delle attrazioni
+STR_5855    :{SMALLFONT}{BLACK}Imposta a tutto schermo, senza bordi della finestra{NEWLINE}o come finestra
+STR_5856    :{SMALLFONT}{BLACK}Imposta la risoluzione del gioco quando a tutto schermo
+STR_5857    :{SMALLFONT}{BLACK}Opzioni del gioco
+STR_5858    :{SMALLFONT}{BLACK}Usa la GPU per la grafica invece della CPU. Migliora la compatibilità con i software per catturare le schermate. Potrebbe diminuire le performance.
+STR_5859    :{SMALLFONT}{BLACK}Abilita l'interpolazione{NEWLINE}morbida durante il gioco. Quando disabilitato,{NEWLINE}il gioco funzionerà a 40 FPS.
+STR_5861    :Verifica chiave fallita
+STR_5862    :Blocca giocatori sconosciuti.
+STR_5863    :{SMALLFONT}{BLACK}Solo giocatori con chiavi conosciute possono loggarsi.
+STR_5864    :Questo server è abilitato solo i per giocatori whitelisted.
+STR_5865    :Storico chat
+STR_5866    :{SMALLFONT}{BLACK}Salva i log della chat in un files nella tua cartella utente.
+STR_5867    :{WINDOW_COLOUR_2}Nome Provider: {BLACK}{STRING}
+STR_5868    :{WINDOW_COLOUR_2}E-mail Provider: {BLACK}{STRING}
+STR_5869    :{WINDOW_COLOUR_2}Sito Provider: {BLACK}{STRING}
+STR_5870    :{SMALLFONT}{BLACK}Mostra le informazioni del server
+STR_5871    :Le piante non invecchiano.
+STR_5872    :{SMALLFONT}{BLACK}Disabilità l'invecchiamento delle piante.
 
 #############
 # Scenarios #
@@ -4248,77 +4307,77 @@ STR_DTLS    :Crea delle cascate in questo parco molto interessante
 <Three Monkeys Park>
 STR_SCNR    :Three Monkeys Park
 STR_PARK    :Three Monkeys Park
-STR_DTLS    :Central to this large developing park is a giant triple-track racing/duelling steel coaster
+STR_DTLS    :Al centro di questo grande parco in sviluppo si trova una gigantesca montagna russa in acciaio con tre tracciati
 
 <Canary Mines>
 STR_SCNR    :Canary Mines
 STR_PARK    :Canary Mines
-STR_DTLS    :This abandoned mine already has the makings of a tourist attraction with its minature railway and a pair of vertical drop roller coasters
+STR_DTLS    :Questa miniera abbandonata ha già la stoffa di una attrazione turistica con la sua ferrovia in miniatura e un paio di montagne russe 
 
 <Barony Bridge>
 STR_SCNR    :Barony Bridge
 STR_PARK    :Barony Bridge
-STR_DTLS    :An old redundant bridge is yours to develop into an amusement park
+STR_DTLS    :Un vecchio ponte è tuo e deve diventare un parco meraviglioso
 
 <Funtopia>
 STR_SCNR    :Funtopia
 STR_PARK    :Funtopia
-STR_DTLS    :Covering land both sides of a highway, this park has several rides already operating
+STR_DTLS    :Trovandosi da ambo i lati di una autostrada, questo parco ha gia delle attrazioni operative
 
 <Haunted Harbor>
 STR_SCNR    :Haunted Harbor
 STR_PARK    :Haunted Harbor
-STR_DTLS    :The local authority has agreed to sell nearby land cheaply to this small seaside park, on the condition that certain rides are preserved
+STR_DTLS    :L'ente locale ha accettato di vendere un terreno sul mare a buon mercat,o a condizione di preservare delle attrazioni
 
 <Fun Fortress>
 STR_SCNR    :Fun Fortress
 STR_PARK    :Fun Fortress
-STR_DTLS    :This castle is all yours to turn into a theme park
+STR_DTLS    :Questo castello é tutto tuo pronto per diventare in un parco a tema
 
 <Future World>
 STR_SCNR    :Future World
 STR_PARK    :Future World
-STR_DTLS    :This futuristic park has plenty of space for new rides on its alien landscape
+STR_DTLS    :QUesto parco futuristico a molto spazio per nuove attrazioni con il suo panorama alieno
 
 <Gentle Glen>
 STR_SCNR    :Gentle Glen
 STR_PARK    :Gentle Glen
-STR_DTLS    :The local population prefer gentle and relaxing rides, so it is your job to expand this park to suit their tastes
+STR_DTLS    :La populazione locale preferisce attrazioni calme e rilassanti, quindi datti da fare per espandere il parco seguendo i loro gusti
 
 <Jolly Jungle>
 STR_SCNR    :Jolly Jungle
 STR_PARK    :Jolly Jungle
-STR_DTLS    :Deep in the jungle lies a large area of land ready to be turned into a theme park
+STR_DTLS    :Nella profondità della giungla c'é un'ampia area di terreno pronta a diventare un parco a tema
 
 <Hydro Hills>
 STR_SCNR    :Hydro Hills
 STR_PARK    :Hydro Hills
-STR_DTLS    :A series of stepped lakes form the basis for this new park
+STR_DTLS    :Una serie di laghi a scale sono la base di questo parco
 
 <Sprightly Park>
 STR_SCNR    :Sprightly Park
 STR_PARK    :Sprightly Park
-STR_DTLS    :This elderly park has many historical rides but is badly in debt
+STR_DTLS    :Questo parco antico ha molte attrazione storiche ma é in rosso
 
 <Magic Quarters>
 STR_SCNR    :Magic Quarters
 STR_PARK    :Magic Quarters
-STR_DTLS    :A large area of land has been cleared and partially themed ready for you to develop into a landscaped theme park
+STR_DTLS    :Una grande area di terreno é stata pulita e pronta per diventare un parco a tema paesaggistico
 
 <Fruit Farm>
 STR_SCNR    :Fruit Farm
 STR_PARK    :Fruit Farm
-STR_DTLS    :A thriving fruit farm has built a railroad to boost its income, your job is to develop it into a full-blown amusement park
+STR_DTLS    :Un fiorente fattoria fruttifera ha costruito una ferrovia per aumentare il suo reddito, il tuo compito è quello di sviluppare in un parco di divertimenti come si deve
 
 <Butterfly Dam>
 STR_SCNR    :Butterfly Dam
 STR_PARK    :Butterfly Dam
-STR_DTLS    :The area around a dam is available for you to develop into an amusement park
+STR_DTLS    :Questa area intorno una diga é pronta per te per diventare un parco di divertimenti spettacolare
 
 <Coaster Canyon>
 STR_SCNR    :Coaster Canyon
 STR_PARK    :Coaster Canyon
-STR_DTLS    :A vast canyon is yours to turn into a theme park
+STR_DTLS    :Un vasto canyon è tuo per trasformare in un parco a tema
 
 <Thunderstorm Park>
 STR_SCNR    :Thunderstorm Park
@@ -4333,7 +4392,7 @@ STR_DTLS    :The local authority won't allow you to build above tree height in t
 <Roman Village>
 STR_SCNR    :Roman Village
 STR_PARK    :Roman Village
-STR_DTLS    :Develop this Roman-themed park by adding rides and roller coasters
+STR_DTLS    :Sviluppa questo parco a tema romano aggiungendo attrazioni e montagne russe
 
 <Swamp Cove>
 STR_SCNR    :Swamp Cove
@@ -4395,27 +4454,27 @@ STR_DTLS    :A large garden park needs turning into a thriving theme park
 <Iceberg Islands>
 STR_SCNR    :Iceberg Islands
 STR_PARK    :Iceberg Islands
-STR_DTLS    :A collection of icebergs make a cold setting for this ambitious theme park
+STR_DTLS    :Questo ambizioso parco a tema è costituito da iceberg che creano un ambiente di tipo artico
 
 <Volcania>
 STR_SCNR    :Volcania
 STR_PARK    :Volcania
-STR_DTLS    :A dormant volcano is the setting of this coaster-building challenge
+STR_DTLS    :Questa sfida di costruzione di montagne russe è ambientata presso un volcano addormentato
 
 <Arid Heights>
 STR_SCNR    :Arid Heights
 STR_PARK    :Arid Heights
-STR_DTLS    :Free of any financial limits, your challenge is to develop this desert park while keeping the guests happy
+STR_DTLS    :Senza limiti finanziari, la tua sfida consiste in sviluppare questo parco deserto, mantenendo felici i tuoi visitatori
 
 <Razor Rocks>
 STR_SCNR    :Razor Rocks
 STR_PARK    :Razor Rocks
-STR_DTLS    :Your task is to build a massive coaster-filled park in amongst Razor Rocks
+STR_DTLS    :Il tuo compito è costruire un gigantesco parco pieno di attrazioni presso Razor Rocks
 
 <Crater Lake>
 STR_SCNR    :Crater Lake
 STR_PARK    :Crater Lake
-STR_DTLS    :A large lake in an ancient crater is the setting for this park
+STR_DTLS    :Questo parco è ambientato in un grande lago all'interno di un antico cratere
 
 <Vertigo Views>
 STR_SCNR    :Vertigo Views
@@ -4515,7 +4574,7 @@ STR_DTLS    :Un grande parco con un nuovo sistem adi trasporto lungo i confini
 <Pacifica>
 STR_SCNR    :Pacifica
 STR_PARK    :Pacifica
-STR_DTLS    :Questa grande isola é tutta tua pornta per diventare un parco bellissimo
+STR_DTLS    :Questa grande isola è tutta tua pornta per diventare un parco bellissimo
 
 <Urban Jungle>
 STR_SCNR    :Urban Jungle
@@ -4540,7 +4599,7 @@ STR_DTLS    :On a far-away planet this area of land needs turning into a theme p
 <Micro Park>
 STR_SCNR    :Micro Park
 STR_PARK    :Micro Park
-STR_DTLS    :Try to create the world's smallest profitable park
+STR_DTLS    :Prova a creare un piccolo parco facendo dei soldi
 
 ## Real Parks from RCT1
 # None of them had details

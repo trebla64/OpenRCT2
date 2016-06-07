@@ -226,24 +226,25 @@ static money32 footpath_element_update(int x, int y, rct_map_element *mapElement
 
 		if (pathItemType != 0) {
 			rct_scenery_entry* scenery_entry = get_footpath_item_entry(pathItemType - 1);
-			uint16 unk6 = scenery_entry->path_bit.var_06;
+			uint16 unk6 = scenery_entry->path_bit.flags;
 
-			if ((unk6 & 0x80) && (mapElement->properties.path.type & 4)) {
+			if ((unk6 & PATH_BIT_FLAG_DONT_ALLOW_ON_SLOPE) && footpath_element_is_sloped(mapElement)) {
 				gGameCommandErrorText = STR_CANT_BUILD_THIS_ON_SLOPED_FOOTPATH;
 				return MONEY32_UNDEFINED;
 			}
 
-			if ((unk6 & 0x40) && footpath_element_is_queue(mapElement)) {
+			if ((unk6 & PATH_BIT_FLAG_DONT_ALLOW_ON_QUEUE) && footpath_element_is_queue(mapElement)) {
 				gGameCommandErrorText = STR_CANNOT_PLACE_THESE_ON_QUEUE_LINE_AREA;
 				return MONEY32_UNDEFINED;
 			}
 
-			if (!(unk6 & 0x30) && (mapElement->properties.path.edges & 0x0F) == 0x0F) {
+			uint16 jfMask = PATH_BIT_FLAG_JUMPING_FOUNTAIN_WATER | PATH_BIT_FLAG_JUMPING_FOUNTAIN_SNOW;
+			if (!(unk6 & jfMask) && (mapElement->properties.path.edges & 0x0F) == 0x0F) {
 				gGameCommandErrorText = STR_NONE;
 				return MONEY32_UNDEFINED;
 			}
 
-			if ((unk6 & 0x100) && !footpath_element_is_queue(mapElement)) {
+			if ((unk6 & PATH_BIT_FLAG_QUEUE_MONITOR) && !footpath_element_is_queue(mapElement)) {
 				gGameCommandErrorText = STR_CAN_ONLY_PLACE_THESE_ON_QUEUE_AREA;
 				return MONEY32_UNDEFINED;
 			}
@@ -281,9 +282,9 @@ static money32 footpath_element_update(int x, int y, rct_map_element *mapElement
 		mapElement->flags &= ~MAP_ELEMENT_FLAG_BROKEN;
 		if (pathItemType != 0) {
 			rct_scenery_entry* scenery_entry = get_footpath_item_entry(pathItemType - 1);
-			uint16 unk6 = scenery_entry->path_bit.var_06;
-			if (unk6 & 1)
+			if (scenery_entry->path_bit.flags & PATH_BIT_FLAG_BIN) {
 				mapElement->properties.path.addition_status = 255;
+			}
 		}
 		map_invalidate_tile_full(x, y);
 		return gParkFlags & PARK_FLAGS_NO_MONEY ? 0 : gFootpathPrice;
@@ -773,15 +774,10 @@ void footpath_bridge_get_info_from_pos(int screenX, int screenY, int *x, int *y,
  */
 void footpath_remove_litter(int x, int y, int z)
 {
-	int index;
-	uint16 spriteIndex, nextSpriteIndex;
-	rct_litter *sprite;
-
-	index = (x & 0x1FE0) << 3 | (y >> 5);
-	spriteIndex = RCT2_ADDRESS(0x00F1EF60, uint16)[index];
+	uint16 spriteIndex = sprite_get_first_in_quadrant(x, y);
 	while (spriteIndex != SPRITE_INDEX_NULL) {
-		sprite = &g_sprite_list[spriteIndex].litter;
-		nextSpriteIndex = sprite->next_in_quadrant;
+		rct_litter *sprite = &g_sprite_list[spriteIndex].litter;
+		uint16 nextSpriteIndex = sprite->next_in_quadrant;
 		if (sprite->linked_list_type_offset == SPRITE_LIST_LITTER * 2) {
 			int distanceZ = abs(sprite->z - z);
 			if (distanceZ <= 32) {
@@ -799,15 +795,10 @@ void footpath_remove_litter(int x, int y, int z)
  */
 void footpath_interrupt_peeps(int x, int y, int z)
 {
-	int index;
-	uint16 spriteIndex, nextSpriteIndex;
-	rct_peep *peep;
-
-	index = (x & 0x1FE0) << 3 | (y >> 5);
-	spriteIndex = RCT2_ADDRESS(0x00F1EF60, uint16)[index];
+	uint16 spriteIndex = sprite_get_first_in_quadrant(x, y);
 	while (spriteIndex != SPRITE_INDEX_NULL) {
-		peep = &g_sprite_list[spriteIndex].peep;
-		nextSpriteIndex = peep->next_in_quadrant;
+		rct_peep *peep = &g_sprite_list[spriteIndex].peep;
+		uint16 nextSpriteIndex = peep->next_in_quadrant;
 		if (peep->linked_list_type_offset == SPRITE_LIST_PEEP * 2) {
 			if (peep->state == PEEP_STATE_SITTING || peep->state == PEEP_STATE_WATCHING) {
 				if (peep->z == z) {

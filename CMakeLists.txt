@@ -39,26 +39,30 @@ if (DISABLE_HTTP_TWITCH)
 endif (DISABLE_HTTP_TWITCH)
 
 option(DISABLE_NETWORK "Disable multiplayer functionality. Mainly for testing.")
+option(STATIC "Create a static build.")
+option(FORCE64 "Force native (x86-64) build. Do not use, for experimental purposes only.")
+
+if (FORCE64)
+	set(TARGET_M "-m64")
+	set(OBJ_FORMAT "elf64-x86-64")
+	set(LINKER_SCRIPT "ld_script_x86_64.xc")
+	list(APPEND CMAKE_C_FLAGS "-Wno-error=pointer-to-int-cast -Wno-error=int-to-pointer-cast")
+else ()
+	set(TARGET_M "-m32")
+	set(OBJ_FORMAT "elf32-i386")
+	set(LINKER_SCRIPT "ld_script_i386.xc")
+endif ()
+
 if (DISABLE_NETWORK)
 	add_definitions(-DDISABLE_NETWORK)
 else (DISABLE_NETWORK)
 	if (WIN32)
 		SET(NETWORKLIBS ${NETWORKLIBS} ws2_32)
 	endif (WIN32)
+	# If you are on OS X, CMake might try using system-provided OpenSSL.
+	# This is too old and will not work.
+	PKG_CHECK_MODULES(SSL REQUIRED openssl>=1.0.0)
 endif (DISABLE_NETWORK)
-
-option(STATIC "Create a static build.")
-
-option(FORCE64 "Force native (x86-64) build. Do not use, for experimental purposes only.")
-if (FORCE64)
-	set(TARGET_M "-m64")
-	set(OBJ_FORMAT "elf64-x86-64")
-	set(LINKER_SCRIPT "ld_script_x86_64.xc")
-else ()
-	set(TARGET_M "-m32")
-	set(OBJ_FORMAT "elf32-i386")
-	set(LINKER_SCRIPT "ld_script_i386.xc")
-endif ()
 
 PKG_CHECK_MODULES(PNG libpng>=1.6)
 if (NOT PNG_FOUND)
@@ -92,7 +96,7 @@ if (UNIX)
   )
   add_custom_target(segfiles DEPENDS openrct2_text openrct2_data)
 	if (APPLE)
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sectcreate rct2_text __text ${CMAKE_CURRENT_SOURCE_DIR}/build/openrct2_text -sectcreate rct2_data __data ${CMAKE_CURRENT_SOURCE_DIR}/build/openrct2_data -segaddr rct2_data 0x8a4000 -segprot rct2_data rwx rwx -segaddr rct2_text 0x401000 -segprot rct2_text rwx rwx -fno-pie -read_only_relocs suppress")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sectcreate rct2_text __text ${CMAKE_CURRENT_SOURCE_DIR}/build/openrct2_text -sectcreate rct2_data __data ${CMAKE_CURRENT_SOURCE_DIR}/build/openrct2_data -segaddr rct2_data 0x8a4000 -segprot rct2_data rwx rwx -segaddr rct2_text 0x401000 -segprot rct2_text rwx rwx -segaddr __TEXT 0x2000000 -fno-pie -read_only_relocs suppress")
 	else (APPLE)
 		# For Linux we have to use objcopy to wrap regular binaries into a linkable
 		# format. We use specific section names which are then referenced in a
@@ -134,15 +138,13 @@ if (APPLE)
 	set_source_files_properties(${ORCT2_MM_SOURCES} PROPERTIES COMPILE_FLAGS "-x objective-c -fmodules")
 endif (APPLE)
 
-# force 32bit build for now and set necessary flags to compile code as is
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_M} -std=gnu99 -fno-pie -fstrict-aliasing -Werror=strict-aliasing")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_M} -std=gnu++11 -fno-pie -fstrict-aliasing -Werror=strict-aliasing")
+# set necessary flags to compile code as is
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_M} -std=gnu99 -fno-pie -fstrict-aliasing -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_M} -std=gnu++11 -fno-pie -fstrict-aliasing -Werror")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${TARGET_M}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS}")
 
 if (MINGW)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpack-struct=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpack-struct=1")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 endif ()
 
@@ -175,22 +177,21 @@ else (STATIC)
 endif (STATIC)
 
 if (STATIC)
-	SET(REQUIREDLIBS ${PNG_STATIC_LIBRARIES} ${JANSSON_STATIC_LIBRARIES} ${ZLIB_STATIC_LIBRARIES})
+	SET(REQUIREDLIBS ${PNG_STATIC_LIBRARIES} ${JANSSON_STATIC_LIBRARIES} ${ZLIB_STATIC_LIBRARIES} ${SSL_STATIC_LIBRARIES})
 else (STATIC)
-	SET(REQUIREDLIBS ${PNG_LIBRARIES} ${JANSSON_LIBRARIES} ${ZLIB_LIBRARIES})
+	SET(REQUIREDLIBS ${PNG_LIBRARIES} ${JANSSON_LIBRARIES} ${ZLIB_LIBRARIES} ${SSL_LIBRARIES})
 endif (STATIC)
 
 if (NOT DISABLE_HTTP_TWITCH)
 	PKG_CHECK_MODULES(LIBCURL REQUIRED libcurl)
 	if (WIN32)
 		# Curl depends on openssl and ws2 in mingw builds, but is not wired up in pkg-config
-		PKG_CHECK_MODULES(SSL REQUIRED openssl)
 		set(WSLIBS ws2_32)
 	endif (WIN32)
 	if (STATIC)
-		SET(HTTPLIBS ${LIBCURL_STATIC_LIBRARIES} ${SSL_STATIC_LIBRARIES} ${WSLIBS})
+		SET(HTTPLIBS ${LIBCURL_STATIC_LIBRARIES} ${WSLIBS})
 	else (STATIC)
-		SET(HTTPLIBS ${LIBCURL_LIBRARIES} ${SSL_LIBRARIES} ${WSLIBS})
+		SET(HTTPLIBS ${LIBCURL_LIBRARIES} ${WSLIBS})
 	endif (STATIC)
 endif (NOT DISABLE_HTTP_TWITCH)
 
@@ -203,7 +204,7 @@ endif (UNIX)
 
 INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS} ${LIBCURL_INCLUDE_DIRS} ${JANSSON_INCLUDE_DIRS} ${SPEEX_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${BREAKPAD_INCLUDE_DIR})
 
-LINK_DIRECTORIES(${SDL2_LIBRARY_DIRS} ${JANSSON_LIBRARY_DIRS} ${LIBCURL_LIBRARY_DIRS} ${PNG_LIBRARY_DIRS} ${ZLIB_LIBRARY_DIRS} ${BREAKPAD_LIBRARY_DIR})
+LINK_DIRECTORIES(${SDL2_LIBRARY_DIRS} ${JANSSON_LIBRARY_DIRS} ${LIBCURL_LIBRARY_DIRS} ${PNG_LIBRARY_DIRS} ${ZLIB_LIBRARY_DIRS} ${BREAKPAD_LIBRARY_DIR} ${SSL_LIBRARY_DIRS})
 
 # Disable optimizations for addresses.c for all compilers, to allow optimized
 # builds without need for -fno-omit-frame-pointer

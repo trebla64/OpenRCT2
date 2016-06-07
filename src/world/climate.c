@@ -33,11 +33,14 @@ enum {
 	MAX_THUNDER_INSTANCES = 2
 };
 
+#pragma pack(push, 1)
 typedef struct rct_weather_transition {
 	sint8 base_temperature;
 	sint8 distribution_size;
 	sint8 distribution[24];
 } rct_weather_transition;
+assert_struct_size(rct_weather_transition, 26);
+#pragma pack(pop)
 
 static const rct_weather_transition* climate_transitions[4];
 
@@ -176,7 +179,7 @@ void climate_force_weather(uint8 weather){
 
 	climate_update();
 
-	// Incase of change in gloom level force a complete redraw
+	// In case of change in gloom level force a complete redraw
 	gfx_invalidate_screen();
 }
 
@@ -195,7 +198,7 @@ static void climate_determine_future_weather(int randomDistribution)
 	sint8 month = gDateMonthsElapsed & 7;
 	rct_weather_transition transition = climate_table[month];
 
-	// Generate a random variable with values 0 upto distribution_size-1 and chose weather from the distribution table accordingly
+	// Generate a random variable with values 0 up to distribution_size-1 and chose weather from the distribution table accordingly
 	sint8 next_weather = transition.distribution[ ((randomDistribution & 0xFF) * transition.distribution_size) >> 8 ];
 	gClimateNextWeather = next_weather;
 

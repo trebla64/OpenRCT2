@@ -28,20 +28,8 @@ enum {
 };
 
 enum {
-	NETWORK_AUTH_NONE,
-	NETWORK_AUTH_REQUESTED,
-	NETWORK_AUTH_OK,
-	NETWORK_AUTH_BADVERSION,
-	NETWORK_AUTH_BADNAME,
-	NETWORK_AUTH_BADPASSWORD,
-	NETWORK_AUTH_FULL,
-	NETWORK_AUTH_REQUIREPASSWORD
-};
-
-enum {
 	NETWORK_STATUS_NONE,
 	NETWORK_STATUS_READY,
-	NETWORK_STATUS_RESOLVING,
 	NETWORK_STATUS_CONNECTING,
 	NETWORK_STATUS_CONNECTED
 };
@@ -59,48 +47,15 @@ extern "C" {
 }
 #endif // __cplusplus
 
+#include "NetworkTypes.h"
+
 #ifndef DISABLE_NETWORK
 
 // This define specifies which version of network stream current build uses.
 // It is used for making sure only compatible builds get connected, even within
 // single OpenRCT2 version.
-#define NETWORK_STREAM_VERSION "8"
+#define NETWORK_STREAM_VERSION "10"
 #define NETWORK_STREAM_ID OPENRCT2_VERSION "-" NETWORK_STREAM_VERSION
-
-#define NETWORK_DISCONNECT_REASON_BUFFER_SIZE 256
-
-#ifdef __WINDOWS__
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#define LAST_SOCKET_ERROR() WSAGetLastError()
-	#undef EWOULDBLOCK
-	#define EWOULDBLOCK WSAEWOULDBLOCK
-	#ifndef SHUT_RD
-		#define SHUT_RD SD_RECEIVE
-	#endif
-	#ifndef SHUT_RDWR
-		#define SHUT_RDWR SD_BOTH
-	#endif
-#else
-	#include <errno.h>
-	#include <arpa/inet.h>
-	#include <netdb.h>
-	#include <netinet/tcp.h>
-	#include <sys/socket.h>
-	#include <fcntl.h>
-	typedef int SOCKET;
-	#define SOCKET_ERROR -1
-	#define INVALID_SOCKET -1
-	#define LAST_SOCKET_ERROR() errno
-	#define closesocket close
-	#define ioctlsocket ioctl
-#endif // __WINDOWS__
-
-// Fixes issues on OS X
-#if defined(_RCT2_H_) && !defined(_MSC_VER)
-// use similar struct packing as MSVC for our structs
-#pragma pack(1)
-#endif
 
 #ifdef __cplusplus
 
@@ -110,175 +65,17 @@ extern "C" {
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 #include <SDL.h>
-
-template <std::size_t size>
-struct ByteSwapT { };
-template <>
-struct ByteSwapT<1> { static uint8 SwapBE(uint8 value) { return value; } };
-template <>
-struct ByteSwapT<2> { static uint16 SwapBE(uint16 value) { return SDL_SwapBE16(value); } };
-template <>
-struct ByteSwapT<4> { static uint32 SwapBE(uint32 value) { return SDL_SwapBE32(value); } };
-template <typename T>
-T ByteSwapBE(const T& value) { return ByteSwapT<sizeof(T)>::SwapBE(value); }
-
-class NetworkPacket
-{
-public:
-	NetworkPacket();
-	static std::unique_ptr<NetworkPacket> Allocate();
-	static std::unique_ptr<NetworkPacket> Duplicate(NetworkPacket& packet);
-	uint8* GetData();
-	uint32 GetCommand();
-	template <typename T>
-	NetworkPacket& operator<<(T value) { T swapped = ByteSwapBE(value); uint8* bytes = (uint8*)&swapped; data->insert(data->end(), bytes, bytes + sizeof(value)); return *this; }
-	void Write(uint8* bytes, unsigned int size);
-	void WriteString(const char* string);
-	template <typename T>
-	NetworkPacket& operator>>(T& value) { if (read + sizeof(value) > size) { value = 0; } else { value = ByteSwapBE(*((T*)&GetData()[read])); read += sizeof(value); } return *this; }
-	const uint8* Read(unsigned int size);
-	const char* ReadString();
-	void Clear();
-	bool CommandRequiresAuth();
-
-	uint16 size;
-	std::shared_ptr<std::vector<uint8>> data;
-	unsigned int transferred;
-	int read;
-};
-
-class NetworkPlayer
-{
-public:
-	NetworkPlayer() = default;
-	void Read(NetworkPacket& packet);
-	void Write(NetworkPacket& packet);
-	void SetName(const char* name);
-	void AddMoneySpent(money32 cost);
-	uint8 id = 0;
-	uint8 name[32 + 1] = { 0 };
-	uint16 ping = 0;
-	uint8 flags = 0;
-	uint8 group = 0;
-	money32 money_spent = MONEY(0, 0);
-	unsigned int commands_ran = 0;
-	int last_action = -999;
-	uint32 last_action_time = 0;
-	rct_xyz16 last_action_coord = { 0 };
-};
-
-class NetworkAction
-{
-public:
-	rct_string_id name;
-	std::vector<int> commands;
-};
-
-class NetworkActions
-{
-public:
-	int FindCommand(int command);
-	const std::vector<NetworkAction> actions = {
-		{STR_ACTION_CHAT, {-1}},
-		{STR_ACTION_TERRAFORM, {GAME_COMMAND_SET_LAND_HEIGHT, GAME_COMMAND_RAISE_LAND, GAME_COMMAND_LOWER_LAND, GAME_COMMAND_EDIT_LAND_SMOOTH, GAME_COMMAND_CHANGE_SURFACE_STYLE}},
-		{STR_ACTION_SET_WATER_LEVEL, {GAME_COMMAND_SET_WATER_HEIGHT, GAME_COMMAND_RAISE_WATER, GAME_COMMAND_LOWER_WATER}},
-		{STR_ACTION_TOGGLE_PAUSE, {GAME_COMMAND_TOGGLE_PAUSE}},
-		{STR_ACTION_CREATE_RIDE, {GAME_COMMAND_CREATE_RIDE}},
-		{STR_ACTION_REMOVE_RIDE, {GAME_COMMAND_DEMOLISH_RIDE}},
-		{STR_ACTION_BUILD_RIDE, {GAME_COMMAND_PLACE_TRACK, GAME_COMMAND_REMOVE_TRACK, GAME_COMMAND_SET_MAZE_TRACK, GAME_COMMAND_PLACE_TRACK_DESIGN, GAME_COMMAND_PLACE_MAZE_DESIGN, GAME_COMMAND_PLACE_RIDE_ENTRANCE_OR_EXIT, GAME_COMMAND_REMOVE_RIDE_ENTRANCE_OR_EXIT}},
-		{STR_ACTION_RIDE_PROPERTIES, {GAME_COMMAND_SET_RIDE_NAME, GAME_COMMAND_SET_RIDE_APPEARANCE, GAME_COMMAND_SET_RIDE_STATUS, GAME_COMMAND_SET_RIDE_VEHICLES, GAME_COMMAND_SET_RIDE_SETTING, GAME_COMMAND_SET_RIDE_PRICE, GAME_COMMAND_SET_BRAKES_SPEED}},
-		{STR_ACTION_SCENERY, {GAME_COMMAND_REMOVE_SCENERY, GAME_COMMAND_PLACE_SCENERY, GAME_COMMAND_SET_BRAKES_SPEED, GAME_COMMAND_REMOVE_FENCE, GAME_COMMAND_PLACE_FENCE, GAME_COMMAND_REMOVE_LARGE_SCENERY, GAME_COMMAND_PLACE_LARGE_SCENERY, GAME_COMMAND_PLACE_BANNER, GAME_COMMAND_REMOVE_BANNER, GAME_COMMAND_SET_SCENERY_COLOUR, GAME_COMMAND_SET_FENCE_COLOUR, GAME_COMMAND_SET_LARGE_SCENERY_COLOUR, GAME_COMMAND_SET_BANNER_COLOUR, GAME_COMMAND_SET_BANNER_NAME, GAME_COMMAND_SET_SIGN_NAME, GAME_COMMAND_SET_BANNER_STYLE, GAME_COMMAND_SET_SIGN_STYLE}},
-		{STR_ACTION_PATH, {GAME_COMMAND_PLACE_PATH, GAME_COMMAND_PLACE_PATH_FROM_TRACK, GAME_COMMAND_REMOVE_PATH}},
-		{STR_ACTION_CLEAR_LANDSCAPE, {GAME_COMMAND_CLEAR_SCENERY}},
-		{STR_ACTION_GUEST, {GAME_COMMAND_SET_GUEST_NAME}},
-		{STR_ACTION_STAFF, {GAME_COMMAND_HIRE_NEW_STAFF_MEMBER, GAME_COMMAND_SET_STAFF_PATROL, GAME_COMMAND_FIRE_STAFF_MEMBER, GAME_COMMAND_SET_STAFF_ORDER, GAME_COMMAND_SET_STAFF_COLOUR, GAME_COMMAND_SET_STAFF_NAME}},
-		{STR_ACTION_PARK_PROPERTIES, {GAME_COMMAND_SET_PARK_NAME, GAME_COMMAND_SET_PARK_OPEN, GAME_COMMAND_SET_PARK_ENTRANCE_FEE, GAME_COMMAND_SET_LAND_OWNERSHIP, GAME_COMMAND_BUY_LAND_RIGHTS, GAME_COMMAND_PLACE_PARK_ENTRANCE, GAME_COMMAND_REMOVE_PARK_ENTRANCE}},
-		{STR_ACTION_PARK_FUNDING, {GAME_COMMAND_SET_CURRENT_LOAN, GAME_COMMAND_SET_RESEARCH_FUNDING, GAME_COMMAND_START_MARKETING_CAMPAIGN}},
-		{STR_ACTION_KICK_PLAYER, {GAME_COMMAND_KICK_PLAYER}},
-		{STR_ACTION_MODIFY_GROUPS, {GAME_COMMAND_MODIFY_GROUPS}},
-		{STR_ACTION_SET_PLAYER_GROUP, {GAME_COMMAND_SET_PLAYER_GROUP}},
-		{STR_ACTION_CHEAT, {GAME_COMMAND_CHEAT}},
-		{STR_ACTION_TOGGLE_SCENERY_CLUSTER, {-2}}
-	};
-};
-
-class NetworkGroup
-{
-public:
-	NetworkGroup();
-	~NetworkGroup();
-	void Read(NetworkPacket& packet);
-	void Write(NetworkPacket& packet);
-	void ToggleActionPermission(size_t index);
-	bool CanPerformAction(size_t index);
-	bool CanPerformCommand(int command);
-	std::string& GetName();
-	void SetName(std::string name);
-	std::array<uint8, 8> actions_allowed;
-	uint8 id = 0;
-
-private:
-	std::string name;
-};
-
-class NetworkConnection
-{
-public:
-	NetworkConnection();
-	~NetworkConnection();
-	int ReadPacket();
-	void QueuePacket(std::unique_ptr<NetworkPacket> packet, bool front = false);
-	void SendQueuedPackets();
-	bool SetTCPNoDelay(bool on);
-	bool SetNonBlocking(bool on);
-	static bool SetNonBlocking(SOCKET socket, bool on);
-	void ResetLastPacketTime();
-	bool ReceivedPacketRecently();
-
-	const char *getLastDisconnectReason() const;
-	void setLastDisconnectReason(const char *src);
-	void setLastDisconnectReason(const rct_string_id string_id, void *args = nullptr);
-
-	SOCKET socket = INVALID_SOCKET;
-	NetworkPacket inboundpacket;
-	int authstatus = NETWORK_AUTH_NONE;
-	NetworkPlayer* player;
-	uint32 ping_time = 0;
-
-private:
-	char* last_disconnect_reason;
-	bool SendPacket(NetworkPacket& packet);
-	std::list<std::unique_ptr<NetworkPacket>> outboundpackets;
-	uint32 last_packet_time;
-};
-
-class NetworkAddress
-{
-public:
-	NetworkAddress();
-	void Resolve(const char* host, unsigned short port, bool nonblocking = true);
-	int GetResolveStatus(void);
-
-	std::shared_ptr<sockaddr_storage> ss;
-	std::shared_ptr<int> ss_len;
-
-	enum {
-		RESOLVE_NONE,
-		RESOLVE_INPROGRESS,
-		RESOLVE_OK,
-		RESOLVE_FAILED
-	};
-
-private:
-	static int ResolveFunc(void* pointer);
-
-	const char* host = nullptr;
-	unsigned short port = 0;
-	SDL_mutex* mutex = nullptr;
-	SDL_cond* cond = nullptr;
-	std::shared_ptr<int> status;
-};
+#include "../core/Json.hpp"
+#include "../core/Nullable.hpp"
+#include "NetworkConnection.h"
+#include "NetworkGroup.h"
+#include "NetworkKey.h"
+#include "NetworkPacket.h"
+#include "NetworkPlayer.h"
+#include "NetworkUser.h"
+#include "TcpSocket.h"
 
 class Network
 {
@@ -310,12 +107,20 @@ public:
 	NetworkGroup* AddGroup();
 	void RemoveGroup(uint8 id);
 	uint8 GetDefaultGroup();
+	uint8 GetGroupIDByHash(const std::string &keyhash);
 	void SetDefaultGroup(uint8 id);
 	void SaveGroups();
 	void LoadGroups();
 
-	void Client_Send_AUTH(const char* name, const char* password);
+	void BeginChatLog();
+	void AppendChatLog(const utf8 *text);
+	void CloseChatLog();
+
+	void Client_Send_TOKEN();
+	void Client_Send_AUTH(const char* name, const char* password, const char *pubkey, const char *sig, size_t sigsize);
+	void Client_Send_AUTH(const char* name, const char* password, const char *pubkey);
 	void Server_Send_AUTH(NetworkConnection& connection);
+	void Server_Send_TOKEN(NetworkConnection& connection);
 	void Server_Send_MAP(NetworkConnection* connection = nullptr);
 	void Client_Send_CHAT(const char* text);
 	void Server_Send_CHAT(const char* text);
@@ -332,24 +137,38 @@ public:
 	void Server_Send_GROUPLIST(NetworkConnection& connection);
 	void Server_Send_EVENT_PLAYER_JOINED(const char *playerName);
 	void Server_Send_EVENT_PLAYER_DISCONNECTED(const char *playerName, const char *reason);
+	void Client_Send_GAMEINFO();
 
 	std::vector<std::unique_ptr<NetworkPlayer>> player_list;
 	std::vector<std::unique_ptr<NetworkGroup>> group_list;
+	NetworkKey key;
+	std::vector<uint8> challenge;
+	NetworkUserManager _userManager;
+
+	std::string ServerName;
+	std::string ServerDescription;
+	std::string ServerProviderName;
+	std::string ServerProviderEmail;
+	std::string ServerProviderWebsite;
 
 private:
 	bool ProcessConnection(NetworkConnection& connection);
 	void ProcessPacket(NetworkConnection& connection, NetworkPacket& packet);
 	void ProcessGameCommandQueue();
-	void AddClient(SOCKET socket);
+	void AddClient(ITcpSocket * socket);
 	void RemoveClient(std::unique_ptr<NetworkConnection>& connection);
-	NetworkPlayer* AddPlayer();
+	NetworkPlayer* AddPlayer(const utf8 *name, const std::string &keyhash);
+	std::string MakePlayerNameUnique(const std::string &name);
 	void PrintError();
 	const char* GetMasterServerUrl();
 	std::string GenerateAdvertiseKey();
 
 	struct GameCommand
 	{
-		GameCommand(uint32 t, uint32* args, uint8 p, uint8 cb) { tick = t, eax = args[0], ebx = args[1], ecx = args[2], edx = args[3], esi = args[4], edi = args[5], ebp = args[6]; playerid = p; callback = cb; };
+		GameCommand(uint32 t, uint32* args, uint8 p, uint8 cb) {
+			tick = t; eax = args[0]; ebx = args[1]; ecx = args[2]; edx = args[3];
+			esi = args[4]; edi = args[5]; ebp = args[6]; playerid = p; callback = cb;
+		}
 		uint32 tick;
 		uint32 eax, ebx, ecx, edx, esi, edi, ebp;
 		uint8 playerid;
@@ -361,11 +180,11 @@ private:
 
 	int mode = NETWORK_MODE_NONE;
 	int status = NETWORK_STATUS_NONE;
-	NetworkAddress server_address;
 	bool wsa_initialized = false;
-	SOCKET listening_socket = INVALID_SOCKET;
+	ITcpSocket * listening_socket = nullptr;
 	unsigned short listening_port = 0;
 	NetworkConnection server_connection;
+	SOCKET_STATUS _lastConnectStatus;
 	uint32 last_tick_sent_time = 0;
 	uint32 last_ping_sent_time = 0;
 	uint32 server_tick = 0;
@@ -384,6 +203,8 @@ private:
 	int advertise_status = 0;
 	uint32 last_heartbeat_time = 0;
 	uint8 default_group = 0;
+	SDL_RWops *_chatLogStream;
+	std::string _chatLogPath;
 
 	void UpdateServer();
 	void UpdateClient();
@@ -393,6 +214,7 @@ private:
 	std::vector<void (Network::*)(NetworkConnection& connection, NetworkPacket& packet)> server_command_handlers;
 	void Client_Handle_AUTH(NetworkConnection& connection, NetworkPacket& packet);
 	void Server_Handle_AUTH(NetworkConnection& connection, NetworkPacket& packet);
+	void Server_Client_Joined(const char* name, const std::string &keyhash, NetworkConnection& connection);
 	void Client_Handle_MAP(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_CHAT(NetworkConnection& connection, NetworkPacket& packet);
 	void Server_Handle_CHAT(NetworkConnection& connection, NetworkPacket& packet);
@@ -404,11 +226,20 @@ private:
 	void Server_Handle_PING(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_PINGLIST(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_SETDISCONNECTMSG(NetworkConnection& connection, NetworkPacket& packet);
+	void Client_Handle_GAMEINFO(NetworkConnection& connection, NetworkPacket& packet);
 	void Server_Handle_GAMEINFO(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_SHOWERROR(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_GROUPLIST(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_EVENT(NetworkConnection& connection, NetworkPacket& packet);
+	void Client_Handle_TOKEN(NetworkConnection& connection, NetworkPacket& packet);
+	void Server_Handle_TOKEN(NetworkConnection& connection, NetworkPacket& packet);
 };
+
+namespace Convert
+{
+	uint16 HostToNetwork(uint16 value);
+	uint16 NetworkToHost(uint16 value);
+}
 
 #endif // __cplusplus
 #else /* DISABLE_NETWORK */
@@ -467,6 +298,12 @@ void network_send_password(const char* password);
 void network_set_password(const char* password);
 
 void network_print_error();
+void network_append_chat_log(const utf8 *text);
+const utf8 * network_get_server_name();
+const utf8 * network_get_server_description();
+const utf8 * network_get_server_provider_name();
+const utf8 * network_get_server_provider_email();
+const utf8 * network_get_server_provider_website();
 
 #ifdef __cplusplus
 }
