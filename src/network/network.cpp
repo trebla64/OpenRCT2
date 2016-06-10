@@ -703,7 +703,7 @@ void Network::AdvertiseHeartbeat()
 	json_object_set_new(body, "players", json_integer(network_get_num_players()));
 
 	json_t *gameInfo = json_object();
-	json_object_set_new(gameInfo, "mapSize", json_integer(gMapSizeMinus2));
+	json_object_set_new(gameInfo, "mapSize", json_integer(gMapSize - 2));
 	json_object_set_new(gameInfo, "day", json_integer(gDateMonthTicks));
 	json_object_set_new(gameInfo, "month", json_integer(gDateMonthsElapsed));
 	json_object_set_new(gameInfo, "guests", json_integer(gNumGuestsInPark));
@@ -920,7 +920,7 @@ void Network::AppendChatLog(const utf8 *text)
 			strftime(buffer, sizeof(buffer), "[%Y/%m/%d %H:%M:%S] ", tmInfo);
 
 			String::Append(buffer, sizeof(buffer), text);
-			utf8_remove_formatting(buffer);
+			utf8_remove_formatting(buffer, false);
 			String::Append(buffer, sizeof(buffer), platform_get_new_line());
 
 			SDL_RWwrite(_chatLogStream, buffer, strlen(buffer), 1);
@@ -1202,6 +1202,9 @@ bool Network::ProcessConnection(NetworkConnection& connection)
 		case NETWORK_READPACKET_SUCCESS:
 			// done reading in packet
 			ProcessPacket(connection, connection.InboundPacket);
+			if (connection.Socket == nullptr) {
+				return false;
+			}
 			break;
 		case NETWORK_READPACKET_MORE_DATA:
 			// more data required to be read
@@ -1600,6 +1603,7 @@ void Network::Client_Handle_MAP(NetworkConnection& connection, NetworkPacket& pa
 			if (data == NULL)
 			{
 				log_warning("Failed to decompress data sent from server.");
+				Close();
 				return;
 			}
 		} else {
