@@ -192,6 +192,7 @@ public:
 
     void Initialise();
     void Resize(sint32 width, sint32 height);
+    void ResetPalette();
 
     void Clear(uint32 colour) override;
     void FillRect(uint32 colour, sint32 x, sint32 y, sint32 w, sint32 h) override;
@@ -250,8 +251,9 @@ public:
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
         _context = SDL_GL_CreateContext(_window);
+        if(_context == nullptr) throw Exception("OpenGL 3.2 Not Available");
         SDL_GL_MakeCurrent(_window, _context);
 
         if (!OpenGLAPI::Initialise())
@@ -263,10 +265,6 @@ public:
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        // Do not draw the unseen side of the primitives
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
 
         _copyFramebufferShader = new CopyFramebufferShader();
     }
@@ -291,8 +289,7 @@ public:
                              colour.b / 255.0f,
                              colour.a / 255.0f };
         }
-        _drawingContext->GetTextureCache()
-                       ->SetPalette(Palette);
+        _drawingContext->ResetPalette();
     }
 
     void Invalidate(sint32 left, sint32 top, sint32 right, sint32 bottom) override
@@ -502,6 +499,15 @@ void OpenGLDrawingContext::Resize(sint32 width, sint32 height)
     _fillRectShader->SetScreenSize(width, height);
 }
 
+void OpenGLDrawingContext::ResetPalette()
+{
+    _textureCache->SetPalette(_engine->Palette);
+    _drawImageShader->Use();
+    _drawImageShader->SetPalette(_engine->GLPalette);
+    _drawImageMaskedShader->Use();
+    _drawImageMaskedShader->SetPalette(_engine->GLPalette);
+}
+
 void OpenGLDrawingContext::Clear(uint32 colour)
 {
     FillRect(colour, _clipLeft - _offsetX, _clipTop - _offsetY, _clipRight, _clipBottom);
@@ -599,10 +605,12 @@ void OpenGLDrawingContext::DrawSprite(uint32 image, sint32 x, sint32 y, uint32 t
 
     GLuint texture = _textureCache->GetOrLoadImageTexture(image);
 
+    uint8 zoomLevel = (1 << _dpi->zoom_level);
+
     sint32 drawOffsetX = g1Element->x_offset;
     sint32 drawOffsetY = g1Element->y_offset;
-    sint32 drawWidth = (uint16)g1Element->width >> _dpi->zoom_level;
-    sint32 drawHeight = (uint16)g1Element->height >> _dpi->zoom_level;
+    sint32 drawWidth = g1Element->width;
+    sint32 drawHeight = g1Element->height;
 
     sint32 left = x + drawOffsetX;
     sint32 top = y + drawOffsetY;
@@ -618,10 +626,20 @@ void OpenGLDrawingContext::DrawSprite(uint32 image, sint32 x, sint32 y, uint32 t
         std::swap(top, bottom);
     }
 
-    left += _offsetX;
-    top += _offsetY;
-    right += _offsetX;
-    bottom += _offsetY;
+    left -= _dpi->x;
+    top -= _dpi->y;
+    right -= _dpi->x;
+    bottom -= _dpi->y;
+
+    left /= zoomLevel;
+    top /= zoomLevel;
+    right /= zoomLevel;
+    bottom /= zoomLevel;
+
+    left += _clipLeft;
+    top += _clipTop;
+    right += _clipLeft;
+    bottom += _clipTop;
 
     _drawImageShader->Use();
     _drawImageShader->SetClip(_clipLeft, _clipTop, _clipRight, _clipBottom);
@@ -636,6 +654,8 @@ void OpenGLDrawingContext::DrawSpriteRawMasked(sint32 x, sint32 y, uint32 maskIm
 
     GLuint textureMask = _textureCache->GetOrLoadImageTexture(maskImage);
     GLuint textureColour = _textureCache->GetOrLoadImageTexture(colourImage);
+
+    uint8 zoomLevel = (1 << _dpi->zoom_level);
 
     sint32 drawOffsetX = g1ElementMask->x_offset;
     sint32 drawOffsetY = g1ElementMask->y_offset;
@@ -656,10 +676,20 @@ void OpenGLDrawingContext::DrawSpriteRawMasked(sint32 x, sint32 y, uint32 maskIm
         std::swap(top, bottom);
     }
 
-    left += _offsetX;
-    top += _offsetY;
-    right += _offsetX;
-    bottom += _offsetY;
+    left -= _dpi->x;
+    top -= _dpi->y;
+    right -= _dpi->x;
+    bottom -= _dpi->y;
+
+    left /= zoomLevel;
+    top /= zoomLevel;
+    right /= zoomLevel;
+    bottom /= zoomLevel;
+
+    left += _clipLeft;
+    top += _clipTop;
+    right += _clipLeft;
+    bottom += _clipTop;
 
     _drawImageMaskedShader->Use();
     _drawImageMaskedShader->SetClip(_clipLeft, _clipTop, _clipRight, _clipBottom);

@@ -29,6 +29,7 @@
 #include "localisation/localisation.h"
 #include "network/http.h"
 #include "network/network.h"
+#include "object_list.h"
 #include "openrct2.h"
 #include "platform/crash.h"
 #include "platform/platform.h"
@@ -220,6 +221,9 @@ bool openrct2_initialise()
 		audio_init();
 		audio_populate_devices();
 	}
+
+	object_list_init();
+
 	if (!language_open(gConfigGeneral.language)) {
 		log_error("Failed to open configured language...");
 
@@ -365,7 +369,8 @@ static void openrct2_loop()
 
 	_finished = 0;
 	do {
-		if (gConfigGeneral.uncap_fps && gGameSpeed <= 4 && !gOpenRCT2Headless) {
+		bool is_minimised = (SDL_GetWindowFlags(gWindow) & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_HIDDEN)) != 0;
+		if (gConfigGeneral.uncap_fps && gGameSpeed <= 4 && !gOpenRCT2Headless && !is_minimised) {
 			currentTick = SDL_GetTicks();
 			if (uncapTick == 0) {
 				// Reset sprite locations
@@ -417,9 +422,7 @@ static void openrct2_loop()
 				invalidate_sprite_2(&g_sprite_list[i]);
 			}
 
-			if ((SDL_GetWindowFlags(gWindow) & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_HIDDEN)) == 0) {
-				platform_draw();
-			}
+			platform_draw();
 
 			fps++;
 			if (SDL_GetTicks() - secondTick >= 1000) {
@@ -452,7 +455,7 @@ static void openrct2_loop()
 
 			rct2_update();
 
-			if ((SDL_GetWindowFlags(gWindow) & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_HIDDEN)) == 0) {
+			if (!is_minimised) {
 				platform_draw();
 			}
 		}
@@ -482,7 +485,7 @@ void openrct2_reset_object_tween_locations()
  */
 bool openrct2_setup_rct2_segment()
 {
-	// OpenRCT2 on Linux and OS X is wired to have the original Windows PE sections loaded
+	// OpenRCT2 on Linux and macOS is wired to have the original Windows PE sections loaded
 	// necessary. Windows does not need to do this as OpenRCT2 runs as a DLL loaded from the Windows PE.
 #if defined(__unix__)
 	#define RDATA_OFFSET 0x004A4000
@@ -589,9 +592,7 @@ bool openrct2_setup_rct2_segment()
  */
 static void openrct2_setup_rct2_hooks()
 {
-	addhook(0x006C42D9, (int)scrolling_text_setup, 0, (int[]){EAX, ECX, EBP, END}, 0, EBX);					// remove when all callers are decompiled
-	addhook(0x006C2321, (int)gfx_get_string_width, 0, (int[]){ESI, END}, 0, ECX);							// remove when all callers are decompiled
-	addhook(0x006C2555, (int)format_string, 0, (int[]){EDI, EAX, ECX, END}, 0, 0);							// remove when all callers are decompiled
+	// None for now
 }
 
 #if _MSC_VER >= 1900

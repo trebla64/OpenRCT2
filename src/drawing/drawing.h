@@ -20,6 +20,28 @@
 #include "../common.h"
 #include "font.h"
 
+// For g1 only enable packing when still relying on vanilla
+#ifndef NO_RCT2
+#pragma pack(push, 1)
+#endif
+// Size: 0x10
+typedef struct rct_g1_element {
+	uint8* offset;			// 0x00
+	sint16 width;			// 0x04
+	sint16 height;			// 0x06
+	sint16 x_offset;		// 0x08
+	sint16 y_offset;		// 0x0A
+	uint16 flags;			// 0x0C
+	uint16 zoomed_offset;	// 0x0E
+} rct_g1_element;
+#ifndef NO_RCT2
+#ifdef PLATFORM_32BIT
+assert_struct_size(rct_g1_element, 0x10);
+#endif
+#pragma pack(pop)
+#endif
+
+// Enable packing for remaining elements
 #pragma pack(push, 1)
 // Size: 0x10
 typedef struct rct_drawpixelinfo {
@@ -33,20 +55,6 @@ typedef struct rct_drawpixelinfo {
 } rct_drawpixelinfo;
 #ifdef PLATFORM_32BIT
 assert_struct_size(rct_drawpixelinfo, 0x10);
-#endif
-
-// Size: 0x10
-typedef struct rct_g1_element {
-	uint8* offset;			// 0x00
-	sint16 width;			// 0x04
-	sint16 height;			// 0x06
-	sint16 x_offset;		// 0x08
-	sint16 y_offset;		// 0x0A
-	uint16 flags;			// 0x0C
-	uint16 zoomed_offset;	// 0x0E
-} rct_g1_element;
-#ifdef PLATFORM_32BIT
-assert_struct_size(rct_g1_element, 0x10);
 #endif
 
 enum {
@@ -112,6 +120,18 @@ extern sint32 gPickupPeepY;
 
 extern rct_g1_element *g1Elements;
 extern rct_gx g2;
+
+extern rct_drawpixelinfo gScreenDPI;
+extern rct_drawpixelinfo gWindowDPI;
+
+extern void *unk_9ABDA4;
+extern void *unk_9E3CDC;
+extern void *unk_9E3CE4[8];
+#if NO_RCT2
+extern rct_drawpixelinfo *unk_140E9A8;
+#else
+#define unk_140E9A8 RCT2_GLOBAL(0x0140E9A8, rct_drawpixelinfo*)
+#endif
 
 //
 bool clip_drawpixelinfo(rct_drawpixelinfo *dst, rct_drawpixelinfo *src, int x, int y, int width, int height);
