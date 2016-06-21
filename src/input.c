@@ -253,7 +253,11 @@ static void input_scroll_drag_continue(int x, int y, rct_window* w)
 
 	widget_scroll_update_thumbs(w, widgetIndex);
 	window_invalidate_by_number(w->classification, w->number);
-	platform_set_cursor_position(gInputDragLastX, gInputDragLastY);
+
+	int fixedCursorPositionX = (int) ceilf(gInputDragLastX * gConfigGeneral.window_scale);
+	int fixedCursorPositionY = (int) ceilf(gInputDragLastY * gConfigGeneral.window_scale);
+	
+	platform_set_cursor_position(fixedCursorPositionX, fixedCursorPositionY);
 }
 
 /**
@@ -609,37 +613,37 @@ static void input_scroll_begin(rct_window *w, int widgetIndex, int x, int y)
 	int widget_width = widg->right - widg->left - 1;
 	if (scroll->flags & VSCROLLBAR_VISIBLE)
 		widget_width -= 11;
-	widget_width = max(scroll->h_right - widget_width, 0);
+	int widget_content_width = max(scroll->h_right - widget_width, 0);
 
 	int widget_height = widg->bottom - widg->top - 1;
 	if (scroll->flags & HSCROLLBAR_VISIBLE)
 		widget_height -= 11;
-	widget_height = max(scroll->v_bottom - widget_height, 0);
+	int widget_content_height = max(scroll->v_bottom - widget_height, 0);
 
 	switch (scroll_area) {
 	case SCROLL_PART_HSCROLLBAR_LEFT:
 		scroll->h_left = max(scroll->h_left - 3, 0);
 		break;
 	case SCROLL_PART_HSCROLLBAR_RIGHT:
-		scroll->h_left = min(scroll->h_left + 3, widget_width);
+		scroll->h_left = min(scroll->h_left + 3, widget_content_width);
 		break;
 	case SCROLL_PART_HSCROLLBAR_LEFT_TROUGH:
-		scroll->h_left = max(scroll->h_left - widget_width , 0);
+		scroll->h_left = max(scroll->h_left - widget_width, 0);
 		break;
 	case SCROLL_PART_HSCROLLBAR_RIGHT_TROUGH:
-		scroll->h_left = min(scroll->h_left + widget_width, widget_width);
+		scroll->h_left = min(scroll->h_left + widget_width, widget_content_width);
 		break;
 	case SCROLL_PART_VSCROLLBAR_TOP:
 		scroll->v_top = max(scroll->v_top - 3, 0);
 		break;
 	case SCROLL_PART_VSCROLLBAR_BOTTOM:
-		scroll->v_top = min(scroll->v_top + 3, widget_height);
+		scroll->v_top = min(scroll->v_top + 3, widget_content_height);
 		break;
 	case SCROLL_PART_VSCROLLBAR_TOP_TROUGH:
 		scroll->v_top = max(scroll->v_top - widget_height, 0);
 		break;
 	case SCROLL_PART_VSCROLLBAR_BOTTOM_TROUGH:
-		scroll->v_top = min(scroll->v_top + widget_height, widget_height);
+		scroll->v_top = min(scroll->v_top + widget_height, widget_content_height);
 		break;
 	default:
 		break;
@@ -1658,7 +1662,9 @@ void game_handle_key_scroll()
 		const int SHIFT = 0x100;
 		const int CTRL = 0x200;
 		const int ALT = 0x400;
+#ifdef __MACOSX__
 		const int CMD = 0x800;
+#endif
 
 		uint16 shortcutKey = gShortcutKeys[shortcutId];
 		uint8 scancode = shortcutKey & 0xFF;

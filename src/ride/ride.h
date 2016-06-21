@@ -122,9 +122,7 @@ typedef struct rct_ride_entry {
 	uint8 shop_item;									// 0x1C0
 	uint8 shop_item_secondary;							// 0x1C1
 } rct_ride_entry;
-#ifdef PLATFORM_32BIT
-assert_struct_size(rct_ride_entry, 0x1c2);
-#endif
+// FIXME: unpack
 
 /**
  * Ride structure.
@@ -370,6 +368,15 @@ assert_struct_size(track_begin_end, 36);
 #endif
 
 #pragma pack(pop)
+
+/*
+ * This array should probably be only 91 + 128 * 3 = 475 bytes long.
+ * It was originally stored at address 0x009E32F8 and continued until 0x009E34E3
+ * (inclusive). 0x009E34E4 is the address of s6 header, so it's likely it had
+ * some padding at the end as well.
+ */
+#define TYPE_TO_RIDE_ENTRY_SLOTS 492
+extern uint8 gTypeToRideEntryIndexMap[TYPE_TO_RIDE_ENTRY_SLOTS];
 
 enum {
 	RIDE_CLASS_RIDE,
