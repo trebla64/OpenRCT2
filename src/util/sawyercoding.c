@@ -21,6 +21,7 @@
 #include "util.h"
 
 static size_t decode_chunk_rle(const uint8* src_buffer, uint8* dst_buffer, size_t length);
+static size_t decode_chunk_rle_with_size(const uint8* src_buffer, uint8* dst_buffer, size_t length, size_t dstSize);
 static size_t decode_chunk_repeat(uint8 *buffer, size_t length);
 static void decode_chunk_rotate(uint8 *buffer, size_t length);
 
@@ -126,6 +127,52 @@ size_t sawyercoding_read_chunk(SDL_RWops* rw, uint8 *buffer)
 		break;
 	case CHUNK_ENCODING_RLE:
 		chunkHeader.length = decode_chunk_rle(src_buffer, buffer, chunkHeader.length);
+		break;
+	case CHUNK_ENCODING_RLECOMPRESSED:
+		chunkHeader.length = decode_chunk_rle(src_buffer, buffer, chunkHeader.length);
+		chunkHeader.length = decode_chunk_repeat(buffer, chunkHeader.length);
+		break;
+	case CHUNK_ENCODING_ROTATE:
+		memcpy(buffer, src_buffer, chunkHeader.length);
+		decode_chunk_rotate(buffer, chunkHeader.length);
+		break;
+	}
+	free(src_buffer);
+	return chunkHeader.length;
+}
+
+/**
+ *
+ *  rct2: 0x0067685F
+ * buffer (esi)
+ */
+size_t sawyercoding_read_chunk_with_size(SDL_RWops* rw, uint8 *buffer, const size_t buffer_size)
+{
+	sawyercoding_chunk_header chunkHeader;
+
+	// Read chunk header
+	if (SDL_RWread(rw, &chunkHeader, sizeof(sawyercoding_chunk_header), 1) != 1) {
+		log_error("Unable to read chunk header!");
+		return -1;
+	}
+
+	uint8* src_buffer = malloc(chunkHeader.length);
+
+	// Read chunk data
+	if (SDL_RWread(rw, src_buffer, chunkHeader.length, 1) != 1) {
+		free(src_buffer);
+		log_error("Unable to read chunk data!");
+		return -1;
+	}
+
+	// Decode chunk data
+	switch (chunkHeader.encoding) {
+	case CHUNK_ENCODING_NONE:
+		assert(chunkHeader.length <= buffer_size);
+		memcpy(buffer, src_buffer, chunkHeader.length);
+		break;
+	case CHUNK_ENCODING_RLE:
+		chunkHeader.length = decode_chunk_rle_with_size(src_buffer, buffer, chunkHeader.length, buffer_size);
 		break;
 	case CHUNK_ENCODING_RLECOMPRESSED:
 		chunkHeader.length = decode_chunk_rle(src_buffer, buffer, chunkHeader.length);
@@ -304,6 +351,36 @@ static size_t decode_chunk_rle(const uint8* src_buffer, uint8* dst_buffer, size_
 			memset(dst, src_buffer[i], count);
 			dst = (uint8*)((uintptr_t)dst + count);
 		} else {
+			memcpy(dst, src_buffer + i + 1, rleCodeByte + 1);
+			dst = (uint8*)((uintptr_t)dst + rleCodeByte + 1);
+			i += rleCodeByte + 1;
+		}
+	}
+
+	// Return final size
+	return dst - dst_buffer;
+}
+
+/**
+ *
+ *  rct2: 0x0067693A
+ */
+static size_t decode_chunk_rle_with_size(const uint8* src_buffer, uint8* dst_buffer, size_t length, size_t dstSize)
+{
+	size_t count;
+	uint8 *dst, rleCodeByte;
+
+	dst = dst_buffer;
+
+	for (size_t i = 0; i < length; i++) {
+		rleCodeByte = src_buffer[i];
+		if (rleCodeByte & 128) {
+			i++;
+			count = 257 - rleCodeByte;
+			memset(dst, src_buffer[i], count);
+			dst = (uint8*)((uintptr_t)dst + count);
+		} else {
+			assert(dst + rleCodeByte + 1 <= dst_buffer + dstSize);
 			memcpy(dst, src_buffer + i + 1, rleCodeByte + 1);
 			dst = (uint8*)((uintptr_t)dst + rleCodeByte + 1);
 			i += rleCodeByte + 1;

@@ -82,12 +82,13 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 
 	if (*chunkSize == 0xFFFFFFFF) {
 		chunk = (uint8*)malloc(0x600000);
-		*chunkSize = sawyercoding_read_chunk(rw, chunk);
+		assert(chunk != NULL);
+		*chunkSize = sawyercoding_read_chunk_with_size(rw, chunk, 0x600000);
 		chunk = realloc(chunk, *chunkSize);
 	}
 	else {
 		chunk = (uint8*)malloc(*chunkSize);
-		*chunkSize = sawyercoding_read_chunk(rw, chunk);
+		*chunkSize = sawyercoding_read_chunk_with_size(rw, chunk, *chunkSize);
 	}
 	SDL_RWclose(rw);
 	if (chunk == NULL) {
@@ -131,7 +132,9 @@ int object_load_file(int groupIndex, const rct_object_entry *entry, int* chunkSi
 	}
 
 	if (RCT2_GLOBAL(0x9ADAFD, uint8) != 0) {
-		chunk = object_load(objectType, chunk, groupIndex, chunkSize);
+		uint8 *oldChunk = chunk;
+		chunk = object_load(objectType, oldChunk, groupIndex, chunkSize);
+		free(oldChunk);
 	}
 
 	chunk_list[groupIndex] = chunk;
@@ -1548,7 +1551,7 @@ static uint8* object_type_large_scenery_load(void *objectEntry, uint32 entryInde
 		}
 	}
 
-	extendedEntryData += sizeof(rct_scenery_entry_32bit);
+	extendedEntryData += sizeof(rct_object_entry);
 	if (sceneryEntry->large_scenery.flags & (1 << 2)) {
 		outSceneryEntry->large_scenery.text = (rct_large_scenery_text*)extendedEntryData;
 		extendedEntryData += 1038;
@@ -1926,11 +1929,11 @@ static uint8* object_type_path_load(void *objectEntry, uint32 entryIndex, int *c
 	rct_footpath_entry *pathEntry = (rct_footpath_entry*)objectEntry;
 	const uint8 *origExtendedEntryData = (uint8*)((size_t)objectEntry + 0x0E);
 	const size_t extendedDataSize = *chunkSize - 0x0E;
-	*chunkSize = *chunkSize + sizeof(rct_footpath_entry) - 0x0E;
+	*chunkSize = *chunkSize + 0x0E - 0x0E;
 	assert(*chunkSize > 0);
 	rct_footpath_entry* outPathEntry = malloc(*chunkSize);
 	assert(outPathEntry != NULL);
-	uint8 *extendedEntryData = (uint8*)((size_t)outPathEntry + sizeof(rct_footpath_entry));
+	uint8 *extendedEntryData = (uint8*)((size_t)outPathEntry + 0x0E);
 	memcpy(extendedEntryData, origExtendedEntryData, extendedDataSize);
 
 	pathEntry->string_idx = object_get_localised_text(&extendedEntryData, OBJECT_TYPE_PATHS, entryIndex, 0);
@@ -2469,11 +2472,11 @@ static uint8* object_type_stex_load(void *objectEntry, uint32 entryIndex, int *c
 	rct_stex_entry *stexEntry = (rct_stex_entry*)objectEntry;
 	const uint8 *origExtendedEntryData = (uint8*)((size_t)objectEntry + 0x08);
 	const size_t extendedDataSize = *chunkSize - 0x08;
-	*chunkSize = *chunkSize + sizeof(rct_stex_entry) - 0x08;
+	*chunkSize = *chunkSize + 0x08 - 0x08;
 	assert(*chunkSize > 0);
 	rct_stex_entry* outStexEntry = malloc(*chunkSize);
 	assert(outStexEntry != NULL);
-	uint8 *stringTable = (uint8*)((size_t)outStexEntry + sizeof(rct_stex_entry));
+	uint8 *stringTable = (uint8*)((size_t)outStexEntry + 0x08);
 	memcpy(stringTable, origExtendedEntryData, extendedDataSize);
 	
 	stexEntry->scenario_name = object_get_localised_text(&stringTable, OBJECT_TYPE_SCENARIO_TEXT, entryIndex, 0);
@@ -2638,7 +2641,7 @@ int object_get_scenario_text(rct_object_entry *entry)
 			}
 			else {
 				chunk = (uint8*)malloc(chunkSize);
-				sawyercoding_read_chunk(rw, chunk);
+				sawyercoding_read_chunk_with_size(rw, chunk, chunkSize);
 			}
 			SDL_RWclose(rw);
 
