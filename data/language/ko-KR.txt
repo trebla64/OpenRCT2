@@ -2808,7 +2808,7 @@ STR_2796    :{SMALLFONT}{BLACK}놀이기구 목록을 정보 종류에 따라 �
 STR_2797    :화면 가장자리에 커서를 가져가면 화면을 스크롤
 STR_2798    :{SMALLFONT}{BLACK}화면 가장자리에 마우스 커서를 가까이 대면 게임 화면을 스크롤합니다
 STR_2799    :{SMALLFONT}{BLACK}지정되어 있는 조작 키를 확인하거나 변경합니다
-STR_2800    :{WINDOW_COLOUR_2}총 입장료: {BLACK}{COMMA32}
+STR_2800    :{WINDOW_COLOUR_2}지금까지 입장한 총 손님 수: {BLACK}{COMMA32}
 STR_2801    :{WINDOW_COLOUR_2}입장료로 벌어들인 수익: {BLACK}{CURRENCY2DP}
 STR_2802    :지도
 STR_2803    :{SMALLFONT}{BLACK}이 손님들을 지도에 표시합니다
@@ -4185,6 +4185,8 @@ STR_5876    :{SMALLFONT}{BLACK}게임 요소를 표시는데 사용할 엔진을
 STR_5877    :소프트웨어
 STR_5878    :소프트웨어 (하드웨어 디스플레이)
 STR_5879    :OpenGL
+STR_5880    :선택한 것만
+STR_5881    :선택하지 않은 것만
 
 
 #############
