@@ -78,7 +78,7 @@ void park_init()
 	int i;
 
 	RCT2_GLOBAL(0x013CA740, uint8) = 0;
-	gParkName = 777;
+	gParkName = STR_UNNAMED_PARK;
 	gStaffHandymanColour = COLOUR_BRIGHT_RED;
 	gStaffMechanicColour = COLOUR_LIGHT_BLUE;
 	gStaffSecurityColour = COLOUR_YELLOW;
@@ -440,17 +440,14 @@ static int park_calculate_guest_generation_probability()
 	if (numGuests > 7000)
 		probability /= 4;
 
-	// Check if money is enabled
-	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
-		// Penalty for overpriced entrance fee relative to total ride value
-		money16 entranceFee = gParkEntranceFee;
-		if (entranceFee > totalRideValue) {
-			probability /= 4;
+	// Penalty for overpriced entrance fee relative to total ride value
+	money16 entranceFee = park_get_entrance_fee();
+	if (entranceFee > totalRideValue) {
+		probability /= 4;
 
-			// Extra penalty for very overpriced entrance fee
-			if (entranceFee / 2 > totalRideValue)
-				probability /= 4;
-		}
+		// Extra penalty for very overpriced entrance fee
+		if (entranceFee / 2 > totalRideValue)
+			probability /= 4;
 	}
 
 	// Reward or penalties for park awards
@@ -1178,4 +1175,13 @@ money32 park_place_ghost_entrance(int x, int y, int z, int direction)
 		gParkEntranceGhostExists = true;
 	}
 	return result;
+}
+
+money16 park_get_entrance_fee()
+{
+	if (gParkFlags & PARK_FLAGS_NO_MONEY) return 0;
+	if (!gCheatsUnlockAllPrices) {
+		if (gParkFlags & PARK_FLAGS_PARK_FREE_ENTRY) return 0;
+	}
+	return gParkEntranceFee;
 }

@@ -48,11 +48,11 @@ int marketing_get_campaign_guest_generation_probability(int campaign)
 	// Lower probability of guest generation if price was already low
 	switch (campaign) {
 	case ADVERTISING_CAMPAIGN_PARK_ENTRY_FREE:
-		if (gParkEntranceFee < 4)
+		if (park_get_entrance_fee() < 4)
 			probability /= 8;
 		break;
 	case ADVERTISING_CAMPAIGN_PARK_ENTRY_HALF_PRICE:
-		if (gParkEntranceFee < 6)
+		if (park_get_entrance_fee() < 6)
 			probability /= 8;
 		break;
 	case ADVERTISING_CAMPAIGN_RIDE_FREE:
@@ -102,7 +102,7 @@ void marketing_update()
 		}
 
 		if (gConfigNotifications.park_marketing_campaign_finished) {
-			news_item_add_to_queue(NEWS_ITEM_MONEY, STR_MARKETING_FINISHED_BASE + campaign, 0);
+			news_item_add_to_queue(NEWS_ITEM_MONEY, MarketingCampaignNames[campaign][2], 0);
 		}
 	}
 }
