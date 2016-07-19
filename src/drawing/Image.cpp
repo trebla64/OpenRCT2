@@ -56,7 +56,7 @@ static bool AllocatedListContains(uint32 baseImageId, uint32 count)
 
 static uint32 AllocateImageList(uint32 count)
 {
-    Guard::Assert(count != 0);
+    Guard::Assert(count != 0, GUARD_LINE);
 
     if (!_initialised)
     {
@@ -92,14 +92,29 @@ static uint32 AllocateImageList(uint32 count)
 
 static void FreeImageList(uint32 baseImageId, uint32 count)
 {
-    Guard::Assert(_initialised);
-    Guard::Assert(baseImageId >= BASE_IMAGE_ID);
+    Guard::Assert(_initialised, GUARD_LINE);
+    Guard::Assert(baseImageId >= BASE_IMAGE_ID, GUARD_LINE);
 
 #ifdef DEBUG
     bool contains = AllocatedListContains(baseImageId, count);
-    Guard::Assert(contains);
+    Guard::Assert(contains, GUARD_LINE);
 #endif
-
+    
+    for (auto it = _freeLists.begin(); it != _freeLists.end(); it++)
+    {
+        if (it->BaseId + it->Count == baseImageId) 
+        {
+            it->Count += count;
+            return;
+        }
+        else if (baseImageId + count == it->BaseId) 
+        {
+            it->BaseId = baseImageId;
+            it->Count += count;
+            return;
+        }
+    }
+    
     // TODO validate that this was an allocated list
     _freeLists.push_back({ baseImageId, count });
 }
@@ -130,6 +145,15 @@ extern "C"
     {
         if (baseImageId != 0)
         {
+            // Zero the G1 elements so we don't have invalid pointers
+            // and data lying about
+            for (uint32 i = 0; i < count; i++)
+            {
+                uint32 imageId = baseImageId + i;
+                g1Elements[imageId] = { 0 };
+                drawing_engine_invalidate_image(imageId);
+            }
+
             FreeImageList(baseImageId, count);
         }
     }

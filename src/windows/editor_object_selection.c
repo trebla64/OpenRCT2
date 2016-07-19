@@ -452,7 +452,7 @@ void window_editor_object_selection_open()
 		(1 << WIDX_FILTER_CLEAR_BUTTON) |
 		(1 << WIDX_CLOSE) |
 		(1 << WIDX_LIST_SORT_TYPE) |
-		(1 << WIDX_LIST_SORT_RIDE);
+		(((uint32)1) << WIDX_LIST_SORT_RIDE);
 
 	_filter_flags = gConfigInterface.object_selection_filter_flags;
 	memset(_filter_string, 0, sizeof(_filter_string));
@@ -1591,13 +1591,13 @@ static int window_editor_object_selection_select_object(uint8 bh, int flags, con
 			return 0;
 		}
 
-		if (flags & (1 << 2)) {
+		uint8 objectType = item->ObjectEntry.flags & 0xF;
+		if (objectType == OBJECT_TYPE_SCENERY_SETS && (flags & (1 << 2))) {
 			for (int j = 0; j < item->NumThemeObjects; j++) {
 				window_editor_object_selection_select_object(++bh, flags, &item->ThemeObjects[j]);
 			}
 		}
 
-		uint8 objectType = item->ObjectEntry.flags & 0xF;
 		_numSelectedObjectsForType[objectType]--;
 		*selectionFlags &= ~OBJECT_SELECTION_FLAG_SELECTED;
 		return 1;

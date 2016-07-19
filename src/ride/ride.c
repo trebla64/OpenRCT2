@@ -817,8 +817,8 @@ void ride_get_status(int rideIndex, int *formatSecondary, int *argument)
 		*formatSecondary = STR_TEST_RUN;
 		return;
 	}
-	rct_peep *peep = GET_PEEP(ride->race_winner);
-	if (ride->mode == RIDE_MODE_RACE && !(ride->lifecycle_flags & RIDE_LIFECYCLE_PASS_STATION_NO_STOPPING) && ride->race_winner != 0xFFFF && peep->sprite_identifier == SPRITE_IDENTIFIER_PEEP) {
+	if (ride->mode == RIDE_MODE_RACE && !(ride->lifecycle_flags & RIDE_LIFECYCLE_PASS_STATION_NO_STOPPING) && ride->race_winner != 0xFFFF && (GET_PEEP(ride->race_winner))->sprite_identifier == SPRITE_IDENTIFIER_PEEP) {
+		rct_peep *peep = GET_PEEP(ride->race_winner);
 		if (peep->name_string_idx == STR_GUEST_X) {
 			*argument = peep->id;
 			*formatSecondary = STR_RACE_WON_BY_GUEST;
@@ -2481,7 +2481,7 @@ static void ride_mechanic_status_update(int rideIndex, int mechanicStatus)
 		ride_call_closest_mechanic(rideIndex);
 		break;
 	case RIDE_MECHANIC_STATUS_HEADING:
-		mechanic = &(g_sprite_list[ride->mechanic].peep);
+		mechanic = &(get_sprite(ride->mechanic)->peep);
 		if (
 			!peep_is_mechanic(mechanic) ||
 			(mechanic->state != PEEP_STATE_HEADING_TO_INSPECTION && mechanic->state != PEEP_STATE_ANSWERING) ||
@@ -2493,7 +2493,7 @@ static void ride_mechanic_status_update(int rideIndex, int mechanicStatus)
 		}
 		break;
 	case RIDE_MECHANIC_STATUS_FIXING:
-		mechanic = &(g_sprite_list[ride->mechanic].peep);
+		mechanic = &(get_sprite(ride->mechanic)->peep);
 		if (
 			!peep_is_mechanic(mechanic) ||
 			(
@@ -2642,7 +2642,7 @@ rct_peep *ride_get_assigned_mechanic(rct_ride *ride)
 			ride->mechanic_status == 3 ||
 			ride->mechanic_status == 4
 		) {
-			peep = &(g_sprite_list[ride->mechanic].peep);
+			peep = &(get_sprite(ride->mechanic)->peep);
 			if (peep_is_mechanic(peep))
 				return peep;
 		}
@@ -3393,7 +3393,7 @@ void ride_set_map_tooltip(rct_map_element *mapElement)
  */
 int ride_music_params_update(sint16 x, sint16 y, sint16 z, uint8 rideIndex, uint16 sampleRate, uint32 position, uint8 *tuneId)
 {
-	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) && !gGameSoundsOff && RCT2_GLOBAL(0x00F438A4, rct_viewport*) != (rct_viewport*)-1) {
+	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) && !gGameSoundsOff && g_music_tracking_viewport != (rct_viewport*)-1) {
 		rct_xy16 rotatedCoords;
 
 		switch (get_current_rotation()) {
@@ -3414,7 +3414,7 @@ int ride_music_params_update(sint16 x, sint16 y, sint16 z, uint8 rideIndex, uint
 				rotatedCoords.y = ((x - y) / 2) - z;
 				break;
 		}
-		rct_viewport* viewport = RCT2_GLOBAL(0x00F438A4, rct_viewport*);
+		rct_viewport* viewport = g_music_tracking_viewport;
 		sint16 view_width = viewport->view_width;
 		sint16 view_width2 = view_width * 2;
 		sint16 view_x = viewport->view_x - view_width2;
@@ -8636,4 +8636,34 @@ void ride_delete(uint8 rideIndex)
 	rct_ride *ride = get_ride(rideIndex);
 	user_string_free(ride->name);
 	ride->type = RIDE_TYPE_NULL;
+}
+
+static bool ride_is_ride(rct_ride * ride)
+{
+	switch (ride->type) {
+	case RIDE_TYPE_FOOD_STALL:
+	case RIDE_TYPE_1D:
+	case RIDE_TYPE_DRINK_STALL:
+	case RIDE_TYPE_1F:
+	case RIDE_TYPE_SHOP:
+	case RIDE_TYPE_22:
+	case RIDE_TYPE_INFORMATION_KIOSK:
+	case RIDE_TYPE_TOILETS:
+	case RIDE_TYPE_CASH_MACHINE:
+	case RIDE_TYPE_FIRST_AID:
+		return false;
+	default:
+		return true;
+	}
+}
+
+money16 ride_get_price(rct_ride * ride)
+{
+	if (gParkFlags & PARK_FLAGS_NO_MONEY) return 0;
+	if (ride_is_ride(ride)) {
+		if (!gCheatsUnlockAllPrices) {
+			if (!(gParkFlags & PARK_FLAGS_PARK_FREE_ENTRY)) return 0;
+		}
+	}
+	return ride->price;
 }

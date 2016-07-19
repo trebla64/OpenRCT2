@@ -236,9 +236,9 @@ enum PEEP_ACTION_EVENTS {
 	PEEP_ACTION_WAVE_2 = 24,
 	PEEP_ACTION_TAKE_PHOTO = 25,
 	PEEP_ACTION_CLAP = 26,
-
+	PEEP_ACTION_27 = 27,
 	PEEP_ACTION_DRAW_PICTURE = 28,
-
+	PEEP_ACTION_29,
 	PEEP_ACTION_WITHDRAW_MONEY = 30,
 
 	PEEP_ACTION_NONE_1 = 254,
@@ -579,7 +579,7 @@ enum {
 };
 
 /** Helper macro until rides are stored in this module. */
-#define GET_PEEP(sprite_index) &(g_sprite_list[sprite_index].peep)
+#define GET_PEEP(sprite_index) &(get_sprite(sprite_index)->peep)
 
 /**
  * Helper macro loop for enumerating through all the peeps. To avoid needing a end loop counterpart, statements are

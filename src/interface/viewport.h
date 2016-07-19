@@ -85,7 +85,7 @@ typedef struct viewport_interaction_info {
 	};
 } viewport_interaction_info;
 
-#define MAX_VIEWPORT_COUNT MAX_WINDOW_COUNT
+#define MAX_VIEWPORT_COUNT WINDOW_LIMIT_MAX
 
 #define gSavedViewX				RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_X, sint16)
 #define gSavedViewY				RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_Y, sint16)
@@ -96,6 +96,7 @@ typedef struct viewport_interaction_info {
 
 // rct2: 0x014234BC
 extern rct_viewport g_viewport_list[MAX_VIEWPORT_COUNT];
+extern rct_viewport *g_music_tracking_viewport;
 #ifdef NO_RCT2
 extern paint_struct *unk_EE7884;
 extern paint_struct *unk_EE7888;

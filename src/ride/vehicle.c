@@ -78,6 +78,7 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle);
 #define NO_SCREAM 254
 
 rct_xyz16 *unk_F64E20 = (rct_xyz16*)0x00F64E20;
+rct_vehicle *gCurrentVehicle;
 
 const uint8 byte_9A3A14[] = { SOUND_SCREAM_8, SOUND_SCREAM_1 };
 const uint8 byte_9A3A16[] = { SOUND_SCREAM_1, SOUND_SCREAM_6 };
@@ -149,6 +150,196 @@ const uint8 _soundParams[SOUND_MAXID][2] = {
 	{ 0, 0 },	// SOUND_DOOR_OPEN
 	{ 0, 0 },	// SOUND_DOOR_CLOSE
 	{ 0, 0 }	// SOUND_62
+};
+
+static const uint8 SpaceRingsTimeToSpriteMap[] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+	1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4,
+	4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8,
+	8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13,
+	13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18,
+	19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 0,
+	0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5,
+	5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10,
+	11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16,
+	16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21,
+	21, 22, 22, 22, 23, 23, 23, 0, 0, 0, 1, 1, 1, 2, 2, 2,
+	3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8,
+	8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13,
+	13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18,
+	19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 0,
+	0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+	3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6,
+	6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+	7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5,
+	5, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2,
+	2, 1, 1, 1, 1, 0, 0, 0, 0, 23, 23, 23, 22, 22, 22, 21,
+	21, 21, 20, 20, 20, 19, 19, 19, 18, 18, 18, 17, 17, 17, 16, 16,
+	16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11,
+	10, 10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 5,
+	5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0,
+	0, 23, 23, 23, 22, 22, 22, 21, 21, 21, 20, 20, 20, 19, 19, 19,
+	18, 18, 18, 17, 17, 17, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13,
+	13, 13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8,
+	8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3,
+	2, 2, 2, 1, 1, 1, 0, 0, 0, 23, 23, 23, 22, 22, 22, 21,
+	21, 21, 20, 20, 20, 19, 19, 19, 18, 18, 18, 17, 17, 17, 16, 16,
+	16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11,
+	10, 10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 7, 6, 6, 6,
+	6, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3,
+	3, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24,
+	24, 24, 24, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 27,
+	27, 27, 27, 27, 28, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30,
+	30, 31, 31, 31, 32, 32, 32, 33, 33, 33, 34, 34, 34, 35, 35, 35,
+	36, 36, 36, 37, 37, 37, 38, 38, 38, 39, 39, 39, 40, 40, 40, 41,
+	41, 41, 42, 42, 42, 43, 43, 43, 44, 44, 44, 45, 45, 45, 46, 46,
+	46, 47, 47, 47, 48, 48, 48, 49, 49, 49, 50, 50, 50, 51, 51, 51,
+	52, 52, 52, 53, 53, 53, 54, 54, 54, 55, 55, 55, 56, 56, 56, 57,
+	57, 57, 58, 58, 58, 59, 59, 59, 60, 60, 60, 61, 61, 61, 62, 62,
+	62, 63, 63, 63, 64, 64, 64, 65, 65, 65, 66, 66, 66, 67, 67, 67,
+	68, 68, 68, 69, 69, 69, 70, 70, 70, 71, 71, 71, 72, 72, 72, 73,
+	73, 73, 74, 74, 74, 75, 75, 75, 76, 76, 76, 77, 77, 77, 78, 78,
+	78, 79, 79, 79, 80, 80, 80, 80, 81, 81, 81, 81, 82, 82, 82, 82,
+	82, 83, 83, 83, 83, 83, 84, 84, 84, 84, 84, 84, 85, 85, 85, 85,
+	85, 85, 86, 86, 86, 86, 86, 86, 86, 86, 87, 87, 87, 87, 87, 87,
+	87, 87, 87, 87, 87, 87, 87, 87, 86, 86, 86, 86, 86, 86, 86, 85,
+	85, 85, 85, 85, 85, 84, 84, 84, 84, 84, 84, 83, 83, 83, 83, 83,
+	82, 82, 82, 82, 82, 81, 81, 81, 81, 80, 80, 80, 80, 79, 79, 79,
+	78, 78, 78, 77, 77, 77, 76, 76, 76, 75, 75, 75, 74, 74, 74, 73,
+	73, 73, 72, 72, 72, 71, 71, 71, 70, 70, 70, 69, 69, 69, 68, 68,
+	68, 67, 67, 67, 66, 66, 66, 65, 65, 65, 64, 64, 64, 63, 63, 63,
+	62, 62, 62, 61, 61, 61, 60, 60, 60, 59, 59, 59, 58, 58, 58, 57,
+	57, 57, 56, 56, 56, 55, 55, 55, 54, 54, 54, 53, 53, 53, 52, 52,
+	52, 51, 51, 51, 50, 50, 50, 49, 49, 49, 48, 48, 48, 47, 47, 47,
+	46, 46, 46, 45, 45, 45, 44, 44, 44, 43, 43, 43, 42, 42, 42, 41,
+	41, 41, 40, 40, 40, 39, 39, 39, 38, 38, 38, 37, 37, 37, 36, 36,
+	36, 35, 35, 35, 34, 34, 34, 33, 33, 33, 32, 32, 32, 31, 31, 31,
+	30, 30, 30, 30, 29, 29, 29, 29, 28, 28, 28, 28, 28, 27, 27, 27,
+	27, 27, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 24, 24,
+	24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3,
+	3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6,
+	6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11,
+	11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16,
+	16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21,
+	22, 22, 22, 23, 23, 23, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3,
+	3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8,
+	8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13,
+	14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19,
+	19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 0, 0,
+	0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
+	6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11,
+	11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16,
+	16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21,
+	22, 22, 22, 23, 23, 23, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2,
+	2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5,
+	5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7,
+	7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6,
+	6, 6, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 3, 3,
+	3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0,
+	23, 23, 23, 22, 22, 22, 21, 21, 21, 20, 20, 20, 19, 19, 19, 18,
+	18, 18, 17, 17, 17, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13,
+	13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8, 8,
+	7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2,
+	2, 2, 1, 1, 1, 0, 0, 0, 23, 23, 23, 22, 22, 22, 21, 21,
+	21, 20, 20, 20, 19, 19, 19, 18, 18, 18, 17, 17, 17, 16, 16, 16,
+	15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11, 10,
+	10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5,
+	5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0,
+	23, 23, 23, 22, 22, 22, 21, 21, 21, 20, 20, 20, 19, 19, 19, 18,
+	18, 18, 17, 17, 17, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13,
+	13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8, 8,
+	7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 5, 4, 4, 4,
+	4, 4, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 1, 1,
+	1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25,
+	26, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28,
+	29, 29, 29, 29, 30, 30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33,
+	33, 34, 34, 34, 35, 35, 35, 36, 36, 36, 37, 37, 37, 38, 38, 38,
+	39, 39, 39, 40, 40, 40, 41, 41, 41, 42, 42, 42, 43, 43, 43, 44,
+	44, 44, 45, 45, 45, 46, 46, 46, 47, 47, 47, 48, 48, 48, 49, 49,
+	49, 50, 50, 50, 51, 51, 51, 52, 52, 52, 53, 53, 53, 54, 54, 54,
+	55, 55, 55, 56, 56, 56, 57, 57, 57, 58, 58, 58, 59, 59, 59, 60,
+	60, 60, 61, 61, 61, 62, 62, 62, 63, 63, 63, 64, 64, 64, 65, 65,
+	65, 66, 66, 66, 67, 67, 67, 68, 68, 68, 69, 69, 69, 70, 70, 70,
+	71, 71, 71, 72, 72, 72, 73, 73, 73, 74, 74, 74, 75, 75, 75, 76,
+	76, 76, 77, 77, 77, 78, 78, 78, 79, 79, 79, 80, 80, 80, 80, 81,
+	81, 81, 81, 82, 82, 82, 82, 82, 83, 83, 83, 83, 83, 84, 84, 84,
+	84, 84, 84, 85, 85, 85, 85, 85, 85, 86, 86, 86, 86, 86, 86, 86,
+	86, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 86,
+	86, 86, 86, 86, 86, 86, 85, 85, 85, 85, 85, 85, 84, 84, 84, 84,
+	84, 84, 83, 83, 83, 83, 83, 82, 82, 82, 82, 82, 81, 81, 81, 81,
+	80, 80, 80, 80, 79, 79, 79, 78, 78, 78, 77, 77, 77, 76, 76, 76,
+	75, 75, 75, 74, 74, 74, 73, 73, 73, 72, 72, 72, 71, 71, 71, 70,
+	70, 70, 69, 69, 69, 68, 68, 68, 67, 67, 67, 66, 66, 66, 65, 65,
+	65, 64, 64, 64, 63, 63, 63, 62, 62, 62, 61, 61, 61, 60, 60, 60,
+	59, 59, 59, 58, 58, 58, 57, 57, 57, 56, 56, 56, 55, 55, 55, 54,
+	54, 54, 53, 53, 53, 52, 52, 52, 51, 51, 51, 50, 50, 50, 49, 49,
+	49, 48, 48, 48, 47, 47, 47, 46, 46, 46, 45, 45, 45, 44, 44, 44,
+	43, 43, 43, 42, 42, 42, 41, 41, 41, 40, 40, 40, 39, 39, 39, 38,
+	38, 38, 37, 37, 37, 36, 36, 36, 35, 35, 35, 34, 34, 34, 33, 33,
+	33, 32, 32, 32, 31, 31, 31, 30, 30, 30, 30, 29, 29, 29, 29, 28,
+	28, 28, 28, 28, 27, 27, 27, 27, 27, 26, 26, 26, 26, 26, 26, 25,
+	25, 25, 25, 25, 25, 24, 24, 24, 24, 24, 24, 24, 24, 0,
+	255
+};
+
+static const sint8 SwingingTimeToSpriteMap_0[] = { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_1[] = { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, -1, -1, -1, -1, -2, -2, -2, -2, -2, -3, -3, -3, -3, -3, -3, -4, -4, -4, -4, -4, -4, -4, -4, -4, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -5, -4, -4, -4, -4, -4, -4, -4, -4, -4, -3, -3, -3, -3, -3, -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_2[] = { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, -1, -1, -1, -2, -2, -2, -3, -3, -3, -3, -4, -4, -4, -4, -4, -5, -5, -5, -5, -5, -5, -6, -6, -6, -6, -6, -6, -6, -6, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -6, -6, -6, -6, -6, -6, -6, -6, -5, -5, -5, -5, -5, -5, -4, -4, -4, -4, -4, -3, -3, -3, -3, -2, -2, -2, -1, -1, -1, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_3[] = { 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 8, 8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 3, 3, 2, 2, 1, 1, 0, 0, -1, -1, -2, -2, -3, -3, -4, -4, -4, -5, -5, -5, -5, -6, -6, -6, -6, -6, -7, -7, -7, -7, -7, -7, -8, -8, -8, -8, -8, -8, -8, -8, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -8, -8, -8, -8, -8, -8, -8, -7, -7, -7, -7, -7, -7, -6, -6, -6, -6, -6, -5, -5, -5, -5, -4, -4, -4, -3, -3, -2, -2, -1, -1, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_4[] = { 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -3, -3, -3, -3, -3, -4, -4, -4, -4, -4, -5, -5, -5, -5, -5, -5, -5, -6, -6, -6, -6, -6, -6, -6, -6, -6, -6, -6, -6, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -7, -6, -6, -6, -6, -6, -6, -6, -6, -6, -6, -6, -6, -5, -5, -5, -5, -5, -5, -5, -4, -4, -4, -4, -4, -3, -3, -3, -3, -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_5[] = { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 13, 13, 13, 13, 13, 12, 12, 12, 12, 11, 11, 11, 11, 10, 10, 10, 10, 9, 9, 9, 9, 8, 8, 8, 8, 7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, -1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -3, -4, -4, -4, -4, -5, -5, -5, -5, -6, -6, -6, -6, -7, -7, -7, -7, -8, -8, -8, -8, -9, -9, -9, -9, -10, -10, -10, -10, -11, -11, -11, -11, -12, -12, -12, -12, -13, -13, -13, -13, -13, -13, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -13, -13, -13, -13, -13, -12, -12, -12, -12, -11, -11, -11, -11, -10, -10, -10, -10, -9, -9, -9, -9, -8, -8, -8, -8, -7, -7, -7, -7, -6, -6, -6, -6, -5, -5, -5, -5, -4, -4, -4, -4, -3, -3, -3, -3, -2, -2, -2, -2, -1, -1, -1, -1, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_6[] = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 24, 24, 24, 24, 24, 24, 24, 24, 24, 23, 23, 23, 23, 23, 22, 22, 22, 21, 21, 21, 20, 20, 20, 19, 19, 19, 18, 18, 18, 17, 17, 17, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0, -1, -1, -1, -2, -2, -2, -3, -3, -3, -4, -4, -4, -5, -5, -5, -6, -6, -6, -7, -7, -7, -8, -8, -8, -9, -9, -9, -10, -10, -10, -11, -11, -11, -12, -12, -12, -13, -13, -13, -14, -14, -14, -15, -15, -15, -16, -16, -16, -17, -17, -17, -18, -18, -18, -19, -19, -19, -20, -20, -20, -21, -21, -21, -22, -22, -22, -23, -23, -23, -23, -23, -24, -24, -24, -24, -24, -24, -24, -24, -24, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -25, -24, -24, -24, -24, -24, -24, -24, -24, -24, -23, -23, -23, -23, -23, -22, -22, -22, -21, -21, -21, -20, -20, -20, -19, -19, -19, -18, -18, -18, -17, -17, -17, -16, -16, -16, -15, -15, -15, -14, -14, -14, -13, -13, -13, -12, -12, -12, -11, -11, -11, -10, -10, -10, -9, -9, -9, -8, -8, -8, -7, -7, -7, -6, -6, -6, -5, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -2, -1, -1, -1, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_7[] = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33, 34, 34, 34, 35, 35, 35, 36, 36, 36, -35, -35, -35, -34, -34, -34, -33, -33, -33, -32, -32, -32, -31, -31, -31, -30, -30, -30, -29, -29, -29, -28, -28, -28, -27, -27, -27, -26, -26, -26, -25, -25, -25, -24, -24, -24, -23, -23, -23, -22, -22, -22, -21, -21, -21, -20, -20, -20, -19, -19, -19, -18, -18, -18, -17, -17, -17, -16, -16, -16, -15, -15, -15, -14, -14, -14, -13, -13, -13, -12, -12, -12, -11, -11, -11, -10, -10, -10, -9, -9, -9, -8, -8, -8, -7, -7, -7, -6, -6, -6, -5, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -2, -1, -1, -1, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_8[] = { 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29, 29, 29, 29, 29, 28, 28, 28, 28, 28, 27, 27, 27, 27, 27, 27, 27, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 31, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_9[] = { 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29, 29, 29, 29, 29, 28, 28, 28, 28, 28, 27, 27, 27, 27, 27, 27, 27, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 31, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_10[] = { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 14, 14, 14, 14, 14, 13, 13, 13, 13, 12, 12, 12, 12, 11, 11, 11, 11, 10, 10, 10, 10, 9, 9, 9, 9, 8, 8, 8, 8, 7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 31, 31, 31, 31, 30, 30, 30, 30, 29, 29, 29, 29, 28, 28, 28, 28, 27, 27, 27, 27, 26, 26, 26, 26, 25, 25, 25, 25, 24, 24, 24, 24, 23, 23, 23, 23, 22, 22, 22, 22, 21, 21, 21, 21, 20, 20, 20, 20, 19, 19, 19, 19, 18, 18, 18, 18, 18, 18, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 22, 23, 23, 23, 23, 24, 24, 24, 24, 25, 25, 25, 25, 26, 26, 26, 26, 27, 27, 27, 27, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 30, 31, 31, 31, 31, 0, 0, -128 };
+static const sint8 SwingingTimeToSpriteMap_11[] = { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 0, -128 };
+
+/** rct2: 0x0099F9D0 */
+static const sint8 * SwingingTimeToSpriteMaps[] = {
+	SwingingTimeToSpriteMap_0,
+	SwingingTimeToSpriteMap_1,
+	SwingingTimeToSpriteMap_2,
+	SwingingTimeToSpriteMap_3,
+	SwingingTimeToSpriteMap_4,
+	SwingingTimeToSpriteMap_5,
+	SwingingTimeToSpriteMap_6,
+	SwingingTimeToSpriteMap_7,
+	SwingingTimeToSpriteMap_8,
+	SwingingTimeToSpriteMap_9,
+	SwingingTimeToSpriteMap_10,
+	SwingingTimeToSpriteMap_11,
+};
+
+/** rct2: 0x009A12E0 */
+static const uint8 * TopSpinTimeToSpriteMaps[] = {
+	(const uint8*)0x009A12EC,
+	(const uint8*)0x009A1751,
+	(const uint8*)0x009A1CC6,
+};
+
+/** rct2: 0x0099F0F4 */
+static const uint8 * Rotation1TimeToSpriteMaps[] = {
+	(const uint8*)0x0099F100,
+	(const uint8*)0x0099F422,
+	(const uint8*)0x0099F6AB,
+};
+
+/** rct2: 0x009A2428 */
+static const uint8 * Rotation2TimeToSpriteMaps[] = {
+	(const uint8*)0x009A2434,
+	(const uint8*)0x009A26A6,
+	(const uint8*)0x009A270E,
+};
+
+/** rct2: 0x0099EB1C */
+static const uint8 * Rotation3TimeToSpriteMaps[] = {
+	(const uint8*)0x0099EB28,
+	(const uint8*)0x0099ED49,
+	(const uint8*)0x0099EED1,
 };
 
 static bool vehicle_move_info_valid(int cd, int typeAndDirection, int offset)
@@ -277,17 +468,17 @@ static void vehicle_update_sound_params(rct_vehicle* vehicle)
 	if (!(gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) && (!(gScreenFlags & SCREEN_FLAGS_TRACK_DESIGNER) || gS6Info->editor_step == EDITOR_STEP_ROLLERCOASTER_DESIGNER)) {
 		if (vehicle->sound1_id != (uint8)-1 || vehicle->sound2_id != (uint8)-1) {
 			if (vehicle->sprite_left != (sint16)0x8000) {
-				sint16 x = RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_x;
-				sint16 y = RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_y;
-				sint16 w = RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_width / 4;
-				sint16 h = RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_height / 4;
+				sint16 x = g_music_tracking_viewport->view_x;
+				sint16 y = g_music_tracking_viewport->view_y;
+				sint16 w = g_music_tracking_viewport->view_width / 4;
+				sint16 h = g_music_tracking_viewport->view_height / 4;
 				if (!RCT2_GLOBAL(0x00F438A8, rct_window*)->classification) {
 					x -= w;
 					y -= h;
 				}
 				if (x < vehicle->sprite_right && y < vehicle->sprite_bottom) {
-					sint16 w2 = RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_width + x;
-					sint16 h2 = RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_height + y;
+					sint16 w2 = g_music_tracking_viewport->view_width + x;
+					sint16 h2 = g_music_tracking_viewport->view_height + y;
 					if (!RCT2_GLOBAL(0x00F438A8, rct_window*)->classification) {
 						w2 += w + w;
 						h2 += h + h;
@@ -306,25 +497,25 @@ static void vehicle_update_sound_params(rct_vehicle* vehicle)
 								*(j + 1) = *j;
 							}
 							i->var_A = v9;
-							int pan_x = (vehicle->sprite_left / 2) + (vehicle->sprite_right / 2) - RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_x;
-							pan_x >>= RCT2_GLOBAL(0x00F438A4, rct_viewport*)->zoom;
-							pan_x += RCT2_GLOBAL(0x00F438A4, rct_viewport*)->x;
+							int pan_x = (vehicle->sprite_left / 2) + (vehicle->sprite_right / 2) - g_music_tracking_viewport->view_x;
+							pan_x >>= g_music_tracking_viewport->zoom;
+							pan_x += g_music_tracking_viewport->x;
 
 							uint16 screenwidth = gScreenWidth;
 							if (screenwidth < 64) {
 								screenwidth = 64;
 							}
-							i->pan_x = ((((pan_x << 16) / screenwidth) - 0x8000) >> 4);
+							i->pan_x = ((((pan_x * 65536) / screenwidth) - 0x8000) >> 4);
 
-							int pan_y = (vehicle->sprite_top / 2) + (vehicle->sprite_bottom / 2) - RCT2_GLOBAL(0x00F438A4, rct_viewport*)->view_y;
-							pan_y >>= RCT2_GLOBAL(0x00F438A4, rct_viewport*)->zoom;
-							pan_y += RCT2_GLOBAL(0x00F438A4, rct_viewport*)->y;
+							int pan_y = (vehicle->sprite_top / 2) + (vehicle->sprite_bottom / 2) - g_music_tracking_viewport->view_y;
+							pan_y >>= g_music_tracking_viewport->zoom;
+							pan_y += g_music_tracking_viewport->y;
 
 							uint16 screenheight = gScreenHeight;
 							if (screenheight < 64) {
 								screenheight = 64;
 							}
-							i->pan_y = ((((pan_y << 16) / screenheight) - 0x8000) >> 4);
+							i->pan_y = ((((pan_y * 65536) / screenheight) - 0x8000) >> 4);
 
 							sint32 v = vehicle->velocity;
 
@@ -394,7 +585,7 @@ int sub_6BC2F3(rct_vehicle* vehicle)
 void vehicle_sounds_update()
 {
 	if (gAudioCurrentDevice != -1 && !gGameSoundsOff && gConfigSound.sound_enabled && !gOpenRCT2Headless) {
-		RCT2_GLOBAL(0x00F438A4, rct_viewport*) = (rct_viewport*)-1;
+		g_music_tracking_viewport = (rct_viewport*)-1;
 		rct_viewport* viewport = (rct_viewport*)-1;
 		rct_window* window = gWindowNextSlot;
 		while (1) {
@@ -407,7 +598,7 @@ void vehicle_sounds_update()
 				break;
 			}
 		}
-		RCT2_GLOBAL(0x00F438A4, rct_viewport*) = viewport;
+		g_music_tracking_viewport = viewport;
 		if (viewport != (rct_viewport*)-1) {
 			if (window) {
 				RCT2_GLOBAL(0x00F438A8, rct_window*) = window;
@@ -420,8 +611,8 @@ void vehicle_sounds_update()
 				}
 			}
 			gVehicleSoundParamsListEnd = &gVehicleSoundParamsList[0];
-			for (uint16 i = gSpriteListHead[SPRITE_LIST_VEHICLE]; i != SPRITE_INDEX_NULL; i = g_sprite_list[i].vehicle.next) {
-				vehicle_update_sound_params(&g_sprite_list[i].vehicle);
+			for (uint16 i = gSpriteListHead[SPRITE_LIST_VEHICLE]; i != SPRITE_INDEX_NULL; i = get_sprite(i)->vehicle.next) {
+				vehicle_update_sound_params(&get_sprite(i)->vehicle);
 			}
 			for(int i = 0; i < countof(gVehicleSoundList); i++){
 				rct_vehicle_sound* vehicle_sound = &gVehicleSoundList[i];
@@ -539,7 +730,7 @@ void vehicle_sounds_update()
 				}
 
 				// do sound1 stuff, track noise
-				rct_sprite* sprite = &g_sprite_list[vehicle_sound_params->id];
+				rct_sprite* sprite = get_sprite(vehicle_sound_params->id);
 				int volume = sprite->vehicle.sound1_volume;
 				volume *= vol1;
 				volume = volume / 8;
@@ -590,7 +781,7 @@ void vehicle_sounds_update()
 					}
 				}
 			label87: // do sound2 stuff, screams
-				sprite = &g_sprite_list[vehicle_sound_params->id];
+				sprite = get_sprite(vehicle_sound_params->id);
 				volume = sprite->vehicle.sound2_volume;
 				volume *= vol1;
 				volume = (uint16)volume / 8;
@@ -671,7 +862,7 @@ void vehicle_update_all()
 
 	sprite_index = gSpriteListHead[SPRITE_LIST_VEHICLE];
 	while (sprite_index != SPRITE_INDEX_NULL) {
-		vehicle = &(g_sprite_list[sprite_index].vehicle);
+		vehicle = &(get_sprite(sprite_index)->vehicle);
 		sprite_index = vehicle->next;
 
 		vehicle_update(vehicle);
@@ -3619,18 +3810,19 @@ static void vehicle_update_swinging(rct_vehicle* vehicle) {
 		if (rideEntry->flags & RIDE_ENTRY_FLAG_ALTERNATIVE_SWING_MODE_2)
 			swingState += 4;
 	}
-	uint8* edi = RCT2_ADDRESS(0x0099F9D0, uint8*)[swingState];
-	uint8 al = edi[(uint16)(vehicle->current_time + 1)];
+
+	const sint8 *spriteMap = SwingingTimeToSpriteMaps[swingState];
+	sint8 spriteType = spriteMap[vehicle->current_time + 1];
 
 	// 0x80 indicates that a complete swing has been
 	// completed and the next swing can start
-	if (al != 0x80) {
+	if (spriteType != -128) {
 		vehicle->current_time++;
-		if (al == vehicle->vehicle_sprite_type)
-			return;
-		// Used to know which sprite to draw
-		vehicle->vehicle_sprite_type = al;
-		vehicle_invalidate(vehicle);
+		if ((uint8)spriteType != vehicle->vehicle_sprite_type) {
+			// Used to know which sprite to draw
+			vehicle->vehicle_sprite_type = (uint8)spriteType;
+			vehicle_invalidate(vehicle);
+		}
 		return;
 	}
 
@@ -3756,8 +3948,7 @@ static void vehicle_update_simulator_operating(rct_vehicle* vehicle) {
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	uint8* edi = RCT2_ADDRESS(0x009A042C, uint8*)[vehicle->sub_state];
-
+	uint8* edi = (uint8*)0x009A0434;
 	uint8 al = edi[(uint16)(vehicle->current_time + 1)];
 	if (al != 0xFF) {
 		vehicle->current_time++;
@@ -3785,15 +3976,15 @@ static void vehicle_update_rotating(rct_vehicle* vehicle) {
 	rct_ride* ride = get_ride(vehicle->ride);
 	rct_ride_entry* rideEntry = get_ride_entry(vehicle->ride_subtype);
 
-	uint8* edi;
+	const uint8* edi;
 	if (rideEntry->flags & RIDE_ENTRY_FLAG_ALTERNATIVE_ROTATION_MODE_1) {
-		edi = RCT2_ADDRESS(0x0099F0F4, uint8*)[vehicle->sub_state];
+		edi = Rotation1TimeToSpriteMaps[vehicle->sub_state];
 	}
 	else if (rideEntry->flags & RIDE_ENTRY_FLAG_ALTERNATIVE_ROTATION_MODE_2) {
-		edi = RCT2_ADDRESS(0x009A2428, uint8*)[vehicle->sub_state];
+		edi = Rotation2TimeToSpriteMaps[vehicle->sub_state];
 	}
 	else {
-		edi = RCT2_ADDRESS(0x0099EB1C, uint8*)[vehicle->sub_state];
+		edi = Rotation3TimeToSpriteMaps[vehicle->sub_state];
 	}
 
 	sint32 var_4C = (sint16)vehicle->current_time;
@@ -3856,26 +4047,24 @@ static void vehicle_update_rotating(rct_vehicle* vehicle) {
  *
  *  rct2: 0x006D97CB
  */
-static void vehicle_update_space_rings_operating(rct_vehicle* vehicle) {
+static void vehicle_update_space_rings_operating(rct_vehicle *vehicle)
+{
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	uint8* edi = RCT2_ADDRESS(0x009A0ACC, uint8*)[vehicle->sub_state];
-
-	uint8 al = edi[(uint16)(vehicle->current_time + 1)];
-	if (al != 0xFF) {
+	uint8 spriteType = SpaceRingsTimeToSpriteMap[vehicle->current_time + 1];
+	if (spriteType != 255) {
 		vehicle->current_time++;
-		if (al == vehicle->vehicle_sprite_type)
-			return;
-		vehicle->vehicle_sprite_type = al;
-		vehicle_invalidate(vehicle);
-		return;
+		if (spriteType != vehicle->vehicle_sprite_type) {
+			vehicle->vehicle_sprite_type = spriteType;
+			vehicle_invalidate(vehicle);
+		}
+	} else {
+		vehicle->status = VEHICLE_STATUS_ARRIVING;
+		vehicle_invalidate_window(vehicle);
+		vehicle->sub_state = 0;
+		vehicle->var_C0 = 0;
 	}
-
-	vehicle->status = VEHICLE_STATUS_ARRIVING;
-	vehicle_invalidate_window(vehicle);
-	vehicle->sub_state = 0;
-	vehicle->var_C0 = 0;
 }
 
 /**
@@ -3896,10 +4085,7 @@ static void vehicle_update_haunted_house_operating(rct_vehicle* vehicle) {
 		}
 	}
 
-	uint16* edi = RCT2_ADDRESS(0x009A0ABC, uint16*)[vehicle->sub_state];
-
-	uint16 ax = *edi;
-	if ((uint16)(vehicle->current_time + 1) > ax) {
+	if (vehicle->current_time + 1 > 1500) {
 		vehicle->status = VEHICLE_STATUS_ARRIVING;
 		vehicle_invalidate_window(vehicle);
 		vehicle->sub_state = 0;
@@ -3975,8 +4161,7 @@ static void vehicle_update_top_spin_operating(rct_vehicle* vehicle) {
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	uint8* edi = RCT2_ADDRESS(0x009A12E0, uint8*)[vehicle->sub_state];
-
+	const uint8* edi = TopSpinTimeToSpriteMaps[vehicle->sub_state];
 	uint8 al = edi[(vehicle->current_time + 1) * 2];
 	if (al != 0xFF) {
 		vehicle->current_time = vehicle->current_time + 1;
@@ -4028,14 +4213,11 @@ static void vehicle_update_showing_film(rct_vehicle *vehicle)
  */
 static void vehicle_update_doing_circus_show(rct_vehicle *vehicle)
 {
-	int currentTime, totalTime;
-
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	totalTime = *(RCT2_ADDRESS(0x009A0AB4, uint16*)[vehicle->sub_state]);
-	currentTime = vehicle->current_time + 1;
-	if (currentTime <= totalTime) {
+	int currentTime = vehicle->current_time + 1;
+	if (currentTime <= 5000) {
 		vehicle->current_time = currentTime;
 	} else {
 		vehicle->status = VEHICLE_STATUS_ARRIVING;
@@ -4454,7 +4636,7 @@ static int vehicle_update_scream_sound(rct_vehicle *vehicle)
 
 		spriteIndex = vehicle->sprite_index;
 		do {
-			vehicle2 = &(g_sprite_list[spriteIndex].vehicle);
+			vehicle2 = &(get_sprite(spriteIndex)->vehicle);
 			if (vehicle2->vehicle_sprite_type < 1)
 				continue;
 			if (vehicle2->vehicle_sprite_type <= 4)
@@ -4472,7 +4654,7 @@ static int vehicle_update_scream_sound(rct_vehicle *vehicle)
 
 	spriteIndex = vehicle->sprite_index;
 	do {
-		vehicle2 = &(g_sprite_list[spriteIndex].vehicle);
+		vehicle2 = &(get_sprite(spriteIndex)->vehicle);
 		if (vehicle2->vehicle_sprite_type < 5)
 			continue;
 		if (vehicle2->vehicle_sprite_type <= 8)
@@ -5291,8 +5473,9 @@ bool vehicle_update_bumper_car_collision(rct_vehicle *vehicle, sint16 x, sint16 
 	uint8 rideIndex = vehicle->ride;
 	for (sint32* ebp = RCT2_ADDRESS(0x009A37C4, sint32); ebp <= RCT2_ADDRESS(0x009A37E4, sint32); ebp++) {
 		uint16 spriteIdx = gSpriteSpatialIndex[location];
-		for (rct_vehicle* vehicle2 = GET_VEHICLE(spriteIdx); spriteIdx != 0xFFFF; spriteIdx = vehicle2->next_in_quadrant) {
-			vehicle2 = GET_VEHICLE(spriteIdx);
+		while (spriteIdx != 0xFFFF) {
+			rct_vehicle* vehicle2 = GET_VEHICLE(spriteIdx);
+			spriteIdx = vehicle2->next_in_quadrant;
 
 			if (vehicle2 == vehicle)
 				continue;
@@ -5421,7 +5604,11 @@ static void apply_block_brakes(rct_vehicle *vehicle, bool is_block_brake_closed)
 			vehicle->velocity -= vehicle->velocity >> 3;
 		}
 	} else {
-		apply_non_stop_block_brake(vehicle, is_block_brake_closed);
+#ifdef NEW_BLOCK_BRAKES
+		apply_non_stop_block_brake(vehicle, false);
+#else
+		apply_non_stop_block_brake(vehicle, true);
+#endif
 	}
 }
 
@@ -5472,8 +5659,13 @@ static void check_and_apply_block_section_stop_site(rct_vehicle *vehicle)
 	case TRACK_ELEM_CABLE_LIFT_HILL:
 	case TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT:
 	case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
-		if (ride_is_block_sectioned(ride))
-			apply_block_brakes(vehicle, trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED);
+		if(ride_is_block_sectioned(ride)){
+			if(trackType == TRACK_ELEM_CABLE_LIFT_HILL || track_element_is_lift_hill(trackElement)) {
+				if (trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED) {
+					apply_block_brakes(vehicle, true);
+				}
+			}
+		}
 
 		break;
 	}
@@ -6733,7 +6925,7 @@ static void sub_6DBF3E(rct_vehicle *vehicle)
 	}
 
 	if (trackType == TRACK_ELEM_TOWER_BASE &&
-		vehicle == RCT2_GLOBAL(0x00F64E04, rct_vehicle*)
+		vehicle == gCurrentVehicle
 	) {
 		if (vehicle->track_progress > 3 && !(vehicle->update_flags & VEHICLE_UPDATE_FLAG_3)) {
 			rct_xy_element input, output;
@@ -6753,7 +6945,7 @@ static void sub_6DBF3E(rct_vehicle *vehicle)
 	}
 
 	if (trackType != TRACK_ELEM_END_STATION ||
-		vehicle != RCT2_GLOBAL(0x00F64E04, rct_vehicle*)
+		vehicle != gCurrentVehicle
 	) {
 		return;
 	}
@@ -6794,7 +6986,7 @@ static bool vehicle_update_track_motion_forwards_get_new_track(rct_vehicle *vehi
 		trackType,
 		0
 		);
-	if (trackType == TRACK_ELEM_CABLE_LIFT_HILL && vehicle == RCT2_GLOBAL(0x00F64E04, rct_vehicle*)) {
+	if (trackType == TRACK_ELEM_CABLE_LIFT_HILL && vehicle == gCurrentVehicle) {
 		RCT2_GLOBAL(0x00F64E18, uint32) |= VEHICLE_UPDATE_MOTION_TRACK_FLAG_11;
 	}
 
@@ -7405,7 +7597,7 @@ loc_6DBE7F:
 	vehicle->remaining_distance -= regs.eax;
 
 	rct_vehicle *v3 = GET_VEHICLE(regs.bp);
-	rct_vehicle *v4 = RCT2_GLOBAL(0x00F64E04, rct_vehicle*);
+	rct_vehicle *v4 = gCurrentVehicle;
 	regs.eax = abs(v4->velocity - v3->velocity);
 
 	if (!(rideEntry->flags & RIDE_ENTRY_FLAG_18)) {
@@ -7444,7 +7636,7 @@ static int vehicle_update_track_motion_mini_golf(rct_vehicle *vehicle, int* outS
 
 	rct_map_element *mapElement = NULL;
 
-	RCT2_GLOBAL(0x00F64E04, rct_vehicle*) = vehicle;
+	gCurrentVehicle = vehicle;
 	RCT2_GLOBAL(0x00F64E18, uint32) = 0;
 	vehicle->velocity += vehicle->acceleration;
 	RCT2_GLOBAL(0x00F64E08, sint32) = vehicle->velocity;
@@ -7888,7 +8080,7 @@ loc_6DCD6B:
 	RCT2_GLOBAL(0x00F64E0C, sint32) -= regs.eax;
 	vehicle->remaining_distance -= regs.eax;
 	rct_vehicle *vEBP = GET_VEHICLE(regs.bp);
-	rct_vehicle *vEDI = RCT2_GLOBAL(0x00F64E04, rct_vehicle *);
+	rct_vehicle *vEDI = gCurrentVehicle;
 	regs.eax = abs(vEDI->velocity - vEBP->velocity);
 	if (regs.eax > 0xE0000) {
 		if (!(vehicleEntry->flags_b & VEHICLE_ENTRY_FLAG_B_6)) {
@@ -7917,7 +8109,7 @@ loc_6DCE02:
 	if (trackType != TRACK_ELEM_END_STATION) {
 		goto loc_6DCEB2;
 	}
-	if (vehicle != RCT2_GLOBAL(0x00F64E04, rct_vehicle*)) {
+	if (vehicle != gCurrentVehicle) {
 		goto loc_6DCEB2;
 	}
 	regs.ax = vehicle->track_progress;
@@ -7963,14 +8155,14 @@ loc_6DCEB2:
 		goto loc_6DC40E;
 	}
 
-	if (vehicle == RCT2_GLOBAL(0x00F64E04, rct_vehicle*)) {
+	if (vehicle == gCurrentVehicle) {
 		goto loc_6DCEFF;
 	}
 	vehicle = GET_VEHICLE(vehicle->prev_vehicle_on_ride);
 	goto loc_6DC40E;
 
 loc_6DCEFF:
-	vehicle = RCT2_GLOBAL(0x00F64E04, rct_vehicle*);
+	vehicle = gCurrentVehicle;
 	regs.eax = 0;
 	regs.ebp = 0;
 	regs.dx = 0;
@@ -7988,7 +8180,7 @@ loc_6DCEFF:
 		vehicle = GET_VEHICLE((uint16)regs.si);
 	}
 
-	vehicle = RCT2_GLOBAL(0x00F64E04, rct_vehicle*);
+	vehicle = gCurrentVehicle;
 	regs.eax /= regs.ebx;
 	regs.ecx = (regs.eax * 21) >> 9;
 	regs.eax = vehicle->velocity >> 12;
@@ -8082,7 +8274,7 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 	}
 
 	RCT2_GLOBAL(0x00F64E2C, uint8) = 0;
-	RCT2_GLOBAL(0x00F64E04, rct_vehicle*) = vehicle;
+	gCurrentVehicle = vehicle;
 	RCT2_GLOBAL(0x00F64E18, uint32) = 0;
 	RCT2_GLOBAL(0x00F64E1C, uint32) = 0xFFFFFFFF;
 
@@ -8098,7 +8290,8 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 	RCT2_GLOBAL(0x00F64E00, rct_vehicle*) = vehicle;
 
 	uint16 spriteId = vehicle->sprite_index;
-	for (rct_vehicle* car = vehicle; spriteId != 0xFFFF; car = GET_VEHICLE(spriteId)) {
+	while (spriteId != 0xFFFF) {
+		rct_vehicle* car = GET_VEHICLE(spriteId);
 		vehicleEntry = vehicle_get_vehicle_entry(car);
 
 		// Swinging cars
@@ -8173,14 +8366,14 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 			spriteId = car->next_vehicle_on_train;
 		}
 		else {
-			if (car == RCT2_GLOBAL(0x00F64E04, rct_vehicle*)) {
+			if (car == gCurrentVehicle) {
 				break;
 			}
 			spriteId = car->prev_vehicle_on_ride;
 		}
 	}
 	// loc_6DC144
-	vehicle = RCT2_GLOBAL(0x00F64E04, rct_vehicle*);
+	vehicle = gCurrentVehicle;
 
 	vehicleEntry = vehicle_get_vehicle_entry(vehicle);
 	//eax
@@ -8206,7 +8399,7 @@ int vehicle_update_track_motion(rct_vehicle *vehicle, int *outStation)
 		vehicle = GET_VEHICLE(spriteIndex);
 	}
 
-	vehicle = RCT2_GLOBAL(0x00F64E04, rct_vehicle*);
+	vehicle = gCurrentVehicle;
 	regs.eax = (totalAcceleration / numVehicles) * 21;
 	if (regs.eax < 0) {
 		regs.eax += 511;
@@ -8287,7 +8480,7 @@ loc_6DC23A:
 	regs.eax /= regs.ebx;
 
 	if (vehicleEntry->flags_a & VEHICLE_ENTRY_FLAG_A_15) {
-		regs.eax <<= 2;
+		regs.eax *= 4;
 	}
 
 	if (!(vehicleEntry->flags_b & VEHICLE_ENTRY_FLAG_B_13)) {
@@ -8393,7 +8586,7 @@ int vehicle_get_total_num_peeps(rct_vehicle *vehicle)
 		if (spriteIndex == SPRITE_INDEX_NULL)
 			break;
 
-		vehicle = &(g_sprite_list[spriteIndex].vehicle);
+		vehicle = &(get_sprite(spriteIndex)->vehicle);
 	}
 
 	return numPeeps;
