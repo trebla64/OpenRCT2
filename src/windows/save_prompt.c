@@ -168,6 +168,10 @@ void window_save_prompt_open()
 		height = 50;
 	}
 
+	if (prompt_mode >= countof(window_save_prompt_labels)) {
+		log_warning("Invalid save prompt mode %u", prompt_mode);
+		return;
+	}
 	window = window_create_centred(
 		width,
 		height,
