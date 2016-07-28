@@ -401,6 +401,7 @@ void sprite_clear_all_unused();
 void move_sprite_to_list(rct_sprite *sprite, uint8 cl);
 void sprite_misc_update_all();
 void sprite_move(sint16 x, sint16 y, sint16 z, rct_sprite* sprite);
+void sprite_set_coordinates(sint16 x, sint16 y, sint16 z, rct_sprite *sprite);
 void invalidate_sprite_0(rct_sprite* sprite);
 void invalidate_sprite_1(rct_sprite *sprite);
 void invalidate_sprite_2(rct_sprite *sprite);
@@ -439,5 +440,7 @@ void crashed_vehicle_particle_create(rct_vehicle_colour colours, int x, int y, i
 void crashed_vehicle_particle_update(rct_crashed_vehicle_particle *particle);
 void crash_splash_create(int x, int y, int z);
 void crash_splash_update(rct_crash_splash *splash);
+
+const char *sprite_checksum();
 
 #endif

@@ -162,10 +162,55 @@ void reset_sprite_spatial_index()
 void game_command_reset_sprites(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* edi, int* ebp)
 {
 	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
+		reset_all_sprite_quadrant_placements();
 		reset_sprite_spatial_index();
 	}
 	*ebx = 0;
 }
+
+#ifndef DISABLE_NETWORK
+
+static unsigned char _spriteChecksum[EVP_MAX_MD_SIZE + 1];
+
+const char * sprite_checksum()
+{
+	if (EVP_DigestInit_ex(gHashCTX, EVP_sha1(), NULL) <= 0)
+	{
+		openrct2_assert(false, "Failed to initialise SHA1 engine");
+	}
+	for (size_t i = 0; i < MAX_SPRITES; i++)
+	{
+		rct_sprite *sprite = get_sprite(i);
+		if (sprite->unknown.sprite_identifier != SPRITE_IDENTIFIER_NULL)
+		{
+			if (EVP_DigestUpdate(gHashCTX, sprite, sizeof(rct_sprite)) <= 0)
+			{
+				openrct2_assert(false, "Failed to update digest");
+			}
+		}
+	}
+	unsigned char localhash[EVP_MAX_MD_SIZE + 1];
+	unsigned int size = sizeof(localhash);
+	EVP_DigestFinal(gHashCTX, localhash, &size);
+	assert(size <= sizeof(localhash));
+	localhash[sizeof(localhash) - 1] = '\0';
+	char *x = (char *)_spriteChecksum;
+	for (unsigned int i = 0; i < size; i++)
+	{
+		sprintf(x, "%02x", localhash[i]);
+		x += 2;
+	}
+	*x = '\0';
+	return (char *)_spriteChecksum;
+}
+#else
+
+const char * sprite_checksum()
+{
+	return NULL;
+}
+
+#endif // DISABLE_NETWORK
 
 /**
  * Clears all the unused sprite memory to zero. Probably so that it can be compressed better when saving.
@@ -191,6 +236,22 @@ void sprite_clear_all_unused()
 	}
 }
 
+static void sprite_reset(rct_unk_sprite *sprite)
+{
+	// Need to retain how the sprite is linked in lists
+	uint8 llto = sprite->linked_list_type_offset;
+	uint16 next = sprite->next;
+	uint16 prev = sprite->previous;
+	uint16 sprite_index = sprite->sprite_index;
+
+	memset(sprite, 0, sizeof(rct_sprite));
+
+	sprite->linked_list_type_offset = llto;
+	sprite->next = next;
+	sprite->previous = prev;
+	sprite->sprite_index = sprite_index;
+}
+
 /*
 * rct2: 0x0069EC6B
 * bl: if bl & 2 > 0, the sprite ends up in the MISC linked list.
@@ -212,6 +273,10 @@ rct_sprite *create_sprite(uint8 bl)
 	rct_unk_sprite *sprite = &(get_sprite(gSpriteListHead[SPRITE_LIST_NULL]))->unknown;
 
 	move_sprite_to_list((rct_sprite *)sprite, (uint8)linkedListTypeOffset);
+
+	// Need to reset all sprite data, as the uninitialised values
+	// may contain garbage and cause a desync later on.
+	sprite_reset(sprite);
 
 	sprite->x = SPRITE_LOCATION_NULL;
 	sprite->y = SPRITE_LOCATION_NULL;
@@ -492,6 +557,12 @@ void sprite_move(sint16 x, sint16 y, sint16 z, rct_sprite* sprite){
 	sprite->unknown.sprite_right = new_x + sprite->unknown.sprite_width;
 	sprite->unknown.sprite_top = new_y - sprite->unknown.sprite_height_negative;
 	sprite->unknown.sprite_bottom = new_y + sprite->unknown.sprite_height_positive;
+	sprite->unknown.x = x;
+	sprite->unknown.y = y;
+	sprite->unknown.z = z;
+}
+
+void sprite_set_coordinates(sint16 x, sint16 y, sint16 z, rct_sprite *sprite){
 	sprite->unknown.x = x;
 	sprite->unknown.y = y;
 	sprite->unknown.z = z;

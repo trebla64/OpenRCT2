@@ -55,7 +55,6 @@
 #include "world/scenery.h"
 #include "world/sprite.h"
 #include "world/water.h"
-#include <time.h>
 
 #define NUMBER_OF_AUTOSAVES_TO_KEEP 9
 
@@ -271,13 +270,13 @@ void game_update()
 			// make sure client doesn't fall behind the server too much
 			numUpdates += 10;
 		}
-	} else {
-		if (game_is_paused()) {
-			numUpdates = 0;
-			// Update the animation list. Note this does not 
-			// increment the map animation.
-			map_animation_invalidate_all();
-		}
+	}
+
+	if (game_is_paused()) {
+		numUpdates = 0;
+		// Update the animation list. Note this does not
+		// increment the map animation.
+		map_animation_invalidate_all();
 	}
 
 	// Update the game one or more times
@@ -984,18 +983,17 @@ void game_autosave()
 	utf8 path[MAX_PATH];
 	utf8 backupPath[MAX_PATH];
 	utf8 timeString[21]="";
-	
-	time_t rawtime;
-	struct tm * timeinfo;
-	
-	time ( &rawtime );
-	timeinfo = localtime ( &rawtime );
+
+	// retrieve current time
+	rct2_date currentDate;
+	platform_get_date_local(&currentDate);
+	rct2_time currentTime;
+	platform_get_time_local(&currentTime);
+
+	sprintf(timeString, "%d-%02d-%02d_%02d-%02d-%02d", currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute,currentTime.second);
 
 	limit_autosave_count(NUMBER_OF_AUTOSAVES_TO_KEEP);
-	
-	snprintf(timeString, 20, "%d-%02d-%02d_%02d-%02d-%02d", 1900+timeinfo->tm_year, 1+timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-	
-	
+
 	platform_get_user_directory(path, "save");
 	safe_strcpy(backupPath, path, MAX_PATH);
 

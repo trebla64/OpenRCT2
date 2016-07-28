@@ -3185,6 +3185,10 @@ static void vehicle_update_arriving(rct_vehicle* vehicle) {
 		vehicle->track_z / 8
 		);
 
+	if (mapElement == NULL) {
+		return;
+	}
+
 	vehicle->current_station = map_get_station(mapElement);
 	vehicle->num_laps++;
 
@@ -5641,16 +5645,20 @@ static void check_and_apply_block_section_stop_site(rct_vehicle *vehicle)
 		trackType
 	);
 
+	if (trackElement == NULL) {
+		return;
+	}
+
 	switch (trackType) {
 	case TRACK_ELEM_BLOCK_BRAKES:
 		if (ride_is_block_sectioned(ride))
-			apply_block_brakes(vehicle, trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED);
+			apply_block_brakes(vehicle, trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED);
 		else
 			apply_non_stop_block_brake(vehicle, true);
 
 		break;
 	case TRACK_ELEM_END_STATION:
-		if (trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED)
+		if (trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED)
 			RCT2_GLOBAL(0x00F64E18, uint32) |= VEHICLE_UPDATE_MOTION_TRACK_FLAG_10;
 
 		break;
@@ -5661,12 +5669,11 @@ static void check_and_apply_block_section_stop_site(rct_vehicle *vehicle)
 	case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
 		if(ride_is_block_sectioned(ride)){
 			if(trackType == TRACK_ELEM_CABLE_LIFT_HILL || track_element_is_lift_hill(trackElement)) {
-				if (trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED) {
+				if (trackElement->flags & MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED) {
 					apply_block_brakes(vehicle, true);
 				}
 			}
 		}
-
 		break;
 	}
 }
@@ -5727,7 +5734,7 @@ static void vehicle_update_block_breaks_open_previous_section(rct_vehicle *vehic
 	if (mapElement == NULL) {
 		return;
 	}
-	mapElement->flags &= ~MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED;
+	mapElement->flags &= ~MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED;
 	map_invalidate_element(x, y, mapElement);
 
 	int trackType = mapElement->properties.track.type;
@@ -6918,8 +6925,12 @@ static void sub_6DBF3E(rct_vehicle *vehicle)
 			trackType,
 			0
 		);
-
 	}
+
+	if (mapElement == NULL) {
+		return;
+	}
+
 	if (RCT2_GLOBAL(0x00F64E1C, uint32) == 0xFFFFFFFF) {
 		RCT2_GLOBAL(0x00F64E1C, uint32) = (mapElement->properties.track.sequence >> 4) & 7;
 	}
@@ -6986,13 +6997,18 @@ static bool vehicle_update_track_motion_forwards_get_new_track(rct_vehicle *vehi
 		trackType,
 		0
 		);
+
+	if (mapElement == NULL) {
+		return false;
+	}
+
 	if (trackType == TRACK_ELEM_CABLE_LIFT_HILL && vehicle == gCurrentVehicle) {
 		RCT2_GLOBAL(0x00F64E18, uint32) |= VEHICLE_UPDATE_MOTION_TRACK_FLAG_11;
 	}
 
 	if (track_element_is_block_start(mapElement)) {
 		if (vehicle->next_vehicle_on_train == SPRITE_INDEX_NULL) {
-			mapElement->flags |= MAP_ELEMENT_FLAG_BLOCK_BREAK_CLOSED;
+			mapElement->flags |= MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED;
 			if (trackType == TRACK_ELEM_BLOCK_BRAKES || trackType == TRACK_ELEM_END_STATION) {
 				if (!(rideEntry->vehicles[0].flags_b & VEHICLE_ENTRY_FLAG_B_3)) {
 					audio_play_sound_at_location(SOUND_49, vehicle->track_x, vehicle->track_y, vehicle->track_z);
@@ -7622,6 +7638,8 @@ loc_6DBE7F:
 	return false;
 }
 
+extern const uint8 mini_golf_peep_animation_lengths[];
+
 /**
  *  rct2: 0x006DC3A7
  *
@@ -7672,10 +7690,9 @@ loc_6DC462:
 
 loc_6DC476:
 	if (vehicle->mini_golf_flags & (1 << 2)) {
-		regs.edi = RCT2_ADDRESS(0x008B8F74, uint32)[vehicle->var_D4];
-		regs.al = vehicle->var_C5 + 1;
-		if ((uint8)regs.al < ((uint8*)regs.edi)[-1]) {
-			vehicle->var_C5 = regs.al;
+		uint8 nextFrame = vehicle->var_C5 + 1;
+		if (nextFrame < mini_golf_peep_animation_lengths[vehicle->mini_golf_current_animation]) {
+			vehicle->var_C5 = nextFrame;
 			goto loc_6DC985;
 		}
 		vehicle->mini_golf_flags &= ~(1 << 2);
@@ -7853,7 +7870,7 @@ loc_6DC743:
 					z = 8;
 				}
 			}
-			vehicle->var_D4 = (uint8)z;
+			vehicle->mini_golf_current_animation = (uint8)z;
 			vehicle->var_C5 = 0;
 			vehicle->track_progress++;
 			break;
@@ -8477,7 +8494,9 @@ loc_6DC23A:
 	regs.edx = vehicle->powered_acceleration;
 	regs.edx <<= 1;
 	regs.eax *= regs.edx;
-	regs.eax /= regs.ebx;
+	if (regs.ebx != 0) {
+		regs.eax /= regs.ebx;
+	}
 
 	if (vehicleEntry->flags_a & VEHICLE_ENTRY_FLAG_A_15) {
 		regs.eax *= 4;

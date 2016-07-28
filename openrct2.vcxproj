@@ -56,7 +56,6 @@
     <ClCompile Include="src\drawing\drawing.c" />
     <ClCompile Include="src\drawing\drawing_fast.cpp" />
     <ClCompile Include="src\drawing\engines\opengl\CopyFramebufferShader.cpp" />
-    <ClCompile Include="src\drawing\engines\opengl\DrawImageMaskedShader.cpp" />
     <ClCompile Include="src\drawing\engines\opengl\DrawImageShader.cpp" />
     <ClCompile Include="src\drawing\engines\opengl\DrawLineShader.cpp" />
     <ClCompile Include="src\drawing\engines\opengl\FillRectShader.cpp" />
@@ -279,6 +278,7 @@
     <ClCompile Include="src\windows\cheats.c" />
     <ClCompile Include="src\windows\clear_scenery.c" />
     <ClCompile Include="src\windows\custom_currency.c" />
+    <ClCompile Include="src\windows\debug_paint.c" />
     <ClCompile Include="src\windows\demolish_ride_prompt.c" />
     <ClCompile Include="src\windows\dropdown.c" />
     <ClCompile Include="src\windows\editor_bottom_toolbar.c" />
@@ -353,6 +353,7 @@
     <ClInclude Include="src\audio\mixer.h" />
     <ClInclude Include="src\cheats.h" />
     <ClInclude Include="src\cmdline\CommandLine.hpp" />
+    <ClInclude Include="src\cmdline_sprite.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\core\Console.hpp" />
@@ -381,7 +382,7 @@
     <ClInclude Include="src\drawing\drawing.h" />
     <ClInclude Include="src\drawing\engines\OpenGLAPI.h" />
     <ClInclude Include="src\drawing\engines\opengl\CopyFramebufferShader.h" />
-    <ClInclude Include="src\drawing\engines\opengl\DrawImageMaskedShader.h" />
+    <ClInclude Include="src\drawing\engines\opengl\DrawCommands.h" />
     <ClInclude Include="src\drawing\engines\opengl\DrawImageShader.h" />
     <ClInclude Include="src\drawing\engines\opengl\DrawLineShader.h" />
     <ClInclude Include="src\drawing\engines\opengl\FillRectShader.h" />

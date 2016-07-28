@@ -461,6 +461,7 @@ enum {
 	WC_SERVER_LIST = 127,
 	WC_SERVER_START = 128,
 	WC_CUSTOM_CURRENCY_CONFIG = 129,
+	WC_DEBUG_PAINT = 130,
 
 	// Only used for colour schemes
 	WC_STAFF = 220,
@@ -515,11 +516,12 @@ extern modal_callback gLoadSaveCallback;
 
 typedef void (*close_callback)();
 
-#define WINDOW_LIMIT_MIN 8
+#define WINDOW_LIMIT_MIN 4
 #define WINDOW_LIMIT_MAX 64
+#define WINDOW_LIMIT_RESERVED 4 // Used to reserve room for the main viewport, toolbars, etc.
 
 // rct2: 0x01420078
-extern rct_window g_window_list[WINDOW_LIMIT_MAX];
+extern rct_window g_window_list[WINDOW_LIMIT_MAX + WINDOW_LIMIT_RESERVED];
 
 extern rct_window * gWindowFirst;
 extern rct_window * gWindowNextSlot;
@@ -687,6 +689,7 @@ void window_text_input_raw_open(rct_window* call_w, int call_widget, rct_string_
 rct_window *window_mapgen_open();
 rct_window *window_loadsave_open(int type, char *defaultName);
 rct_window *window_changelog_open();
+void window_debug_paint_open();
 
 void window_editor_main_open();
 void window_editor_bottom_toolbar_open();
