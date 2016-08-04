@@ -260,7 +260,7 @@ static rct_track_td6 *track_design_open_from_buffer(uint8 *src, size_t srcLength
 
 	td6->var_50 = min(
 		td6->var_50,
-		RCT2_GLOBAL(RCT2_ADDRESS_RIDE_FLAGS + 5 + (td6->type * 8), uint8)
+		RideProperties[td6->type].max_value
 	);
 
 	// Set the element helper pointers
@@ -1599,7 +1599,7 @@ static money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry,
 		rct_map_element *mapElement = map_element_insert(fx >> 5, fy >> 5, fz, 15);
 		mapElement->clearance_height = fz + 4;
 		mapElement->type = MAP_ELEMENT_TYPE_TRACK;
-		mapElement->properties.track.type = 101;
+		mapElement->properties.track.type = TRACK_ELEM_MAZE;
 		mapElement->properties.track.ride_index = rideIndex;
 		mapElement->properties.track.maze_entry = mazeEntry;
 		if (flags & GAME_COMMAND_FLAG_GHOST) {
