@@ -2507,8 +2507,8 @@ static rct_string_id window_ride_get_status_overall_view(rct_window *w, void *ar
 	rct_string_id stringId;
 
 	ride_get_status(w->number, &formatSecondary, &argument);
-	RCT2_GLOBAL((uintptr_t)arguments + 0, uint16) = formatSecondary;
-	RCT2_GLOBAL((uintptr_t)arguments + 2, uintptr_t) = argument;
+	*(uint16*)((uintptr_t)arguments + 0) = formatSecondary;
+	*(uintptr_t*)((uintptr_t)arguments + 2) = argument;
 	stringId = STR_RED_OUTLINED_STRING;
 	if (formatSecondary != STR_BROKEN_DOWN && formatSecondary != STR_CRASHED)
 		stringId = STR_BLACK_STRING;
@@ -2554,7 +2554,7 @@ static rct_string_id window_ride_get_status_vehicle(rct_window *w, void *argumen
 	stringId = VehicleStatusNames[vehicle->status];
 
 	// Get speed in mph
-	RCT2_GLOBAL((uintptr_t)arguments + 2, uint16) = (abs(vehicle->velocity) * 9) >> 18;
+	*((uint16*)((uintptr_t)arguments + 2)) = (abs(vehicle->velocity) * 9) >> 18;
 
 	if (ride->type == RIDE_TYPE_MINI_GOLF)
 		return 0;
@@ -2564,9 +2564,9 @@ static rct_string_id window_ride_get_status_vehicle(rct_window *w, void *argumen
 	}
 
 	const ride_component_name stationName = RideComponentNames[RideNameConvention[ride->type].station];
-	RCT2_GLOBAL((uintptr_t)arguments + 4, rct_string_id) = (ride->num_stations > 1) ? stationName.number : stationName.singular;
-	RCT2_GLOBAL((uintptr_t)arguments + 6, uint16) = vehicle->current_station + 1;
-	RCT2_GLOBAL((uintptr_t)arguments + 0, rct_string_id) = stringId;
+	*(rct_string_id*)((uintptr_t)arguments + 4) = (ride->num_stations > 1) ? stationName.number : stationName.singular;
+	*((uint16*)((uintptr_t)arguments + 6)) = vehicle->current_station + 1;
+	*(rct_string_id*)((uintptr_t)arguments + 0) = stringId;
 	return stringId != STR_CRASHING && stringId != STR_CRASHED_0 ? STR_BLACK_STRING : STR_RED_OUTLINED_STRING;
 }
 
@@ -5888,7 +5888,7 @@ static void window_ride_income_toggle_secondary_price(rct_window *w)
 
 	shop_item = ride_type->shop_item_secondary;
 	if (shop_item == 0xFF)
-		shop_item = RCT2_GLOBAL(0x0097D7CB + (ride->type * 4), uint8);
+		shop_item = RidePhotoItems[ride->type];
 
 	update_same_price_throughout_flags(shop_item);
 
@@ -6123,7 +6123,7 @@ static void window_ride_income_invalidate(rct_window *w)
 	}
 
 	// Get secondary item
-	secondaryItem = RCT2_GLOBAL(0x0097D7CB + (ride->type * 4), uint8);
+	secondaryItem = RidePhotoItems[ride->type];
 	if (!(ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO)) {
 		if ((secondaryItem = rideEntry->shop_item_secondary) != SHOP_ITEM_NONE) {
 			window_ride_income_widgets[WIDX_SECONDARY_PRICE_LABEL].text = ShopItemStringIds[secondaryItem].price_label;
@@ -6199,7 +6199,7 @@ static void window_ride_income_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	y += 39;
 
 	// Secondary item profit / loss per item sold
-	secondaryItem = RCT2_GLOBAL(0x0097D7CB + (ride->type * 4), uint8);
+	secondaryItem = RidePhotoItems[ride->type];
 	if (!(ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO))
 		secondaryItem = rideEntry->shop_item_secondary;
 
@@ -6418,7 +6418,7 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Secondary shop items sold / on-ride photos sold
 	shopItem = ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO ?
-		RCT2_GLOBAL(0x0097D7CB + (ride->type * 4), uint8) :
+		RidePhotoItems[ride->type] :
 		get_ride_entry_by_ride(ride)->shop_item_secondary;
 	if (shopItem != SHOP_ITEM_NONE) {
 		set_format_arg(0, uint16, ShopItemStringIds[shopItem].plural);

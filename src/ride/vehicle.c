@@ -77,7 +77,7 @@ static bool vehicle_can_depart_synchronised(rct_vehicle *vehicle);
 
 #define NO_SCREAM 254
 
-rct_xyz16 *unk_F64E20 = (rct_xyz16*)0x00F64E20;
+rct_xyz16 *unk_F64E20 = RCT2_ADDRESS(0x00F64E20, rct_xyz16);
 rct_vehicle *gCurrentVehicle;
 
 const uint8 byte_9A3A14[] = { SOUND_SCREAM_8, SOUND_SCREAM_1 };
@@ -316,30 +316,30 @@ static const sint8 * SwingingTimeToSpriteMaps[] = {
 
 /** rct2: 0x009A12E0 */
 static const uint8 * TopSpinTimeToSpriteMaps[] = {
-	(const uint8*)0x009A12EC,
-	(const uint8*)0x009A1751,
-	(const uint8*)0x009A1CC6,
+	RCT2_ADDRESS(0x009A12EC, const uint8),
+	RCT2_ADDRESS(0x009A1751, const uint8),
+	RCT2_ADDRESS(0x009A1CC6, const uint8),
 };
 
 /** rct2: 0x0099F0F4 */
 static const uint8 * Rotation1TimeToSpriteMaps[] = {
-	(const uint8*)0x0099F100,
-	(const uint8*)0x0099F422,
-	(const uint8*)0x0099F6AB,
+	RCT2_ADDRESS(0x0099F100, const uint8),
+	RCT2_ADDRESS(0x0099F422, const uint8),
+	RCT2_ADDRESS(0x0099F6AB, const uint8),
 };
 
 /** rct2: 0x009A2428 */
 static const uint8 * Rotation2TimeToSpriteMaps[] = {
-	(const uint8*)0x009A2434,
-	(const uint8*)0x009A26A6,
-	(const uint8*)0x009A270E,
+	RCT2_ADDRESS(0x009A2434, const uint8),
+	RCT2_ADDRESS(0x009A26A6, const uint8),
+	RCT2_ADDRESS(0x009A270E, const uint8),
 };
 
 /** rct2: 0x0099EB1C */
 static const uint8 * Rotation3TimeToSpriteMaps[] = {
-	(const uint8*)0x0099EB28,
-	(const uint8*)0x0099ED49,
-	(const uint8*)0x0099EED1,
+	RCT2_ADDRESS(0x0099EB28, const uint8),
+	RCT2_ADDRESS(0x0099ED49, const uint8),
+	RCT2_ADDRESS(0x0099EED1, const uint8),
 };
 
 static bool vehicle_move_info_valid(int cd, int typeAndDirection, int offset)
@@ -3953,7 +3953,7 @@ static void vehicle_update_simulator_operating(rct_vehicle* vehicle) {
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	uint8* edi = (uint8*)0x009A0434;
+	uint8* edi = RCT2_ADDRESS(0x009A0434, uint8);
 	uint8 al = edi[(uint16)(vehicle->current_time + 1)];
 	if (al != 0xFF) {
 		vehicle->current_time++;
@@ -5458,10 +5458,10 @@ bool vehicle_update_bumper_car_collision(rct_vehicle *vehicle, sint16 x, sint16 
 	uint16 bp = (vehicle->var_44 * 30) >> 9;
 	uint32 trackType = vehicle->track_type >> 2;
 
-	sint16 rideLeft = vehicle->track_x + RCT2_ADDRESS(0x0099E228, uint8)[trackType * 4];
-	sint16 rideRight = vehicle->track_x + RCT2_ADDRESS(0x0099E22A, uint8)[trackType * 4];
-	sint16 rideTop = vehicle->track_y + RCT2_ADDRESS(0x0099E229, uint8)[trackType * 4];
-	sint16 rideBottom = vehicle->track_y + RCT2_ADDRESS(0x0099E22B, uint8)[trackType * 4];
+	sint16 rideLeft = vehicle->track_x + DodgemsTrackSize[trackType].left;
+	sint16 rideRight = vehicle->track_x + DodgemsTrackSize[trackType].right;
+	sint16 rideTop = vehicle->track_y + DodgemsTrackSize[trackType].top;
+	sint16 rideBottom = vehicle->track_y + DodgemsTrackSize[trackType].bottom;
 
 	if (x - bp < rideLeft ||
 		y - bp < rideTop ||
@@ -5515,7 +5515,7 @@ bool vehicle_update_bumper_car_collision(rct_vehicle *vehicle, sint16 x, sint16 
 }
 
 // rct2: 0x009A2970
-const sint32 *dword_9A2970 = (sint32*)0x009A2970;
+const sint32 *dword_9A2970 = RCT2_ADDRESS(0x009A2970, sint32);
 
 /**
  *
@@ -6570,7 +6570,7 @@ static bool loc_6DB38B(rct_vehicle *vehicle, rct_map_element *mapElement)
 
 	// Get vangle
 	int trackType = mapElement->properties.track.type;
-	int vangleStart = gTrackDefinitions[trackType].vangle_start;
+	int vangleStart = TrackDefinitions[trackType].vangle_start;
 
 	// ?
 	uint16 angleAndBank = vangleStart | (bankStart << 8);
@@ -6989,8 +6989,8 @@ static void sub_6DBF3E(rct_vehicle *vehicle)
 static bool vehicle_update_track_motion_forwards_get_new_track(rct_vehicle *vehicle, uint16 trackType, rct_ride* ride, rct_ride_entry* rideEntry) {
 	registers regs = { 0 };
 
-	RCT2_GLOBAL(0x00F64E36, uint8) = gTrackDefinitions[trackType].vangle_end;
-	RCT2_GLOBAL(0x00F64E37, uint8) = gTrackDefinitions[trackType].bank_end;
+	RCT2_GLOBAL(0x00F64E36, uint8) = TrackDefinitions[trackType].vangle_end;
+	RCT2_GLOBAL(0x00F64E37, uint8) = TrackDefinitions[trackType].bank_end;
 	rct_map_element *mapElement = map_get_track_element_at_of_type_seq(
 		vehicle->track_x,
 		vehicle->track_y,
@@ -7369,8 +7369,8 @@ loc_6DB967:
  *  rct2: 0x006DBAA6
  */
 static bool vehicle_update_track_motion_backwards_get_new_track(rct_vehicle *vehicle, uint16 trackType, rct_ride* ride, rct_ride_entry* rideEntry, uint16* progress) {
-	RCT2_GLOBAL(0x00F64E36, uint8) = gTrackDefinitions[trackType].vangle_start;
-	RCT2_GLOBAL(0x00F64E37, uint8) = gTrackDefinitions[trackType].bank_start;
+	RCT2_GLOBAL(0x00F64E36, uint8) = TrackDefinitions[trackType].vangle_start;
+	RCT2_GLOBAL(0x00F64E37, uint8) = TrackDefinitions[trackType].bank_start;
 	rct_map_element* mapElement = map_get_track_element_at_of_type_seq(
 		vehicle->track_x,
 		vehicle->track_y,
@@ -7419,9 +7419,9 @@ static bool vehicle_update_track_motion_backwards_get_new_track(rct_vehicle *veh
 		}
 
 		int trackColour = ((vehicle->update_flags >> 9) ^ mapElement->properties.track.colour) & 4;
-		int bank = gTrackDefinitions[trackType].bank_end;
+		int bank = TrackDefinitions[trackType].bank_end;
 		bank = track_get_actual_bank_2(ride->type, trackColour, bank);
-		int vAngle = gTrackDefinitions[trackType].vangle_end;
+		int vAngle = TrackDefinitions[trackType].vangle_end;
 		if (RCT2_GLOBAL(0x00F64E36, uint8) != vAngle ||
 			RCT2_GLOBAL(0x00F64E37, uint8) != bank
 			) {
@@ -7759,8 +7759,8 @@ loc_6DC476:
 	}
 
 	uint16 trackType = vehicle->track_type >> 2;
-	RCT2_GLOBAL(0x00F64E36, uint8) = gTrackDefinitions[trackType].vangle_end;
-	RCT2_GLOBAL(0x00F64E37, uint8) = gTrackDefinitions[trackType].bank_end;
+	RCT2_GLOBAL(0x00F64E36, uint8) = TrackDefinitions[trackType].vangle_end;
+	RCT2_GLOBAL(0x00F64E37, uint8) = TrackDefinitions[trackType].bank_end;
 	mapElement = map_get_track_element_at_of_type_seq(
 		vehicle->track_x, vehicle->track_y, vehicle->track_z >> 3,
 		trackType, 0
@@ -7977,8 +7977,8 @@ loc_6DCA9A:
 	}
 
 	trackType = vehicle->track_type >> 2;
-	RCT2_GLOBAL(0x00F64E36, uint8) = gTrackDefinitions[trackType].vangle_end;
-	RCT2_GLOBAL(0x00F64E37, uint8) = gTrackDefinitions[trackType].bank_end;
+	RCT2_GLOBAL(0x00F64E36, uint8) = TrackDefinitions[trackType].vangle_end;
+	RCT2_GLOBAL(0x00F64E37, uint8) = TrackDefinitions[trackType].bank_end;
 	mapElement = map_get_track_element_at_of_type_seq(
 		vehicle->track_x, vehicle->track_y, vehicle->track_z >> 3,
 		trackType, 0

@@ -3015,7 +3015,7 @@ static void peep_update_ride_sub_state_9(rct_peep* peep){
 	}
 
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO){
-		uint8 secondaryItem = RCT2_ADDRESS(0x0097D7CB, uint8)[ride->type * 4];
+		uint8 secondaryItem = RidePhotoItems[ride->type];
 		if (sub_69AF1E(peep, peep->current_ride, secondaryItem, ride->price_secondary)) {
 			ride->no_secondary_items_sold++;
 		}
@@ -10400,7 +10400,7 @@ static void peep_pick_ride_to_go_on(rct_peep *peep)
 	}
 
 	// Filter the considered rides
-	uint8 *potentialRides = (uint8*)0x00F1ADBC;
+	uint8 *potentialRides = RCT2_ADDRESS(0x00F1ADBC, uint8);
 	uint8 *nextPotentialRide = potentialRides;
 	int numPotentialRides = 0;
 	for (int i = 0; i < MAX_RIDES; i++) {
@@ -10509,7 +10509,7 @@ static void peep_head_for_nearest_ride_type(rct_peep *peep, int rideType)
 	}
 
 	// Filter the considered rides
-	uint8 *potentialRides = (uint8*)0x00F1ADBC;
+	uint8 *potentialRides = RCT2_ADDRESS(0x00F1ADBC, uint8);
 	uint8 *nextPotentialRide = potentialRides;
 	int numPotentialRides = 0;
 	for (int i = 0; i < MAX_RIDES; i++) {
@@ -10621,7 +10621,7 @@ static void peep_head_for_nearest_ride_with_flags(rct_peep *peep, int rideTypeFl
 	}
 
 	// Filter the considered rides
-	uint8 *potentialRides = (uint8*)0x00F1ADBC;
+	uint8 *potentialRides = RCT2_ADDRESS(0x00F1ADBC, uint8);
 	uint8 *nextPotentialRide = potentialRides;
 	int numPotentialRides = 0;
 	for (int i = 0; i < MAX_RIDES; i++) {

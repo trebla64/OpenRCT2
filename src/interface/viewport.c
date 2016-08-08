@@ -42,6 +42,8 @@
 rct_viewport g_viewport_list[MAX_VIEWPORT_COUNT];
 rct_viewport *g_music_tracking_viewport;
 
+rct_map_element *_interaction_element = NULL;
+
 #ifdef NO_RCT2
 paint_struct *unk_EE7884;
 paint_struct *unk_EE7888;
@@ -73,8 +75,8 @@ void viewport_init_all()
 	gMapSelectFlags = 0;
 	gStaffDrawPatrolAreas = 0xFFFF;
 	textinput_cancel();
-	format_string((char*)0x0141FA44, STR_CANCEL, NULL);
-	format_string((char*)0x0141F944, STR_OK, NULL);
+	format_string(RCT2_ADDRESS(0x0141FA44, char), STR_CANCEL, NULL);
+	format_string(RCT2_ADDRESS(0x0141F944, char), STR_OK, NULL);
 }
 
 /**
@@ -701,8 +703,7 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 	y >>= viewport->zoom;
 	y += viewport->y;
 
-	uint8* bits_pointer = x - dpi->x + (y - dpi->y)*(dpi->width + dpi->pitch) + dpi->bits;
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_BITS_PTR, uint8*) = bits_pointer;
+	uint8* original_bits_pointer = x - dpi->x + (y - dpi->y)*(dpi->width + dpi->pitch) + dpi->bits;
 
 	rct_drawpixelinfo* dpi2 = RCT2_ADDRESS(RCT2_ADDRESS_VIEWPORT_DPI, rct_drawpixelinfo);
 	dpi2->y = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_Y, sint16);
@@ -716,7 +717,7 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 
 		int start_x = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16);
 		int width_col = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_WIDTH, uint16);
-		bits_pointer = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_BITS_PTR, uint8*);
+		uint8 * bits_pointer = original_bits_pointer;
 		int pitch = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_PITCH, uint16);
 		int zoom = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16);
 		if (x >= start_x){
@@ -1011,7 +1012,7 @@ static void store_interaction_info(paint_struct *ps)
 		RCT2_GLOBAL(0x009AC149, uint8) = ps->var_29;
 		RCT2_GLOBAL(0x009AC14C, uint32) = ps->map_x;
 		RCT2_GLOBAL(0x009AC14E, uint32) = ps->map_y;
-		RCT2_GLOBAL(0x009AC150, rct_map_element*) = ps->mapElement;
+		_interaction_element = ps->mapElement;
 	}
 }
 
@@ -1390,7 +1391,7 @@ void get_map_coordinates_from_pos(int screenX, int screenY, int flags, sint16 *x
 	if (interactionType != NULL) *interactionType = RCT2_GLOBAL(0x9AC148, uint8_t);
 	if (x != NULL) *x = RCT2_GLOBAL(0x9AC14C, int16_t);
 	if (y != NULL) *y = RCT2_GLOBAL(0x9AC14E, int16_t);
-	if (mapElement != NULL) *mapElement = RCT2_GLOBAL(0x9AC150, rct_map_element*);
+	if (mapElement != NULL) *mapElement = _interaction_element;
 }
 
 /**

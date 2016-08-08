@@ -68,8 +68,8 @@ rct_map_element *gMapElementTilePointers[MAX_TILE_MAP_ELEMENT_POINTERS];
 rct_map_element *gMapElements = (rct_map_element*)RCT2_ADDRESS_MAP_ELEMENTS;
 rct_map_element **gMapElementTilePointers = (rct_map_element**)RCT2_ADDRESS_TILE_MAP_ELEMENT_POINTERS;
 #endif
-rct_xy16 *gMapSelectionTiles = (rct_xy16*)0x009DE596;
-rct2_peep_spawn *gPeepSpawns = (rct2_peep_spawn*)RCT2_ADDRESS_PEEP_SPAWNS;
+rct_xy16 *gMapSelectionTiles = RCT2_ADDRESS(0x009DE596, rct_xy16);
+rct2_peep_spawn *gPeepSpawns = RCT2_ADDRESS(RCT2_ADDRESS_PEEP_SPAWNS, rct2_peep_spawn);
 
 rct_map_element *gNextFreeMapElement;
 
@@ -3174,7 +3174,7 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 			return false;
 		}
 
-		if (gTrackDefinitions[trackType].bank_start == 0) {
+		if (TrackDefinitions[trackType].bank_start == 0) {
 			if (!(RCT2_ADDRESS(0x009968BB, uint8)[trackType * 10] & 4)) {
 				direction = (trackElement->type & 3) ^ 2;
 				if (direction == edge) {
@@ -3194,7 +3194,7 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 		return false;
 	}
 
-	if (gTrackDefinitions[trackType].bank_end != 0) {
+	if (TrackDefinitions[trackType].bank_end != 0) {
 		return false;
 	}
 

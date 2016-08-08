@@ -282,7 +282,7 @@ typedef struct rct_window {
 		rct_research_item* research_item;
 		rct_object_entry* object_entry;
 		scenario_index_entry* highlighted_scenario;
-		union {
+		struct {
 			uint16 var_494;
 			uint16 var_496;
 		};
@@ -533,8 +533,11 @@ extern rct_window * gWindowNextSlot;
 // rct2: 0x00F635EE
 extern ride_list_item _window_track_list_item;
 
+extern uint16 gWindowUpdateTicks;
 extern uint8 gToolbarDirtyFlags;
 extern uint16 gWindowMapFlashingFlags;
+
+extern colour_t gCurrentWindowColours[4];
 
 void window_dispatch_update_all();
 void window_update_all_viewports();

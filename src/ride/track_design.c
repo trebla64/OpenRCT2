@@ -435,7 +435,7 @@ static void track_design_mirror_ride(rct_track_td6 *td6)
 {
 	rct_td6_track_element *track = td6->track_elements;
 	for (; track->type != 0xFF; track++) {
-		track->type = RCT2_ADDRESS(0x0099EA1C, uint8)[track->type];
+		track->type = TrackElementMirrorMap[track->type];
 	}
 
 	rct_td6_entrance_element *entrance = td6->entrance_elements;
@@ -446,6 +446,11 @@ static void track_design_mirror_ride(rct_track_td6 *td6)
 		}
 	}
 }
+
+/** rct2: 0x00993EDC */
+static const uint8 maze_segment_mirror_map[] = {
+	5, 4, 2, 7, 1, 0, 14, 3, 13, 12, 10, 15, 9, 8, 6, 11
+};
 
 /**
  *
@@ -468,7 +473,7 @@ static void track_design_mirror_maze(rct_track_td6 *td6)
 		uint16 new_entry = 0;
 		for (uint8 position = bitscanforward(maze_entry); position != 0xFF; position = bitscanforward(maze_entry)) {
 			maze_entry &= ~(1 << position);
-			new_entry |= (1 << RCT2_ADDRESS(0x00993EDC, uint8)[position]);
+			new_entry |= (1 << maze_segment_mirror_map[position]);
 		}
 		maze->maze_entry = new_entry;
 	}
@@ -1577,7 +1582,7 @@ static money32 place_maze_design(uint8 flags, uint8 rideIndex, uint16 mazeEntry,
 	// Calculate price
 	money32 price = 0;
 	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
-		price = RideTrackCosts[ride->type].track_price * RCT2_GLOBAL(0x0099DBC8, money32);
+		price = RideTrackCosts[ride->type].track_price * TrackPricing[TRACK_ELEM_MAZE];
 		price = (price >> 17) * 10;
 	}
 
