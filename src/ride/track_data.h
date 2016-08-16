@@ -21,7 +21,10 @@
 // 0x009968BB, 0x009968BC, 0x009968BD, 0x009968BF, 0x009968C1, 0x009968C3
 extern const rct_track_coordinates TrackCoordinates[256];
 // 0x009972BB, 0x009972BC, 0x009972BD, 0x009972BF, 0x009972C1, 0x009972C3
-extern const rct_track_coordinates* FlatTrackCoordinates;
+extern const rct_track_coordinates FlatTrackCoordinates[253];
+
+extern const uint8 TrackSequenceProperties[256][16];
+extern const uint8 FlatRideTrackSequenceProperties[256][16];
 
 extern const uint64 RideTypePossibleTrackConfigurations[91];
 extern const rct_preview_track *TrackBlocks[256];
@@ -74,3 +77,8 @@ typedef struct dodgems_track_size {
 extern const dodgems_track_size DodgemsTrackSize[256];
 
 extern const uint8 TrackElementMirrorMap[256];
+
+extern const uint32 TrackHeightMarkerPositions[256];
+
+extern const uint8 TrackSequenceElementAllowedWallEdges[256][16];
+extern const uint8 FlatRideTrackSequenceElementAllowedWallEdges[256][16];

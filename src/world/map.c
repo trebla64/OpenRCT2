@@ -52,6 +52,24 @@ const rct_xy16 TileDirectionDelta[] = {
 	{ -32, -32 }
 };
 
+/** rct2: 0x0097B8B8 */
+const money32 TerrainPricing[] = {
+	300,	// TERRAIN_GRASS
+	100,	// TERRAIN_SAND
+	80,		// TERRAIN_DIRT
+	120,	// TERRAIN_ROCK
+	100,	// TERRAIN_MARTIAN
+	100,	// TERRAIN_CHECKERBOARD
+	110,	// TERRAIN_GRASS_CLUMPS
+	130,	// TERRAIN_ICE
+	110,	// TERRAIN_GRID_RED
+	110,	// TERRAIN_GRID_YELLOW
+	110,	// TERRAIN_GRID_BLUE
+	110,	// TERRAIN_GRID_GREEN
+	110,	// TERRAIN_SAND_DARK
+	110,	// TERRAIN_SAND_LIGHT
+};
+
 uint16			gMapSelectFlags;
 uint16			gMapSelectType;
 rct_xy16		gMapSelectPositionA;
@@ -1515,7 +1533,7 @@ static money32 map_change_surface_style(int x0, int y0, int x1, int y1, uint8 su
 					(mapElement->properties.surface.terrain >> 5);
 
 				if (surfaceStyle != cur_terrain) {
-					RCT2_GLOBAL(0x009E32B4, uint32) += RCT2_ADDRESS(0x0097B8B8, uint32)[surfaceStyle & 0x1F];
+					RCT2_GLOBAL(0x009E32B4, uint32) += TerrainPricing[surfaceStyle & 0x1F];
 					if (flags & 1){
 						mapElement->properties.surface.terrain &= MAP_ELEMENT_WATER_HEIGHT_MASK;
 						mapElement->type &= MAP_ELEMENT_QUADRANT_MASK | MAP_ELEMENT_TYPE_MASK;
@@ -3138,13 +3156,13 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 	rct_ride *ride = get_ride(trackElement->properties.track.ride_index);
 
 	if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_FLAT_RIDE)) {
-		if (RCT2_ADDRESS(0x0099AA94, uint8)[typeAndSequence] & (1 << direction)) {
+		if (FlatRideTrackSequenceElementAllowedWallEdges[trackType][sequence] & (1 << direction)) {
 			if (!ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_18)) {
 				return true;
 			}
 		}
 	} else {
-		if (RCT2_ADDRESS(0x00999A94, uint8)[typeAndSequence] & (1 << direction)) {
+		if (TrackSequenceElementAllowedWallEdges[trackType][sequence] & (1 << direction)) {
 			if (!ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_18)) {
 				return true;
 			}
@@ -3170,16 +3188,16 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 	}
 
 	if (sequence == 0) {
-		if (RCT2_GLOBAL(0x0099BA64 + (trackType * 16), uint8) & 0x40) {
+		if (TrackSequenceProperties[trackType][0] & TRACK_SEQUENCE_FLAG_DISALLOW_DOORS) {
 			return false;
 		}
 
 		if (TrackDefinitions[trackType].bank_start == 0) {
-			if (!(RCT2_ADDRESS(0x009968BB, uint8)[trackType * 10] & 4)) {
+			if (!(TrackCoordinates[trackType].rotation_begin & 4)) {
 				direction = (trackElement->type & 3) ^ 2;
 				if (direction == edge) {
 					trackBlock = &TrackBlocks[trackType][sequence];
-					z = RCT2_GLOBAL(0x009968BD + (trackType * 10), uint8);
+					z = TrackCoordinates[trackType].z_begin;
 					z = trackElement->base_height + ((z - trackBlock->z) * 8);
 					if (z == z0) {
 						return true;
@@ -3198,7 +3216,7 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 		return false;
 	}
 
-	direction = RCT2_ADDRESS(0x009968BC, uint8)[trackType * 10];
+	direction = TrackCoordinates[trackType].rotation_end;
 	if (direction & 4) {
 		return false;
 	}
@@ -3209,7 +3227,7 @@ static bool map_place_fence_check_obstruction_with_track(rct_scenery_entry *wall
 	}
 
 	trackBlock = &TrackBlocks[trackType][sequence];
-	z = RCT2_GLOBAL(0x009968BF + (trackType * 10), uint8);
+	z = TrackCoordinates[trackType].z_end;
 	z = trackElement->base_height + ((z - trackBlock->z) * 8);
 	if (z != z0) {
 		return false;
@@ -3291,6 +3309,53 @@ static bool map_place_fence_check_obstruction(rct_scenery_entry *wall, int x, in
 	return true;
 }
 
+enum
+{
+	EDGE_SLOPE_ELEVATED = (1 << 0), // 0x01
+	EDGE_SLOPE_UPWARDS = (1 << 6), // 0x40
+	EDGE_SLOPE_DOWNWARDS = (1 << 7), // 0x80
+
+	EDGE_SLOPE_UPWARDS_ELEVATED = EDGE_SLOPE_UPWARDS | EDGE_SLOPE_ELEVATED,
+	EDGE_SLOPE_DOWNWARDS_ELEVATED = EDGE_SLOPE_DOWNWARDS | EDGE_SLOPE_ELEVATED,
+};
+
+/** rct2: 0x009A3FEC */
+static const uint8 EdgeSlopes[][4] = {
+//	  Top right							Bottom right					Bottom left						Top left
+	{ 0,								0,								0,								0								},
+	{ 0,								EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_DOWNWARDS,			0								},
+	{ 0,								0,								EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_DOWNWARDS			},
+	{ 0,								EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_DOWNWARDS			},
+	{ EDGE_SLOPE_DOWNWARDS,				0,								0,								EDGE_SLOPE_UPWARDS				},
+	{ EDGE_SLOPE_DOWNWARDS,				EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_DOWNWARDS,			EDGE_SLOPE_UPWARDS				},
+	{ EDGE_SLOPE_DOWNWARDS,				0,								EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_ELEVATED				},
+	{ EDGE_SLOPE_DOWNWARDS,				EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_ELEVATED				},
+	{ EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_DOWNWARDS,			0,								0								},
+	{ EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_DOWNWARDS,			0								},
+	{ EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_DOWNWARDS,			EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_DOWNWARDS			},
+	{ EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_DOWNWARDS			},
+	{ EDGE_SLOPE_ELEVATED,				EDGE_SLOPE_DOWNWARDS,			0,								EDGE_SLOPE_UPWARDS				},
+	{ EDGE_SLOPE_ELEVATED,				EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_DOWNWARDS,			EDGE_SLOPE_UPWARDS				},
+	{ EDGE_SLOPE_ELEVATED,				EDGE_SLOPE_DOWNWARDS,			EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_ELEVATED				},
+	{ EDGE_SLOPE_ELEVATED,				EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_ELEVATED,			EDGE_SLOPE_ELEVATED				},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ EDGE_SLOPE_DOWNWARDS,				EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_UPWARDS_ELEVATED,	EDGE_SLOPE_DOWNWARDS_ELEVATED	},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ 0,								0,								0,								0								},
+	{ EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_UPWARDS_ELEVATED,	EDGE_SLOPE_DOWNWARDS_ELEVATED,	EDGE_SLOPE_DOWNWARDS			},
+	{ 0,								0,								0,								0								},
+	{ EDGE_SLOPE_UPWARDS_ELEVATED,		EDGE_SLOPE_DOWNWARDS_ELEVATED,	EDGE_SLOPE_DOWNWARDS,			EDGE_SLOPE_UPWARDS				},
+	{ EDGE_SLOPE_DOWNWARDS_ELEVATED,	EDGE_SLOPE_DOWNWARDS,			EDGE_SLOPE_UPWARDS,				EDGE_SLOPE_UPWARDS_ELEVATED		},
+	{ 0,								0,								0,								0								},
+};
+
 /**
  *
  *  rct2: 0x006E519A
@@ -3355,8 +3420,8 @@ void game_command_place_fence(int* eax, int* ebx, int* ecx, int* edx, int* esi, 
 		position.z = map_element->base_height * 8;
 
 		uint8 slope = map_element->properties.surface.slope & MAP_ELEMENT_SLOPE_MASK;
-		bp = RCT2_ADDRESS(0x009A3FEC, uint8)[slope + (edge & 3) * 32];
-		if (bp & (1 << 0)){
+		bp = EdgeSlopes[slope][edge & 3];
+		if (bp & EDGE_SLOPE_ELEVATED) {
 			position.z += 16;
 			bp &= ~(1 << 0);
 		}
@@ -3478,8 +3543,8 @@ void game_command_place_fence(int* eax, int* ebx, int* ecx, int* edx, int* esi, 
 	bp = RCT2_GLOBAL(0x00141F723, uint8);
 
 	RCT2_GLOBAL(0x00141F722, uint8) = position.z / 8;
-	if (bp & 0xC0){
-		if (fence->wall.flags & WALL_SCENERY_FLAG3){
+	if (bp & (EDGE_SLOPE_UPWARDS | EDGE_SLOPE_DOWNWARDS)) {
+		if (fence->wall.flags & WALL_SCENERY_CANT_BUILD_ON_SLOPE){
 			gGameCommandErrorText = STR_ERR_UNABLE_TO_BUILD_THIS_ON_SLOPE;
 			*ebx = MONEY32_UNDEFINED;
 			return;

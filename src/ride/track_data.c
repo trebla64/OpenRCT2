@@ -18,7 +18,261 @@
 #include "track_data.h"
 #include "track_paint.h"
 
-const rct_track_coordinates* FlatTrackCoordinates = RCT2_ADDRESS(0x009972BB, const rct_track_coordinates);
+const rct_track_coordinates FlatTrackCoordinates[] = {
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    0,    0,   64,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,   32,    0,    0 },
+	{    0,    0,    0,   32,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,   16,    0,    0,    0 },
+	{    0,    0,   64,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,   32,    0,    0,    0 },
+	{    0,    0,   32,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    3,    0,    0,  -64,  -64 },
+	{    0,    1,    0,    0,  -64,   64 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    3,    0,    0,  -64,  -64 },
+	{    0,    1,    0,    0,  -64,   64 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    3,    0,   64,  -64,  -64 },
+	{    0,    1,    0,   64,  -64,   64 },
+	{    0,    3,   64,    0,  -64,  -64 },
+	{    0,    1,   64,    0,  -64,   64 },
+	{    0,    0,    0,    0,  -64,  -32 },
+	{    0,    0,    0,    0,  -64,   32 },
+	{    0,    0,    0,    0,  -32,  -32 },
+	{    0,    0,    0,    0,  -32,   32 },
+	{    0,    3,    0,    0,  -32,  -32 },
+	{    0,    1,    0,    0,  -32,   32 },
+	{    0,    3,    0,    0,  -32,  -32 },
+	{    0,    1,    0,    0,  -32,   32 },
+	{    0,    3,    0,   32,  -32,  -32 },
+	{    0,    1,    0,   32,  -32,   32 },
+	{    0,    3,   32,    0,  -32,  -32 },
+	{    0,    1,   32,    0,  -32,   32 },
+	{    0,    3,    0,    0,    0,    0 },
+	{    0,    1,    0,    0,    0,    0 },
+	{    0,    0,    0,   16,  -64,    0 },
+	{    0,    0,    0,   16,  -64,    0 },
+	{    0,    0,    0,  -16,  -64,    0 },
+	{    0,    0,    0,  -16,  -64,    0 },
+	{    0,    2,    0,  152,  -32,    0 },
+	{    0,    2,    0, -152,   32,    0 },
+	{    0,    3,    0,   80,  -32,  -32 },
+	{    0,    1,    0,   80,  -32,   32 },
+	{    0,    3,    0,  -80,  -32,  -32 },
+	{    0,    1,    0,  -80,  -32,   32 },
+	{    0,    0,    0,   24,    0,    0 },
+	{    0,    0,    0,   24,    0,    0 },
+	{    0,    0,   24,    0,    0,    0 },
+	{    0,    0,   24,    0,    0,    0 },
+	{    0,    0,    0,   96,   32,    0 },
+	{    0,    0,    0,   32,   32,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    0,    0,   64,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,   32,    0,    0 },
+	{    0,    0,    0,   32,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,   16,    0,    0,    0 },
+	{    0,    0,   64,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,   32,    0,    0,    0 },
+	{    0,    0,   32,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    3,    0,    0,  -64,  -64 },
+	{    0,    1,    0,    0,  -64,   64 },
+	{    0,    0,    0,    0,  -64,  -32 },
+	{    0,    0,    0,    0,  -64,   32 },
+	{    0,    3,    0,    0,  -32,  -32 },
+	{    0,    1,    0,    0,  -32,   32 },
+	{    0,    2,    0,   16,    0,  -96 },
+	{    0,    2,    0,   16,    0,   96 },
+	{    0,    2,   16,    0,    0,  -96 },
+	{    0,    2,   16,    0,    0,   96 },
+	{    0,    2,    0,   16,    0, -160 },
+	{    0,    2,    0,   16,    0,  160 },
+	{    0,    2,   16,    0,    0, -160 },
+	{    0,    2,   16,    0,    0,  160 },
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_1_X_4_A
+	{    0,    1,    0,   64,    0,    0 },
+	{    0,    3,   64,    0,    0,    0 },
+	{    0,    1,   64,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    3,    0,   16,  -64,  -64 },
+	{    0,    1,    0,   16,  -64,   64 },
+	{    0,    3,   16,    0,  -64,  -64 },
+	{    0,    1,   16,    0,  -64,   64 },
+	{    0,    3,    0,   16,  -64,  -64 },
+	{    0,    1,    0,   16,  -64,   64 },
+	{    0,    3,   16,    0,  -64,  -64 },
+	{    0,    1,   16,    0,  -64,   64 },
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_2_X_2
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_4_X_4
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    2,    0,    0,    0,   32 },	// ???
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_1_X_5
+	{    0,    0,   16,   16, -128,    0 },
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_1_X_1_A
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_1_X_4_B
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_1_X_1_B
+	{    0,    2,    0,    0,    0,   32 },	// FLAT_TRACK_ELEM_1_X_4_C
+	{    0,    0,    0,   96,   32,    0 },	// FLAT_TRACK_ELEM_3_X_3
+	{    0,    0,    0,  240, -160,    0 },
+	{    0,    0,    0,   80,   32,    0 },
+	{    0,    0,    0,   32,   32,    0 },
+	{    0,    0,   32,    0,   32,    0 },
+	{    0,    0,    0,   56,   32,    0 },
+	{    0,    0,   56,    0,    0,    0 },
+	{    0,    0,    0,   56,    0,    0 },
+	{    0,    0,   56,    0,   32,    0 },
+	{    0,    0,   24,    0,    0,    0 },
+	{    0,    7,    0,    0,  -64,  -32 },
+	{    0,    4,    0,    0,  -64,   32 },
+	{    4,    0,    0,    0,  -64,   32 },
+	{    4,    1,    0,    0,  -32,   64 },
+	{    0,    7,    0,    0,  -64,  -32 },
+	{    0,    4,    0,    0,  -64,   32 },
+	{    4,    0,    0,    0,  -64,   32 },
+	{    4,    1,    0,    0,  -32,   64 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    4,    4,    0,   16,  -32,   32 },
+	{    4,    4,    0,   64,  -32,   32 },
+	{    4,    4,    0,    8,  -32,   32 },
+	{    4,    4,    0,   32,  -32,   32 },
+	{    4,    4,    0,   32,  -32,   32 },
+	{    4,    4,    0,    8,  -32,   32 },
+	{    4,    4,   16,    0,  -32,   32 },
+	{    4,    4,   64,    0,  -32,   32 },
+	{    4,    4,    8,    0,  -32,   32 },
+	{    4,    4,   32,    0,  -32,   32 },
+	{    4,    4,   32,    0,  -32,   32 },
+	{    4,    4,    8,    0,  -32,   32 },
+	{    4,    4,    0,   24,  -32,   32 },
+	{    4,    4,    0,   24,  -32,   32 },
+	{    4,    4,   24,    0,  -32,   32 },
+	{    4,    4,   24,    0,  -32,   32 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    4,    4,    0,    8,  -32,   32 },
+	{    4,    4,    0,    8,  -32,   32 },
+	{    4,    4,    0,    8,  -32,   32 },
+	{    4,    4,    0,    8,  -32,   32 },
+	{    4,    4,    8,    0,  -32,   32 },
+	{    4,    4,    8,    0,  -32,   32 },
+	{    4,    4,    8,    0,  -32,   32 },
+	{    4,    4,    8,    0,  -32,   32 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    4,    4,    0,    0,  -32,   32 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    0,    0,   32,  -64,    0 },
+	{    0,    0,    0,   32,  -64,    0 },
+	{    0,    0,    0,  -32,  -64,    0 },
+	{    0,    0,    0,  -32,  -64,    0 },
+	{    0,    3,    0,   24,  -32,  -32 },
+	{    0,    1,    0,   24,  -32,   32 },
+	{    0,    3,   24,    0,  -32,  -32 },
+	{    0,    1,   24,    0,  -32,   32 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    2,    0,  280,  -64,  -32 },
+	{    0,    2,    0,  280,  -64,   32 },
+	{    0,    2,    0, -280,   64,  -32 },
+	{    0,    2,    0, -280,   64,   32 },
+	{    0,    0,    0,  -16,  -64,    0 },
+	{    0,    0,    0,  -16,  -64,    0 },
+	{    0,    0,    0,   16,  -64,    0 },
+	{    0,    0,    0,   16,  -64,    0 },
+	{    0,    2,    0,  120,  -32,    0 },
+	{    0,    2,    0, -120,   32,    0 },
+	{    0,    3,    0,   48,  -32,  -32 },
+	{    0,    1,    0,   48,  -32,   32 },
+	{    0,    3,    0,  -48,  -32,  -32 },
+	{    0,    1,    0,  -48,  -32,   32 },
+	{    0,    2,    0,   32,    0,    0 },
+	{    0,    2,    0,  -32,    0,    0 },
+	{    0,    0,    0,    0, -160,    0 },
+	{    0,    0,    0,    0, -160,    0 },
+	{    0,    0,    0,    0,  -32,    0 },
+	{    0,    0,    0,    0,  -32,    0 },
+	{    0,    0,    0,    0,  -32,    0 },
+	{    0,    1,    0,    0,  -32,   32 },
+	{    0,    3,    0,    0,  -32,  -32 },
+	{    0,    0,    0,    0,  -32,    0 },	// ???
+	{    0,    0,    0,    0,  -32,    0 },	// ???
+	{    0,    0,    0,    0,  -32,    0 },	// ???
+	{    0,    3,    0,   16,  -32,  -32 },
+	{    0,    1,    0,   16,  -32,   32 },
+	{    0,    0,    0,    0,  -64,    0 },
+	{    0,    0,    0,    0,  -64,    0 },
+	{    0,    0,    0,    0,  -32,    0 },
+	{    0,    0,   80,    0,   32,    0 },
+	{    0,    0,  240,    0, -160,    0 },
+	{    0,    0,    0,    0,    0,    0 },
+	{    0,    3,    0,   32,  -32,  -32 },
+	{    0,    1,    0,   32,  -32,   32 },
+	{    0,    3,   32,    0,  -32,  -32 },
+	{    0,    1,   32,    0,  -32,   32 },
+	{    0,    3,    0,   64,  -64,  -64 },
+	{    0,    1,    0,   64,  -64,   64 },
+	{    0,    3,   64,    0,  -64,  -64 },
+	{    0,    1,   64,    0,  -64,   64 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    0,    0,   16,    0,    0 },
+	{    0,    0,   16,    0,    0,    0 },
+	{    0,    0,   16,    0,    0,    0 },
+	{    0,    0,   16,    0,    0,    0 },
+	{    0,    0,   16,    0,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    0,    8,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    0,    8,    0,    0,    0 },
+	{    0,    3,    0,   96,    0,   32 },
+	{    0,    1,    0,   96,    0,  -32 },
+	{    0,    3,   96,    0,    0,   32 },
+	{    0,    1,   96,    0,    0,  -32 },
+};
 
 const rct_track_coordinates TrackCoordinates[256] = {
 		{ 0, 0, 0, 0, 0, 0 },		// ELEM_FLAT
@@ -277,6 +531,526 @@ const rct_track_coordinates TrackCoordinates[256] = {
 		{ 0, 2, 0, 96, 64, 0 },
 		{ 0, 2, 0, -128, -96, 0 },
 		{ 0, 2, 0, 128, 64, 0 }
+};
+
+/** rct2: 0x0099BA64 */
+const uint8 TrackSequenceProperties[][16] = {
+	{ 0 },
+	/* TRACK_ELEM_END_STATION */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN | TRACK_SEQUENCE_FLAG_DISALLOW_DOORS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* TRACK_ELEM_BEGIN_STATION */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN | TRACK_SEQUENCE_FLAG_DISALLOW_DOORS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* TRACK_ELEM_MIDDLE_STATION */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN | TRACK_SEQUENCE_FLAG_DISALLOW_DOORS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* TRACK_ELEM_TOWER_BASE */	{ TRACK_SEQUENCE_FLAG_ORIGIN, 0b1001, 0b0001, 0b0011, 0b1000, 0b0010, 0b1100, 0b0110, 0b0100, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* TRACK_ELEM_MAZE */	{ 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* TRACK_ELEM_SPINNING_TUNNEL */	{ TRACK_SEQUENCE_FLAG_DISALLOW_DOORS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+};
+
+/** rct2: 0x0099CA64 */
+const uint8 FlatRideTrackSequenceProperties[][16] = {
+	{ 0 },
+	/* 1 */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* 2 */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* 3 */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* 66 */	{ TRACK_SEQUENCE_FLAG_ORIGIN, 0b1001, 0b0001, 0b0011, 0b1000, 0b0010, 0b1100, 0b0110, 0b0100, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* FLAT_TRACK_ELEM_1_X_4_A */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0, 0b1010, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* 101 */	{ 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* FLAT_TRACK_ELEM_2_X_2 */	{ 0b1001 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b0011, 0b1100, 0b0110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* FLAT_TRACK_ELEM_4_X_4 */	{ 0b1001 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b0001, 0b0001, 0b0011, 0b1000, 0, 0, 0b0010, 0b1000, 0, 0, 0b0010, 0b1100, 0b0100, 0b0100, 0b0110 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	/* 115 */	{ 0b1001 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b0001, 0b0001, 0b0011, 0b1100, 0b0100, 0b0100, 0b0110, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* FLAT_TRACK_ELEM_1_X_5 */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0, 0b1010, 0b1010, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	/* FLAT_TRACK_ELEM_1_X_1_A */	{ 0b0001 | TRACK_SEQUENCE_FLAG_ORIGIN | TRACK_SEQUENCE_FLAG_CONNECTS_TO_PATH, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* FLAT_TRACK_ELEM_1_X_4_B */	{ 0b0010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0, 0b0010, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	/* FLAT_TRACK_ELEM_1_X_1_B */	{ 0b1111 | TRACK_SEQUENCE_FLAG_ORIGIN | TRACK_SEQUENCE_FLAG_CONNECTS_TO_PATH, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* FLAT_TRACK_ELEM_1_X_4_C */	{ 0b1010 | TRACK_SEQUENCE_FLAG_ORIGIN, 0b1011, 0b1010, 0b1110, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	/* FLAT_TRACK_ELEM_3_X_3 */	{ TRACK_SEQUENCE_FLAG_ORIGIN, 0b1001, 0b0001, 0b0011, 0b1000, 0b0010, 0b1100, 0b0110, 0b0100, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
+	{ 0 },
 };
 
 // rct2: 0x0097C468 (0 - 31) and 0x0097C5D4 (32 - 63)
@@ -31472,4 +32246,781 @@ const uint8 TrackElementMirrorMap[] = {
 	TRACK_ELEM_MULTIDIM_90_DEG_UP_TO_INVERTED_FLAT_QUARTER_LOOP,
 	TRACK_ELEM_MULTIDIM_FLAT_TO_90_DEG_DOWN_QUARTER_LOOP,
 	255,
+};
+
+/** rct2: 0x00999694 */
+const uint32 TrackHeightMarkerPositions[256] = {
+	(1 << 0), // TRACK_ELEM_FLAT
+	(1 << 0), // TRACK_ELEM_END_STATION
+	(1 << 0), // TRACK_ELEM_BEGIN_STATION
+	(1 << 0), // TRACK_ELEM_MIDDLE_STATION
+	(1 << 0), // TRACK_ELEM_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_FLAT_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_60_DEG_UP_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_FLAT
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_60_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_FLAT_TO_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_60_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_60_DEG_DOWN_TO_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_FLAT
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES
+	(1 << 0), // TRACK_ELEM_FLAT_TO_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_FLAT_TO_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_LEFT_BANK_TO_FLAT
+	(1 << 0), // TRACK_ELEM_RIGHT_BANK_TO_FLAT
+	(1 << 0) | (1 << 6), // TRACK_ELEM_BANKED_LEFT_QUARTER_TURN_5_TILES
+	(1 << 0) | (1 << 6), // TRACK_ELEM_BANKED_RIGHT_QUARTER_TURN_5_TILES
+	(1 << 0), // TRACK_ELEM_LEFT_BANK_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_RIGHT_BANK_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_LEFT_BANK_TO_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_RIGHT_BANK_TO_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_RIGHT_BANK
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES_25_DEG_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES_25_DEG_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES_25_DEG_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES_25_DEG_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_S_BEND_LEFT
+	(1 << 0) | (1 << 3), // TRACK_ELEM_S_BEND_RIGHT
+	(1 << 0) | (1 << 9), // TRACK_ELEM_LEFT_VERTICAL_LOOP
+	(1 << 0) | (1 << 9), // TRACK_ELEM_RIGHT_VERTICAL_LOOP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_BANK
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_BANK
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_25_DEG_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_25_DEG_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_25_DEG_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE
+	(1 << 0), // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_TWIST_DOWN_TO_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_TWIST_DOWN_TO_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_TWIST_UP_TO_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_TWIST_UP_TO_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_HALF_LOOP_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_HALF_LOOP_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_CORKSCREW_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_CORKSCREW_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_CORKSCREW_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_CORKSCREW_DOWN
+	(1 << 0), // TRACK_ELEM_FLAT_TO_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_60_DEG_UP_TO_FLAT
+	(1 << 0), // TRACK_ELEM_FLAT_TO_60_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_60_DEG_DOWN_TO_FLAT
+	(1 << 1) | (1 << 3) | (1 << 6) | (1 << 7), // TRACK_ELEM_TOWER_BASE
+	(1 << 0), // TRACK_ELEM_TOWER_SECTION
+	(1 << 0), // TRACK_ELEM_FLAT_COVERED
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_COVERED
+	(1 << 0), // TRACK_ELEM_60_DEG_UP_COVERED
+	(1 << 0), // TRACK_ELEM_FLAT_TO_25_DEG_UP_COVERED
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_60_DEG_UP_COVERED
+	(1 << 0), // TRACK_ELEM_60_DEG_UP_TO_25_DEG_UP_COVERED
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_FLAT_COVERED
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_COVERED
+	(1 << 0), // TRACK_ELEM_60_DEG_DOWN_COVERED
+	(1 << 0), // TRACK_ELEM_FLAT_TO_25_DEG_DOWN_COVERED
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_60_DEG_DOWN_COVERED
+	(1 << 0), // TRACK_ELEM_60_DEG_DOWN_TO_25_DEG_DOWN_COVERED
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_FLAT_COVERED
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES_COVERED
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES_COVERED
+	(1 << 0) | (1 << 3), // TRACK_ELEM_S_BEND_LEFT_COVERED
+	(1 << 0) | (1 << 3), // TRACK_ELEM_S_BEND_RIGHT_COVERED
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_COVERED
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_COVERED
+	(1 << 0) | (1 << 7), // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_UP_SMALL
+	(1 << 0) | (1 << 7), // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_UP_SMALL
+	(1 << 0) | (1 << 7), // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_DOWN_SMALL
+	(1 << 0) | (1 << 7), // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_DOWN_SMALL
+	(1 << 0) | (1 << 13), // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_UP_LARGE
+	(1 << 0) | (1 << 13), // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_UP_LARGE
+	(1 << 0) | (1 << 13), // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_DOWN_LARGE
+	(1 << 0) | (1 << 13), // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_DOWN_LARGE
+	(1 << 0), // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_60_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_60_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_BRAKES
+	(1 << 0), // TRACK_ELEM_ROTATION_CONTROL_TOGGLE
+	(1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15), // TRACK_ELEM_INVERTED_90_DEG_UP_TO_FLAT_QUARTER_LOOP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_BANKED_HELIX_LARGE_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_BANKED_HELIX_LARGE_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_BANKED_HELIX_LARGE_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_BANKED_HELIX_LARGE_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_HELIX_LARGE_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_HELIX_LARGE_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_QUARTER_HELIX_LARGE_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_QUARTER_HELIX_LARGE_DOWN
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_LEFT_BANKED
+	(1 << 0) | (1 << 3) | (1 << 12) | (1 << 15), // TRACK_ELEM_25_DEG_UP_RIGHT_BANKED
+	(1 << 0), // TRACK_ELEM_WATERFALL
+	(1 << 0), // TRACK_ELEM_RAPIDS
+	(1 << 0), // TRACK_ELEM_ON_RIDE_PHOTO
+	(1 << 0) | (1 << 7), // TRACK_ELEM_25_DEG_DOWN_LEFT_BANKED
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_RIGHT_BANKED
+	(1 << 0) | (1 << 4), // TRACK_ELEM_WATER_SPLASH
+	(1 << 0) | (1 << 3), // TRACK_ELEM_FLAT_TO_60_DEG_UP_LONG_BASE
+	(1 << 0) | (1 << 3), // TRACK_ELEM_60_DEG_UP_TO_FLAT_LONG_BASE
+	(1 << 0), // TRACK_ELEM_WHIRLPOOL
+	(1 << 0) | (1 << 3), // TRACK_ELEM_FLAT_TO_60_DEG_DOWN_LONG_BASE
+	(1 << 0) | (1 << 3), // TRACK_ELEM_60_DEG_UP_TO_FLAT_LONG_BASE_122
+	(1 << 0) | (1 << 3), // TRACK_ELEM_CABLE_LIFT_HILL
+	(1 << 0) | (1 << 5), // TRACK_ELEM_REVERSE_WHOA_BELLY_SLOPE
+	(1 << 0), // TRACK_ELEM_REVERSE_WHOA_BELLY_VERTICAL
+	(1 << 0), // TRACK_ELEM_90_DEG_UP
+	(1 << 0), // TRACK_ELEM_90_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_60_DEG_UP_TO_90_DEG_UP
+	(1 << 0), // TRACK_ELEM_90_DEG_DOWN_TO_60_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_90_DEG_UP_TO_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_60_DEG_DOWN_TO_90_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_BRAKE_FOR_DROP
+	(1 << 0) | (1 << 4), // TRACK_ELEM_LEFT_EIGHTH_TO_DIAG
+	(1 << 0) | (1 << 4), // TRACK_ELEM_RIGHT_EIGHTH_TO_DIAG
+	(1 << 0) | (1 << 4), // TRACK_ELEM_LEFT_EIGHTH_TO_ORTHOGONAL
+	(1 << 0) | (1 << 4), // TRACK_ELEM_RIGHT_EIGHTH_TO_ORTHOGONAL
+	(1 << 0) | (1 << 4), // TRACK_ELEM_LEFT_EIGHTH_BANK_TO_DIAG
+	(1 << 0) | (1 << 4), // TRACK_ELEM_RIGHT_EIGHTH_BANK_TO_DIAG
+	(1 << 0) | (1 << 4), // TRACK_ELEM_LEFT_EIGHTH_BANK_TO_ORTHOGONAL
+	(1 << 0) | (1 << 4), // TRACK_ELEM_RIGHT_EIGHTH_BANK_TO_ORTHOGONAL
+	(1 << 0), // TRACK_ELEM_DIAG_FLAT
+	(1 << 0), // TRACK_ELEM_DIAG_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_FLAT_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_25_DEG_UP_TO_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_60_DEG_UP_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT
+	(1 << 3), // TRACK_ELEM_DIAG_25_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_60_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_FLAT_TO_25_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_60_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_60_DEG_DOWN_TO_25_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_FLAT
+	(1 << 0), // TRACK_ELEM_DIAG_FLAT_TO_60_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT
+	(1 << 3), // TRACK_ELEM_DIAG_FLAT_TO_60_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_60_DEG_DOWN_TO_FLAT
+	(1 << 0), // TRACK_ELEM_DIAG_FLAT_TO_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_DIAG_FLAT_TO_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_DIAG_LEFT_BANK_TO_FLAT
+	(1 << 0), // TRACK_ELEM_DIAG_RIGHT_BANK_TO_FLAT
+	(1 << 0), // TRACK_ELEM_DIAG_LEFT_BANK_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_RIGHT_BANK_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_DIAG_25_DEG_UP_TO_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_DIAG_25_DEG_UP_TO_RIGHT_BANK
+	(1 << 3), // TRACK_ELEM_DIAG_LEFT_BANK_TO_25_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_RIGHT_BANK_TO_25_DEG_DOWN
+	(1 << 3), // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_LEFT_BANK
+	(1 << 3), // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_DIAG_LEFT_BANK
+	(1 << 0), // TRACK_ELEM_DIAG_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_LOG_FLUME_REVERSER
+	(1 << 0), // TRACK_ELEM_SPINNING_TUNNEL
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_BARREL_ROLL_UP_TO_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_BARREL_ROLL_UP_TO_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_BARREL_ROLL_DOWN_TO_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_BARREL_ROLL_DOWN_TO_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_BANK_TO_LEFT_QUARTER_TURN_3_TILES_25_DEG_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_BANK_TO_RIGHT_QUARTER_TURN_3_TILES_25_DEG_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_25_DEG_DOWN_TO_LEFT_BANK
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_25_DEG_DOWN_TO_RIGHT_BANK
+	(1 << 0), // TRACK_ELEM_POWERED_LIFT
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_LARGE_HALF_LOOP_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_LARGE_HALF_LOOP_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_FLYER_TWIST_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_FLYER_TWIST_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_FLYER_TWIST_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_FLYER_TWIST_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_FLYER_HALF_LOOP_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_FLYER_HALF_LOOP_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_FLYER_CORKSCREW_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_FLYER_CORKSCREW_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_LEFT_FLYER_CORKSCREW_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_RIGHT_FLYER_CORKSCREW_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_HEARTLINE_TRANSFER_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_HEARTLINE_TRANSFER_DOWN
+	(1 << 0) | (1 << 5), // TRACK_ELEM_LEFT_HEARTLINE_ROLL
+	(1 << 0) | (1 << 5), // TRACK_ELEM_RIGHT_HEARTLINE_ROLL
+	(1 << 0) | (1 << 1), // TRACK_ELEM_MINI_GOLF_HOLE_A
+	(1 << 0) | (1 << 1), // TRACK_ELEM_MINI_GOLF_HOLE_B
+	(1 << 0) | (1 << 1), // TRACK_ELEM_MINI_GOLF_HOLE_C
+	(1 << 0) | (1 << 2), // TRACK_ELEM_MINI_GOLF_HOLE_D
+	(1 << 0) | (1 << 2), // TRACK_ELEM_MINI_GOLF_HOLE_E
+	(1 << 0) | (1 << 2), // TRACK_ELEM_MULTIDIM_INVERTED_FLAT_TO_90_DEG_QUARTER_LOOP_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_90_DEG_TO_INVERTED_FLAT_QUARTER_LOOP_UP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_INVERTED_FLAT_TO_90_DEG_QUARTER_LOOP_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_CURVED_LIFT_HILL
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_CURVED_LIFT_HILL
+	(1 << 0) | (1 << 5), // TRACK_ELEM_LEFT_REVERSER
+	(1 << 0) | (1 << 5), // TRACK_ELEM_RIGHT_REVERSER
+	(1 << 0) | (1 << 3), // TRACK_ELEM_AIR_THRUST_TOP_CAP
+	(1 << 0), // TRACK_ELEM_AIR_THRUST_VERTICAL_DOWN
+	(1 << 0) | (1 << 5), // TRACK_ELEM_AIR_THRUST_VERTICAL_DOWN_TO_LEVEL
+	(1 << 0), // TRACK_ELEM_BLOCK_BRAKES
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_3_TILE_25_DEG_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_3_TILE_25_DEG_UP
+	(1 << 0) | (1 << 3), // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_3_TILE_25_DEG_DOWN
+	(1 << 0) | (1 << 3), // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_3_TILE_25_DEG_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_5_TILE_25_DEG_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_5_TILE_25_DEG_UP
+	(1 << 0) | (1 << 6), // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_5_TILE_25_DEG_DOWN
+	(1 << 0) | (1 << 6), // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_5_TILE_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_LEFT_BANKED_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_25_DEG_UP_TO_RIGHT_BANKED_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_25_DEG_UP_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_25_DEG_UP_TO_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_LEFT_BANKED_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_25_DEG_DOWN_TO_RIGHT_BANKED_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_25_DEG_DOWN_TO_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_25_DEG_DOWN_TO_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_FLAT_TO_LEFT_BANKED_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_FLAT_TO_RIGHT_BANKED_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_25_DEG_UP_TO_LEFT_BANKED_FLAT
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_25_DEG_UP_TO_RIGHT_BANKED_FLAT
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_FLAT_TO_LEFT_BANKED_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_FLAT_TO_RIGHT_BANKED_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_25_DEG_DOWN_TO_LEFT_BANKED_FLAT
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_25_DEG_DOWN_TO_RIGHT_BANKED_FLAT
+	(1 << 0), // TRACK_ELEM_FLAT_TO_LEFT_BANKED_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_FLAT_TO_RIGHT_BANKED_25_DEG_UP
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_25_DEG_UP_TO_FLAT
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_25_DEG_UP_TO_FLAT
+	(1 << 0), // TRACK_ELEM_FLAT_TO_LEFT_BANKED_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_FLAT_TO_RIGHT_BANKED_25_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_LEFT_BANKED_25_DEG_DOWN_TO_FLAT
+	(1 << 0), // TRACK_ELEM_RIGHT_BANKED_25_DEG_DOWN_TO_FLAT
+	(1 << 0), // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_90_DEG_UP
+	(1 << 0), // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_90_DEG_UP
+	(1 << 0), // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_90_DEG_DOWN
+	(1 << 0), // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_90_DEG_DOWN
+	(1 << 0) | (1 << 2), // TRACK_ELEM_MULTIDIM_90_DEG_UP_TO_INVERTED_FLAT_QUARTER_LOOP
+	(1 << 0) | (1 << 2), // TRACK_ELEM_MULTIDIM_FLAT_TO_90_DEG_DOWN_QUARTER_LOOP
+	(1 << 0) | (1 << 2), // 255
+};
+
+/** rct2: 0x00999A94 */
+const uint8 TrackSequenceElementAllowedWallEdges[][16] = {
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_END_STATION
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_BEGIN_STATION
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MIDDLE_STATION
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_60_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_TO_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_60_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_DOWN_TO_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_FLAT
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_LEFT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_RIGHT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANK_TO_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANK_TO_FLAT
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_BANKED_LEFT_QUARTER_TURN_5_TILES
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_BANKED_RIGHT_QUARTER_TURN_5_TILES
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANK_TO_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANK_TO_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_LEFT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_RIGHT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANK_TO_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANK_TO_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_LEFT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_RIGHT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANK
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES_25_DEG_UP
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES_25_DEG_UP
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES_25_DEG_DOWN
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES_25_DEG_DOWN
+	{ 0b1010, 0b0011, 0b1100, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_S_BEND_LEFT
+	{ 0b1010, 0b1001, 0b0110, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_S_BEND_RIGHT
+	{ 0b0010, 0b0010, 0b0011,      0,      0,      0,      0, 0b1100, 0b1000, 0b1000,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_VERTICAL_LOOP
+	{ 0b1000, 0b1000, 0b1001,      0,      0,      0,      0, 0b0110, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_VERTICAL_LOOP
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_BANK
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_BANK
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_25_DEG_UP
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_25_DEG_UP
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_25_DEG_DOWN
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_25_DEG_DOWN
+	{ 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE
+	{ 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_TWIST_DOWN_TO_UP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_TWIST_DOWN_TO_UP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_TWIST_UP_TO_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_TWIST_UP_TO_DOWN
+	{ 0b1010, 0b1010, 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_HALF_LOOP_UP
+	{      0, 0b1011, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_HALF_LOOP_DOWN
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_CORKSCREW_UP
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_CORKSCREW_UP
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_CORKSCREW_DOWN
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_CORKSCREW_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_60_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_TO_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_60_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_DOWN_TO_FLAT
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_TOWER_BASE
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_TOWER_SECTION
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_25_DEG_UP_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_60_DEG_UP_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_TO_25_DEG_UP_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_FLAT_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_DOWN_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_25_DEG_DOWN_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_60_DEG_DOWN_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_DOWN_TO_25_DEG_DOWN_COVERED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_FLAT_COVERED
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_5_TILES_COVERED
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_5_TILES_COVERED
+	{ 0b1010, 0b0011, 0b1100, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_S_BEND_LEFT_COVERED
+	{ 0b1010, 0b1001, 0b0110, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_S_BEND_RIGHT_COVERED
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_COVERED
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_COVERED
+	{ 0b0010, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001, 0b1000,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_UP_SMALL
+	{ 0b1000, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_UP_SMALL
+	{ 0b0010, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001, 0b1000,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_DOWN_SMALL
+	{ 0b1000, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_DOWN_SMALL
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b1000,      0,      0 }, // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_UP_LARGE
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0010,      0,      0 }, // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_UP_LARGE
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b1000,      0,      0 }, // TRACK_ELEM_LEFT_HALF_BANKED_HELIX_DOWN_LARGE
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0010,      0,      0 }, // TRACK_ELEM_RIGHT_HALF_BANKED_HELIX_DOWN_LARGE
+	{ 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_60_DEG_UP
+	{ 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_60_DEG_UP
+	{ 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_60_DEG_DOWN
+	{ 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_60_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_BRAKES
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_ROTATION_CONTROL_TOGGLE
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_INVERTED_90_DEG_UP_TO_FLAT_QUARTER_LOOP
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_BANKED_HELIX_LARGE_UP
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_BANKED_HELIX_LARGE_UP
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_BANKED_HELIX_LARGE_DOWN
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_BANKED_HELIX_LARGE_DOWN
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_HELIX_LARGE_UP
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_HELIX_LARGE_UP
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_HELIX_LARGE_DOWN
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_HELIX_LARGE_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_LEFT_BANKED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_RIGHT_BANKED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_WATERFALL
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RAPIDS
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_ON_RIDE_PHOTO
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_LEFT_BANKED
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_RIGHT_BANKED
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_WATER_SPLASH
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_60_DEG_UP_LONG_BASE
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_TO_FLAT_LONG_BASE
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_WHIRLPOOL
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_60_DEG_DOWN_LONG_BASE
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_TO_FLAT_LONG_BASE_122
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_CABLE_LIFT_HILL
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_REVERSE_WHOA_BELLY_SLOPE
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_REVERSE_WHOA_BELLY_VERTICAL
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_90_DEG_UP
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_90_DEG_DOWN
+	{ 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_UP_TO_90_DEG_UP
+	{ 0b1110,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_90_DEG_DOWN_TO_60_DEG_DOWN
+	{ 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_90_DEG_UP_TO_60_DEG_UP
+	{ 0b1110,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_60_DEG_DOWN_TO_90_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_BRAKE_FOR_DROP
+	{ 0b0010, 0b0010, 0b1000, 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_EIGHTH_TO_DIAG
+	{ 0b1000, 0b1000, 0b0010, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_EIGHTH_TO_DIAG
+	{      0, 0b1000, 0b0110, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_EIGHTH_TO_ORTHOGONAL
+	{      0, 0b0100, 0b1001, 0b0001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_EIGHTH_TO_ORTHOGONAL
+	{ 0b0010, 0b0010, 0b1000, 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_EIGHTH_BANK_TO_DIAG
+	{ 0b1000, 0b1000, 0b0010, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_EIGHTH_BANK_TO_DIAG
+	{      0, 0b1000, 0b0110, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_EIGHTH_BANK_TO_ORTHOGONAL
+	{      0, 0b0100, 0b1001, 0b0001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_EIGHTH_BANK_TO_ORTHOGONAL
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_60_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT_TO_25_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_UP_TO_60_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_60_DEG_UP_TO_25_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_60_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT_TO_25_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_60_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_60_DEG_DOWN_TO_25_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT_TO_60_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT_TO_60_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_60_DEG_DOWN_TO_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT_TO_LEFT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_FLAT_TO_RIGHT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_LEFT_BANK_TO_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_RIGHT_BANK_TO_FLAT
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_LEFT_BANK_TO_25_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_RIGHT_BANK_TO_25_DEG_UP
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_UP_TO_LEFT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_UP_TO_RIGHT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_LEFT_BANK_TO_25_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_RIGHT_BANK_TO_25_DEG_DOWN
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_LEFT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_25_DEG_DOWN_TO_RIGHT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_LEFT_BANK
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_DIAG_RIGHT_BANK
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LOG_FLUME_REVERSER
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_SPINNING_TUNNEL
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BARREL_ROLL_UP_TO_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BARREL_ROLL_UP_TO_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BARREL_ROLL_DOWN_TO_UP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BARREL_ROLL_DOWN_TO_UP
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANK_TO_LEFT_QUARTER_TURN_3_TILES_25_DEG_UP
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANK_TO_RIGHT_QUARTER_TURN_3_TILES_25_DEG_UP
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_3_TILES_25_DEG_DOWN_TO_LEFT_BANK
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_3_TILES_25_DEG_DOWN_TO_RIGHT_BANK
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_POWERED_LIFT
+	{ 0b1010, 0b1010, 0b0010, 0b0011, 0b1001, 0b1000, 0b1000,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_LARGE_HALF_LOOP_UP
+	{ 0b1010, 0b1010, 0b1000, 0b1001, 0b0011, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_UP
+	{ 0b0010, 0b0010, 0b0011, 0b1001, 0b1000, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_DOWN
+	{ 0b1000, 0b1000, 0b1001, 0b0011, 0b0010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_LARGE_HALF_LOOP_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_FLYER_TWIST_UP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_FLYER_TWIST_UP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_FLYER_TWIST_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_FLYER_TWIST_DOWN
+	{ 0b1010, 0b1010, 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLYER_HALF_LOOP_UP
+	{      0, 0b1011, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLYER_HALF_LOOP_DOWN
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_FLYER_CORKSCREW_UP
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_FLYER_CORKSCREW_UP
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_FLYER_CORKSCREW_DOWN
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_FLYER_CORKSCREW_DOWN
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_HEARTLINE_TRANSFER_UP
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_HEARTLINE_TRANSFER_DOWN
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_HEARTLINE_ROLL
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_HEARTLINE_ROLL
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MINI_GOLF_HOLE_A
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MINI_GOLF_HOLE_B
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MINI_GOLF_HOLE_C
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MINI_GOLF_HOLE_D
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MINI_GOLF_HOLE_E
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MULTIDIM_INVERTED_FLAT_TO_90_DEG_QUARTER_LOOP_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_90_DEG_TO_INVERTED_FLAT_QUARTER_LOOP_UP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_INVERTED_FLAT_TO_90_DEG_QUARTER_LOOP_DOWN
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_CURVED_LIFT_HILL
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_CURVED_LIFT_HILL
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_REVERSER
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_REVERSER
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_AIR_THRUST_TOP_CAP
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_AIR_THRUST_VERTICAL_DOWN
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_AIR_THRUST_VERTICAL_DOWN_TO_LEVEL
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_BLOCK_BRAKES
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_3_TILE_25_DEG_UP
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_3_TILE_25_DEG_UP
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_3_TILE_25_DEG_DOWN
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_3_TILE_25_DEG_DOWN
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_5_TILE_25_DEG_UP
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_5_TILE_25_DEG_UP
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_QUARTER_TURN_5_TILE_25_DEG_DOWN
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_QUARTER_TURN_5_TILE_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_LEFT_BANKED_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_UP_TO_RIGHT_BANKED_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_25_DEG_UP_TO_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_25_DEG_UP_TO_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_LEFT_BANKED_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_25_DEG_DOWN_TO_RIGHT_BANKED_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_25_DEG_DOWN_TO_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_25_DEG_DOWN_TO_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_FLAT_TO_LEFT_BANKED_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_FLAT_TO_RIGHT_BANKED_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_25_DEG_UP_TO_LEFT_BANKED_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_25_DEG_UP_TO_RIGHT_BANKED_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_FLAT_TO_LEFT_BANKED_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_FLAT_TO_RIGHT_BANKED_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_25_DEG_DOWN_TO_LEFT_BANKED_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_25_DEG_DOWN_TO_RIGHT_BANKED_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_LEFT_BANKED_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_RIGHT_BANKED_25_DEG_UP
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_25_DEG_UP_TO_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_25_DEG_UP_TO_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_LEFT_BANKED_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_FLAT_TO_RIGHT_BANKED_25_DEG_DOWN
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_BANKED_25_DEG_DOWN_TO_FLAT
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_BANKED_25_DEG_DOWN_TO_FLAT
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_90_DEG_UP
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_90_DEG_UP
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_LEFT_QUARTER_TURN_1_TILE_90_DEG_DOWN
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_90_DEG_DOWN
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MULTIDIM_90_DEG_UP_TO_INVERTED_FLAT_QUARTER_LOOP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // TRACK_ELEM_MULTIDIM_FLAT_TO_90_DEG_DOWN_QUARTER_LOOP
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // 255
+};
+
+/** rct2: 0x0099AA94 */
+const uint8 FlatRideTrackSequenceElementAllowedWallEdges[][16] = {
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b0011, 0b1100, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1001, 0b0110, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b0010, 0b0011,      0,      0,      0,      0, 0b1100, 0b1000, 0b1000,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b1000, 0b1001,      0,      0,      0,      0, 0b0110, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b1011, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b0011, 0b1100, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1001, 0b0110, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001, 0b1000,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001, 0b1000,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b1000,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0010,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001, 0b0001, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b1000,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001, 0b0001, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0010,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_1_X_4_A
+	{ 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_2_X_2
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_4_X_4
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_1_X_5
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_1_X_1_A
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_1_X_4_B
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_1_X_1_B
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_1_X_4_C
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 }, // FLAT_TRACK_ELEM_3_X_3
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1110,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1110,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b0010, 0b1000, 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b1000, 0b0010, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b1000, 0b0110, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0100, 0b1001, 0b0001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b0010, 0b1000, 0b0011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b1000, 0b0010, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b1000, 0b0110, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0100, 0b1001, 0b0001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b0110, 0b1001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b0010, 0b0011, 0b1001, 0b1000, 0b1000,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1000, 0b1001, 0b0011, 0b0010, 0b0010,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b0010, 0b0011, 0b1001, 0b1000, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b1000, 0b1001, 0b0011, 0b0010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1011,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0, 0b1011, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b0011, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1001, 0b0101,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010, 0b1010, 0b1010, 0b1010, 0b1010, 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b0010, 0b1100, 0b0011,      0, 0b1100, 0b0011, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1000, 0b0110, 0b1001,      0, 0b0110, 0b1001, 0b0001,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1010,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
+	{ 0b1111,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0,      0 },
 };

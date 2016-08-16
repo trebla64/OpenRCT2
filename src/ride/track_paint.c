@@ -1234,7 +1234,7 @@ void track_paint(uint8 direction, int height, rct_map_element *mapElement)
 
 		if ((gCurrentViewportFlags & VIEWPORT_FLAG_TRACK_HEIGHTS) && dpi->zoom_level == 0) {
 			gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_NONE;
-			if (RCT2_ADDRESS(0x00999694, uint32)[trackType] & (1 << trackSequence)) {
+			if (TrackHeightMarkerPositions[trackType] & (1 << trackSequence)) {
 				uint16 ax = RideData5[ride->type].z_offset;
 				uint32 ebx = 0x20381689 + (height + 8) / 16;
 				ebx += RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_HEIGHT_MARKERS, uint16);
@@ -1248,7 +1248,7 @@ void track_paint(uint8 direction, int height, rct_map_element *mapElement)
 		RCT2_GLOBAL(0x00F441A0, uint32) = 0x20000000;
 		RCT2_GLOBAL(0x00F441A4, uint32) = 0x20C00000;
 		RCT2_GLOBAL(0x00F4419C, uint32) = (ride->track_colour_supports[trackColourScheme] << 19) | 0x20000000;
-		if (mapElement->type & 0x40) {
+		if (mapElement->type & MAP_ELEMENT_TYPE_FLAG_HIGHLIGHT) {
 			RCT2_GLOBAL(0x00F44198, uint32) = 0x21600000;
 			RCT2_GLOBAL(0x00F4419C, uint32) = 0x21600000;
 			RCT2_GLOBAL(0x00F441A0, uint32) = 0x21600000;

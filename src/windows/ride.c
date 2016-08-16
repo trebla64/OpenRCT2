@@ -39,6 +39,7 @@
 #include "../world/sprite.h"
 #include "dropdown.h"
 #include "../rct1.h"
+#include "../ride/track_data.h"
 
 enum {
 	WINDOW_RIDE_PAGE_MAIN,
@@ -1672,7 +1673,7 @@ rct_window *window_ride_open_track(rct_map_element *mapElement)
 	int rideIndex = mapElement->properties.track.ride_index;
 	if (
 		(map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_ENTRANCE) ||
-		(RCT2_ADDRESS(0x0099BA64, uint8)[mapElement->properties.track.type * 16] & 0x10)
+		(TrackSequenceProperties[mapElement->properties.track.type][0] & TRACK_SEQUENCE_FLAG_ORIGIN)
 	) {
 		// Open ride window in station view
 		return window_ride_open_station(rideIndex, map_get_station(mapElement));
@@ -3168,10 +3169,6 @@ static void window_ride_mode_tweak_decrease(rct_window *w)
 
 	uint8 maxValue = RideProperties[ride->type].max_value;
 	uint8 minValue = gCheatsFastLiftHill ? 0 : RideProperties[ride->type].min_value;
-	if (ride->mode == RIDE_MODE_MAZE) {
-		// Allow 64 people in mazes under non-cheat settings. The old maximum of 16 was too little for even moderately big mazes.
-		maxValue = 64;
-	}
 	if (gCheatsFastLiftHill) {
 		maxValue = 255;
 	}
