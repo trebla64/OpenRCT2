@@ -38,6 +38,7 @@
 #include "window.h"
 
 //#define DEBUG_SHOW_DIRTY_BOX
+uint32 gCurrentViewportFlags = 0;
 
 rct_viewport g_viewport_list[MAX_VIEWPORT_COUNT];
 rct_viewport *g_music_tracking_viewport;
@@ -663,6 +664,14 @@ void viewport_render(rct_drawpixelinfo *dpi, rct_viewport *viewport, int left, i
 #endif
 }
 
+/** rct2: 0x0098195C */
+const sint32 WeatherColours[] = {
+	-1,
+	0x2000000 | 49,
+	0x2000000 | 50,
+	0x2000000 | 47,
+};
+
 /**
  *
  *  rct2: 0x00685CBF
@@ -675,6 +684,10 @@ void viewport_render(rct_drawpixelinfo *dpi, rct_viewport *viewport, int left, i
  */
 void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, int top, int right, int bottom){
 	gCurrentViewportFlags = viewport->flags;
+	//This should still be updated until the rest of supports, etc, is reverse-engineered. Otherwise
+	// supports for unimplemented rollercoasters will still appear even if "invisible supports"
+	// are enabled.
+	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) = (uint16)viewport->flags;
 	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16) = viewport->zoom;
 
 	uint16 width = right - left;
@@ -754,7 +767,7 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 		sub_688217();
 		paint_quadrant_ps();
 
-		int weather_colour = RCT2_ADDRESS(0x98195C, uint32)[gClimateCurrentWeatherGloom];
+		int weather_colour = WeatherColours[gClimateCurrentWeatherGloom];
 		if ((weather_colour != -1) && (!(gCurrentViewportFlags & VIEWPORT_FLAG_INVISIBLE_SPRITES)) && (!(RCT2_GLOBAL(0x9DEA6F, uint8) & 1))){
 			gfx_fill_rect(dpi2, dpi2->x, dpi2->y, dpi2->width + dpi2->x - 1, dpi2->height + dpi2->y - 1, weather_colour);
 		}
@@ -955,8 +968,8 @@ void viewport_set_visibility(uint8 mode)
 
 		switch (mode) {
 		case 0: { //Set all these flags to 0, and invalidate if any were active
-			uint16 mask = VIEWPORT_FLAG_UNDERGROUND_INSIDE | VIEWPORT_FLAG_SEETHROUGH_RIDES |
-				VIEWPORT_FLAG_SEETHROUGH_SCENERY | VIEWPORT_FLAG_INVISIBLE_SUPPORTS |
+			uint32 mask = VIEWPORT_FLAG_UNDERGROUND_INSIDE | VIEWPORT_FLAG_SEETHROUGH_RIDES |
+				VIEWPORT_FLAG_SEETHROUGH_SCENERY | VIEWPORT_FLAG_SEETHROUGH_PATHS | VIEWPORT_FLAG_INVISIBLE_SUPPORTS |
 				VIEWPORT_FLAG_LAND_HEIGHTS | VIEWPORT_FLAG_TRACK_HEIGHTS |
 				VIEWPORT_FLAG_PATH_HEIGHTS | VIEWPORT_FLAG_INVISIBLE_PEEPS |
 				VIEWPORT_FLAG_HIDE_BASE | VIEWPORT_FLAG_HIDE_VERTICAL;

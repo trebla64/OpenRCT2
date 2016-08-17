@@ -148,7 +148,7 @@ typedef struct rct_duck {
 	uint8 pad_16[0x8];
 	uint8 sprite_direction;			// 0x1E
 	uint8 pad_1F[0x7];
-	uint16 var_26;
+	uint16 frame;
 	uint8 pad_28[0x8];
 	sint16 target_x;				// 0x30
 	sint16 target_y;				// 0x32
@@ -382,6 +382,21 @@ enum {
 	SPRITE_FLAGS_IS_CRASHED_VEHICLE_SPRITE = 1 << 7,
 	SPRITE_FLAGS_PEEP_VISIBLE = 1 << 8, // Peep is eligible to show in summarized guest list window (is inside park?)
 	SPRITE_FLAGS_PEEP_FLASHING = 1 << 9, // Peep belongs to highlighted group (flashes red on map)
+};
+
+enum {
+	LITTER_TYPE_SICK,
+	LITTER_TYPE_SICK_ALT,
+	LITTER_TYPE_EMPTY_CAN,
+	LITTER_TYPE_RUBBISH,
+	LITTER_TYPE_EMPTY_BURGER_BOX,
+	LITTER_TYPE_EMPTY_CUP,
+	LITTER_TYPE_EMPTY_BOX,
+	LITTER_TYPE_EMPTY_BOTTLE,
+	LITTER_TYPE_EMPTY_BOWL_RED,
+	LITTER_TYPE_EMPTY_DRINK_CARTON,
+	LITTER_TYPE_EMPTY_JUICE_CUP,
+	LITTER_TYPE_EMPTY_BOWL_BLUE,
 };
 
 rct_sprite *get_sprite(size_t sprite_idx);
