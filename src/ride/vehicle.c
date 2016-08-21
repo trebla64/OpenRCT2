@@ -35,6 +35,7 @@
 #include "track.h"
 #include "track_data.h"
 #include "vehicle.h"
+#include "vehicle_data.h"
 
 static void vehicle_update(rct_vehicle *vehicle);
 
@@ -312,34 +313,6 @@ static const sint8 * SwingingTimeToSpriteMaps[] = {
 	SwingingTimeToSpriteMap_9,
 	SwingingTimeToSpriteMap_10,
 	SwingingTimeToSpriteMap_11,
-};
-
-/** rct2: 0x009A12E0 */
-static const uint8 * TopSpinTimeToSpriteMaps[] = {
-	RCT2_ADDRESS(0x009A12EC, const uint8),
-	RCT2_ADDRESS(0x009A1751, const uint8),
-	RCT2_ADDRESS(0x009A1CC6, const uint8),
-};
-
-/** rct2: 0x0099F0F4 */
-static const uint8 * Rotation1TimeToSpriteMaps[] = {
-	RCT2_ADDRESS(0x0099F100, const uint8),
-	RCT2_ADDRESS(0x0099F422, const uint8),
-	RCT2_ADDRESS(0x0099F6AB, const uint8),
-};
-
-/** rct2: 0x009A2428 */
-static const uint8 * Rotation2TimeToSpriteMaps[] = {
-	RCT2_ADDRESS(0x009A2434, const uint8),
-	RCT2_ADDRESS(0x009A26A6, const uint8),
-	RCT2_ADDRESS(0x009A270E, const uint8),
-};
-
-/** rct2: 0x0099EB1C */
-static const uint8 * Rotation3TimeToSpriteMaps[] = {
-	RCT2_ADDRESS(0x0099EB28, const uint8),
-	RCT2_ADDRESS(0x0099ED49, const uint8),
-	RCT2_ADDRESS(0x0099EED1, const uint8),
 };
 
 static bool vehicle_move_info_valid(int cd, int typeAndDirection, int offset)
@@ -2868,6 +2841,26 @@ static void vehicle_update_collision_setup(rct_vehicle* vehicle) {
 	vehicle->velocity = 0;
 }
 
+/** rct2: 0x009A3AC4, 0x009A3AC6 */
+static const rct_xy16 stru_9A3AC4[] = {
+	{ -256,    0 },
+	{ -236,   98 },
+	{ -181,  181 },
+	{  -98,  236 },
+	{    0,  256 },
+	{   98,  236 },
+	{  181,  181 },
+	{  236,   98 },
+	{  256,    0 },
+	{  236,  -98 },
+	{  181, -181 },
+	{   98, -236 },
+	{    0, -256 },
+	{  -98, -236 },
+	{ -181, -181 },
+	{ -236,  -98 },
+};
+
 /**
  *
  *  rct2: 0x006D9EFE
@@ -2895,8 +2888,8 @@ static void vehicle_update_crash_setup(rct_vehicle* vehicle) {
 		lastVehicle = trainVehicle;
 
 		trainVehicle->sub_state = 0;
-		int x = RCT2_ADDRESS(0x009A3AC4, sint16)[trainVehicle->sprite_direction & 0xFE];
-		int	y = RCT2_ADDRESS(0x009A3AC6, sint16)[trainVehicle->sprite_direction & 0xFE];
+		int x = stru_9A3AC4[trainVehicle->sprite_direction / 2].x;
+		int y = stru_9A3AC4[trainVehicle->sprite_direction / 2].y;
 
 		int ecx = RCT2_ADDRESS(0x009A37E4, sint32)[trainVehicle->vehicle_sprite_type] >> 15;
 		x *= ecx;
@@ -4003,8 +3996,9 @@ static void vehicle_update_simulator_operating(rct_vehicle* vehicle) {
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	uint8* edi = RCT2_ADDRESS(0x009A0434, uint8);
-	uint8 al = edi[(uint16)(vehicle->current_time + 1)];
+	assert(vehicle->current_time >= -1);
+	assert(vehicle->current_time < MotionSimulatorTimeToSpriteMapCount);
+	uint8 al = MotionSimulatorTimeToSpriteMap[vehicle->current_time + 1];
 	if (al != 0xFF) {
 		vehicle->current_time++;
 		if (al == vehicle->vehicle_sprite_type)
@@ -4216,15 +4210,15 @@ static void vehicle_update_top_spin_operating(rct_vehicle* vehicle) {
 	if (RCT2_GLOBAL(0x00F64E34, uint8) == 0)
 		return;
 
-	const uint8* edi = TopSpinTimeToSpriteMaps[vehicle->sub_state];
-	uint8 al = edi[(vehicle->current_time + 1) * 2];
+	const top_spin_time_to_sprite_map * edi = TopSpinTimeToSpriteMaps[vehicle->sub_state];
+	uint8 al = edi[vehicle->current_time + 1].arm_rotation;
 	if (al != 0xFF) {
 		vehicle->current_time = vehicle->current_time + 1;
 		if (al != vehicle->vehicle_sprite_type) {
 			vehicle->vehicle_sprite_type = al;
 			vehicle_invalidate(vehicle);
 		}
-		al = edi[vehicle->current_time * 2 + 1];
+		al = edi[vehicle->current_time].bank_rotation;
 		if (al != vehicle->bank_rotation) {
 			vehicle->bank_rotation = al;
 			vehicle_invalidate(vehicle);
@@ -4658,7 +4652,7 @@ static void vehicle_update_sound(rct_vehicle *vehicle)
 	vehicle->sound2_volume = (soundIdVolume >> 8) & 0xFF;
 
 	{
-		int ebx = RCT2_ADDRESS(0x009A3684, sint16)[vehicle->sprite_direction];
+		int ebx = word_9A3684[vehicle->sprite_direction];
 		int eax = ((vehicle->velocity >> 14) * ebx) >> 14;
 		eax = clamp(-127, eax, 127);
 
@@ -5563,9 +5557,6 @@ bool vehicle_update_bumper_car_collision(rct_vehicle *vehicle, sint16 x, sint16 
 
 	return false;
 }
-
-// rct2: 0x009A2970
-const sint32 *dword_9A2970 = RCT2_ADDRESS(0x009A2970, sint32);
 
 /**
  *
@@ -7341,7 +7332,7 @@ loc_6DAEB9:
 	}
 
 	// loc_6DB8A5
-	regs.ebx = RCT2_ADDRESS(0x009A2930, sint32)[regs.ebx];
+	regs.ebx = dword_9A2930[regs.ebx];
 	vehicle->remaining_distance -= regs.ebx;
 	unk_F64E20->x = x;
 	unk_F64E20->y = y;
@@ -7617,7 +7608,7 @@ loc_6DBA33:;
 	if (x != unk_F64E20->x) { regs.ebx |= 1; }
 	if (y != unk_F64E20->y) { regs.ebx |= 2; }
 	if (z != unk_F64E20->z) { regs.ebx |= 4; }
-	vehicle->remaining_distance += RCT2_ADDRESS(0x009A2930, sint32)[regs.ebx];
+	vehicle->remaining_distance += dword_9A2930[regs.ebx];
 
 	unk_F64E20->x = x;
 	unk_F64E20->y = y;

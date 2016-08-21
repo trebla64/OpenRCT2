@@ -14,31 +14,28 @@
  *****************************************************************************/
 #pragma endregion
 
-#ifndef _CHAT_H_
-#define _CHAT_H_
+#ifndef _VEHICLE_DATA_H
+#define _VEHICLE_DATA_H
 
 #include "../common.h"
-#include "../drawing/drawing.h"
 
-#define CHAT_HISTORY_SIZE 10
-#define CHAT_INPUT_SIZE 1024
-#define CHAT_MAX_MESSAGE_LENGTH 200
-#define CHAT_MAX_WINDOW_WIDTH 600
+extern const uint8 * Rotation1TimeToSpriteMaps[];
+extern const uint8 * Rotation2TimeToSpriteMaps[];
+extern const uint8 * Rotation3TimeToSpriteMaps[];
 
-extern bool gChatOpen;
+typedef struct top_spin_time_to_sprite_map {
+	uint8 arm_rotation;
+	uint8 bank_rotation;
+} top_spin_time_to_sprite_map;
 
-void chat_open();
-void chat_close();
-void chat_toggle();
+extern const top_spin_time_to_sprite_map * TopSpinTimeToSpriteMaps[];
 
-void chat_init();
-void chat_update();
-void chat_draw(rct_drawpixelinfo * dpi);
+extern const uint8 MotionSimulatorTimeToSpriteMap[];
+extern const int MotionSimulatorTimeToSpriteMapCount;
 
-void chat_history_add(const char *src);
-void chat_input(int c);
+extern const sint32 dword_9A2930[];
+extern const sint32 dword_9A2970[];
 
-int chat_string_wrapped_get_height(void *args, int width);
-int chat_history_draw_string(rct_drawpixelinfo *dpi, void *args, int x, int y, int width);
+extern const sint32 word_9A3684[];
 
 #endif

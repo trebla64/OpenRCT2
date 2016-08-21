@@ -1462,7 +1462,7 @@ static void peep_check_cant_find_ride(rct_peep* peep){
 		window_event_invalidate_call(w);
 	}
 
-	widget_invalidate_by_number(WC_PEEP, peep->sprite_index, 12);
+	window_invalidate_by_number(WC_PEEP, peep->sprite_index);
 }
 
 /**
@@ -1788,27 +1788,23 @@ void peep_update_sprite_type(rct_peep* peep)
  * Note also increase ride count if on/entering a ride.
  *  rct2: 0x0069A42F
  */
-void peep_window_state_update(rct_peep* peep){
-
+void peep_window_state_update(rct_peep* peep)
+{
 	rct_window* w = window_find_by_number(WC_PEEP, peep->sprite_index);
 	if (w != NULL)
 		window_event_invalidate_call(w);
 
-	if (peep->type == PEEP_TYPE_GUEST){
-		// Update action label
-		widget_invalidate_by_number(WC_PEEP, peep->sprite_index, 12);
-
-		if (peep->state == PEEP_STATE_ON_RIDE || peep->state == PEEP_STATE_ENTERING_RIDE){
+	if (peep->type == PEEP_TYPE_GUEST) {
+		if (peep->state == PEEP_STATE_ON_RIDE || peep->state == PEEP_STATE_ENTERING_RIDE) {
 			rct_ride* ride = get_ride(peep->current_ride);
 			ride->num_riders++;
 			ride->window_invalidate_flags |= RIDE_INVALIDATE_RIDE_MAIN | RIDE_INVALIDATE_RIDE_LIST;
 		}
 
+		window_invalidate_by_number(WC_PEEP, peep->sprite_index);
 		window_invalidate_by_class(WC_GUEST_LIST);
-	}
-	else{
-		// Update action label
-		widget_invalidate_by_number(WC_PEEP, peep->sprite_index, 9);
+	} else {
+		window_invalidate_by_number(WC_PEEP, peep->sprite_index);
 		window_invalidate_by_class(WC_STAFF_LIST);
 	}
 }
@@ -5992,8 +5988,8 @@ static int peep_update_patrolling_find_bin(rct_peep* peep){
 	peep_window_state_update(peep);
 
 	peep->sub_state = 0;
-	peep->destination_x = (peep->x & 0xFFE0) + RCT2_ADDRESS(0x992A4C, uint16)[chosen_position * 2];
-	peep->destination_y = (peep->y & 0xFFE0) + RCT2_ADDRESS(0x992A4E, uint16)[chosen_position * 2];
+	peep->destination_x = (peep->x & 0xFFE0) + _992A4C[chosen_position].x;
+	peep->destination_y = (peep->y & 0xFFE0) + _992A4C[chosen_position].y;
 	peep->destination_tolerence = 3;
 	return 1;
 }
@@ -6022,8 +6018,9 @@ static int peep_update_patrolling_find_grass(rct_peep* peep){
 	peep->state = PEEP_STATE_MOWING;
 	peep_window_state_update(peep);
 	peep->var_37 = 0;
-	peep->destination_x = peep->next_x + RCT2_ADDRESS(0x9929CA, uint16)[0 * 2];
-	peep->destination_y = peep->next_y + RCT2_ADDRESS(0x9929CA, uint16)[0 * 2];
+	// Original code used .y for both x and y. Changed to .x to make more sense (both x and y are 28)
+	peep->destination_x = peep->next_x + _9929C8[0].x;
+	peep->destination_y = peep->next_y + _9929C8[0].y;
 	peep->destination_tolerence = 3;
 	return 1;
 }
@@ -11120,8 +11117,8 @@ static void peep_head_for_nearest_ride_with_flags(rct_peep *peep, int rideTypeFl
 	rct_window *w = window_find_by_number(WC_PEEP, peep->sprite_index);
 	if (w != NULL) {
 		window_event_invalidate_call(w);
+		window_invalidate(w);
 	}
-	widget_invalidate_by_number(WC_RIDE, closestRideIndex, 23);
 
 	peep->var_F4 = 0;
 }
