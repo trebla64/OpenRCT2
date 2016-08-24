@@ -79,7 +79,7 @@ enum {
 	PATH_SEARCH_PARK_EXIT,
 	PATH_SEARCH_LIMIT_REACHED,
 	PATH_SEARCH_WIDE,
-	PATH_SEARCH_QUEUE,
+	PATH_SEARCH_RIDE_QUEUE,
 	PATH_SEARCH_OTHER = 10
 };
 
@@ -8430,7 +8430,8 @@ static uint8 footpath_element_next_in_direction(sint16 x, sint16 y, sint16 z, rc
 		if (map_element_get_type(nextMapElement) != MAP_ELEMENT_TYPE_PATH) continue;
 		if (!is_valid_path_z_and_direction(nextMapElement, z, chosenDirection)) continue;
 		if (footpath_element_is_wide(nextMapElement)) return PATH_SEARCH_WIDE;
-		if (footpath_element_is_queue(nextMapElement)) return PATH_SEARCH_QUEUE;
+		// Only queue tiles that are connected to a ride are returned as ride queues.
+		if (footpath_element_is_queue(nextMapElement) && nextMapElement->properties.path.ride_index != 0xFF) return PATH_SEARCH_RIDE_QUEUE;
 
 		return PATH_SEARCH_OTHER;
 	} while (!map_element_is_last_for_tile(nextMapElement++));
@@ -8651,7 +8652,6 @@ static uint16 peep_pathfind_heuristic_search(sint16 x, sint16 y, uint8 z, uint8 
 
 	++counter;
 	if (--_peepPathFindTilesChecked < 0) {
-		log_warning("WARNING: Path finding search limit (maxTilesChecked) exceeded - expect path finding problems!\n");
 		#if defined(DEBUG_LEVEL_2) && DEBUG_LEVEL_2
 			log_information("[%03d] Return from %d,%d,%d; TilesChecked < 0; Score: %d\n", counter, x >> 5, y >> 5, z, score);
 		#endif // defined(DEBUG_LEVEL_2) && DEBUG_LEVEL_2
@@ -8726,7 +8726,7 @@ static uint16 peep_pathfind_heuristic_search(sint16 x, sint16 y, uint8 z, uint8 
 		}
 
 		if (footpath_element_is_queue(path) && path->properties.path.ride_index != gPeepPathFindQueueRideIndex) {
-			if (gPeepPathFindIgnoreForeignQueues) {
+			if (gPeepPathFindIgnoreForeignQueues && (path->properties.path.ride_index != 0xFF)) {
 				// Path is a queue we aren't interested in
 				continue;
 			}
@@ -8803,7 +8803,7 @@ static uint16 peep_pathfind_heuristic_search(sint16 x, sint16 y, uint8 z, uint8 
 	do
 	{
 		int fp_result = footpath_element_next_in_direction(x, y, z, path, prescan_edge);
-		if (fp_result != PATH_SEARCH_WIDE && fp_result != PATH_SEARCH_QUEUE) {
+		if (fp_result != PATH_SEARCH_WIDE && fp_result != PATH_SEARCH_RIDE_QUEUE) {
 			thin_count++;
 		}
 
@@ -8978,6 +8978,7 @@ int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep)
 		 * edge that gives the best (i.e. smallest) value (best_score)
 		 * or for different edges with equal value, the edge with the
 		 * least steps (best_sub). */
+		int numEdges = bitcount(edges);
 		for (int test_edge = chosen_edge; test_edge != -1; test_edge = bitscanforward(edges)) {
 			edges &= ~(1 << test_edge);
 			uint8 height = z;
@@ -8989,8 +8990,11 @@ int peep_pathfind_choose_direction(sint16 x, sint16 y, uint8 z, rct_peep *peep)
 			}
 
 			_peepPathFindFewestNumSteps = 255;
-			_peepPathFindTilesChecked = maxTilesChecked;
 			_peepPathFindQueueRideIndex = false;
+			/* Divide the maxTilesChecked global search limit
+			 * between the remaining edges to ensure the search
+			 * covers all of the remaining edges. */
+			_peepPathFindTilesChecked = maxTilesChecked / numEdges;
 			_peepPathFindNumJunctions = maxNumJunctions;
 
 			// Initialise _peepPathFindHistory.
