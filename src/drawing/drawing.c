@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../common.h"
 #include "../localisation/localisation.h"
 #include "../interface/window.h"
@@ -39,6 +38,8 @@ void *unk_9E3CDC;
 void *unk_9E3CE4[8];
 #ifdef NO_RCT2
 rct_drawpixelinfo *unk_140E9A8;
+sint16 gCurrentFontSpriteBase;
+uint16 gCurrentFontFlags;
 #endif
 
 /**

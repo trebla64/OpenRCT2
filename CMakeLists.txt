@@ -80,18 +80,34 @@ option(FORCE64 "Force native (x86-64) build. Do not use, for experimental purpos
 option(DISABLE_OPENGL "Disable OpenGL support.")
 option(DISABLE_RCT2 "WIP: Try building without using code and data segments from vanilla.")
 option(USE_MMAP "Use mmap to try loading rct2's data segment into memory.")
+option(LAUNCHPAD_BUILD "Sets some build system options on launchpad.net")
+
+set(COMMON_COMPILE_OPTIONS "${COMMON_COMPILE_OPTIONS} -fstrict-aliasing -Werror -Wundef -Wmissing-declarations")
+
+# On mingw all code is already PIC, this will avoid compiler error on redefining this option
+if(NOT MINGW)
+	set(COMMON_COMPILE_OPTIONS "${COMMON_COMPILE_OPTIONS} -fPIC")
+endif()
+
+if (LAUNCHPAD_BUILD)
+	# Launchpad turns on -Wdate-time for compilers that support it, this shouldn't break our build
+	set(COMMON_COMPILE_OPTIONS "${COMMON_COMPILE_OPTIONS} -Wno-error=date-time")
+else()
+	if (FORCE64)
+		set(TARGET_M "-m64")
+	else ()
+		set(TARGET_M "-m32")
+	endif()
+endif()
 
 if (FORCE64)
-	set(TARGET_M "-m64")
 	set(OBJ_FORMAT "elf64-x86-64")
 	set(LINKER_SCRIPT "ld_script_x86_64.xc")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=pointer-to-int-cast -Wno-error=int-to-pointer-cast")
 	if ((APPLE OR WIN32) AND NOT USE_MMAP)
 		message(WARNING "Building such configuration won't work. Enabling USE_MMAP.")
 		set(USE_MMAP ON)
 	endif()
 else ()
-	set(TARGET_M "-m32")
 	set(OBJ_FORMAT "elf32-i386")
 	set(LINKER_SCRIPT "ld_script_i386.xc")
 endif ()
@@ -144,14 +160,14 @@ PKG_CHECK_MODULES(JANSSON REQUIRED jansson>=2.7)
 if (UNIX)
   add_custom_command(
     OUTPUT openrct2_text
-    COMMAND dd if=${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe of=${CMAKE_BINARY_DIR}/openrct2_text bs=4096 skip=1 count=1187
+    COMMAND dd if="${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe" of="${CMAKE_BINARY_DIR}/openrct2_text" bs=4096 skip=1 count=1187
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe
   )
   add_custom_command(
     OUTPUT openrct2_data
-    COMMAND dd if=${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe of=${CMAKE_BINARY_DIR}/openrct2_data bs=4096 skip=1188 count=318
-    COMMAND dd if=/dev/zero of=${CMAKE_BINARY_DIR}/openrct2_data bs=4096 seek=318 count=2630 conv=notrunc
-    COMMAND dd if=${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe of=${CMAKE_BINARY_DIR}/openrct2_data bs=4096 skip=1506 seek=2948 count=1 conv=notrunc
+    COMMAND dd if="${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe" of="${CMAKE_BINARY_DIR}/openrct2_data" bs=4096 skip=1188 count=318
+    COMMAND dd if=/dev/zero of="${CMAKE_BINARY_DIR}/openrct2_data" bs=4096 seek=318 count=2630 conv=notrunc
+    COMMAND dd if="${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe" of="${CMAKE_BINARY_DIR}/openrct2_data" bs=4096 skip=1506 seek=2948 count=1 conv=notrunc
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/openrct2.exe
   )
   add_custom_target(segfiles DEPENDS openrct2_text openrct2_data)
@@ -204,10 +220,10 @@ if (APPLE)
 endif (APPLE)
 
 # set necessary flags to compile code as is
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_M} -std=gnu99 -fno-pie -fstrict-aliasing -Werror -Wundef -Wmissing-declarations")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_M} -std=gnu++11 -fno-pie -fstrict-aliasing -Werror -Wundef -Wmissing-declarations")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_M} -std=gnu99 ${COMMON_COMPILE_OPTIONS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_M} -std=gnu++11 ${COMMON_COMPILE_OPTIONS}")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${TARGET_M}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS} -fpie")
 
 if (MINGW)
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libgcc -static-libstdc++")

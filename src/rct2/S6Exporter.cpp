@@ -21,6 +21,7 @@
 
 extern "C"
 {
+    #include "../addresses.h"
     #include "../config.h"
     #include "../game.h"
     #include "../interface/viewport.h"
@@ -103,7 +104,7 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
     }
     
     sawyercoding_chunk_header chunkHeader;
-    int encodedLength;
+    size_t encodedLength;
 
     // 0: Write header chunk
     chunkHeader.encoding = CHUNK_ENCODING_ROTATE;
@@ -232,7 +233,7 @@ void S6Exporter::Export()
     {
         const rct_object_entry * entry = get_loaded_object_entry(i);
         void * entryData = get_loaded_object_chunk(i);
-        if (entryData == (void *)0xFFFFFFFF)
+        if (entryData == (void *)-1)
         {
             Memory::Set(&_s6.objects[i], 0xFF, sizeof(rct_object_entry));
         }
@@ -351,15 +352,15 @@ void S6Exporter::Export()
     // _s6.cd_key
     // _s6.game_version_number
     _s6.completed_company_value_record = gScenarioCompanyValueRecord;
-    _s6.loan_hash = RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32);
+    _s6.loan_hash = GetLoanHash(gInitialCash, gBankLoan, gMaxBankLoan);
     _s6.ride_count = RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, uint16);
     // pad_013587CA
-    _s6.dword_013587D0 = RCT2_GLOBAL(0x013587D0, uint32);
+    _s6.historical_profit = gHistoricalProfit;
     // pad_013587D4
     memcpy(_s6.scenario_completed_name, gScenarioCompletedBy, sizeof(_s6.scenario_completed_name));
     _s6.cash = gCashEncrypted;
     // pad_013587FC
-    _s6.word_0135882E = RCT2_GLOBAL(0x0135882E, uint16);
+    _s6.park_rating_casualty_penalty = gParkRatingCasualtyPenalty;
     _s6.map_size_units = gMapSizeUnits;
     _s6.map_size_minus_2 = gMapSizeMinus2;
     _s6.map_size = gMapSize;
@@ -367,7 +368,7 @@ void S6Exporter::Export()
     _s6.same_price_throughout = gSamePriceThroughoutParkA;
     _s6.suggested_max_guests = _suggestedGuestMaximum;
     _s6.park_rating_warning_days = gScenarioParkRatingWarningDays;
-    _s6.last_entrance_style = RCT2_GLOBAL(RCT2_ADDRESS_LAST_ENTRANCE_STYLE, uint8);
+    _s6.last_entrance_style = gLastEntranceStyle;
     // rct1_water_colour
     // pad_01358842
     memcpy(_s6.research_items, gResearchItems, sizeof(_s6.research_items));
@@ -387,7 +388,7 @@ void S6Exporter::Export()
     memcpy(_s6.custom_strings, gUserStrings, sizeof(_s6.custom_strings));
     _s6.game_ticks_1 = gCurrentTicks;
     memcpy(_s6.rides, gRideList, sizeof(_s6.rides));
-    _s6.saved_age = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_AGE, uint16);
+    _s6.saved_age = gSavedAge;
     _s6.saved_view_x = gSavedViewX;
     _s6.saved_view_y = gSavedViewY;
     _s6.saved_view_zoom = gSavedViewZoom;
@@ -436,6 +437,18 @@ void S6Exporter::Export()
 
     scenario_fix_ghosts(&_s6);
     game_convert_strings_to_rct2(&_s6);
+}
+
+uint32 S6Exporter::GetLoanHash(money32 initialCash, money32 bankLoan, uint32 maxBankLoan)
+{
+    sint32 value = 0x70093A;
+    value -= initialCash;
+    value = ror32(value, 5);
+    value -= bankLoan;
+    value = ror32(value, 7);
+    value += maxBankLoan;
+    value = ror32(value, 3);
+    return value;
 }
 
 extern "C"

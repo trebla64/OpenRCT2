@@ -17,7 +17,6 @@
 #include <stdarg.h>
 #include <SDL_scancode.h>
 
-#include "../addresses.h"
 #include "../drawing/drawing.h"
 #include "../localisation/localisation.h"
 #include "../localisation/user.h"
@@ -203,7 +202,7 @@ void console_draw(rct_drawpixelinfo *dpi)
 			break;
 		drawLines++;
 
-		int lineLength = min(sizeof(lineBuffer) - (size_t)utf8_get_codepoint_length(FORMAT_WHITE), (size_t)(nextLine - ch));
+		size_t lineLength = min(sizeof(lineBuffer) - (size_t)utf8_get_codepoint_length(FORMAT_WHITE), (size_t)(nextLine - ch));
 		lineCh = lineBuffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WHITE);
 		strncpy(lineCh, ch, lineLength);
@@ -296,9 +295,9 @@ static void console_write_prompt()
 
 void console_write(const utf8 *src)
 {
-	int charactersRemainingInBuffer = CONSOLE_BUFFER_SIZE - (_consoleBufferPointer - _consoleBuffer) - 1;
-	int charactersToWrite = strlen(src);
-	int bufferShift = charactersToWrite - charactersRemainingInBuffer;
+	size_t charactersRemainingInBuffer = CONSOLE_BUFFER_SIZE - (_consoleBufferPointer - _consoleBuffer) - 1;
+	size_t charactersToWrite = strlen(src);
+	size_t bufferShift = charactersToWrite - charactersRemainingInBuffer;
 	if (charactersToWrite > charactersRemainingInBuffer) {
 		memmove(_consoleBuffer, _consoleBuffer + bufferShift, CONSOLE_BUFFER_SIZE - bufferShift);
 		_consoleBufferPointer -= bufferShift;
@@ -1125,7 +1124,7 @@ void console_execute_silent(const utf8 *src)
 				break;
 			end++;
 		}
-		int length = end - start;
+		size_t length = end - start;
 
 		if (length > 0) {
 			utf8 *arg = malloc(length + 1);

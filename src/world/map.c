@@ -79,6 +79,15 @@ uint8			gMapSelectArrowDirection;
 
 uint8 gMapGroundFlags;
 
+uint16 gWidePathTileLoopX;
+uint16 gWidePathTileLoopY;
+uint16 gGrassSceneryTileLoopPosition;
+
+sint16 gMapSizeUnits;
+sint16 gMapSizeMinus2;
+sint16 gMapSize;
+sint16 gMapSizeMaxXY;
+
 #if defined(NO_RCT2)
 rct_map_element gMapElements[0x30000];
 rct_map_element *gMapElementTilePointers[MAX_TILE_MAP_ELEMENT_POINTERS];
@@ -765,7 +774,7 @@ void game_command_remove_scenery(int* eax, int* ebx, int* ecx, int* edx, int* es
 	money32 cost;
 
 	rct_scenery_entry *entry = get_small_scenery_entry(scenery_type);
-	if (entry == (rct_scenery_entry *)0xFFFFFFFF)
+	if (entry == (rct_scenery_entry *)-1)
 	{
 		log_warning("Invalid game command for scenery removal, scenery_type = %u", scenery_type);
 		*ebx = MONEY32_UNDEFINED;
@@ -3684,7 +3693,7 @@ void game_command_place_large_scenery(int* eax, int* ebx, int* ecx, int* edx, in
 	}
 
 	rct_scenery_entry *scenery_entry = get_large_scenery_entry(entry_index);
-	if (scenery_entry == (rct_scenery_entry *)0xFFFFFFFF)
+	if (scenery_entry == (rct_scenery_entry *)-1)
 	{
 		log_warning("Invalid game command for scenery placement, entry_index = %u", entry_index);
 		*ebx = MONEY32_UNDEFINED;
@@ -4034,13 +4043,13 @@ void map_reorganise_elements()
 			rct_map_element *endElement = startElement;
 			while (!map_element_is_last_for_tile(endElement++));
 
-			num_elements = endElement - startElement;
+			num_elements = (uint32)(endElement - startElement);
 			memcpy(new_elements_pointer, startElement, num_elements * sizeof(rct_map_element));
 			new_elements_pointer += num_elements;
 		}
 	}
 
-	num_elements = (new_elements_pointer - new_map_elements);
+	num_elements = (uint32)(new_elements_pointer - new_map_elements);
 	memcpy(gMapElements, new_map_elements, num_elements * sizeof(rct_map_element));
 	memset(gMapElements + num_elements, 0, (0x30000 - num_elements) * sizeof(rct_map_element));
 
@@ -4153,13 +4162,13 @@ static void map_obstruction_set_error_text(rct_map_element *mapElement)
 	case MAP_ELEMENT_TYPE_TRACK:
 		ride = get_ride(mapElement->properties.track.ride_index);
 		errorStringId = STR_X_IN_THE_WAY;
-		set_format_arg(0, uint16, ride->name);
+		set_format_arg(0, rct_string_id, ride->name);
 		set_format_arg(2, uint32, ride->name_arguments);
 		break;
 	case MAP_ELEMENT_TYPE_SCENERY:
 		sceneryEntry = get_small_scenery_entry(mapElement->properties.scenery.type);
 		errorStringId = STR_X_IN_THE_WAY;
-		set_format_arg(0, uint16, sceneryEntry->name);
+		set_format_arg(0, rct_string_id, sceneryEntry->name);
 		break;
 	case MAP_ELEMENT_TYPE_ENTRANCE:
 		switch (mapElement->properties.entrance.type) {
@@ -4177,12 +4186,12 @@ static void map_obstruction_set_error_text(rct_map_element *mapElement)
 	case MAP_ELEMENT_TYPE_FENCE:
 		sceneryEntry = get_wall_entry(mapElement->properties.scenery.type);
 		errorStringId = STR_X_IN_THE_WAY;
-		set_format_arg(0, uint16, sceneryEntry->name);
+		set_format_arg(0, rct_string_id, sceneryEntry->name);
 		break;
 	case MAP_ELEMENT_TYPE_SCENERY_MULTIPLE:
 		sceneryEntry = get_large_scenery_entry(mapElement->properties.scenery.type);
 		errorStringId = STR_X_IN_THE_WAY;
-		set_format_arg(0, uint16, sceneryEntry->name);
+		set_format_arg(0, rct_string_id, sceneryEntry->name);
 		break;
 	}
 
@@ -4896,6 +4905,30 @@ static void translate_3d_to_2d(int rotation, int *x, int *y)
 	*y = ry;
 }
 
+rct_xy32 translate_3d_to_2d_with_z(sint32 rotation, rct_xyz32 pos)
+{
+	rct_xy32 result;
+	switch (rotation & 3) {
+	case 0:
+		result.x = pos.y - pos.x;
+		result.y = (pos.x + pos.y) / 2 - pos.z;
+		break;
+	case 1:
+		result.x = -pos.x - pos.y;
+		result.y = (pos.y - pos.x) / 2 - pos.z;
+		break;
+	case 2:
+		result.x = pos.x - pos.y;
+		result.y = (-pos.x - pos.y) / 2 - pos.z;
+		break;
+	case 3:
+		result.x = pos.x + pos.y;
+		result.y = (pos.x - pos.y) / 2 - pos.z;
+		break;
+	}
+	return result;
+}
+
 static void map_invalidate_tile_under_zoom(int x, int y, int z0, int z1, int maxZoom)
 {
 	if (gOpenRCT2Headless) return;
@@ -5226,9 +5259,9 @@ void game_command_set_banner_name(int* eax, int* ebx, int* ecx, int* edx, int* e
 		nameChunkOffset = 2;
 	nameChunkOffset *= 12;
 	nameChunkOffset = min(nameChunkOffset, countof(newName) - 12);
-	RCT2_GLOBAL(newName + nameChunkOffset + 0, uint32) = *edx;
-	RCT2_GLOBAL(newName + nameChunkOffset + 4, uint32) = *ebp;
-	RCT2_GLOBAL(newName + nameChunkOffset + 8, uint32) = *edi;
+	memcpy((void*)((uintptr_t)newName + (uintptr_t)nameChunkOffset + 0), edx, sizeof(uint32));
+	memcpy((void*)((uintptr_t)newName + (uintptr_t)nameChunkOffset + 4), ebp, sizeof(uint32));
+	memcpy((void*)((uintptr_t)newName + (uintptr_t)nameChunkOffset + 8), edi, sizeof(uint32));
 
 	if (nameChunkIndex != 0) {
 		*ebx = 0;
@@ -5240,7 +5273,7 @@ void game_command_set_banner_name(int* eax, int* ebx, int* ecx, int* edx, int* e
 		return;
 	}
 
-	utf8 *buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, utf8);
+	utf8 *buffer = gCommonStringFormatBuffer;
 	utf8 *dst = buffer;
 	dst = utf8_write_codepoint(dst, FORMAT_COLOUR_CODE_START + banner->text_colour);
 	strncpy(dst, newName, 32);

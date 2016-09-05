@@ -4338,12 +4338,12 @@ static void vehicle_kill_all_passengers(rct_vehicle* vehicle) {
 		ride->last_crash_type = crashType;
 
 	if (numFatalities != 0) {
-		set_format_arg(2, uint16, ride->name);
+		set_format_arg(2, rct_string_id, ride->name);
 		set_format_arg(4, uint32, ride->name_arguments);
 		news_item_add_to_queue(NEWS_ITEM_RIDE, STR_X_PEOPLE_DIED_ON_X, vehicle->ride);
 
-		if (RCT2_GLOBAL(0x135882E, uint16) < 500) {
-			RCT2_GLOBAL(0x135882E, uint16) += 200;
+		if (gParkRatingCasualtyPenalty < 500) {
+			gParkRatingCasualtyPenalty += 200;
 		}
 	}
 
@@ -5286,9 +5286,11 @@ void vehicle_set_map_toolbar(rct_vehicle *vehicle)
 	set_map_tooltip_format_arg(10, rct_string_id, RideComponentNames[RideNameConvention[ride->type].vehicle].capitalised);
 	set_map_tooltip_format_arg(12, uint16, vehicleIndex + 1);
 
-	int arg0, arg1;
-	ride_get_status(vehicle->ride, &arg0, &arg1);
-	set_map_tooltip_format_arg(14, uint16, (uint16)arg0);
+	rct_string_id formatSecondary;
+	int arg1;
+	ride_get_status(vehicle->ride, &formatSecondary, &arg1);
+	set_map_tooltip_format_arg(14, rct_string_id, formatSecondary);
+	// TODO: odd cast
 	set_map_tooltip_format_arg(16, uint32, (uint16)arg1);
 }
 
@@ -5751,7 +5753,11 @@ static void vehicle_update_block_breaks_open_previous_section(rct_vehicle *vehic
 	int x = vehicle->track_x;
 	int y = vehicle->track_y;
 	int z = vehicle->track_z;
-	track_begin_end trackBeginEnd;
+	track_begin_end trackBeginEnd, slowTrackBeginEnd;
+	rct_map_element slowMapElement = *mapElement;
+	bool counter = true;
+	int slowX = x;
+	int slowY = y;
 	do {
 		if (!track_block_get_previous(x, y, mapElement, &trackBeginEnd)) {
 			return;
@@ -5766,6 +5772,21 @@ static void vehicle_update_block_breaks_open_previous_section(rct_vehicle *vehic
 		y = trackBeginEnd.end_y;
 		z = trackBeginEnd.begin_z;
 		mapElement = trackBeginEnd.begin_element;
+
+		//#2081: prevent infinite loop
+		counter = !counter;
+		if (counter) {
+			track_block_get_previous(slowX, slowY, &slowMapElement, &slowTrackBeginEnd);
+			slowX = slowTrackBeginEnd.end_x;
+			slowY = slowTrackBeginEnd.end_y;
+			slowMapElement = *(slowTrackBeginEnd.begin_element);
+			if (slowX == x &&
+				slowY == y &&
+				slowMapElement.base_height == mapElement->base_height &&
+				slowMapElement.type == mapElement->type ) {
+				return;
+			}
+		}
 	} while (!track_element_is_block_start(trackBeginEnd.begin_element));
 
 	// Get the start of the track block instead of the end

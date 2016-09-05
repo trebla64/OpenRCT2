@@ -243,7 +243,7 @@ typedef struct rct_s6_data {
 	money32 income_from_admissions;
 	money32 company_value;
 	uint8 peep_warning_throttle[16];
-	rct_award awards[4];
+	rct_award awards[MAX_AWARDS];
 	money16 land_price;
 	money16 construction_rights_price;
 	uint16 word_01358774;
@@ -255,12 +255,12 @@ typedef struct rct_s6_data {
 	uint32 loan_hash;
 	uint16 ride_count;
 	uint8 pad_013587CA[6];
-	uint32 dword_013587D0;
+	money32 historical_profit;
 	uint8 pad_013587D4[4];
 	char scenario_completed_name[32];
 	money32 cash;
 	uint8 pad_013587FC[50];
-	uint16 word_0135882E;
+	uint16 park_rating_casualty_penalty;
 	uint16 map_size_units;
 	uint16 map_size_minus_2;
 	uint16 map_size;
@@ -321,7 +321,7 @@ typedef struct rct_s6_data {
 	uint8 next_weather_gloom;
 	uint8 current_rain_level;
 	uint8 next_rain_level;
-	rct_news_item news_items[61];
+	rct_news_item news_items[MAX_NEWS_ITEMS];
 	uint8 pad_13CE730[64];
 	uint32 rct1_scenario_flags;
 	uint16 wide_path_tile_loop_x;
@@ -436,11 +436,12 @@ extern int gScenarioListCapacity;
 extern scenario_index_entry *gScenarioList;
 
 extern rct_s6_info *gS6Info;
-extern char *gScenarioName;
-extern char *gScenarioDetails;
-extern char *gScenarioCompletedBy;
+extern char gScenarioName[64];
+extern char gScenarioDetails[256];
+extern char gScenarioCompletedBy[32];
 extern char gScenarioSavePath[MAX_PATH];
 extern int gFirstTimeSave;
+extern uint16 gSavedAge;
 extern uint32 gLastAutoSaveTick;
 
 extern const char *_scenarioFileName;

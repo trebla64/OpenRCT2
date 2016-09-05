@@ -381,9 +381,9 @@ static void window_scenarioselect_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		y = (widget->top + widget->bottom) / 2 + w->y - 3;
 
 		if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_ORIGIN) {
-			set_format_arg(0, short, ScenarioOriginStringIds[i]);
+			set_format_arg(0, rct_string_id, ScenarioOriginStringIds[i]);
 		} else { // old-style
-			set_format_arg(0, short, ScenarioCategoryStringIds[i]);
+			set_format_arg(0, rct_string_id, ScenarioCategoryStringIds[i]);
 		}
 		gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, 87, format, 10);
 	}
@@ -527,7 +527,7 @@ static void draw_category_heading(rct_window *w, rct_drawpixelinfo *dpi, int lef
 	gfx_draw_string_centred(dpi, stringId, centreX, y, baseColour, NULL);
 	
 	// Get string dimensions
-	utf8 *buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, utf8);
+	utf8 *buffer = gCommonStringFormatBuffer;
 	format_string(buffer, stringId, NULL);
 	int categoryStringHalfWidth = (gfx_get_string_width(buffer) / 2) + 4;
 	int strLeft = centreX - categoryStringHalfWidth;

@@ -17,7 +17,6 @@
 #ifndef _RIDE_H_
 #define _RIDE_H_
 
-#include "../addresses.h"
 #include "../common.h"
 #include "../peep/peep.h"
 #include "../world/map.h"
@@ -921,9 +920,9 @@ rct_ride_measurement *get_ride_measurement(int index);
 	for (i = 0; i < MAX_RIDES; i++) \
 		if ((ride = get_ride(i))->type != RIDE_TYPE_NULL)
 
-#define gTotalRideValue				RCT2_GLOBAL(RCT2_TOTAL_RIDE_VALUE, money16)
-#define gSamePriceThroughoutParkA	RCT2_GLOBAL(RCT2_ADDRESS_SAME_PRICE_THROUGHOUT, uint32)
-#define gSamePriceThroughoutParkB	RCT2_GLOBAL(RCT2_ADDRESS_SAME_PRICE_THROUGHOUT_EXTENDED, uint32)
+extern money16 gTotalRideValue;
+extern uint32 gSamePriceThroughoutParkA;
+extern uint32 gSamePriceThroughoutParkB;
 
 extern const uint8 gRideClassifications[255];
 
@@ -974,6 +973,8 @@ extern int gRideRemoveTrackPieceCallbackZ;
 extern int gRideRemoveTrackPieceCallbackDirection;
 extern int gRideRemoveTrackPieceCallbackType;
 
+extern uint8 gLastEntranceStyle;
+
 int ride_get_count();
 int ride_get_total_queue_length(rct_ride *ride);
 int ride_get_max_queue_time(rct_ride *ride);
@@ -993,7 +994,7 @@ int ride_find_track_gap(rct_xy_element *input, rct_xy_element *output);
 void ride_construct_new(ride_list_item listItem);
 void ride_construct(int rideIndex);
 int ride_modify(rct_xy_element *input);
-void ride_get_status(int rideIndex, int *formatSecondary, int *argument);
+void ride_get_status(int rideIndex, rct_string_id *formatSecondary, int *argument);
 rct_peep *ride_get_assigned_mechanic(rct_ride *ride);
 int ride_get_total_length(rct_ride *ride);
 int ride_get_total_time(rct_ride *ride);

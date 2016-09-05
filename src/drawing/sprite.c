@@ -216,6 +216,7 @@ static void FASTCALL gfx_bmp_sprite_to_buffer(uint8* palette_pointer, uint8* unk
 
 		//Mix with another image?? and colour adjusted
 		if (unknown_pointer!= NULL){ //Not tested. I can't actually work out when this code runs.
+			openrct2_assert(false, "Dead code reached. Please contact a dev. Unknown pointer used.");
 			unknown_pointer += source_pointer - source_image->offset;// RCT2_GLOBAL(0x9E3CE0, uint32);
 
 			for (; height > 0; height -= zoom_amount){
@@ -296,6 +297,7 @@ static void FASTCALL gfx_bmp_sprite_to_buffer(uint8* palette_pointer, uint8* unk
 	}
 
 	if (unk_9E3CDC != NULL) { //Not tested. I can't actually work out when this code runs.
+		openrct2_assert(false, "Dead code reached. Please contact a dev. Unknown pointer used.");
 		unknown_pointer += source_pointer - source_image->offset;
 
 		for (; height > 0; height -= zoom_amount){
@@ -573,12 +575,14 @@ void FASTCALL gfx_draw_sprite_palette_set_software(rct_drawpixelinfo *dpi, int i
 		gfx_bmp_sprite_to_buffer(palette_pointer, unknown_pointer, source_pointer, dest_pointer, g1_source, dpi, height, width, image_type);
 		return;
 	}
+	openrct2_assert(false, "Dead code reached. Please contact a dev. Non RLE or BMP.");
 	//0x67A60A Not tested
 	int total_no_pixels = g1_source->width*g1_source->height;
 	source_pointer = g1_source->offset;
 	uint8* new_source_pointer_start = malloc(total_no_pixels);
 	uint8* new_source_pointer = new_source_pointer_start;// 0x9E3D28;
-	intptr_t ebx, ecx;
+	intptr_t ebx;
+	int ecx;
 	while (total_no_pixels>0){
 		sint8 no_pixels = *source_pointer;
 		if (no_pixels >= 0){
@@ -592,7 +596,7 @@ void FASTCALL gfx_draw_sprite_palette_set_software(rct_drawpixelinfo *dpi, int i
 		ecx = no_pixels;
 		no_pixels &= 0x7;
 		ecx >>= 3;//SAR
-		int eax = ((int)no_pixels)<<8;
+		uintptr_t eax = ((uintptr_t)no_pixels) << 8;
 		ecx = -ecx;//Odd
 		eax = (eax & 0xFF00) + *(source_pointer+1);
 		total_no_pixels -= ecx;

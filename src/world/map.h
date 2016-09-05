@@ -272,6 +272,14 @@ typedef struct rct_xyz16 {
 } rct_xyz16;
 assert_struct_size(rct_xyz16, 6);
 
+typedef struct rct_xy32 {
+	sint32 x, y;
+} rct_xy32;
+
+typedef struct rct_xyz32 {
+	sint32 x, y, z;
+} rct_xyz32;
+
 typedef struct rct_xy_element {
 	int x, y;
 	rct_map_element *element;
@@ -316,14 +324,14 @@ enum {
 extern const rct_xy16 TileDirectionDelta[];
 extern const money32 TerrainPricing[];
 
-#define gWidePathTileLoopX				RCT2_GLOBAL(0x013CE774, uint16)
-#define gWidePathTileLoopY				RCT2_GLOBAL(0x013CE776, uint16)
-#define gGrassSceneryTileLoopPosition	RCT2_GLOBAL(RCT2_ADDRESS_GRASS_SCENERY_TILEPOS, uint16)
+extern uint16 gWidePathTileLoopX;
+extern uint16 gWidePathTileLoopY;
+extern uint16 gGrassSceneryTileLoopPosition;
 
-#define gMapSizeUnits		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16)
-#define gMapSizeMinus2		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16)
-#define gMapSize			RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE, sint16)
-#define gMapSizeMaxXY		RCT2_GLOBAL(RCT2_ADDRESS_MAP_MAX_XY, sint16)
+extern sint16 gMapSizeUnits;
+extern sint16 gMapSizeMinus2;
+extern sint16 gMapSize;
+extern sint16 gMapSizeMaxXY;
 
 extern uint16		gMapSelectFlags;
 extern uint16		gMapSelectType;
@@ -489,6 +497,7 @@ bool map_large_scenery_get_origin(
 );
 
 void map_offset_with_rotation(sint16 *x, sint16 *y, sint16 offsetX, sint16 offsetY, uint8 rotation);
+rct_xy32 translate_3d_to_2d_with_z(sint32 rotation, rct_xyz32 pos);
 
 rct_map_element *map_get_track_element_at(int x, int y, int z);
 rct_map_element *map_get_track_element_at_of_type(int x, int y, int z, int trackType);

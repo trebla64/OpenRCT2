@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-
 #include "../addresses.h"
 #include "../audio/audio.h"
 #include "../config.h"
@@ -465,7 +464,7 @@ void window_editor_object_selection_open()
 	window->var_4AE = 0;
 	window->selected_tab = 0;
 	window->selected_list_item = -1;
-	window->object_entry = (rct_object_entry *) 0xFFFFFFFF;
+	window->object_entry = (rct_object_entry *)-1;
 	window->min_width = 600;
 	window->min_height = 400;
 	window->max_width = 1200;
@@ -482,7 +481,7 @@ static void setup_track_manager_objects()
 {
 	uint8 ride_list[128] = { 0 };
 
-	int numObjects = object_repository_get_items_count();
+	int numObjects = (int)object_repository_get_items_count();
 	const ObjectRepositoryItem * items = object_repository_get_items();
 	for (int i = 0; i < numObjects; i++) {
 		uint8 * selectionFlags = &_objectSelectionFlags[i];
@@ -508,7 +507,7 @@ static void setup_track_manager_objects()
  */
 static void setup_track_designer_objects()
 {
-	int numObjects = object_repository_get_items_count();
+	int numObjects = (int)object_repository_get_items_count();
 	const ObjectRepositoryItem * items = object_repository_get_items();
 	for (int i = 0; i < numObjects; i++) {
 		uint8 * selectionFlags = &_objectSelectionFlags[i];
@@ -544,7 +543,7 @@ static void setup_in_use_selection_flags()
 
 	for (uint8 object_type = 0; object_type < 11; object_type++){
 		for (uint16 i = 0; i < object_entry_group_counts[object_type]; i++){
-			if (object_entry_groups[object_type].chunks[i] != (uint8*)0xFFFFFFFF){
+			if (object_entry_groups[object_type].chunks[i] != (uint8*)-1) {
 				RCT2_ADDRESS(0x0098DA38, uint8*)[object_type][i] |= (1 << 1);
 			}
 		}
@@ -718,7 +717,7 @@ static void remove_selected_objects_from_research(const rct_object_entry* instal
  */
 static void unload_unselected_objects()
 {
-	int numItems = object_repository_get_items_count();
+	int numItems = (int)object_repository_get_items_count();
 	const ObjectRepositoryItem * items = object_repository_get_items();
 
 	size_t numObjectsToUnload = 0;
@@ -808,7 +807,7 @@ static void window_editor_object_selection_mouseup(rct_window *w, int widgetInde
 		visible_list_refresh(w);
 
 		w->selected_list_item = -1;
-		w->object_entry = (rct_object_entry *) 0xFFFFFFFF;
+		w->object_entry = (rct_object_entry *)-1;
 		w->scrolls[0].v_top = 0;
 		window_invalidate(w);
 		break;
@@ -827,7 +826,7 @@ static void window_editor_object_selection_mouseup(rct_window *w, int widgetInde
 		visible_list_refresh(w);
 
 		w->selected_list_item = -1;
-		w->object_entry = (rct_object_entry *) 0xFFFFFFFF;
+		w->object_entry = (rct_object_entry *)-1;
 		w->scrolls[0].v_top = 0;
 		window_invalidate(w);
 		break;
@@ -1436,7 +1435,7 @@ static void window_editor_object_selection_scrollpaint(rct_window *w, rct_drawpi
 
 			x = gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER ? 0 : 15;
 
-			char *bufferWithColour = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+			char *bufferWithColour = gCommonStringFormatBuffer;
 			char *buffer = utf8_write_codepoint(bufferWithColour, colour);
 			if (*listItem->flags & OBJECT_SELECTION_FLAG_6) {
 				colour = w->colours[1] & 0x7F;
@@ -1476,7 +1475,7 @@ static void window_editor_object_set_page(rct_window *w, int page)
 
 	w->selected_tab = page;
 	w->selected_list_item = -1;
-	w->object_entry = (rct_object_entry *)0xFFFFFFFF;
+	w->object_entry = (rct_object_entry *)-1;
 	w->scrolls[0].v_top = 0;
 
 	if (page == WINDOW_OBJECT_SELECTION_PAGE_RIDE_VEHICLES_ATTRACTIONS) {
@@ -1904,7 +1903,7 @@ static rct_string_id get_ride_type_string_id(const ObjectRepositoryItem * item)
 	for (int i = 0; i < 3; i++) {
 		uint8 rideType = item->RideType[i];
 		if (rideType != 255) {
-			result = STR_RIDE_NAME_SPIRAL_ROLLER_COASTER + rideType;
+			result = RideNaming[rideType].name;
 			break;
 		}
 	}

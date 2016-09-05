@@ -67,6 +67,10 @@ bool gInUpdateCode = false;
 int gGameCommandNestLevel;
 bool gGameCommandIsNetworked;
 
+#ifdef NO_RCT2
+uint32 gCurrentTicks;
+#endif
+
 GAME_COMMAND_CALLBACK_POINTER* game_command_callback = 0;
 GAME_COMMAND_CALLBACK_POINTER* game_command_callback_table[] = {
 	0,
@@ -383,7 +387,7 @@ void game_logic_update()
 	climate_update_sound();
 	editor_open_windows_for_current_step();
 
-	RCT2_GLOBAL(RCT2_ADDRESS_SAVED_AGE, uint16)++;
+	gSavedAge++;
 
 	// Update windows
 	//window_dispatch_update_all();
@@ -860,8 +864,6 @@ void game_load_init()
 	scenery_set_default_placement_configuration();
 	window_new_ride_init_vars();
 	gWindowUpdateTicks = 0;
-	if (RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32) == 0)		// this check is not in scenario play
-		finance_update_loan_hash();
 
 	load_palette();
 	gfx_invalidate_screen();

@@ -15,6 +15,7 @@
 #pragma endregion
 
 #include "../common.h"
+#include "../addresses.h"
 
 #ifdef __WINDOWS__
 #include <windows.h>
@@ -23,7 +24,6 @@
 #include <errno.h>
 #endif // __WINDOWS__
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../util/util.h"
@@ -31,6 +31,7 @@
 #include "localisation.h"
 #include "../management/marketing.h"
 
+char gCommonStringFormatBuffer[256];
 uint8 gCommonFormatArgs[80];
 uint8 gMapTooltipFormatArgs[40];
 
@@ -304,6 +305,17 @@ const rct_string_id DateGameMonthNames[MONTH_COUNT] = {
 	STR_MONTH_AUGUST,
 	STR_MONTH_SEPTEMBER,
 	STR_MONTH_OCTOBER,
+};
+
+const rct_string_id DateGameShortMonthNames[MONTH_COUNT] = {
+	STR_MONTH_SHORT_MAR,
+	STR_MONTH_SHORT_APR,
+	STR_MONTH_SHORT_MAY,
+	STR_MONTH_SHORT_JUN,
+	STR_MONTH_SHORT_JUL,
+	STR_MONTH_SHORT_AUG,
+	STR_MONTH_SHORT_SEP,
+	STR_MONTH_SHORT_OCT,
 };
 
 #pragma region Format codes
@@ -970,7 +982,7 @@ static void format_string_code(unsigned int format_code, char **dest, char **arg
 		value = *((uint16*)*args);
 		*args += 2;
 
-		format_string_part(dest, value, args);
+		format_string_part(dest, (rct_string_id)value, args);
 		(*dest)--;
 		break;
 	case FORMAT_STRING:
@@ -988,14 +1000,14 @@ static void format_string_code(unsigned int format_code, char **dest, char **arg
 		value = *((uint16*)*args);
 		*args += 2;
 
-		format_date(dest, value);
+		format_date(dest, (uint16)value);
 		break;
 	case FORMAT_MONTH:
 		// Pop argument
 		value = *((uint16*)*args);
 		*args += 2;
 
-		strcpy(*dest, language_get_string(DateGameMonthNames[date_get_month(value)]));
+		strcpy(*dest, language_get_string(DateGameMonthNames[date_get_month((int)value)]));
 		*dest += strlen(*dest);
 		break;
 	case FORMAT_VELOCITY:
@@ -1003,7 +1015,7 @@ static void format_string_code(unsigned int format_code, char **dest, char **arg
 		value = *((sint16*)*args);
 		*args += 2;
 
-		format_velocity(dest, value);
+		format_velocity(dest, (uint16)value);
 		break;
 	case FORMAT_POP16:
 		*args += 2;
@@ -1016,21 +1028,21 @@ static void format_string_code(unsigned int format_code, char **dest, char **arg
 		value = *((uint16*)*args);
 		*args += 2;
 
-		format_duration(dest, value);
+		format_duration(dest, (uint16)value);
 		break;
 	case FORMAT_REALTIME:
 		// Pop argument
 		value = *((uint16*)*args);
 		*args += 2;
 
-		format_realtime(dest, value);
+		format_realtime(dest, (uint16)value);
 		break;
 	case FORMAT_LENGTH:
 		// Pop argument
 		value = *((sint16*)*args);
 		*args += 2;
 
-		format_length(dest, value);
+		format_length(dest, (sint16)value);
 		break;
 	case FORMAT_SPRITE:
 		// Pop argument
@@ -1181,7 +1193,7 @@ void generate_string_file()
 
 	for (i = 0; i < 4442; i++) {
 		str = (RCT2_ADDRESS(0x009BF2D4, uint8*) + (i * 4));
-		if (*str == (uint8*)0xFFFFFFFF)
+		if (*str == (uint8*)-1)
 			continue;
 		c = *str;
 
@@ -1248,7 +1260,7 @@ int get_string_length(const utf8 *text)
 
 utf8 *win1252_to_utf8_alloc(const char *src)
 {
-	int reservedSpace = (strlen(src) * 4) + 1;
+	size_t reservedSpace = (strlen(src) * 4) + 1;
 	utf8 *result = malloc(reservedSpace);
 	int actualSpace = win1252_to_utf8(result, src, reservedSpace);
 	return (utf8*)realloc(result, actualSpace);
@@ -1271,8 +1283,8 @@ int win1252_to_utf8(utf8string dst, const char *src, size_t maxBufferLength)
 			intermediateBuffer = heapBuffer;
 		}
 	}
-	MultiByteToWideChar(CP_ACP, 0, src, -1, intermediateBuffer, bufferCount);
-	int result = WideCharToMultiByte(CP_UTF8, 0, intermediateBuffer, -1, dst, maxBufferLength, NULL, NULL);
+	MultiByteToWideChar(CP_ACP, 0, src, -1, intermediateBuffer, (int)bufferCount);
+	int result = WideCharToMultiByte(CP_UTF8, 0, intermediateBuffer, -1, dst, (int)maxBufferLength, NULL, NULL);
 
 	free(heapBuffer);
 #else

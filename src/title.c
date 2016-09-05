@@ -15,7 +15,6 @@
 #pragma endregion
 
 #include <time.h>
-#include "addresses.h"
 #include "audio/audio.h"
 #include "config.h"
 #include "drawing/drawing.h"
@@ -504,8 +503,10 @@ void DrawOpenRCT2(rct_drawpixelinfo *dpi, int x, int y)
 
 	// Write name and version information
 	openrct2_write_full_version_info(ch, sizeof(buffer) - (ch - buffer));
+	gfx_draw_string(dpi, buffer, 0, x + 5, y + 5 - 13);
 
-	// Draw Text
+	// Write platform information
+	sprintf(ch, "%s (%s)", OPENRCT2_PLATFORM, OPENRCT2_ARCHITECTURE);
 	gfx_draw_string(dpi, buffer, 0, x + 5, y + 5);
 }
 
@@ -537,7 +538,7 @@ void title_update()
 	window_map_tooltip_update_visibility();
 	window_dispatch_update_all();
 
-	RCT2_GLOBAL(RCT2_ADDRESS_SAVED_AGE, uint16)++;
+	gSavedAge++;
 
 	// Input
 	game_handle_input();
@@ -788,7 +789,7 @@ bool title_refresh_sequence()
 		return true;
 	}
 	log_error("Failed to load title sequence, hasLoad: %i, hasWait4seconds: %i, hasRestart: %i, hasInvalidSave: %i", hasLoad, hasWait, hasRestart, hasInvalidSave);
-	window_error_open(STR_ERR_FAILED_TO_LOAD_TITLE_SEQUENCE, (!hasWait && hasRestart) ? 5439 : STR_NONE);
+	window_error_open(STR_ERR_FAILED_TO_LOAD_TITLE_SEQUENCE, (!hasWait && hasRestart) ? STR_TITLE_EDITOR_ERR_RESTART_REQUIRES_WAIT : STR_NONE);
 	_scriptNoLoadsSinceRestart = 1;
 	if (_loadedScript != _magicMountainScript)
 		SafeFree(_loadedScript);

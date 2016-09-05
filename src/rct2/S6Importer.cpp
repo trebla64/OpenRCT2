@@ -21,6 +21,7 @@
 
 extern "C"
 {
+    #include "../addresses.h"
     #include "../config.h"
     #include "../game.h"
     #include "../interface/viewport.h"
@@ -269,15 +270,15 @@ void S6Importer::Import()
     // _s6.cd_key
     _gameVersion = _s6.game_version_number;
     gScenarioCompanyValueRecord = _s6.completed_company_value_record;
-    RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32) = _s6.loan_hash;
+    // _s6.loan_hash;
     RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, uint16) = _s6.ride_count;
     // pad_013587CA
-    RCT2_GLOBAL(0x013587D0, uint32) = _s6.dword_013587D0;
+    gHistoricalProfit = _s6.historical_profit;
     // pad_013587D4
     memcpy(gScenarioCompletedBy, _s6.scenario_completed_name, sizeof(_s6.scenario_completed_name));
     gCashEncrypted = _s6.cash;
     // pad_013587FC
-    RCT2_GLOBAL(0x0135882E, uint16) = _s6.word_0135882E;
+    gParkRatingCasualtyPenalty = _s6.park_rating_casualty_penalty;
     gMapSizeUnits = _s6.map_size_units;
     gMapSizeMinus2 = _s6.map_size_minus_2;
     gMapSize = _s6.map_size;
@@ -285,7 +286,7 @@ void S6Importer::Import()
     gSamePriceThroughoutParkA = _s6.same_price_throughout;
     _suggestedGuestMaximum = _s6.suggested_max_guests;
     gScenarioParkRatingWarningDays = _s6.park_rating_warning_days;
-    RCT2_GLOBAL(RCT2_ADDRESS_LAST_ENTRANCE_STYLE, uint8) = _s6.last_entrance_style;
+    gLastEntranceStyle = _s6.last_entrance_style;
     // rct1_water_colour
     // pad_01358842
     memcpy(gResearchItems, _s6.research_items, sizeof(_s6.research_items));
@@ -305,7 +306,7 @@ void S6Importer::Import()
     memcpy(gUserStrings, _s6.custom_strings, sizeof(_s6.custom_strings));
     gCurrentTicks = _s6.game_ticks_1;
     memcpy(gRideList, _s6.rides, sizeof(_s6.rides));
-    RCT2_GLOBAL(RCT2_ADDRESS_SAVED_AGE, uint16) = _s6.saved_age;
+    gSavedAge = _s6.saved_age;
     gSavedViewX = _s6.saved_view_x;
     gSavedViewY = _s6.saved_view_y;
     gSavedViewZoom = _s6.saved_view_zoom;

@@ -27,6 +27,7 @@
 
 extern "C"
 {
+    #include "../addresses.h"
     #include "../audio/audio.h"
     #include "../cheats.h"
     #include "../editor.h"
@@ -685,7 +686,6 @@ void S4Importer::ImportFinance()
     gBankLoan = _s4.loan;
     gMaxBankLoan = _s4.max_loan;
     gInitialCash = _s4.cash;
-    finance_update_loan_hash();
 
     gCompanyValue = _s4.company_value;
     gParkValue = _s4.park_value;
@@ -967,7 +967,7 @@ void S4Importer::ImportParkFlags()
     }
 
     // Awards
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < MAX_AWARDS; i++)
     {
         gCurrentAwards[i] = _s4.awards[i];
     }
@@ -979,8 +979,8 @@ void S4Importer::ImportParkFlags()
     }
 
     // News items
-    rct_news_item *newsItems = RCT2_ADDRESS(RCT2_ADDRESS_NEWS_ITEM_LIST, rct_news_item);
-    for (int i = 0; i < 61; i++)
+    rct_news_item *newsItems = gNewsItems;
+    for (int i = 0; i < MAX_NEWS_ITEMS; i++)
     {
         newsItems[i] = _s4.messages[i];
     }

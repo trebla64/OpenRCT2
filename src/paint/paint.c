@@ -14,6 +14,7 @@
  *****************************************************************************/
 #pragma endregion
 
+#include "../addresses.h"
 #include "paint.h"
 #include "../drawing/drawing.h"
 #include "../localisation/localisation.h"
@@ -21,7 +22,6 @@
 #include "../interface/viewport.h"
 #include "map_element/map_element.h"
 #include "sprite/sprite.h"
-#include "../addresses.h"
 
 const uint32 construction_markers[] = {
 	COLOUR_DARK_GREEN << 19 | COLOUR_GREY << 24 | IMAGE_TYPE_USE_PALETTE << 28, // White
@@ -34,10 +34,14 @@ paint_string_struct *pss1;
 paint_string_struct *pss2;
 
 #ifdef NO_RCT2
-paint_struct *g_paint_structs[512];
+static paint_struct *_paint_structs[512];
 void *g_currently_drawn_item;
+paint_struct * g_ps_EE7880;
+uint8 gPaintInteractionType;
+support_height gSupportSegments[9] = { 0 };
+support_height gSupport;
 #else
-#define g_paint_structs (RCT2_ADDRESS(0x00F1A50C, paint_struct*))
+#define _paint_structs (RCT2_ADDRESS(0x00F1A50C, paint_struct*))
 #endif
 
 static const uint8 BoundBoxDebugColours[] = {
@@ -67,7 +71,7 @@ void painter_setup() {
 	g_ps_F1AD28 = NULL;
 	g_aps_F1AD2C = NULL;
 	for (int i = 0; i < 512; i++) {
-		g_paint_structs[i] = NULL;
+		_paint_structs[i] = NULL;
 	}
 	RCT2_GLOBAL(0xF1AD0C, sint32) = -1;
 	RCT2_GLOBAL(0xF1AD10, uint32) = 0;
@@ -82,7 +86,7 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 {
 	paint_struct * ps = unk_EE7888;
 
-	if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32))return NULL;
+	if (ps >= g_ps_EE7880) return NULL;
 
 	ps->image_id = image_id;
 
@@ -199,7 +203,7 @@ paint_struct * sub_98196C(
 	//Not a paint struct but something similar
 	paint_struct *ps = unk_EE7888;
 
-	if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
+	if (ps >= g_ps_EE7880) {
 		return NULL;
 	}
 
@@ -321,8 +325,8 @@ paint_struct * sub_98196C(
 
 	ps->var_18 = edi;
 
-	paint_struct *old_ps = g_paint_structs[edi];
-	g_paint_structs[edi] = ps;
+	paint_struct *old_ps = _paint_structs[edi];
+	_paint_structs[edi] = ps;
 	ps->next_quadrant_ps = old_ps;
 
 	if ((uint16)edi < RCT2_GLOBAL(0x00F1AD0C, uint32)) {
@@ -405,8 +409,8 @@ paint_struct * sub_98197C(
 		di = 511;
 
 	ps->var_18 = di;
-	paint_struct* old_ps = g_paint_structs[di];
-	g_paint_structs[di] = ps;
+	paint_struct* old_ps = _paint_structs[di];
+	_paint_structs[di] = ps;
 	ps->next_quadrant_ps = old_ps;
 
 	if ((uint16)di < RCT2_GLOBAL(0x00F1AD0C, uint32)) {
@@ -538,7 +542,7 @@ bool paint_attach_to_previous_attach(uint32 image_id, uint16 x, uint16 y)
 
 	attached_paint_struct * ps = (attached_paint_struct *)unk_EE7888;
 
-    if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
+	if ((paint_struct *)ps >= g_ps_EE7880) {
         return false;
     }
 
@@ -571,7 +575,7 @@ bool paint_attach_to_previous_ps(uint32 image_id, uint16 x, uint16 y)
 {
 	attached_paint_struct * ps = (attached_paint_struct *)unk_EE7888;
 
-    if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
+	if ((paint_struct *)ps >= g_ps_EE7880) {
         return false;
     }
 
@@ -607,11 +611,11 @@ bool paint_attach_to_previous_ps(uint32 image_id, uint16 x, uint16 y)
  * @param y_offsets (di)
  * @param rotation (ebp)
  */
-void sub_685EBC(money32 amount, uint16 string_id, sint16 y, sint16 z, sint8 y_offsets[], sint16 offset_x, uint32 rotation)
+void sub_685EBC(money32 amount, rct_string_id string_id, sint16 y, sint16 z, sint8 y_offsets[], sint16 offset_x, uint32 rotation)
 {
 	paint_string_struct * ps = (paint_string_struct *)unk_EE7888;
 
-	if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
+	if ((paint_struct *)ps >= g_ps_EE7880) {
 		return;
 	}
 
@@ -619,7 +623,7 @@ void sub_685EBC(money32 amount, uint16 string_id, sint16 y, sint16 z, sint8 y_of
 	ps->next = 0;
 	ps->args[0] = amount;
 	ps->args[1] = y;
-	ps->args[2] = (int) y_offsets;
+	ps->args[2] = 0;
 	ps->args[3] = 0;
 	ps->y_offsets = (uint8 *) y_offsets;
 
@@ -875,7 +879,7 @@ void sub_688217()
 		return;
 
 	do {
-		ps_next = g_paint_structs[edi];
+		ps_next = _paint_structs[edi];
 		if (ps_next != NULL) {
 			ps->next_quadrant_ps = ps_next;
 			do {

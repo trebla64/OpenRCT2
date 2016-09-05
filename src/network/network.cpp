@@ -44,6 +44,7 @@ extern "C" {
 
 #include "../core/Console.hpp"
 #include "../core/Json.hpp"
+#include "../core/Math.hpp"
 #include "../core/Path.hpp"
 #include "../core/String.hpp"
 #include "../core/Util.hpp"
@@ -71,12 +72,6 @@ extern "C" {
 #pragma comment(lib, "Ws2_32.lib")
 
 Network gNetwork;
-
-enum {
-	ADVERTISE_STATUS_DISABLED,
-	ADVERTISE_STATUS_UNREGISTERED,
-	ADVERTISE_STATUS_REGISTERED
-};
 
 enum {
 	MASTER_SERVER_STATUS_OK = 200,
@@ -107,7 +102,6 @@ Network::Network()
 	status = NETWORK_STATUS_NONE;
 	last_tick_sent_time = 0;
 	last_ping_sent_time = 0;
-	last_advertise_time = 0;
 	client_command_handlers.resize(NETWORK_COMMAND_MAX, 0);
 	client_command_handlers[NETWORK_COMMAND_AUTH] = &Network::Client_Handle_AUTH;
 	client_command_handlers[NETWORK_COMMAND_MAP] = &Network::Client_Handle_MAP;
@@ -177,6 +171,8 @@ void Network::Close()
 	} else if (mode == NETWORK_MODE_SERVER) {
 		delete listening_socket;
 		listening_socket = nullptr;
+		delete _advertiser;
+		_advertiser = nullptr;
 	}
 
 	mode = NETWORK_MODE_NONE;
@@ -322,17 +318,9 @@ bool Network::BeginServer(unsigned short port, const char* address)
 
 	status = NETWORK_STATUS_CONNECTED;
 	listening_port = port;
-	advertise_status = ADVERTISE_STATUS_DISABLED;
-	last_advertise_time = 0;
-	last_heartbeat_time = 0;
-	advertise_token = "";
-	advertise_key = GenerateAdvertiseKey();
-
-#ifndef DISABLE_HTTP
 	if (gConfigNetwork.advertise) {
-		advertise_status = ADVERTISE_STATUS_UNREGISTERED;
+		_advertiser = CreateServerAdvertiser(listening_port);
 	}
-#endif
 
 	return true;
 }
@@ -399,17 +387,8 @@ void Network::UpdateServer()
 		Server_Send_PINGLIST();
 	}
 
-	switch (advertise_status) {
-	case ADVERTISE_STATUS_UNREGISTERED:
-		if (last_advertise_time == 0 || SDL_TICKS_PASSED(SDL_GetTicks(), last_advertise_time + MASTER_SERVER_REGISTER_TIME)) {
-			AdvertiseRegister();
-		}
-		break;
-	case ADVERTISE_STATUS_REGISTERED:
-		if (SDL_TICKS_PASSED(SDL_GetTicks(), last_heartbeat_time + MASTER_SERVER_HEARTBEAT_TIME)) {
-			AdvertiseHeartbeat();
-		}
-		break;
+	if (_advertiser != nullptr) {
+		_advertiser->Update();
 	}
 
 	ITcpSocket * tcpSocket = listening_socket->Accept();
@@ -649,102 +628,6 @@ const char *Network::GetMasterServerUrl()
 	} else {
 		return gConfigNetwork.master_server_url;
 	}
-}
-
-void Network::AdvertiseRegister()
-{
-#ifndef DISABLE_HTTP
-	last_advertise_time = SDL_GetTicks();
-
-	// Send the registration request
-	http_json_request request;
-	request.url = GetMasterServerUrl();
-	request.method = HTTP_METHOD_POST;
-
-	json_t *body = json_object();
-	json_object_set_new(body, "key", json_string(advertise_key.c_str()));
-	json_object_set_new(body, "port", json_integer(listening_port));
-	request.body = body;
-
-	http_request_json_async(&request, [](http_json_response *response) -> void {
-		if (response == NULL) {
-			log_warning("Unable to connect to master server");
-			return;
-		}
-
-		json_t *jsonStatus = json_object_get(response->root, "status");
-		if (json_is_integer(jsonStatus)) {
-			int status = (int)json_integer_value(jsonStatus);
-			if (status == MASTER_SERVER_STATUS_OK) {
-				json_t *jsonToken = json_object_get(response->root, "token");
-				if (json_is_string(jsonToken)) {
-					gNetwork.advertise_token = json_string_value(jsonToken);
-					gNetwork.advertise_status = ADVERTISE_STATUS_REGISTERED;
-				}
-			} else {
-				const char *message = "Invalid response from server";
-				json_t *jsonMessage = json_object_get(response->root, "message");
-				if (json_is_string(jsonMessage)) {
-					message = json_string_value(jsonMessage);
-				}
-				log_warning("Unable to advertise: %s", message);
-			}
-		}
-		http_request_json_dispose(response);
-	});
-
-	json_decref(body);
-#endif
-}
-
-void Network::AdvertiseHeartbeat()
-{
-#ifndef DISABLE_HTTP
-	// Send the heartbeat request
-	http_json_request request;
-	request.url = GetMasterServerUrl();
-	request.method = HTTP_METHOD_PUT;
-
-	json_t *body = json_object();
-	json_object_set_new(body, "token", json_string(advertise_token.c_str()));
-	json_object_set_new(body, "players", json_integer(network_get_num_players()));
-
-	json_t *gameInfo = json_object();
-	json_object_set_new(gameInfo, "mapSize", json_integer(gMapSize - 2));
-	json_object_set_new(gameInfo, "day", json_integer(gDateMonthTicks));
-	json_object_set_new(gameInfo, "month", json_integer(gDateMonthsElapsed));
-	json_object_set_new(gameInfo, "guests", json_integer(gNumGuestsInPark));
-	json_object_set_new(gameInfo, "parkValue", json_integer(gParkValue));
-	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
-		money32 cash = DECRYPT_MONEY(gCashEncrypted);
-		json_object_set_new(gameInfo, "cash", json_integer(cash));
-	}
-
-	json_object_set_new(body, "gameInfo", gameInfo);
-	request.body = body;
-
-	gNetwork.last_heartbeat_time = SDL_GetTicks();
-	http_request_json_async(&request, [](http_json_response *response) -> void {
-		if (response == NULL) {
-			log_warning("Unable to connect to master server");
-			return;
-		}
-
-		json_t *jsonStatus = json_object_get(response->root, "status");
-		if (json_is_integer(jsonStatus)) {
-			int status = (int)json_integer_value(jsonStatus);
-			if (status == MASTER_SERVER_STATUS_OK) {
-				// Master server has successfully updated our server status
-			} else if (status == MASTER_SERVER_STATUS_INVALID_TOKEN) {
-				gNetwork.advertise_status = ADVERTISE_STATUS_UNREGISTERED;
-				log_warning("Master server heartbeat failed: Invalid Token");
-			}
-		}
-		http_request_json_dispose(response);
-	});
-
-	json_decref(body);
-#endif
 }
 
 NetworkGroup* Network::AddGroup()
@@ -1050,7 +933,7 @@ void Network::Server_Send_MAP(NetworkConnection* connection)
 		memcpy(header, &buffer[0], size);
 	}
 	for (size_t i = 0; i < out_size; i += chunksize) {
-		int datasize = (std::min)(chunksize, out_size - i);
+		size_t datasize = Math::Min(chunksize, out_size - i);
 		std::unique_ptr<NetworkPacket> packet = std::move(NetworkPacket::Allocate());
 		*packet << (uint32)NETWORK_COMMAND_MAP << (uint32)out_size << (uint32)i;
 		packet->Write(&header[i], datasize);
@@ -1555,7 +1438,7 @@ void Network::Server_Handle_AUTH(NetworkConnection& connection, NetworkPacket& p
 			connection.AuthStatus = NETWORK_AUTH_VERIFICATIONFAILURE;
 		} else {
 			const char *signature = (const char *)packet.Read(sigsize);
-			SDL_RWops *pubkey_rw = SDL_RWFromConstMem(pubkey, strlen(pubkey));
+			SDL_RWops *pubkey_rw = SDL_RWFromConstMem(pubkey, (int)strlen(pubkey));
 			if (signature == nullptr || pubkey_rw == nullptr) {
 				connection.AuthStatus = NETWORK_AUTH_VERIFICATIONFAILURE;
 				log_verbose("Signature verification failed, invalid data!");
@@ -1617,7 +1500,7 @@ void Network::Client_Handle_MAP(NetworkConnection& connection, NetworkPacket& pa
 {
 	uint32 size, offset;
 	packet >> size >> offset;
-	int chunksize = packet.size - packet.read;
+	int chunksize = (int)(packet.size - packet.read);
 	if (chunksize <= 0) {
 		return;
 	}
@@ -1652,7 +1535,7 @@ void Network::Client_Handle_MAP(NetworkConnection& connection, NetworkPacket& pa
 		} else {
 			log_verbose("Assuming received map is in plain sv6 format");
 		}
-		SDL_RWops* rw = SDL_RWFromMem(data, data_size);
+		SDL_RWops* rw = SDL_RWFromMem(data, (int)data_size);
 		if (game_load_network(rw)) {
 			game_load_init();
 			game_command_queue.clear();
@@ -2027,7 +1910,7 @@ uint8 network_get_current_player_id()
 
 int network_get_num_players()
 {
-	return gNetwork.player_list.size();
+	return (int)gNetwork.player_list.size();
 }
 
 const char* network_get_player_name(unsigned int index)
@@ -2097,7 +1980,7 @@ int network_get_player_index(uint8 id)
 	if(it == gNetwork.player_list.end()){
 		return -1;
 	}
-	return gNetwork.GetPlayerIteratorByID(id) - gNetwork.player_list.begin();
+	return (int)(gNetwork.GetPlayerIteratorByID(id) - gNetwork.player_list.begin());
 }
 
 uint8 network_get_player_group(unsigned int index)
@@ -2116,7 +1999,7 @@ int network_get_group_index(uint8 id)
 	if(it == gNetwork.group_list.end()){
 		return -1;
 	}
-	return gNetwork.GetGroupIteratorByID(id) - gNetwork.group_list.begin();
+	return (int)(gNetwork.GetGroupIteratorByID(id) - gNetwork.group_list.begin());
 }
 
 uint8 network_get_group_id(unsigned int index)
@@ -2126,7 +2009,7 @@ uint8 network_get_group_id(unsigned int index)
 
 int network_get_num_groups()
 {
-	return gNetwork.group_list.size();
+	return (int)gNetwork.group_list.size();
 }
 
 const char* network_get_group_name(unsigned int index)
@@ -2358,7 +2241,7 @@ uint8 network_get_default_group()
 
 int network_get_num_actions()
 {
-	return NetworkActions::Actions.size();
+	return (int)NetworkActions::Actions.size();
 }
 
 rct_string_id network_get_action_name_string_id(unsigned int index)

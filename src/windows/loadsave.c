@@ -15,7 +15,6 @@
 #pragma endregion
 
 #include <time.h>
-#include "../addresses.h"
 #include "../config.h"
 #include "../editor.h"
 #include "../game.h"
@@ -432,7 +431,7 @@ static void window_loadsave_textinput(rct_window *w, int widgetIndex, char *text
 
 static void window_loadsave_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	set_format_arg(0, uint16, STR_LIST);
+	set_format_arg(0, rct_string_id, STR_LIST);
 }
 
 static void window_loadsave_invalidate(rct_window *w)

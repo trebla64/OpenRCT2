@@ -59,11 +59,12 @@ static char _scenarioPath[MAX_PATH];
 const char *_scenarioFileName = "";
 
 rct_s6_info *gS6Info = RCT2_ADDRESS(0x0141F570, rct_s6_info);
-char *gScenarioName = RCT2_ADDRESS(RCT2_ADDRESS_SCENARIO_NAME, char);
-char *gScenarioDetails = RCT2_ADDRESS(RCT2_ADDRESS_SCENARIO_DETAILS, char);
-char *gScenarioCompletedBy = RCT2_ADDRESS(RCT2_ADDRESS_SCENARIO_COMPLETED_BY, char);
+char gScenarioName[64];
+char gScenarioDetails[256];
+char gScenarioCompletedBy[32];
 char gScenarioSavePath[MAX_PATH];
 int gFirstTimeSave = 1;
+uint16 gSavedAge;
 uint32 gLastAutoSaveTick = 0;
 
 #if defined(NO_RCT2)
@@ -122,7 +123,7 @@ int scenario_load_and_play_from_path(const char *path)
 	reset_sprite_spatial_index();
 	reset_all_sprite_quadrant_placements();
 
-	int len = strnlen(path, MAX_PATH) + 1;
+	size_t len = strnlen(path, MAX_PATH) + 1;
 	safe_strcpy(_scenarioPath, path, len);
 	if (len - 1 == MAX_PATH)
 	{
@@ -195,10 +196,8 @@ void scenario_begin()
 	gParkRating = calculate_park_rating();
 	gParkValue = calculate_park_value();
 	gCompanyValue = calculate_company_value();
-	RCT2_GLOBAL(0x013587D0, money32) = gInitialCash - gBankLoan;
+	gHistoricalProfit = gInitialCash - gBankLoan;
 	gCashEncrypted = ENCRYPT_MONEY(gInitialCash);
-
-	finance_update_loan_hash();
 
 	safe_strcpy(gScenarioDetails, gS6Info->details, 256);
 	safe_strcpy(gScenarioName, gS6Info->name, 64);
@@ -222,7 +221,7 @@ void scenario_begin()
 		} else {
 			rct_stex_entry* stex = g_stexEntries[0];
 			if ((intptr_t)stex != -1) {
-				char *buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+				char *buffer = gCommonStringFormatBuffer;
 
 				// Set localised park name
 				format_string(buffer, stex->park_name, 0);
@@ -259,8 +258,7 @@ void scenario_begin()
 	gScenarioCompletedCompanyValue = MONEY32_UNDEFINED;
 	gTotalAdmissions = 0;
 	gTotalIncomeFromAdmissions = 0;
-	RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_COMPLETED_BY, uint16) = 63;
-	finance_update_loan_hash();
+	strcpy(gScenarioCompletedBy, "?");
 	park_reset_history();
 	finance_reset_history();
 	award_reset();
@@ -269,9 +267,9 @@ void scenario_begin()
 	duck_remove_all();
 	park_calculate_size();
 	staff_reset_stats();
-	RCT2_GLOBAL(RCT2_ADDRESS_LAST_ENTRANCE_STYLE, uint8) = 0;
-	memset(RCT2_ADDRESS(0x001358102, void), 0, 20);
-	RCT2_GLOBAL(0x00135882E, uint16) = 0;
+	gLastEntranceStyle = RIDE_ENTRANCE_STYLE_PLAIN;
+	memset(gMarketingCampaignDaysLeft, 0, 20);
+	gParkRatingCasualtyPenalty = 0;
 
 	// Open park with free entry when there is no money
 	if (gParkFlags & PARK_FLAGS_NO_MONEY) {
@@ -436,8 +434,9 @@ static void scenario_day_update()
 		break;
 	}
 
-	uint16 unk = (gParkFlags & PARK_FLAGS_NO_MONEY) ? 40 : 7;
-	RCT2_GLOBAL(0x00135882E, uint16) = RCT2_GLOBAL(0x00135882E, uint16) > unk ? RCT2_GLOBAL(0x00135882E, uint16) - unk : 0;
+	// Lower the casualty penalty
+	uint16 casualtyPenaltyModifier = (gParkFlags & PARK_FLAGS_NO_MONEY) ? 40 : 7;
+	gParkRatingCasualtyPenalty = max(0, gParkRatingCasualtyPenalty - casualtyPenaltyModifier);
 
 	gToolbarDirtyFlags |= BTM_TB_DIRTY_FLAG_DATE;
 }
@@ -705,7 +704,7 @@ int scenario_get_num_packed_objects_to_write()
 	for (int i = 0; i < OBJECT_ENTRY_COUNT; i++) {
 		const rct_object_entry *entry = get_loaded_object_entry(i);
 		void *entryData = get_loaded_object_chunk(i);
-		if (entryData != (void*)0xFFFFFFFF && !(entry->flags & 0xF0)) {
+		if (entryData != (void*)-1 && !(entry->flags & 0xF0)) {
 			count++;
 		}
 	}
@@ -721,7 +720,7 @@ int scenario_write_packed_objects(SDL_RWops* rw)
 	for (int i = 0; i < OBJECT_ENTRY_COUNT; i++) {
 		const rct_object_entry *entry = get_loaded_object_entry(i);
 		void *entryData = get_loaded_object_chunk(i);
-		if (entryData != (void*)0xFFFFFFFF && !(entry->flags & 0xF0)) {
+		if (entryData != (void*)-1 && !(entry->flags & 0xF0)) {
 			if (!object_saved_packed(rw, entry)) {
 				return 0;
 			}
@@ -736,20 +735,16 @@ int scenario_write_packed_objects(SDL_RWops* rw)
  */
 static int scenario_write_available_objects(FILE *file)
 {
-	uint8 *buffer, *dstBuffer;
-	int i, encodedLength;
-	sawyercoding_chunk_header chunkHeader;
-
 	const int totalEntries = OBJECT_ENTRY_COUNT;
 	const int bufferLength = totalEntries * sizeof(rct_object_entry);
 
 	// Initialise buffers
-	buffer = malloc(bufferLength);
+	uint8 *buffer = malloc(bufferLength);
 	if (buffer == NULL) {
 		log_error("out of memory");
 		return 0;
 	}
-	dstBuffer = malloc(bufferLength + sizeof(sawyercoding_chunk_header));
+	uint8 *dstBuffer = malloc(bufferLength + sizeof(sawyercoding_chunk_header));
 	if (dstBuffer == NULL) {
 		free(buffer);
 		log_error("out of memory");
@@ -758,9 +753,9 @@ static int scenario_write_available_objects(FILE *file)
 
 	// Write entries
 	rct_object_entry *dstEntry = (rct_object_entry*)buffer;
-	for (i = 0; i < OBJECT_ENTRY_COUNT; i++) {
+	for (int i = 0; i < OBJECT_ENTRY_COUNT; i++) {
 		void *entryData = get_loaded_object_chunk(i);
-		if (entryData == (void*)0xFFFFFFFF) {
+		if (entryData == (void*)-1) {
 			memset(dstEntry, 0xFF, sizeof(rct_object_entry));
 		} else {
 			*dstEntry = *get_loaded_object_entry(i);
@@ -769,9 +764,10 @@ static int scenario_write_available_objects(FILE *file)
 	}
 
 	// Write chunk
+	sawyercoding_chunk_header chunkHeader;
 	chunkHeader.encoding = CHUNK_ENCODING_ROTATE;
 	chunkHeader.length = bufferLength;
-	encodedLength = sawyercoding_write_chunk_buffer(dstBuffer, buffer, chunkHeader);
+	size_t encodedLength = sawyercoding_write_chunk_buffer(dstBuffer, buffer, chunkHeader);
 	fwrite(dstBuffer, encodedLength, 1, file);
 
 	// Free buffers

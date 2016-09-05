@@ -14,8 +14,8 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "map_element.h"
 #include "../../addresses.h"
+#include "map_element.h"
 #include "../../interface/viewport.h"
 #include "../../ride/track.h"
 #include "../../world/footpath.h"
@@ -392,19 +392,19 @@ static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp,
 			rct_ride* ride = get_ride(map_element->properties.path.ride_index);
 			rct_string_id string_id = STR_RIDE_ENTRANCE_CLOSED;
 			if (ride->status == RIDE_STATUS_OPEN && !(ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN)){
-				set_format_arg(0, uint16, ride->name);
+				set_format_arg(0, rct_string_id, ride->name);
 				set_format_arg(2, uint32, ride->name_arguments);
 				string_id = STR_RIDE_ENTRANCE_NAME;
 			}
 			if (gConfigGeneral.upper_case_banners) {
-				format_string_to_upper(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, gCommonFormatArgs);
+				format_string_to_upper(gCommonStringFormatBuffer, string_id, gCommonFormatArgs);
 			} else {
-				format_string(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, gCommonFormatArgs);
+				format_string(gCommonStringFormatBuffer, string_id, gCommonFormatArgs);
 			}
 
 			gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
 
-			uint16 string_width = gfx_get_string_width(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char));
+			uint16 string_width = gfx_get_string_width(gCommonStringFormatBuffer);
 			uint16 scroll = (gCurrentTicks / 2) % string_width;
 
 			sub_98199C(scrolling_text_setup(string_id, scroll, scrollingMode), 0, 0, 1, 1, 21, height + 7,  boundBoxOffsets.x,  boundBoxOffsets.y,  boundBoxOffsets.z, get_current_rotation());
@@ -664,13 +664,14 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
  */
 void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 {
+#ifndef NO_RCT2
 	if (gUseOriginalRidePaint) {
 		TempForScrollText = true;
 		RCT2_CALLPROC_X(0x6A3590, 0, 0, direction, height, (int) map_element, 0, 0);
 		TempForScrollText = false;
 		return;
 	}
-
+#endif
 
 	gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_FOOTPATH;
 

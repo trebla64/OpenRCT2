@@ -497,6 +497,7 @@ bool metal_a_supports_paint_setup(int supportType, int segment, int special, int
 	}
 
 	sint16 originalHeight = height;
+	int originalSegment = segment;
 
 	const uint8 rotation = get_current_rotation();
 	RCT2_GLOBAL(0x009E3294, sint16) = -1;
@@ -520,8 +521,6 @@ bool metal_a_supports_paint_setup(int supportType, int segment, int special, int
 					esi += 72;
 					newSegment = esi[segment * 8];
 					if (height <= gSupportSegments[newSegment].height) {
-						esi += 72;
-						newSegment = esi[segment * 8];
 						return false;
 					}
 				}
@@ -621,6 +620,7 @@ bool metal_a_supports_paint_setup(int supportType, int segment, int special, int
 	gSupportSegments[segment].slope = 0x20;
 
 	height = originalHeight;
+	segment = originalSegment;
 	if (special == 0)
 		return true;
 

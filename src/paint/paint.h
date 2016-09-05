@@ -21,13 +21,20 @@
 #include "../world/map.h"
 #include "../interface/colour.h"
 #include "../drawing/drawing.h"
+#ifndef NO_RCT2
+	#include "../addresses.h"
+#endif
 
 typedef struct attached_paint_struct attached_paint_struct;
+struct paint_struct;
+typedef struct paint_struct paint_struct;
 
 #ifdef NO_RCT2
 extern void *g_currently_drawn_item;
+extern paint_struct * g_ps_EE7880;
 #else
 	#define g_currently_drawn_item RCT2_GLOBAL(0x9DE578, void*)
+	#define g_ps_EE7880 RCT2_GLOBAL(0xEE7880, paint_struct *)
 #endif
 
 #pragma pack(push, 1)
@@ -49,8 +56,6 @@ struct attached_paint_struct {
 // TODO: drop packing from this when all rendering is done.
 assert_struct_size(attached_paint_struct, 0x12);
 #endif
-
-typedef struct paint_struct paint_struct;
 
 /* size 0x34 */
 struct paint_struct {
@@ -122,9 +127,15 @@ typedef struct support_height {
 	uint8 pad;
 } support_height;
 
+#ifndef NO_RCT2
 #define gPaintInteractionType		RCT2_GLOBAL(RCT2_ADDRESS_PAINT_SETUP_CURRENT_TYPE, uint8)
 #define gSupportSegments			RCT2_ADDRESS(RCT2_ADDRESS_CURRENT_SUPPORT_SEGMENTS, support_height)
 #define gSupport					RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_PAINT_TILE_MAX_HEIGHT, support_height)
+#else
+extern uint8 gPaintInteractionType;
+extern support_height gSupportSegments[9];
+extern support_height gSupport;
+#endif
 
 /** rct2: 0x00993CC4 */
 extern const uint32 construction_markers[];
@@ -139,7 +150,7 @@ paint_struct * sub_98199C(uint32 image_id, sint8 x_offset, sint8 y_offset, sint1
 
 bool paint_attach_to_previous_attach(uint32 image_id, uint16 x, uint16 y);
 bool paint_attach_to_previous_ps(uint32 image_id, uint16 x, uint16 y);
-void sub_685EBC(money32 amount, uint16 string_id, sint16 y, sint16 z, sint8 y_offsets[], sint16 offset_x, uint32 rotation);
+void sub_685EBC(money32 amount, rct_string_id string_id, sint16 y, sint16 z, sint8 y_offsets[], sint16 offset_x, uint32 rotation);
 
 void viewport_draw_money_effects();
 void viewport_paint_setup();
