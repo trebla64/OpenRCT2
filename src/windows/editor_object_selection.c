@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../config.h"
 #include "../game.h"
@@ -537,14 +536,14 @@ static void setup_in_use_selection_flags()
 {
 	for (uint8 object_type = 0; object_type < 11; object_type++){
 		for (uint16 i = 0; i < object_entry_group_counts[object_type]; i++){
-			RCT2_ADDRESS(0x0098DA38, uint8*)[object_type][i] = 0;
+			gEditorSelectedObjects[object_type][i] = 0;
 		}
 	}
 
 	for (uint8 object_type = 0; object_type < 11; object_type++){
 		for (uint16 i = 0; i < object_entry_group_counts[object_type]; i++){
 			if (object_entry_groups[object_type].chunks[i] != (uint8*)-1) {
-				RCT2_ADDRESS(0x0098DA38, uint8*)[object_type][i] |= (1 << 1);
+				gEditorSelectedObjects[object_type][i] |= (1 << 1);
 			}
 		}
 	}
@@ -564,43 +563,43 @@ static void setup_in_use_selection_flags()
 			type = iter.element->properties.path.type;
 			type >>= 4;
 			assert(type < object_entry_group_counts[OBJECT_TYPE_PATHS]);
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_PATHS][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_PATHS][type] |= (1 << 0);
 
 			if (footpath_element_has_path_scenery(iter.element)) {
 				uint8 path_additions = footpath_element_get_path_scenery_index(iter.element);
-				RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_PATH_BITS][path_additions] |= 1;
+				gEditorSelectedObjects[OBJECT_TYPE_PATH_BITS][path_additions] |= 1;
 			}
 			break;
 		case MAP_ELEMENT_TYPE_SCENERY:
 			type = iter.element->properties.scenery.type;
 			assert(type < object_entry_group_counts[OBJECT_TYPE_SMALL_SCENERY]);
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_SMALL_SCENERY][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_SMALL_SCENERY][type] |= (1 << 0);
 			break;
 		case MAP_ELEMENT_TYPE_ENTRANCE:
 			if (iter.element->properties.entrance.type != ENTRANCE_TYPE_PARK_ENTRANCE)
 				break;
 
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_PARK_ENTRANCE][0] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_PARK_ENTRANCE][0] |= (1 << 0);
 
 			type = iter.element->properties.entrance.path_type;
 			assert(type < object_entry_group_counts[OBJECT_TYPE_PATHS]);
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_PATHS][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_PATHS][type] |= (1 << 0);
 			break;
 		case MAP_ELEMENT_TYPE_FENCE:
 			type = iter.element->properties.fence.type;
 			assert(type < object_entry_group_counts[OBJECT_TYPE_WALLS]);
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_WALLS][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_WALLS][type] |= (1 << 0);
 			break;
 		case MAP_ELEMENT_TYPE_SCENERY_MULTIPLE:
 			type = iter.element->properties.scenerymultiple.type & 0x3FF;
 			assert(type < object_entry_group_counts[OBJECT_TYPE_LARGE_SCENERY]);
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_LARGE_SCENERY][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_LARGE_SCENERY][type] |= (1 << 0);
 			break;
 		case MAP_ELEMENT_TYPE_BANNER:
 			banner = &gBanners[iter.element->properties.banner.index];
 			type = banner->type;
 			assert(type < object_entry_group_counts[OBJECT_TYPE_BANNERS]);
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_BANNERS][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_BANNERS][type] |= (1 << 0);
 			break;
 		}
 	} while (map_element_iterator_next(&iter));
@@ -609,7 +608,7 @@ static void setup_in_use_selection_flags()
 		rct_ride* ride = get_ride(ride_index);
 		if (ride->type != RIDE_TYPE_NULL) {
 			uint8 type = ride->subtype;
-			RCT2_ADDRESS(0x0098DA38, uint8*)[OBJECT_TYPE_RIDE][type] |= (1 << 0);
+			gEditorSelectedObjects[OBJECT_TYPE_RIDE][type] |= (1 << 0);
 		}
 	}
 
@@ -622,12 +621,12 @@ static void setup_in_use_selection_flags()
 
 		uint8 entryType, entryIndex;
 		if (find_object_in_entry_group(&item->ObjectEntry, &entryType, &entryIndex)) {
-			if (RCT2_ADDRESS(0x0098DA38, uint8*)[entryType][entryIndex] & (1 << 0)) {
+			if (gEditorSelectedObjects[entryType][entryIndex] & (1 << 0)) {
 				*selectionFlags |=
 					OBJECT_SELECTION_FLAG_IN_USE |
 					OBJECT_SELECTION_FLAG_SELECTED;
 			}
-			if (RCT2_ADDRESS(0x0098DA38, uint8*)[entryType][entryIndex] & (1 << 1)) {
+			if (gEditorSelectedObjects[entryType][entryIndex] & (1 << 1)) {
 				*selectionFlags |= OBJECT_SELECTION_FLAG_SELECTED;
 			}
 		}
@@ -989,7 +988,7 @@ static void window_editor_object_selection_scroll_mousedown(rct_window *w, int s
 
 	window_invalidate(w);
 
-	audio_play_sound_panned(SOUND_CLICK_1, RCT2_GLOBAL(0x142406C,uint32), 0, 0, 0);
+	audio_play_sound_panned(SOUND_CLICK_1, gCursorState.x, 0, 0, 0);
 
 
 	if (gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER) {
@@ -1230,7 +1229,6 @@ static void window_editor_object_selection_paint(rct_window *w, rct_drawpixelinf
 	rct_object_entry *highlightedEntry;
 	rct_string_id stringId;
 	uint8 source;
-	char *stringBuffer;
 
 	/*if (w->selected_tab == WINDOW_OBJECT_SELECTION_PAGE_RIDE_VEHICLES_ATTRACTIONS) {
 		gfx_fill_rect_inset(dpi,
@@ -1345,23 +1343,23 @@ static void window_editor_object_selection_paint(rct_window *w, rct_drawpixelinf
 	x = w->x + (widget->left + widget->right) / 2 + 1;
 	y = w->y + widget->bottom + 3;
 	width = w->width - w->widgets[WIDX_LIST].right - 6;
-
-	RCT2_GLOBAL(0x009BC677, uint8) = 14;
-	stringId = STR_PLACEHOLDER;
-	stringBuffer = (char*)language_get_string(STR_PLACEHOLDER) + 1;
-	strcpy(stringBuffer, listItem->repositoryItem->Name);
-	gfx_draw_string_centred_clipped(dpi, stringId, NULL, 0, x, y, width);
+	set_format_arg(0, rct_string_id, STR_STRING);
+	set_format_arg(2, const char *, listItem->repositoryItem->Name);
+	gfx_draw_string_centred_clipped(dpi, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, 0, x, y, width);
 
 	// Draw description of object
-	strcpy(stringBuffer, object_get_description(_loadedObject));
-	if (stringId != STR_NONE) {
+	const char *description = object_get_description(_loadedObject);
+	if (description != NULL) {
+		set_format_arg(0, rct_string_id, STR_STRING);
+		set_format_arg(2, const char *, description);
+
 		x = w->x + w->widgets[WIDX_LIST].right + 4;
 		y += 15;
 		int width = w->x + w->width - x - 4;
 		if (type == OBJECT_TYPE_SCENARIO_TEXT) {
-			gfx_draw_string_left_wrapped(dpi, &stringId, x, y, width, STR_OBJECT_SELECTION_DESCRIPTION_SCENARIO_TEXT, 0);
+			gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, STR_OBJECT_SELECTION_DESCRIPTION_SCENARIO_TEXT, 0);
 		} else {
-			gfx_draw_string_left_wrapped(dpi, &stringId, x, y + 5, width, STR_BLACK_STRING, 0);
+			gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y + 5, width, STR_WINDOW_COLOUR_2_STRINGID, 0);
 		}
 	}
 
@@ -1387,9 +1385,10 @@ static void window_editor_object_selection_paint(rct_window *w, rct_drawpixelinf
 	// gfx_draw_string_right(dpi, stringId, NULL, 2, w->x + w->width - 5, w->y + w->height - 3 - 12 - 14);
 
 	// Draw object dat name
-	stringId = STR_PLACEHOLDER;
-	strcpy(stringBuffer, path_get_filename(listItem->repositoryItem->Path));
-	gfx_draw_string_right(dpi, stringId, NULL, 0, w->x + w->width - 5, w->y + w->height - 3 - 12);
+	const char *path = path_get_filename(listItem->repositoryItem->Path);
+	set_format_arg(0, rct_string_id, STR_STRING);
+	set_format_arg(2, const char *, path);
+	gfx_draw_string_right(dpi, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, 0, w->x + w->width - 5, w->y + w->height - 3 - 12);
 }
 
 /**
@@ -1631,8 +1630,9 @@ static int window_editor_object_selection_select_object(uint8 bh, int flags, con
 		}
 
 		if (bh != 0 && !(flags & (1 << 1))) {
-			object_create_identifier_name(RCT2_ADDRESS(0x009BC95A, char), &item->ObjectEntry);
-			set_format_arg(0, uint32, 0x009BC95A);
+			char objectName[64];
+			object_create_identifier_name(objectName, &item->ObjectEntry);
+			set_format_arg(0, const char *, objectName);
 			set_object_selection_error(bh, STR_OBJECT_SELECTION_ERR_SHOULD_SELECT_X_FIRST);
 			return 0;
 		}
@@ -1700,8 +1700,7 @@ static void window_editor_object_selection_manage_tracks()
 	uint8* ride_type_array = &ride_entry->ride_type[0];
 
 	int ride_type;
-	for (int i = 0; (ride_type = ride_type_array[i]) == 0xFF; i++);
-	RCT2_GLOBAL(0xF44158, uint8) = ride_type;
+	for (int i = 0; (ride_type = ride_type_array[i]) == 0xFF; i++) { }
 
 	ride_list_item item = { ride_type, entry_index };
 	// track_load_list(item);

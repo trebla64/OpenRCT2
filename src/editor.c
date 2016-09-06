@@ -42,13 +42,39 @@
 #include "world/scenery.h"
 #include "world/sprite.h"
 
+uint8 _editorSelectedRides[128];
+uint8 _editorSelectedSmallScenery[252];
+uint8 _editorSelectedLargeScenery[128];
+uint8 _editorSelectedWalls[128];
+uint8 _editorSelectedBanners[32];
+uint8 _editorSelectedFootpaths[16];
+uint8 _editorSelectedFootpathAdditions[15];
+uint8 _editorSelectedSceneryGroups[19];
+uint8 _editorSelectedParkEntrances[1];
+uint8 _editorSelectedWaters[1];
+uint8 _editorSelectedStexs[1];
+
+uint8 * gEditorSelectedObjects[OBJECT_ENTRY_GROUP_COUNT] = {
+	_editorSelectedRides,
+	_editorSelectedSmallScenery,
+	_editorSelectedLargeScenery,
+	_editorSelectedWalls,
+	_editorSelectedBanners,
+	_editorSelectedFootpaths,
+	_editorSelectedFootpathAdditions,
+	_editorSelectedSceneryGroups,
+	_editorSelectedParkEntrances,
+	_editorSelectedWaters,
+	_editorSelectedStexs,
+};
+
 void editor_convert_save_to_scenario_callback(int result);
 static void set_all_land_owned();
 static int editor_load_landscape_from_sv4(const char *path);
 static int editor_load_landscape_from_sc4(const char *path);
 static void editor_finalise_main_view();
 static int editor_read_s6(const char *path);
-static void editor_clear_map_for_editing();
+static void editor_clear_map_for_editing(bool fromSave);
 
 /**
  *
@@ -253,7 +279,7 @@ bool editor_load_landscape(const utf8 *path)
 static int editor_load_landscape_from_sv4(const char *path)
 {
 	rct1_load_saved_game(path);
-	editor_clear_map_for_editing();
+	editor_clear_map_for_editing(true);
 
 	gS6Info->editor_step = EDITOR_STEP_LANDSCAPE_EDITOR;
 	gScreenAge = 0;
@@ -267,7 +293,7 @@ static int editor_load_landscape_from_sv4(const char *path)
 static int editor_load_landscape_from_sc4(const char *path)
 {
 	rct1_load_scenario(path);
-	editor_clear_map_for_editing();
+	editor_clear_map_for_editing(false);
 
 	gS6Info->editor_step = EDITOR_STEP_LANDSCAPE_EDITOR;
 	gScreenAge = 0;
@@ -288,7 +314,7 @@ static int editor_read_s6(const char *path)
 		return 0;
 	}
 
-	editor_clear_map_for_editing();
+	editor_clear_map_for_editing(true);
 
 	gS6Info->editor_step = EDITOR_STEP_LANDSCAPE_EDITOR;
 	gScreenAge = 0;
@@ -299,10 +325,8 @@ static int editor_read_s6(const char *path)
 	return 1;
 }
 
-static void editor_clear_map_for_editing()
+static void editor_clear_map_for_editing(bool fromSave)
 {
-	rct_s6_header *s6Header = RCT2_ADDRESS(0x009E34E4, rct_s6_header);
-
 	map_remove_all_rides();
 
 	//
@@ -335,7 +359,7 @@ static void editor_clear_map_for_editing()
 	gNumGuestsHeadingForPark = 0;
 	gNumGuestsInParkLastWeek = 0;
 	gGuestChangeModifier = 0;
-	if (s6Header->type != S6_TYPE_SCENARIO) {
+	if (fromSave) {
 		research_populate_list_random();
 		research_remove_non_separate_vehicle_types();
 
