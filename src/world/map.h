@@ -272,6 +272,12 @@ typedef struct rct_xyz16 {
 } rct_xyz16;
 assert_struct_size(rct_xyz16, 6);
 
+typedef struct rct_xyzd16 {
+	sint16 x, y, z;
+	uint8 direction;
+} rct_xyzd16;
+assert_struct_size(rct_xyzd16, 7);
+
 typedef struct rct_xy32 {
 	sint32 x, y;
 } rct_xy32;
@@ -332,6 +338,7 @@ extern sint16 gMapSizeUnits;
 extern sint16 gMapSizeMinus2;
 extern sint16 gMapSize;
 extern sint16 gMapSizeMaxXY;
+extern sint16 gMapBaseZ;
 
 extern uint16		gMapSelectFlags;
 extern uint16		gMapSelectType;
@@ -350,10 +357,11 @@ extern rct_map_element *gMapElements;
 extern rct_map_element **gMapElementTilePointers;
 #endif
 
-extern rct_xy16 *gMapSelectionTiles;
-extern rct2_peep_spawn *gPeepSpawns;
+extern rct_xy16 gMapSelectionTiles[300];
+extern rct2_peep_spawn gPeepSpawns[2];
 
 extern rct_map_element *gNextFreeMapElement;
+extern uint32 gNextFreeMapElementPointerIndex;
 
 // Used in the land tool window to enable mountain tool / land smoothing
 extern bool gLandMountainMode;
@@ -373,8 +381,11 @@ extern uint8 gLandToolTerrainSurface;
 extern uint8 gLandToolTerrainEdge;
 extern money32 gWaterToolRaiseCost;
 extern money32 gWaterToolLowerCost;
+extern money32 gLandRightsCost;
 
 extern rct_xyz16 gCommandPosition;
+
+extern uint8 gUnk9E2E28;
 
 void map_init(int size);
 void map_update_tile_pointers();

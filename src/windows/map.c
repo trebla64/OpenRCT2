@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../cheats.h"
 #include "../game.h"
@@ -245,7 +244,7 @@ void window_map_open()
 	w->map.rotation = get_current_rotation();
 
 	window_map_init_map();
-	RCT2_GLOBAL(0x00F64F05, uint8) = 0;
+	gWindowSceneryRotation = 0;
 	window_map_center_on_view_point();
 
 	// Reset land tool size
@@ -351,7 +350,9 @@ static void window_map_mouseup(rct_window *w, int widgetIndex)
 			break;
 
 		gLandToolSize = 0;
-		if (gPeepSpawns[0].x != UINT16_MAX && RCT2_GLOBAL(0x13573F8, sint16) != -1) {
+		if (gPeepSpawns[0].x != UINT16_MAX &&
+			gPeepSpawns[1].x != UINT16_MAX
+		) {
 			gLandToolSize = 1;
 		}
 

@@ -82,10 +82,12 @@ enum {
 };
 
 enum {
-	IMAGE_TYPE_NO_BACKGROUND = 0,
-	IMAGE_TYPE_USE_PALETTE= (1 << 1),
-	IMAGE_TYPE_MIX_BACKGROUND = (1<<2),
-	IMAGE_TYPE_UNKNOWN = (1<<3)
+	IMAGE_TYPE_DEFAULT = 0,
+	IMAGE_TYPE_REMAP = (1 << 29),
+	IMAGE_TYPE_TRANSPARENT = (1 << 30),
+	IMAGE_TYPE_REMAP_2_PLUS = (1 << 31) 
+	// REMAP_2_PLUS + REMAP = REMAP 2
+	// REMAP_2_PLUS = REMAP 3
 };
 
 typedef struct rct_g1_header {
@@ -117,17 +119,14 @@ typedef struct rct_palette {
 	rct_palette_entry entries[256];
 } rct_palette;
 
-#define SPRITE_ID_PALETTE_COLOUR_1(colourId) ((IMAGE_TYPE_USE_PALETTE << 28) | ((colourId) << 19))
+#define SPRITE_ID_PALETTE_COLOUR_1(colourId) (IMAGE_TYPE_REMAP | ((colourId) << 19))
+#define SPRITE_ID_PALETTE_COLOUR_2(primaryId, secondaryId) (IMAGE_TYPE_REMAP_2_PLUS | IMAGE_TYPE_REMAP | ((primaryId << 19) | (scondaryId << 24)))
+#define SPRITE_ID_PALETTE_COLOUR_3(primaryId, secondaryId) (IMAGE_TYPE_REMAP_2_PLUS | ((primaryId << 19) | (scondaryId << 24)))
 
 #define PALETTE_TO_G1_OFFSET_COUNT 144
 
-#ifndef NO_RCT2
-#define gCurrentFontSpriteBase		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, sint16)
-#define gCurrentFontFlags			RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_FLAGS, uint16)
-#else
 extern sint16 gCurrentFontSpriteBase;
 extern uint16 gCurrentFontFlags;
-#endif
 
 extern uint8 gGamePalette[256 * 4];
 extern uint32 gPaletteEffectFrame;
@@ -184,8 +183,8 @@ void gfx_fill_rect(rct_drawpixelinfo *dpi, int left, int top, int right, int bot
 void gfx_fill_rect_inset(rct_drawpixelinfo* dpi, short left, short top, short right, short bottom, int colour, short _si);
 
 // sprite
-int gfx_load_g1();
-int gfx_load_g2();
+bool gfx_load_g1();
+bool gfx_load_g2();
 void gfx_unload_g1();
 void gfx_unload_g2();
 rct_g1_element* gfx_get_g1_element(int image_id);

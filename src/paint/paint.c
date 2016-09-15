@@ -24,8 +24,8 @@
 #include "sprite/sprite.h"
 
 const uint32 construction_markers[] = {
-	COLOUR_DARK_GREEN << 19 | COLOUR_GREY << 24 | IMAGE_TYPE_USE_PALETTE << 28, // White
-	2 << 19 | 0b110000 << 19 | IMAGE_TYPE_MIX_BACKGROUND << 28, // Translucent
+	COLOUR_DARK_GREEN << 19 | COLOUR_GREY << 24 | IMAGE_TYPE_REMAP, // White
+	2 << 19 | 0b110000 << 19 | IMAGE_TYPE_TRANSPARENT, // Translucent
 };
 
 paint_struct * g_ps_F1AD28;
@@ -34,6 +34,8 @@ paint_string_struct *pss1;
 paint_string_struct *pss2;
 
 #ifdef NO_RCT2
+uint32 _F1AD0C;
+uint32 _F1AD10;
 static paint_struct *_paint_structs[512];
 void *g_currently_drawn_item;
 paint_struct * g_ps_EE7880;
@@ -42,6 +44,8 @@ support_height gSupportSegments[9] = { 0 };
 support_height gSupport;
 #else
 #define _paint_structs (RCT2_ADDRESS(0x00F1A50C, paint_struct*))
+#define _F1AD0C RCT2_GLOBAL(0xF1AD0C, uint32)
+#define _F1AD10 RCT2_GLOBAL(0xF1AD10, uint32)
 #endif
 
 static const uint8 BoundBoxDebugColours[] = {
@@ -73,8 +77,8 @@ void painter_setup() {
 	for (int i = 0; i < 512; i++) {
 		_paint_structs[i] = NULL;
 	}
-	RCT2_GLOBAL(0xF1AD0C, sint32) = -1;
-	RCT2_GLOBAL(0xF1AD10, uint32) = 0;
+	_F1AD0C = -1;
+	_F1AD10 = 0;
 	pss1 = NULL;
 	pss2 = NULL;
 }
@@ -107,8 +111,8 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 			rotate_map_coordinates(&offset.x, &offset.y, 1);
 			break;
 	}
-	offset.x += RCT2_GLOBAL(0x9DE568, sint16);
-	offset.y += RCT2_GLOBAL(0x9DE56C, sint16);
+	offset.x += gUnk9DE568;
+	offset.y += gUnk9DE56C;
 
 	rct_xy16 map = coordinate_3d_to_2d(&offset, rotation);
 
@@ -120,9 +124,6 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 
 	int right = left + g1Element->width;
 	int top = bottom + g1Element->height;
-
-	RCT2_GLOBAL(0xF1AD1C, uint16) = left;
-	RCT2_GLOBAL(0xF1AD1E, uint16) = bottom;
 
 	rct_drawpixelinfo * dpi = unk_140E9A8;
 
@@ -156,19 +157,19 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 			break;
 	}
 
-	ps->bound_box_x_end = boundBoxSize.x + boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
+	ps->bound_box_x_end = boundBoxSize.x + boundBoxOffset.x + gUnk9DE568;
 	ps->bound_box_z = boundBoxOffset.z;
 	ps->bound_box_z_end = boundBoxOffset.z + boundBoxSize.z;
-	ps->bound_box_y_end = boundBoxSize.y + boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
+	ps->bound_box_y_end = boundBoxSize.y + boundBoxOffset.y + gUnk9DE56C;
 	ps->flags = 0;
-	ps->bound_box_x = boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
-	ps->bound_box_y = boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
+	ps->bound_box_x = boundBoxOffset.x + gUnk9DE568;
+	ps->bound_box_y = boundBoxOffset.y + gUnk9DE56C;
 	ps->attached_ps = NULL;
 	ps->var_20 = NULL;
 	ps->sprite_type = gPaintInteractionType;
 	ps->var_29 = RCT2_GLOBAL(0x9DE571, uint8);
-	ps->map_x = RCT2_GLOBAL(0x9DE574, uint16);
-	ps->map_y = RCT2_GLOBAL(0x9DE576, uint16);
+	ps->map_x = gPaintMapPosition.x;
+	ps->map_y = gPaintMapPosition.y;
 	ps->mapElement = g_currently_drawn_item;
 
 	return ps;
@@ -253,8 +254,8 @@ paint_struct * sub_98196C(
 			break;
 	}
 
-	coord_3d.x += RCT2_GLOBAL(0x9DE568, sint16);
-	coord_3d.y += RCT2_GLOBAL(0x9DE56C, sint16);
+	coord_3d.x += gUnk9DE568;
+	coord_3d.y += gUnk9DE56C;
 
 	ps->bound_box_x_end = coord_3d.x + boundBox.x;
 	ps->bound_box_y_end = coord_3d.y + boundBox.y;
@@ -274,9 +275,6 @@ paint_struct * sub_98196C(
 	sint16 right = left + g1Element->width;
 	sint16 top = bottom + g1Element->height;
 
-	RCT2_GLOBAL(0xF1AD1C, sint16) = left;
-	RCT2_GLOBAL(0xF1AD1E, sint16) = bottom;
-
 	rct_drawpixelinfo *dpi = unk_140E9A8;
 
 	if (right <= dpi->x) return NULL;
@@ -291,8 +289,8 @@ paint_struct * sub_98196C(
 	ps->var_20 = NULL;
 	ps->sprite_type = gPaintInteractionType;
 	ps->var_29 = RCT2_GLOBAL(0x9DE571, uint8);
-	ps->map_x = RCT2_GLOBAL(0x9DE574, uint16);
-	ps->map_y = RCT2_GLOBAL(0x9DE576, uint16);
+	ps->map_x = gPaintMapPosition.x;
+	ps->map_y = gPaintMapPosition.y;
 	ps->mapElement = g_currently_drawn_item;
 
 	g_ps_F1AD28 = ps;
@@ -329,12 +327,12 @@ paint_struct * sub_98196C(
 	_paint_structs[edi] = ps;
 	ps->next_quadrant_ps = old_ps;
 
-	if ((uint16)edi < RCT2_GLOBAL(0x00F1AD0C, uint32)) {
-		RCT2_GLOBAL(0x00F1AD0C, uint32) = edi;
+	if ((uint16)edi < _F1AD0C) {
+		_F1AD0C = edi;
 	}
 
-	if ((uint16)edi > RCT2_GLOBAL(0x00F1AD10, uint32)) {
-		RCT2_GLOBAL(0x00F1AD10, uint32) = edi;
+	if ((uint16)edi > _F1AD10) {
+		_F1AD10 = edi;
 	}
 
 	unk_EE7888 ++;
@@ -413,12 +411,12 @@ paint_struct * sub_98197C(
 	_paint_structs[di] = ps;
 	ps->next_quadrant_ps = old_ps;
 
-	if ((uint16)di < RCT2_GLOBAL(0x00F1AD0C, uint32)) {
-		RCT2_GLOBAL(0x00F1AD0C, uint32) = di;
+	if ((uint16)di < _F1AD0C) {
+		_F1AD0C = di;
 	}
 
-	if ((uint16)di > RCT2_GLOBAL(0x00F1AD10, uint32)) {
-		RCT2_GLOBAL(0x00F1AD10, uint32) = di;
+	if ((uint16)di > _F1AD10) {
+		_F1AD10 = di;
 	}
 
 	unk_EE7888++;
@@ -627,7 +625,7 @@ void sub_685EBC(money32 amount, rct_string_id string_id, sint16 y, sint16 z, sin
 	ps->args[3] = 0;
 	ps->y_offsets = (uint8 *) y_offsets;
 
-	rct_xyz16 position = {.x = RCT2_GLOBAL(0x9DE568, sint16), .y = RCT2_GLOBAL(0x9DE56C, sint16), .z = z};
+	rct_xyz16 position = {.x = gUnk9DE568, .y = gUnk9DE56C, .z = z};
 	rct_xy16 coord = coordinate_3d_to_2d(&position, rotation);
 
 	ps->x = coord.x + offset_x;
@@ -874,7 +872,7 @@ void sub_688217()
 	unk_EE7888++;
 	unk_EE7884 = ps;
 	ps->next_quadrant_ps = NULL;
-	uint32 edi = RCT2_GLOBAL(0x00F1AD0C, uint32);
+	uint32 edi = _F1AD0C;
 	if (edi == -1)
 		return;
 
@@ -887,15 +885,15 @@ void sub_688217()
 				ps_next = ps_next->next_quadrant_ps;
 			} while (ps_next != NULL);
 		}
-	} while (++edi <= RCT2_GLOBAL(0x00F1AD10, uint32));
+	} while (++edi <= _F1AD10);
 
-	uint32 eax = RCT2_GLOBAL(0x00F1AD0C, uint32);
+	uint32 eax = _F1AD0C;
 
 	sub_688217_helper(eax & 0xFFFF, 1 << 1);
 
-	eax = RCT2_GLOBAL(0x00F1AD0C, uint32);
+	eax = _F1AD0C;
 
-	while (++eax < RCT2_GLOBAL(0x00F1AD10, uint32))
+	while (++eax < _F1AD10)
 		sub_688217_helper(eax & 0xFFFF, 0);
 }
 

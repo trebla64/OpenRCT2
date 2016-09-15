@@ -143,7 +143,7 @@ typedef struct rct_s6_data {
 	rct_map_element map_elements[0x30000];
 
 	// SC6[6]
-	uint32 dword_010E63B8;
+	uint32 next_free_map_element_pointer_index;
 	rct_sprite sprites[10000];
 	uint16 sprite_lists_head[6];
 	uint16 sprite_lists_count[6];
@@ -272,7 +272,7 @@ typedef struct rct_s6_data {
 	uint8 rct1_water_colour;
 	uint8 pad_01358842[2];
 	rct_research_item research_items[500];
-	uint16 word_01359208;
+	uint16 map_base_z;
 	char scenario_name[64];
 	char scenario_description[256];
 	uint8 current_interest_rate;
@@ -307,7 +307,7 @@ typedef struct rct_s6_data {
 	uint8 pad_13CA73F;
 	uint8 byte_13CA740;
 	uint8 pad_13CA741;
-	uint8 byte_13CA742[4];
+	uint8 byte_13CA742[4]; // unused
 	uint8 climate;
 	uint8 pad_013CA747;
 	uint16 climate_update_timer;
@@ -435,11 +435,12 @@ extern int gScenarioListCount;
 extern int gScenarioListCapacity;
 extern scenario_index_entry *gScenarioList;
 
-extern rct_s6_info *gS6Info;
+extern rct_s6_info gS6Info;
 extern char gScenarioName[64];
 extern char gScenarioDetails[256];
 extern char gScenarioCompletedBy[32];
 extern char gScenarioSavePath[MAX_PATH];
+extern char gScenarioExpansionPacks[3256];
 extern int gFirstTimeSave;
 extern uint16 gSavedAge;
 extern uint32 gLastAutoSaveTick;

@@ -15,7 +15,6 @@
 #pragma endregion
 
 #include "../common.h"
-#include "../addresses.h"
 
 #ifdef __WINDOWS__
 #include <windows.h>
@@ -1106,7 +1105,7 @@ void format_string_part(utf8 **dest, rct_string_id format, char **args)
 		*args += (format & 0xC00) >> 9;
 		format &= ~0xC00;
 
-		strcpy(*dest, RCT2_ADDRESS(0x135A8F4 + (format * 32), char));
+		safe_strcpy(*dest, &gUserStrings[format * 32], 32);
 		*dest = strchr(*dest, 0) + 1;
 	} else if (format < 0xE000) {
 		// Real name
@@ -1122,7 +1121,6 @@ void format_string_part(utf8 **dest, rct_string_id format, char **args)
 		// ?
 		log_error("Localisation CALLPROC reached. Please contact a dev");
 		assert(false);
-		RCT2_CALLPROC_EBPSAFE(RCT2_ADDRESS(0x0095AFB8, uint32)[format]);
 	}
 }
 
@@ -1159,61 +1157,6 @@ void format_string_to_upper(utf8 *dest, rct_string_id format, void *args)
 		*ch = toupper(*ch);
 		ch++;
 	}
-}
-
-/**
- *
- *  rct2: 0x006E37F7
- *  error  (eax)
- *  format (bx)
- */
-void error_string_quit(int error, rct_string_id format)
-{
-	RCT2_GLOBAL(0x14241A0, uint32) = error;
-	RCT2_GLOBAL(0x9E2DA0, uint32) = 1;
-
-	char* error_string = RCT2_ADDRESS(0x1424080, char);
-	*error_string = 0;
-
-	if (format != 0xFFFF){
-		format_string(error_string, format, gCommonFormatArgs);
-	}
-	RCT2_GLOBAL(0x9E2D9C, uint32) = 1;
-	rct2_exit();
-}
-
-void generate_string_file()
-{
-	FILE* f;
-	uint8** str;
-	uint8* c;
-	int i;
-
-	f = fopen("english.txt", "w");
-
-	for (i = 0; i < 4442; i++) {
-		str = (RCT2_ADDRESS(0x009BF2D4, uint8*) + (i * 4));
-		if (*str == (uint8*)-1)
-			continue;
-		c = *str;
-
-		fprintf(f, "STR_%04d    :", i);
-		while (*c != '\0') {
-			const char *token = format_get_token(*c);
-			if (token != NULL) {
-				fprintf(f, "{%s}", token);
-			} else {
-				if (*c < 32 || *c > 127)
-					fprintf(f, "{%d}", *c);
-				else
-					fputc(*c, f);
-			}
-			c++;
-		}
-		fputc('\n', f);
-	}
-
-	fclose(f);
 }
 
 /**

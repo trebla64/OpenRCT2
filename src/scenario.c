@@ -58,11 +58,12 @@ const rct_string_id ScenarioCategoryStringIds[SCENARIO_CATEGORY_COUNT] = {
 static char _scenarioPath[MAX_PATH];
 const char *_scenarioFileName = "";
 
-rct_s6_info *gS6Info = RCT2_ADDRESS(0x0141F570, rct_s6_info);
+rct_s6_info gS6Info;
 char gScenarioName[64];
 char gScenarioDetails[256];
 char gScenarioCompletedBy[32];
 char gScenarioSavePath[MAX_PATH];
+char gScenarioExpansionPacks[3256];
 int gFirstTimeSave = 1;
 uint16 gSavedAge;
 uint32 gLastAutoSaveTick = 0;
@@ -199,12 +200,12 @@ void scenario_begin()
 	gHistoricalProfit = gInitialCash - gBankLoan;
 	gCashEncrypted = ENCRYPT_MONEY(gInitialCash);
 
-	safe_strcpy(gScenarioDetails, gS6Info->details, 256);
-	safe_strcpy(gScenarioName, gS6Info->name, 64);
+	safe_strcpy(gScenarioDetails, gS6Info.details, 256);
+	safe_strcpy(gScenarioName, gS6Info.name, 64);
 
 	{
 		utf8 normalisedName[64];
-		safe_strcpy(normalisedName, gS6Info->name, sizeof(normalisedName));
+		safe_strcpy(normalisedName, gS6Info.name, sizeof(normalisedName));
 		scenario_normalise_name(normalisedName);
 
 		rct_string_id localisedStringIds[3];
@@ -250,7 +251,6 @@ void scenario_begin()
 	strcpy(gRCT2AddressSavedGamesPath2 + strlen(gRCT2AddressSavedGamesPath2), gScenarioSavePath);
 	strcat(gRCT2AddressSavedGamesPath2, ".SV6");
 
-	memset(RCT2_ADDRESS(0x001357848, void), 0, 56);
 	gCurrentExpenditure = 0;
 	gCurrentProfit = 0;
 	gWeeklyProfitAverageDividend = 0;
@@ -662,26 +662,24 @@ static void scenario_prepare_rides_for_save()
  */
 int scenario_prepare_for_save()
 {
-	rct_s6_info *s6Info = gS6Info;
-	char buffer[256];
-
-	s6Info->entry.flags = 255;
+	gS6Info.entry.flags = 255;
 
 	rct_stex_entry* stex = g_stexEntries[0];
 	if ((intptr_t)stex != -1) {
+		char buffer[256];
 		format_string(buffer, stex->scenario_name, NULL);
-		safe_strcpy(s6Info->name, buffer, sizeof(s6Info->name));
+		safe_strcpy(gS6Info.name, buffer, sizeof(gS6Info.name));
 
-		memcpy(&s6Info->entry, &object_entry_groups[OBJECT_TYPE_SCENARIO_TEXT].entries[0], sizeof(rct_object_entry));
+		memcpy(&gS6Info.entry, &object_entry_groups[OBJECT_TYPE_SCENARIO_TEXT].entries[0], sizeof(rct_object_entry));
 	}
 
-	if (s6Info->name[0] == 0)
-		format_string(s6Info->name, gParkName, &gParkNameArgs);
+	if (gS6Info.name[0] == 0)
+		format_string(gS6Info.name, gParkName, &gParkNameArgs);
 
-	s6Info->objective_type = gScenarioObjectiveType;
-	s6Info->objective_arg_1 = gScenarioObjectiveYear;
-	s6Info->objective_arg_2 = gScenarioObjectiveCurrency;
-	s6Info->objective_arg_3 = gScenarioObjectiveNumGuests;
+	gS6Info.objective_type = gScenarioObjectiveType;
+	gS6Info.objective_arg_1 = gScenarioObjectiveYear;
+	gS6Info.objective_arg_2 = gScenarioObjectiveCurrency;
+	gS6Info.objective_arg_3 = gScenarioObjectiveNumGuests;
 
 	scenario_prepare_rides_for_save();
 

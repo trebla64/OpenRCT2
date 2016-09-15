@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../cheats.h"
 #include "../config.h"
@@ -1922,10 +1921,8 @@ static void window_ride_init_viewport(rct_window *w)
 		w->viewport = 0;
 
 		viewport_update_pointers();
-	}
-	else{
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_FLAGS, uint8) & 0x1)
-			viewport_flags |= VIEWPORT_FLAG_GRIDLINES;
+	} else if (gConfigGeneral.always_show_gridlines) {
+		viewport_flags |= VIEWPORT_FLAG_GRIDLINES;
 	}
 
 	window_event_invalidate_call(w);
@@ -4647,15 +4644,19 @@ static void window_ride_colour_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
 		} else {
 			spriteIndex = TrackColourPreviews[ride->type].track;
-			spriteIndex |= (trackColour.additional << 24) | (trackColour.main << 19);
-			spriteIndex |= 0xA0000000;
-			gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			if (spriteIndex != 0) {
+				spriteIndex |= (trackColour.additional << 24) | (trackColour.main << 19);
+				spriteIndex |= 0xA0000000;
+				gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			}
 
 			// Supports
 			spriteIndex = TrackColourPreviews[ride->type].supports;
-			spriteIndex |= trackColour.supports << 19;
-			spriteIndex |= 0x20000000;
-			gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			if (spriteIndex != 0) {
+				spriteIndex |= trackColour.supports << 19;
+				spriteIndex |= 0x20000000;
+				gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			}
 		}
 	} else {
 		x = w->x + (widget->left + widget->right) / 2 - 8;
@@ -4980,7 +4981,7 @@ static void window_ride_music_paint(rct_window *w, rct_drawpixelinfo *dpi)
   when al == 0*/
 static void cancel_scenery_selection(){
 	gGamePaused &= ~GAME_PAUSED_SAVING_TRACK;
-	RCT2_GLOBAL(0x9DEA6F, uint8) &= ~(1 << 0);
+	gTrackDesignSaveMode = false;
 	audio_unpause_sounds();
 
 	rct_window* main_w = window_get_main();
@@ -4999,17 +5000,17 @@ static void cancel_scenery_selection(){
  */
 static void setup_scenery_selection(rct_window* w)
 {
-	if (RCT2_GLOBAL(0x009DEA6F, uint8) & 1){
+	if (gTrackDesignSaveMode){
 		cancel_scenery_selection();
 	}
 
 	while (tool_set(w, 0, 12));
 
-	RCT2_GLOBAL(0x00F64DE8, uint8) = (uint8)w->number;
+	gTrackDesignSaveRideIndex = (uint8)w->number;
 
 	track_design_save_init();
 	gGamePaused |= GAME_PAUSED_SAVING_TRACK;
-	RCT2_GLOBAL(0x009DEA6F, uint8) |= 1;
+	gTrackDesignSaveMode = true;
 
 	audio_pause_sounds();
 
@@ -5037,7 +5038,7 @@ static void window_ride_measurements_design_reset()
  */
 static void window_ride_measurements_design_select_nearby_scenery()
 {
-	track_design_save_select_nearby_scenery(RCT2_GLOBAL(0x00F64DE8, uint8));
+	track_design_save_select_nearby_scenery(gTrackDesignSaveRideIndex);
 }
 
 /**
@@ -5046,8 +5047,9 @@ static void window_ride_measurements_design_select_nearby_scenery()
  */
 void window_ride_measurements_design_cancel()
 {
-	if (RCT2_GLOBAL(0x009DEA6F, uint8) & 1)
+	if (gTrackDesignSaveMode) {
 		cancel_scenery_selection();
+	}
 }
 
 /**
@@ -5222,7 +5224,7 @@ static void window_ride_measurements_invalidate(rct_window *w)
 
 	window_ride_measurements_widgets[WIDX_SAVE_TRACK_DESIGN].tooltip = STR_SAVE_TRACK_DESIGN_NOT_POSSIBLE;
 	window_ride_measurements_widgets[WIDX_SAVE_TRACK_DESIGN].type = WWT_EMPTY;
-	if ((RCT2_GLOBAL(0x009DEA6F, uint8) & 1) && RCT2_GLOBAL(0x00F64DE8, uint8) == w->number) {
+	if (gTrackDesignSaveMode && gTrackDesignSaveRideIndex == w->number) {
 		window_ride_measurements_widgets[WIDX_SELECT_NEARBY_SCENERY].type = WWT_DROPDOWN_BUTTON;
 		window_ride_measurements_widgets[WIDX_RESET_SELECTION].type = WWT_DROPDOWN_BUTTON;
 		window_ride_measurements_widgets[WIDX_SAVE_DESIGN].type = WWT_DROPDOWN_BUTTON;
@@ -5348,7 +5350,6 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 						//therefore we set the last entry to use the no-separator format now, post-format
 						set_format_arg(0 + ((numTimes - 1) * 4), uint16, STR_RIDE_TIME_ENTRY);
 					}
-					RCT2_GLOBAL(0x013CE94E + (numTimes * 4), uint16) = STR_RIDE_TIME_ENTRY;
 					set_format_arg(0 + (numTimes * 4), uint16, 0);
 					set_format_arg(2 + (numTimes * 4), uint16, 0);
 					set_format_arg(4 + (numTimes * 4), uint16, 0);
@@ -5377,7 +5378,6 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 					//therefore we set the last entry to use the no-separator format now, post-format
 					set_format_arg(0 + ((numLengths - 1) * 4), uint16, STR_RIDE_LENGTH_ENTRY);
 				}
-				RCT2_GLOBAL(0x013CE94E + (numLengths * 4), uint16) = STR_RIDE_LENGTH_ENTRY;
 				set_format_arg(0 + (numLengths * 4), uint16, 0);
 				set_format_arg(2 + (numLengths * 4), uint16, 0);
 				set_format_arg(4 + (numLengths * 4), uint16, 0);
@@ -5687,7 +5687,7 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 	int x, y, width, time, listType, colour, top, bottom, tmp;
 	rct_string_id stringId;
 
-	gfx_clear(dpi, RCT2_GLOBAL(0x0141FC9D, uint8) * 0x01010101);
+	gfx_clear(dpi, ColourMapA[COLOUR_SATURATED_GREEN].darker * 0x01010101);
 
 	widget = &window_ride_graphs_widgets[WIDX_GRAPH];
 	listType = w->list_information_type & 0xFF;
@@ -5702,14 +5702,17 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 	}
 
 	// Vertical grid lines
+	const uint8 lightColour = ColourMapA[COLOUR_SATURATED_GREEN].mid_light;
+	const uint8 darkColour = ColourMapA[COLOUR_SATURATED_GREEN].mid_dark;
+
 	time = 0;
 	for (x = 0; x < dpi->x + dpi->width; x += 80) {
 		if (x + 80 >= dpi->x) {
-			gfx_fill_rect(dpi, x +  0, dpi->y, x +  0, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FCA0, uint8));
-			gfx_fill_rect(dpi, x + 16, dpi->y, x + 16, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
-			gfx_fill_rect(dpi, x + 32, dpi->y, x + 32, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
-			gfx_fill_rect(dpi, x + 48, dpi->y, x + 48, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
-			gfx_fill_rect(dpi, x + 64, dpi->y, x + 64, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
+			gfx_fill_rect(dpi, x +  0, dpi->y, x +  0, dpi->y + dpi->height - 1, lightColour);
+			gfx_fill_rect(dpi, x + 16, dpi->y, x + 16, dpi->y + dpi->height - 1, darkColour);
+			gfx_fill_rect(dpi, x + 32, dpi->y, x + 32, dpi->y + dpi->height - 1, darkColour);
+			gfx_fill_rect(dpi, x + 48, dpi->y, x + 48, dpi->y + dpi->height - 1, darkColour);
+			gfx_fill_rect(dpi, x + 64, dpi->y, x + 64, dpi->y + dpi->height - 1, darkColour);
 		}
 		time += 5;
 	}
@@ -5723,18 +5726,12 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 
 	// Scale modifier
 	if (listType == GRAPH_ALTITUDE) {
-		short unk = RCT2_GLOBAL(0x01359208, uint16);
-		yUnit -= RCT2_GLOBAL(0x01359208, uint16);
-		unk *= 2;
-		yUnit -= unk;
+		yUnit -= gMapBaseZ * 3;
 	}
 
 	for (y = widget->bottom - widget->top - 13; y >= 8; y -= yInterval, yUnit += yUnitInterval) {
 		// Minor / major line
-		colour = yUnit == 0 ?
-			RCT2_GLOBAL(0x0141FCA0, uint8) :
-			RCT2_GLOBAL(0x0141FC9F, uint8);
-
+		colour = yUnit == 0 ? lightColour : darkColour;
 		gfx_fill_rect(dpi, dpi->x, y, dpi->x + dpi->width - 1, y, colour);
 
 		sint16 scaled_yUnit = yUnit;

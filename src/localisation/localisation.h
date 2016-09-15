@@ -35,7 +35,6 @@ void format_string(char *dest, rct_string_id format, void *args);
 void format_string_raw(char *dest, char *src, void *args);
 void format_string_to_upper(char *dest, rct_string_id format, void *args);
 void generate_string_file();
-void error_string_quit(int error, rct_string_id format);
 utf8 *get_string_end(const utf8 *text);
 size_t get_string_size(const utf8 *text);
 int get_string_length(const utf8 *text);
@@ -62,7 +61,7 @@ wchar_t encoding_convert_big5_to_unicode(wchar_t big5);
 extern const char real_name_initials[16];
 extern const char *real_names[1024];
 
-extern utf8 *gUserStrings;
+extern utf8 gUserStrings[MAX_USER_STRINGS * USER_STRING_MAX_LENGTH];
 extern char gCommonStringFormatBuffer[256];
 extern uint8 gCommonFormatArgs[80];
 extern uint8 gMapTooltipFormatArgs[40];

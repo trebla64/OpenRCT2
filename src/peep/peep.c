@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../audio/mixer.h"
 #include "../cheats.h"
@@ -76,6 +75,7 @@ static uint8 _unk_F1AEF1;
 static uint16 _unk_F1EE18;
 static rct_map_element * _peepRideEntranceExitElement;
 static uint32 _peepRideConsideration[8];
+static uint8 _peepPotentialRides[256];
 
 enum {
 	PATH_SEARCH_DEAD_END,
@@ -943,8 +943,6 @@ static void sub_68F41A(rct_peep *peep, int index)
 	}
 
 	if ((index & 0x1FF) == (gCurrentTicks & 0x1FF)){
-		//RCT2_GLOBAL(0x00F1EDFE, uint32) = index; not needed all cases accounted for
-
 		if (peep->peep_flags & PEEP_FLAGS_CROWDED){
 			uint8 thought_type = crowded_thoughts[scenario_rand() & 0xF];
 			if (thought_type != PEEP_THOUGHT_TYPE_NONE){
@@ -1444,7 +1442,7 @@ static void peep_state_reset(rct_peep* peep){
  */
 static void peep_check_if_lost(rct_peep* peep){
 	if (!(peep->peep_flags & PEEP_FLAGS_LOST)){
-		if (RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, uint16) < 2)return;
+		if (gRideCount < 2) return;
 		peep->peep_flags ^= PEEP_FLAGS_21;
 
 		if (!(peep->peep_flags & PEEP_FLAGS_21)) return;
@@ -1851,7 +1849,7 @@ void peep_sprite_remove(rct_peep* peep){
 	else{
 		window_invalidate_by_class(WC_STAFF_LIST);
 
-		RCT2_ADDRESS(RCT2_ADDRESS_STAFF_MODE_ARRAY, uint8)[peep->staff_id] = 0;
+		gStaffModes[peep->staff_id] = 0;
 		peep->type = 0xFF;
 		staff_update_greyed_patrol_areas();
 		peep->type = PEEP_TYPE_STAFF;
@@ -2274,7 +2272,7 @@ static void peep_update_ride_sub_state_0(rct_peep* peep){
 	}
 
 	uint8 car_array_size = 0xFF;
-	uint8* car_array = RCT2_ADDRESS(0xF1AD78, uint8);
+	uint8 car_array[12];
 
 	if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_13)){
 		if (ride->num_riders >= ride->operation_option)
@@ -6569,7 +6567,7 @@ void peep_problem_warnings_update()
 		litter_counter = 0, disgust_counter = 0, bathroom_counter = 0 ,vandalism_counter = 0;
 	uint8 *warning_throttle = gPeepWarningThrottle;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, sint16) = ride_get_count(); // refactor this to somewhere else
+	gRideCount = ride_get_count(); // refactor this to somewhere else
 
 	FOR_ALL_GUESTS(spriteIndex, peep) {
 		if (peep->outside_of_park != 0 || peep->thoughts[0].var_2 > 5)
@@ -9664,7 +9662,7 @@ static void peep_spend_money(rct_peep *peep, money16 *peep_expend_type, money32 
 	}
 	window_invalidate_by_number(WC_PEEP, peep->sprite_index);
 
-	RCT2_GLOBAL(0x00141F568, uint8) = RCT2_GLOBAL(0x0013CA740, uint8);
+	gUnk141F568 = gUnk13CA740;
 	finance_payment(-amount, gCommandExpenditureType);
 
 	audio_play_sound_at_location(SOUND_PURCHASE, peep->x, peep->y, peep->z);
@@ -11180,7 +11178,7 @@ static void peep_pick_ride_to_go_on(rct_peep *peep)
 	}
 
 	// Filter the considered rides
-	uint8 *potentialRides = RCT2_ADDRESS(0x00F1ADBC, uint8);
+	uint8 *potentialRides = _peepPotentialRides;
 	uint8 *nextPotentialRide = potentialRides;
 	int numPotentialRides = 0;
 	for (int i = 0; i < MAX_RIDES; i++) {
@@ -11284,7 +11282,7 @@ static void peep_head_for_nearest_ride_type(rct_peep *peep, int rideType)
 	}
 
 	// Filter the considered rides
-	uint8 *potentialRides = RCT2_ADDRESS(0x00F1ADBC, uint8);
+	uint8 *potentialRides = _peepPotentialRides;
 	uint8 *nextPotentialRide = potentialRides;
 	int numPotentialRides = 0;
 	for (int i = 0; i < MAX_RIDES; i++) {
@@ -11391,7 +11389,7 @@ static void peep_head_for_nearest_ride_with_flags(rct_peep *peep, int rideTypeFl
 	}
 
 	// Filter the considered rides
-	uint8 *potentialRides = RCT2_ADDRESS(0x00F1ADBC, uint8);
+	uint8 *potentialRides = _peepPotentialRides;
 	uint8 *nextPotentialRide = potentialRides;
 	int numPotentialRides = 0;
 	for (int i = 0; i < MAX_RIDES; i++) {
@@ -11672,12 +11670,12 @@ static bool peep_heading_for_ride_or_park_exit(rct_peep *peep)
 money32 set_peep_name(int flags, int state, uint16 sprite_index, uint8* text_1, uint8* text_2, uint8* text_3) {
 	gCommandExpenditureType = RCT_EXPENDITURE_TYPE_LANDSCAPING;
 
-	utf8* fullText = RCT2_ADDRESS(0x00F1AEF6, utf8);
+	static char newName[128];
 	//if (flags & GAME_COMMAND_FLAG_APPLY) { // this check seems to be useless and causes problems in multiplayer
 		uint8 position = (state - 1) % 3;
-		memcpy(fullText + position * 12, text_1, 4);
-		memcpy(fullText + 4 + position * 12, text_2, 4);
-		memcpy(fullText + 8 + position * 12, text_3, 4);
+		memcpy(newName + position * 12, text_1, 4);
+		memcpy(newName + 4 + position * 12, text_2, 4);
+		memcpy(newName + 8 + position * 12, text_3, 4);
 	//}
 
 	if (state != 0)
@@ -11689,15 +11687,15 @@ money32 set_peep_name(int flags, int state, uint16 sprite_index, uint8* text_1, 
 	rct_string_id curId = peep->name_string_idx;
 	format_string(curName, curId, gCommonFormatArgs);
 
-	if (strcmp(curName, fullText) == 0)
+	if (strcmp(curName, newName) == 0)
 		return 0;
 
-	if (*fullText == '\0') {
+	if (*newName == '\0') {
 		gGameCommandErrorText = STR_ERR_INVALID_NAME_FOR_GUEST;
 		return MONEY32_UNDEFINED;
 	}
 
-	rct_string_id newId = user_string_allocate(4, fullText);
+	rct_string_id newId = user_string_allocate(4, newName);
 	if (newId == 0) {
 		return MONEY32_UNDEFINED;
 	}

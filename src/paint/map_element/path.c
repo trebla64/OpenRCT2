@@ -15,20 +15,20 @@
 #pragma endregion
 
 #include "../../addresses.h"
-#include "map_element.h"
-#include "../../interface/viewport.h"
-#include "../../ride/track.h"
-#include "../../world/footpath.h"
 #include "../../config.h"
-#include "../paint.h"
-#include "../../world/scenery.h"
-#include "surface.h"
-#include "../../ride/track_paint.h"
-#include "../../localisation/localisation.h"
 #include "../../game.h"
-#include "../supports.h"
-#include "../../peep/staff.h"
+#include "../../interface/viewport.h"
+#include "../../localisation/localisation.h"
 #include "../../object_list.h"
+#include "../../peep/staff.h"
+#include "../../ride/track.h"
+#include "../../ride/track_paint.h"
+#include "../../world/footpath.h"
+#include "../../world/scenery.h"
+#include "../paint.h"
+#include "../supports.h"
+#include "map_element.h"
+#include "surface.h"
 
 // #3628: Until path_paint is implemented, this variable is used by scrolling_text_setup
 //        to use the old string arguments array. Remove when scrolling_text_setup is no
@@ -590,7 +590,7 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
 	rct_drawpixelinfo * dpi = unk_140E9A8;
 
 	if (dpi->zoom_level <= 1) {
-		if (!(RCT2_GLOBAL(0x9DEA6F, uint8) & 1)) {
+		if (!gTrackDesignSaveMode) {
 			uint8 additions = map_element->properties.path.additions & 0xF;
 			if (additions != 0) {
 				gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_FOOTPATH_ITEM;
@@ -624,8 +624,7 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
 		}
 
 		// Redundant zoom-level check removed
-		RCT2_GLOBAL(0xF3EF78, uint32) = footpathEntry->image | imageFlags;
-		//RCT2_CALLPROC_X(0x6A4101, 0, 0, 0, 0, (int) map_element, 0, 0);
+
 		sub_6A4101(map_element, height, bp, word_F3F038, footpathEntry, footpathEntry->image | imageFlags, imageFlags);
 	}
 
@@ -680,9 +679,9 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 	uint32 sceneryImageFlags = 0;
 	uint32 imageFlags = 0;
 
-	if (RCT2_GLOBAL(0x9DEA6F, uint8) & 1) {
+	if (gTrackDesignSaveMode) {
 		if (map_element->type & 1) {
-			if (map_element->properties.path.ride_index != RCT2_GLOBAL(0x00F64DE8, uint8)) {
+			if (map_element->properties.path.ride_index != gTrackDesignSaveRideIndex) {
 				return;
 			}
 		}
@@ -701,7 +700,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 		imageFlags = construction_markers[gConfigGeneral.construction_marker_colour];
 	}
 
-	sint16 x = RCT2_GLOBAL(0x009DE56A, sint16), y = RCT2_GLOBAL(0x009DE56E, sint16);
+	sint16 x = gPaintMapPosition.x, y = gPaintMapPosition.y;
 
 	rct_map_element * surface = map_get_surface_element_at(x / 32, y / 32);
 
@@ -728,7 +727,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 		sint32 staffIndex = gStaffDrawPatrolAreas;
 		uint8 staffType = staffIndex & 0x7FFF;
 		bool is_staff_list = staffIndex & 0x8000;
-		sint16 x = RCT2_GLOBAL(0x009DE56A, sint16), y = RCT2_GLOBAL(0x009DE56E, sint16);
+		sint16 x = gPaintMapPosition.x, y = gPaintMapPosition.y;
 
 		uint8 patrolColour = COLOUR_LIGHT_BLUE;
 
@@ -740,12 +739,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 			staffType = staff->staff_type;
 		}
 
-		x = (x & 0x1F80) >> 7;
-		y = (y & 0x1F80) >> 1;
-		int offset = (x | y) >> 5;
-		int bitIndex = (x | y) & 0x1F;
-		int ebx = (staffType + 200) * 512;
-		if (RCT2_ADDRESS(RCT2_ADDRESS_STAFF_PATROL_AREAS + ebx, uint32)[offset] & (1 << bitIndex)) {
+		if (staff_is_patrol_area_set(200 + staffType, x, y)) {
 			uint32 imageId = 2618;
 			int height = map_element->base_height * 8;
 			if (footpath_element_is_sloped(map_element)) {
@@ -765,7 +759,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 		}
 		uint32 imageId = (SPR_HEIGHT_MARKER_BASE + height / 16) | COLOUR_GREY << 19 | 0x20000000;
 		imageId += get_height_marker_offset();
-		imageId -= RCT2_GLOBAL(0x01359208, uint16);
+		imageId -= gMapBaseZ;
 		sub_98196C(imageId, 16, 16, 1, 1, 0, height, get_current_rotation());
 	}
 
@@ -806,14 +800,14 @@ void loc_6A37C9(rct_map_element * mapElement, int height, rct_footpath_entry * f
 		imageId += 51;
 	}
 
-	if (!RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!gDidPassSurface) {
 		boundBoxOffset.x = 3;
 		boundBoxOffset.y = 3;
 		boundBoxSize.x = 26;
 		boundBoxSize.y = 26;
 	}
 
-	if (!hasFences || !RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!hasFences || !gDidPassSurface) {
 		sub_98197C(imageId | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 	} else {
 		uint32 image_id;
@@ -920,14 +914,14 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 	}
 
 	// Below Surface
-	if (!RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!gDidPassSurface) {
 		boundBoxOffset.x = 3;
 		boundBoxOffset.y = 3;
 		boundBoxSize.x = 26;
 		boundBoxSize.y = 26;
 	}
 
-	if (!hasFences || !RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!hasFences || !gDidPassSurface) {
 		sub_98197C(imageId | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 	}
 	else {

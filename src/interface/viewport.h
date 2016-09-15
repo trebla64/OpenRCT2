@@ -90,6 +90,14 @@ typedef struct viewport_interaction_info {
 
 extern uint32 gCurrentViewportFlags;
 
+/**
+ * A reference counter for whether something is forcing the grid lines to show. When the counter
+ * is decremented to 0, the grid lines are hidden.
+ */
+extern uint8 gShowGridLinesRefCount;
+extern uint8 gShowLandRightsRefCount;
+extern uint8 gShowConstuctionRightsRefCount;
+
 // rct2: 0x014234BC
 extern rct_viewport g_viewport_list[MAX_VIEWPORT_COUNT];
 extern rct_viewport *g_music_tracking_viewport;
@@ -110,6 +118,8 @@ extern uint8 gCurrentRotation;
 	#define gSavedViewRotation		RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ROTATION, uint8)
 	#define gCurrentRotation		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_ROTATION, uint8)
 #endif
+
+extern uint32 gUnkEDF81C;
 
 void viewport_init_all();
 void center_2d_coordinates(int x, int y, int z, int* out_x, int* out_y, rct_viewport* viewport);

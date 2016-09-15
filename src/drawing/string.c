@@ -14,8 +14,8 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../interface/colour.h"
+#include "../interface/viewport.h"
 #include "../interface/window.h"
 #include "../localisation/localisation.h"
 #include "../platform/platform.h"
@@ -340,15 +340,13 @@ void gfx_draw_string_centred(rct_drawpixelinfo *dpi, rct_string_id format, int x
 int gfx_draw_string_centred_wrapped(rct_drawpixelinfo *dpi, void *args, int x, int y, int width, rct_string_id format, int colour)
 {
 	int font_height, line_height, line_y, num_lines;
-	char* buffer = RCT2_ADDRESS(0x009C383D, char);
 
 	if (gCurrentFontSpriteBase >= 0) {
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 	}
 
-	gfx_draw_string(dpi, buffer, colour, dpi->x, dpi->y);
-
-	buffer = gCommonStringFormatBuffer;
+	char *buffer = gCommonStringFormatBuffer;
+	gfx_draw_string(dpi, "", colour, dpi->x, dpi->y);
 	format_string(buffer, format, args);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
@@ -394,9 +392,8 @@ int gfx_draw_string_left_wrapped(rct_drawpixelinfo *dpi, void *args, int x, int 
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
-	char* buffer = RCT2_ADDRESS(0x009C383D, char);
-	gfx_draw_string(dpi, buffer, colour, dpi->x, dpi->y);
-	buffer = gCommonStringFormatBuffer;
+	char *buffer = gCommonStringFormatBuffer;
+	gfx_draw_string(dpi, "", colour, dpi->x, dpi->y);
 	format_string(buffer, format, args);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
@@ -555,7 +552,7 @@ void draw_string_centred_underline(rct_drawpixelinfo *dpi, rct_string_id format,
 void draw_string_centred_raw(rct_drawpixelinfo *dpi, int x, int y, int numLines, char *text)
 {
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
-	gfx_draw_string(dpi, RCT2_ADDRESS(0x009C383D, char), 0, dpi->x, dpi->y);
+	gfx_draw_string(dpi, "", 0, dpi->x, dpi->y);
 	gCurrentFontFlags = 0;
 
 	for (int i = 0; i <= numLines; i++) {
@@ -657,7 +654,7 @@ void gfx_draw_string_centred_wrapped_partial(rct_drawpixelinfo *dpi, int x, int 
 	utf8 *buffer = gCommonStringFormatBuffer;
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
-	gfx_draw_string(dpi, RCT2_ADDRESS(0x009C383D, char), colour, dpi->x, dpi->y);
+	gfx_draw_string(dpi, "", colour, dpi->x, dpi->y);
 	format_string(buffer, format, args);
 
 
@@ -917,7 +914,7 @@ static void ttf_draw_character_sprite(rct_drawpixelinfo *dpi, int codepoint, tex
 
 	if (!(info->flags & TEXT_DRAW_FLAG_NO_DRAW)) {
 		unk_9ABDA4 = &info->palette;
-		RCT2_GLOBAL(0x00EDF81C, uint32) = (IMAGE_TYPE_USE_PALETTE << 28);
+		gUnkEDF81C = IMAGE_TYPE_REMAP;
 
 		int x = info->x;
 		int y = info->y;
