@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "addresses.h"
 #include "game.h"
 #include "object.h"
 #include "object_list.h"
@@ -120,26 +119,7 @@ int check_object_entry(const rct_object_entry *entry)
  */
 void object_create_identifier_name(char* string_buffer, const rct_object_entry* object)
 {
-	for (uint8 i = 0; i < 8; ++i){
-		if (object->name[i] != ' '){
-			*string_buffer++ = object->name[i];
-		}
-	}
-
-	*string_buffer++ = '/';
-
-	for (uint8 i = 0; i < 4; ++i){
-		uint8 flag_part = (object->flags >> (i * 8)) & 0xFF;
-		*string_buffer++ = RCT2_ADDRESS(0x0098DA64, char)[flag_part >> 4];
-		*string_buffer++ = RCT2_ADDRESS(0x0098DA64, char)[flag_part & 0xF];
-	}
-
-	for (uint8 i = 0; i < 4; ++i){
-		uint8 checksum_part = (object->checksum >> (i * 8)) & 0xFF;
-		*string_buffer++ = RCT2_ADDRESS(0x0098DA64, char)[checksum_part >> 4];
-		*string_buffer++ = RCT2_ADDRESS(0x0098DA64, char)[checksum_part & 0xF];
-	}
-	*string_buffer++ = '\0';
+	sprintf(string_buffer, "%.8s/%4X%4X", object->name, object->flags, object->checksum);
 }
 
 /**

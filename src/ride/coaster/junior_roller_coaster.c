@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../../addresses.h"
 #include "../../config.h"
 #include "../../drawing/drawing.h"
 #include "../../paint/supports.h"
@@ -1727,9 +1726,6 @@ static void paint_junior_rc_station_track(uint8 rideIndex, uint8 trackSequence, 
 		imageId &= 0x7FFFF;
 	}
 
-	RCT2_GLOBAL(0x00F441E8, uint32) = imageId;
-	RCT2_GLOBAL(0x00F441E4, uint32) = imageId;
-
 	bool isBraked = (bool)(mapElement->flags & MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED);
 
 	if (direction == 0 || direction == 2) {
@@ -2209,12 +2205,12 @@ static void junior_rc_right_bank_to_25_deg_up_paint_setup(uint8 rideIndex, uint8
 	if (direction & 1) {
 		sub_98197C(image_id, 0, 0, 20, 32, 1, height, 6, 0, height, get_current_rotation());
 
-		paint_util_push_tunnel_right(height, 0);
+		paint_util_push_tunnel_right(height, TUNNEL_2);
 	}
 	else {
 		sub_98197C(image_id, 0, 0, 32, 20, 1, height, 0, 6, height, get_current_rotation());
 
-		paint_util_push_tunnel_left(height, 0);
+		paint_util_push_tunnel_left(height, TUNNEL_0);
 	}
 	
 	if (junior_rc_track_pieces_right_banked_to_25_deg_up[direction][1] != 0) {
@@ -2910,7 +2906,7 @@ static void junior_rc_right_quarter_turn_3_tiles_25_deg_down_paint_setup(uint8 r
 	}
 
 	if (direction == 3 && trackSequence == 0) {
-		paint_util_push_tunnel_right(height + 8, TUNNEL_1);
+		paint_util_push_tunnel_right(height + 8, TUNNEL_2);
 	}
 
 	uint8 supportType[2][4] = {

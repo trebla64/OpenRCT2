@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../../addresses.h"
 #include "../paint.h"
 #include "../../config.h"
 #include "../../game.h"
@@ -23,6 +22,14 @@
 #include "../../paint/map_element/map_element.h"
 #include "../../world/banner.h"
 #include "../../world/scenery.h"
+
+/** rct2: 0x0098D884 */
+const rct_xy16 BannerBoundBoxes[][2] = {
+	{{ 1,  2}, { 1, 29}},
+	{{ 2, 32}, {29, 32}},
+	{{32,  2}, {32, 29}},
+	{{ 2,  1}, {29,  1}},
+};
 
 /**
  *
@@ -44,8 +51,8 @@ void banner_paint(uint8 direction, int height, rct_map_element* map_element)
 	direction += map_element->properties.banner.position;
 	direction &= 3;
 
-	boundBoxOffsetX = RCT2_ADDRESS(0x98D884, uint16)[direction * 4];
-	boundBoxOffsetY = RCT2_ADDRESS(0x98D884 + 2, uint16)[direction * 4];
+	boundBoxOffsetX = BannerBoundBoxes[direction][0].x;
+	boundBoxOffsetY = BannerBoundBoxes[direction][0].y;
 	boundBoxOffsetZ = height + 2;
 
 	uint32 base_id = (direction << 1) + banner_scenery->image;
@@ -63,8 +70,8 @@ void banner_paint(uint8 direction, int height, rct_map_element* map_element)
 	}
 
 	sub_98197C(image_id, 0, 0, 1, 1, 0x15, height, boundBoxOffsetX, boundBoxOffsetY, boundBoxOffsetZ, get_current_rotation());
-	boundBoxOffsetX = RCT2_ADDRESS(0x98D888, uint16)[direction * 4];
-	boundBoxOffsetY = RCT2_ADDRESS(0x98D888 + 2, uint16)[direction * 4];
+	boundBoxOffsetX = BannerBoundBoxes[direction][1].x;
+	boundBoxOffsetY = BannerBoundBoxes[direction][1].y;
 
 	image_id++;
 	sub_98197C(image_id, 0, 0, 1, 1, 0x15, height, boundBoxOffsetX, boundBoxOffsetY, boundBoxOffsetZ, get_current_rotation());

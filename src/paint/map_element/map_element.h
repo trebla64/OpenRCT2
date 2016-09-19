@@ -17,6 +17,7 @@
 #ifndef _PAINT_MAP_ELEMENT_H
 #define _PAINT_MAP_ELEMENT_H
 
+#include "../../addresses.h"
 #include "../../common.h"
 #include "../../world/map.h"
 
@@ -56,6 +57,7 @@ enum
 	TUNNEL_6 = 6,
 	TUNNEL_7 = 7,
 	TUNNEL_8 = 8,
+	TUNNEL_9 = 9,
 	TUNNEL_10 = 0x0A,
 	TUNNEL_11 = 0x0B,
 	TUNNEL_12 = 0x0C,
@@ -75,6 +77,7 @@ enum
 
 #ifdef NO_RCT2
 extern uint8 g141E9DB;
+extern uint16 gUnk141E9DC;
 extern rct_xy16 gPaintMapPosition;
 extern bool gDidPassSurface;
 extern rct_map_element * gSurfaceElement;
@@ -85,6 +88,7 @@ extern uint8 gRightTunnelCount;
 extern uint8 gVerticalTunnelHeight;
 #else
 #define g141E9DB					RCT2_GLOBAL(0x0141E9DB, uint8)
+#define gUnk141E9DC					RCT2_GLOBAL(0x0141E9DC, uint16)
 #define gPaintMapPosition					RCT2_GLOBAL(0x009DE574, rct_xy16)
 #define gDidPassSurface				RCT2_GLOBAL(0x009DE57C, bool)
 #define gSurfaceElement				RCT2_GLOBAL(0x009E3250, rct_map_element *)
@@ -96,6 +100,8 @@ extern uint8 gVerticalTunnelHeight;
 #endif
 
 extern bool gShowSupportSegmentHeights;
+
+extern const rct_xy16 BannerBoundBoxes[][2];
 
 void paint_util_push_tunnel_left(uint16 height, uint8 type);
 void paint_util_push_tunnel_right(uint16 height, uint8 type);

@@ -14,13 +14,13 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../../addresses.h"
 #include "../../config.h"
 #include "../../interface/viewport.h"
 #include "../../world/sprite.h"
 #include "../../paint/paint.h"
 #include "../vehicle_paint.h"
 
+#ifndef NO_VEHICLES
 /**
  *
  *  rct2: 0x006D4295
@@ -38,3 +38,4 @@ void vehicle_visual_splash_boats_or_water_coaster(int x, int imageDirection, int
 	gUnk9DE56C = vehicle->y;
 	vehicle_paint(vehicle, imageDirection);
 }
+#endif

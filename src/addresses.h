@@ -17,6 +17,8 @@
 #ifndef _ADDRESSES_H_
 #define _ADDRESSES_H_
 
+#ifndef NO_RCT2
+
 #include "common.h"
 
 #ifdef _MSC_VER
@@ -41,12 +43,6 @@
 #pragma region Memory locations
 
 #define RCT2_ADDRESS_VIEWPORT_PAINT_BITS_PTR		0x009AC118
-#define RCT2_ADDRESS_VIEWPORT_PAINT_X				0x009AC11C
-#define RCT2_ADDRESS_VIEWPORT_PAINT_Y				0x009AC11E
-#define RCT2_ADDRESS_VIEWPORT_PAINT_WIDTH			0x009AC120
-#define RCT2_ADDRESS_VIEWPORT_PAINT_HEIGHT			0x009AC122
-#define RCT2_ADDRESS_VIEWPORT_PAINT_PITCH			0x009AC124
-#define RCT2_ADDRESS_VIEWPORT_ZOOM					0x009AC126
 #define RCT2_ADDRESS_VIEWPORT_DPI					0x009AC128
 
 #define RCT2_ADDRESS_RIDE_ENTRIES					0x009ACFA4
@@ -177,6 +173,13 @@
 #define RCT2_ADDRESS_NO_RAIN_PIXELS					0x009AC00C
 #define RCT2_ADDRESS_RAIN_PATTERN					0x009AC010
 #define RCT2_ADDRESS_LIGHTNING_ACTIVE				0x009AC068
+
+#define RCT2_ADDRESS_VIEWPORT_PAINT_X				0x009AC11C
+#define RCT2_ADDRESS_VIEWPORT_PAINT_Y				0x009AC11E
+#define RCT2_ADDRESS_VIEWPORT_PAINT_WIDTH			0x009AC120
+#define RCT2_ADDRESS_VIEWPORT_PAINT_HEIGHT			0x009AC122
+#define RCT2_ADDRESS_VIEWPORT_PAINT_PITCH			0x009AC124
+#define RCT2_ADDRESS_VIEWPORT_ZOOM					0x009AC126
 
 #define RCT2_ADDRESS_RUN_INTRO_TICK_PART			0x009AC319
 #define RCT2_ADDRESS_ERROR_TYPE						0x009AC31B
@@ -644,59 +647,6 @@ static int RCT2_CALLPROC_EBPSAFE(int address)
  */
 int RCT2_CALLFUNC_X(int address, int *_eax, int *_ebx, int *_ecx, int *_edx, int *_esi, int *_edi, int *_ebp);
 
-#pragma pack(push, 1)
-
-typedef struct registers {
-	union {
-		int eax;
-		short ax;
-		struct {
-			char al;
-			char ah;
-		};
-	};
-	union {
-		int ebx;
-		short bx;
-		struct {
-			char bl;
-			char bh;
-		};
-	};
-	union {
-		int ecx;
-		short cx;
-		struct {
-			char cl;
-			char ch;
-		};
-	};
-	union {
-		int edx;
-		short dx;
-		struct {
-			char dl;
-			char dh;
-		};
-	};
-	union {
-		int esi;
-		short si;
-	};
-	union {
-		int edi;
-		short di;
-	};
-	union {
-		int ebp;
-		short bp;
-	};
-} registers;
-
-assert_struct_size(registers, 7 * 4);
-
-#pragma pack(pop)
-
 static int RCT2_CALLFUNC_Y(int address, registers *inOut)
 {
 	return RCT2_CALLFUNC_X(address, &inOut->eax, &inOut->ebx, &inOut->ecx, &inOut->edx, &inOut->esi, &inOut->edi, &inOut->ebp);
@@ -707,5 +657,7 @@ static int RCT2_CALLFUNC_Z(int address, const registers *in, registers *out)
 	*out = *in;
 	return RCT2_CALLFUNC_Y(address, out);
 }
+
+#endif
 
 #endif

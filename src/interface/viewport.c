@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../drawing/drawing.h"
 #include "../paint/supports.h"
@@ -38,7 +37,6 @@
 #include "window.h"
 
 //#define DEBUG_SHOW_DIRTY_BOX
-uint32 gCurrentViewportFlags = 0;
 uint8 gShowGridLinesRefCount;
 uint8 gShowLandRightsRefCount;
 uint8 gShowConstuctionRightsRefCount;
@@ -48,17 +46,29 @@ rct_viewport *g_music_tracking_viewport;
 
 rct_map_element *_interaction_element = NULL;
 
-#ifdef NO_RCT2
-paint_struct *unk_EE7884;
-paint_struct *unk_EE7888;
 sint16 gSavedViewX;
 sint16 gSavedViewY;
 uint8 gSavedViewZoom;
 uint8 gSavedViewRotation;
+
+#ifdef NO_RCT2
+paint_struct *unk_EE7884;
+paint_struct *unk_EE7888;
 uint8 gCurrentRotation;
+uint32 gCurrentViewportFlags = 0;
 #endif
 
 uint32 gUnkEDF81C;
+
+static rct_drawpixelinfo _viewportDpi1;
+static rct_drawpixelinfo _viewportDpi2;
+static uint8 _unk9AC148;
+static uint8 _unk9AC149;
+static sint16 _unk9AC14C;
+static sint16 _unk9AC14E;
+static uint16 _unk9AC154;
+static sint16 _unk9ABDAE;
+
 
 /**
  * This is not a viewport function. It is used to setup many variables for
@@ -234,11 +244,6 @@ void sub_689174(sint16* x, sint16* y, sint16 *z)
 	*x = pos.x;
 	*y = pos.y;
 	*z = height;
-}
-
-static void sub_683326(int left, int top, int right, int bottom)
-{
-	RCT2_CALLPROC_X(0x00683359, left, top, right, bottom, 0, 0, 0);
 }
 
 static void sub_6E7FF3(rct_drawpixelinfo *dpi, rct_window *window, rct_viewport *viewport, int x, int y)
@@ -692,11 +697,7 @@ const sint32 WeatherColours[] = {
  */
 void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, int top, int right, int bottom){
 	gCurrentViewportFlags = viewport->flags;
-	//This should still be updated until the rest of supports, etc, is reverse-engineered. Otherwise
-	// supports for unimplemented rollercoasters will still appear even if "invisible supports"
-	// are enabled.
-	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint16) = (uint16)viewport->flags;
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16) = viewport->zoom;
+	_viewportDpi1.zoom_level = viewport->zoom;
 
 	uint16 width = right - left;
 	uint16 height = bottom - top;
@@ -707,14 +708,14 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 	left &= bitmask;
 	top &= bitmask;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16) = left;
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_Y, sint16) = top;
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_WIDTH, uint16) = width;
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_HEIGHT, uint16) = height;
+	_viewportDpi1.x = left;
+	_viewportDpi1.y = top;
+	_viewportDpi1.width = width;
+	_viewportDpi1.height = height;
 
 	width >>= viewport->zoom;
 
-	RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_PITCH, uint16) = (dpi->width + dpi->pitch) - width;
+	_viewportDpi1.pitch = (dpi->width + dpi->pitch) - width;
 
 	sint16 x = (sint16)(left - (sint16)(viewport->view_x & bitmask));
 	x >>= viewport->zoom;
@@ -726,21 +727,21 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 
 	uint8* original_bits_pointer = x - dpi->x + (y - dpi->y)*(dpi->width + dpi->pitch) + dpi->bits;
 
-	rct_drawpixelinfo* dpi2 = RCT2_ADDRESS(RCT2_ADDRESS_VIEWPORT_DPI, rct_drawpixelinfo);
-	dpi2->y = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_Y, sint16);
-	dpi2->height = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_HEIGHT, uint16);
-	dpi2->zoom_level = (uint8)RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16);
+	rct_drawpixelinfo* dpi2 = &_viewportDpi2;
+	dpi2->y = _viewportDpi1.y;
+	dpi2->height = _viewportDpi1.height;
+	dpi2->zoom_level = (uint8)_viewportDpi1.zoom_level;
 
 	//Splits the screen into 32 pixel columns and renders them.
-	for (x = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16) & 0xFFFFFFE0;
-		x < RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16) + RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_WIDTH, uint16);
+	for (x = _viewportDpi1.x & 0xFFFFFFE0;
+		x < _viewportDpi1.x + _viewportDpi1.width;
 		x += 32){
 
-		int start_x = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16);
-		int width_col = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_WIDTH, uint16);
+		int start_x = _viewportDpi1.x;
+		int width_col = _viewportDpi1.width;
 		uint8 * bits_pointer = original_bits_pointer;
-		int pitch = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_PITCH, uint16);
-		int zoom = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16);
+		int pitch = _viewportDpi1.pitch;
+		int zoom = _viewportDpi1.zoom_level;
 		if (x >= start_x){
 			int left_pitch = x - start_x;
 			width_col -= left_pitch;
@@ -768,7 +769,7 @@ void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, in
 			}
 			gfx_clear(dpi2, colour);
 		}
-		g_ps_EE7880 = RCT2_ADDRESS(0xF1A4CC, paint_struct);
+		g_ps_EE7880 = &gUnkF1A4CC;
 		unk_140E9A8 = dpi2;
 		painter_setup();
 		viewport_paint_setup();
@@ -1011,12 +1012,11 @@ void viewport_set_visibility(uint8 mode)
 
 /**
  * Stores some info about the element pointed at, if requested for this particular type through the interaction mask.
+ * Origninaly checked 0x0141F569 at start
  *  rct2: 0x00688697
  */
 static void store_interaction_info(paint_struct *ps)
 {
-	if (RCT2_GLOBAL(0x0141F569, uint8) == 0) return;
-
 	if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_NONE
 		|| ps->sprite_type == 11 // 11 as a type seems to not exist, maybe part of the typo mentioned later on.
 		|| ps->sprite_type > VIEWPORT_INTERACTION_ITEM_BANNER) return;
@@ -1028,11 +1028,11 @@ static void store_interaction_info(paint_struct *ps)
 	else
 		mask = 1 << (ps->sprite_type - 1);
 
-	if (!(RCT2_GLOBAL(0x009AC154, uint16) & mask)) {
-		RCT2_GLOBAL(0x009AC148, uint8) = ps->sprite_type;
-		RCT2_GLOBAL(0x009AC149, uint8) = ps->var_29;
-		RCT2_GLOBAL(0x009AC14C, uint32) = ps->map_x;
-		RCT2_GLOBAL(0x009AC14E, uint32) = ps->map_y;
+	if (!(_unk9AC154 & mask)) {
+		_unk9AC148 = ps->sprite_type;
+		_unk9AC149 = ps->var_29;
+		_unk9AC14C = ps->map_x;
+		_unk9AC14E = ps->map_y;
 		_interaction_element = ps->mapElement;
 	}
 }
@@ -1217,7 +1217,7 @@ static bool sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y)
 	sint16 xStartPoint = 0;
 	sint16 xEndPoint = image->width;
 	if (!(image->flags & G1_FLAG_RLE_COMPRESSION)) {
-		RCT2_GLOBAL(0x009ABDAE, sint16) = 0;
+		_unk9ABDAE = 0;
 	}
 
 	x += image->x_offset;
@@ -1230,7 +1230,7 @@ static bool sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y)
 		}
 
 		if (!(image->flags & G1_FLAG_RLE_COMPRESSION)) {
-			RCT2_GLOBAL(0x009ABDAE, sint16) -= x;
+			_unk9ABDAE -= x;
 		}
 
 		xStartPoint -= x;
@@ -1246,7 +1246,7 @@ static bool sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y)
 		}
 
 		if (!(image->flags & G1_FLAG_RLE_COMPRESSION)) {
-			RCT2_GLOBAL(0x009ABDAE, sint16) += x;
+			_unk9ABDAE += x;
 		}
 	}
 
@@ -1306,9 +1306,8 @@ static bool sub_679074(rct_drawpixelinfo *dpi, int imageId, sint16 x, sint16 y)
  *
  *  rct2: 0x00679023
  */
-static void sub_679023(rct_drawpixelinfo *dpi, int imageId, int x, int y)
+static bool sub_679023(rct_drawpixelinfo *dpi, int imageId, int x, int y)
 {
-	RCT2_GLOBAL(0x00141F569, uint8) = 0;
 	imageId &= 0xBFFFFFFF;
 	if (imageId & 0x20000000) {
 		gUnkEDF81C = 0x20000000;
@@ -1321,7 +1320,7 @@ static void sub_679023(rct_drawpixelinfo *dpi, int imageId, int x, int y)
 	} else {
 		gUnkEDF81C = 0;
 	}
-	RCT2_GLOBAL(0x00141F569, uint8) = sub_679074(dpi, imageId, x, y);
+	return sub_679074(dpi, imageId, x, y);
 }
 
 /**
@@ -1339,20 +1338,21 @@ static void sub_68862C()
 		next_ps = ps;
 		while (next_ps != NULL) {
 			ps = next_ps;
-			sub_679023(dpi, ps->image_id, ps->x, ps->y);
-			store_interaction_info(ps);
+			if (sub_679023(dpi, ps->image_id, ps->x, ps->y))
+				store_interaction_info(ps);
 
 			next_ps = ps->var_20;
 		}
 
 		for (attached_paint_struct *attached_ps = ps->attached_ps; attached_ps != NULL; attached_ps = attached_ps->next) {
-			sub_679023(
+			if (sub_679023(
 				dpi,
 				attached_ps->image_id,
 				(attached_ps->x + ps->x) & 0xFFFF,
 				(attached_ps->y + ps->y) & 0xFFFF
-			);
-			store_interaction_info(ps);
+			)) {
+				store_interaction_info(ps);
+			}
 		}
 
 		ps = old_ps;
@@ -1373,14 +1373,12 @@ static void sub_68862C()
  */
 void get_map_coordinates_from_pos(int screenX, int screenY, int flags, sint16 *x, sint16 *y, int *interactionType, rct_map_element **mapElement, rct_viewport **viewport)
 {
-	RCT2_GLOBAL(0x9AC154, uint16) = flags & 0xFFFF;
-	RCT2_GLOBAL(0x9AC148, uint8) = 0;
+	_unk9AC154 = flags & 0xFFFF;
+	_unk9AC148 = 0;
 	rct_window* window = window_find_from_point(screenX, screenY);
 	if (window != NULL && window->viewport != NULL)
 	{
 		rct_viewport* myviewport = window->viewport;
-		RCT2_GLOBAL(0x9AC138 + 4, sint16) = screenX;
-		RCT2_GLOBAL(0x9AC138 + 6, sint16) = screenY;
 		screenX -= (int)myviewport->x;
 		screenY -= (int)myviewport->y;
 		if (screenX >= 0 && screenX < (int)myviewport->width && screenY >= 0 && screenY < (int)myviewport->height)
@@ -1389,18 +1387,18 @@ void get_map_coordinates_from_pos(int screenX, int screenY, int flags, sint16 *x
 			screenY <<= myviewport->zoom;
 			screenX += (int)myviewport->view_x;
 			screenY += (int)myviewport->view_y;
-			RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16) = myviewport->zoom;
+			_viewportDpi1.zoom_level = myviewport->zoom;
 			screenX &= (0xFFFF << myviewport->zoom) & 0xFFFF;
 			screenY &= (0xFFFF << myviewport->zoom) & 0xFFFF;
-			RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16) = screenX;
-			RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_Y, sint16) = screenY;
-			rct_drawpixelinfo* dpi = RCT2_ADDRESS(RCT2_ADDRESS_VIEWPORT_DPI, rct_drawpixelinfo);
-			dpi->y = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_Y, sint16);
+			_viewportDpi1.x = screenX;
+			_viewportDpi1.y = screenY;
+			rct_drawpixelinfo* dpi = &_viewportDpi2;
+			dpi->y = _viewportDpi1.y;
 			dpi->height = 1;
-			dpi->zoom_level = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_ZOOM, uint16);
-			dpi->x = RCT2_GLOBAL(RCT2_ADDRESS_VIEWPORT_PAINT_X, sint16);
+			dpi->zoom_level = _viewportDpi1.zoom_level;
+			dpi->x = _viewportDpi1.x;
 			dpi->width = 1;
-			g_ps_EE7880 = RCT2_ADDRESS(0xF1A4CC, paint_struct);
+			g_ps_EE7880 = &gUnkF1A4CC;
 			unk_140E9A8 = dpi;
 			painter_setup();
 			viewport_paint_setup();
@@ -1409,9 +1407,9 @@ void get_map_coordinates_from_pos(int screenX, int screenY, int flags, sint16 *x
 		}
 		if (viewport != NULL) *viewport = myviewport;
 	}
-	if (interactionType != NULL) *interactionType = RCT2_GLOBAL(0x9AC148, uint8);
-	if (x != NULL) *x = RCT2_GLOBAL(0x9AC14C, sint16);
-	if (y != NULL) *y = RCT2_GLOBAL(0x9AC14E, sint16);
+	if (interactionType != NULL) *interactionType = _unk9AC148;
+	if (x != NULL) *x = _unk9AC14C;
+	if (y != NULL) *y = _unk9AC14E;
 	if (mapElement != NULL) *mapElement = _interaction_element;
 }
 

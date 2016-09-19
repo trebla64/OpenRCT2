@@ -17,13 +17,11 @@
 #ifndef _PAINT_H
 #define _PAINT_H
 
+#include "../addresses.h"
 #include "../common.h"
 #include "../world/map.h"
 #include "../interface/colour.h"
 #include "../drawing/drawing.h"
-#ifndef NO_RCT2
-	#include "../addresses.h"
-#endif
 
 typedef struct attached_paint_struct attached_paint_struct;
 struct paint_struct;
@@ -34,11 +32,13 @@ typedef struct paint_struct paint_struct;
 	extern paint_struct * g_ps_EE7880;
 	extern sint16 gUnk9DE568;
 	extern sint16 gUnk9DE56C;
+	extern paint_struct gUnkF1A4CC;
 #else
 	#define g_currently_drawn_item	RCT2_GLOBAL(0x009DE578, void*)
 	#define g_ps_EE7880				RCT2_GLOBAL(0x00EE7880, paint_struct *)
 	#define gUnk9DE568				RCT2_GLOBAL(0x009DE568, sint16)
 	#define gUnk9DE56C				RCT2_GLOBAL(0x009DE56C, sint16)
+	#define gUnkF1A4CC				RCT2_GLOBAL(0x00F1A4CC, paint_struct);
 #endif
 
 #pragma pack(push, 1)

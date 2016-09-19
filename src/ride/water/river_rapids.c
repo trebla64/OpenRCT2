@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../../addresses.h"
 #include "../../config.h"
 #include "../../interface/viewport.h"
 #include "../../world/sprite.h"
@@ -183,6 +182,7 @@ static const uint32 river_rapids_track_pieces_25_deg_down_to_flat[][2] = {
 	{SPR_RIVER_RAPIDS_25_DEG_DOWN_TO_FLAT_SE_NW, SPR_RIVER_RAPIDS_25_DEG_DOWN_TO_FLAT_FRONT_SE_NW},
 };
 
+#ifndef NO_VEHICLES
 /**
  *
  *  rct2: 0x006D5889
@@ -248,6 +248,7 @@ void vehicle_visual_river_rapids(int x, int imageDirection, int y, int z, rct_ve
 
 	vehicle_visual_splash_effect(z, vehicle, vehicleEntry);
 }
+#endif
 
 /** rct2: 0x00757650 */
 static void paint_river_rapids_track_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
@@ -646,13 +647,13 @@ static void paint_river_rapids_track_waterfall(uint8 rideIndex, uint8 trackSeque
 	wooden_a_supports_paint_setup((direction & 1), 0, height, gTrackColours[SCHEME_SUPPORTS], NULL);
 
 	if (direction & 1) {
-		paint_util_push_tunnel_right(height, TUNNEL_6);
+		paint_util_push_tunnel_right(height, TUNNEL_9);
 	} else {
-		paint_util_push_tunnel_left(height, TUNNEL_6);
+		paint_util_push_tunnel_left(height, TUNNEL_9);
 	}
 
 	paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);
-	paint_util_set_general_support_height(height + 32, 0x20);
+	paint_util_set_general_support_height(height + 48, 0x20);
 }
 
 /** rct2: 0x00757720 */
@@ -757,7 +758,7 @@ static void paint_river_rapids_track_whirlpool(uint8 rideIndex, uint8 trackSeque
 		sub_98197C(imageId, 0, 0, 24, 32, 11, height, 4, 0, height, get_current_rotation());
 
 		imageId = (SPR_RIVER_RAPIDS_RAPIDS_WHIRLPOOL_FRAME_0 + frameNum) | gTrackColours[SCHEME_TRACK];
-		sub_98197C(imageId, 0, 0, 24, 32, 11, height, 4, 0, height, get_current_rotation());
+		sub_98199C(imageId, 0, 0, 24, 32, 11, height, 4, 0, height, get_current_rotation());
 
 		imageId = (direction == 1 ? SPR_RIVER_RAPIDS_FLAT_FRONT_NW_SE : SPR_RIVER_RAPIDS_FLAT_FRONT_SE_NW) | gTrackColours[SCHEME_TRACK];
 		sub_98197C(imageId, 0, 0, 1, 32, 3, height, 27, 0, height + 17, get_current_rotation());
@@ -766,7 +767,7 @@ static void paint_river_rapids_track_whirlpool(uint8 rideIndex, uint8 trackSeque
 		sub_98197C(imageId, 0, 0, 32, 24, 11, height, 0, 4, height, get_current_rotation());
 
 		imageId = (SPR_RIVER_RAPIDS_RAPIDS_WHIRLPOOL_FRAME_0 + frameNum) | gTrackColours[SCHEME_TRACK];
-		sub_98197C(imageId, 0, 0, 32, 24, 11, height, 0, 4, height, get_current_rotation());
+		sub_98199C(imageId, 0, 0, 32, 24, 11, height, 0, 4, height, get_current_rotation());
 
 		imageId = (direction == 0 ? SPR_RIVER_RAPIDS_FLAT_FRONT_SW_NE : SPR_RIVER_RAPIDS_FLAT_FRONT_NE_SW) | gTrackColours[SCHEME_TRACK];
 		sub_98197C(imageId, 0, 0, 32, 1, 3, height, 0, 27, height + 17, get_current_rotation());

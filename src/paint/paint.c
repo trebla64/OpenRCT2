@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "paint.h"
 #include "../drawing/drawing.h"
 #include "../localisation/localisation.h"
@@ -34,15 +33,21 @@ paint_string_struct *pss1;
 paint_string_struct *pss2;
 
 #ifdef NO_RCT2
+static paint_struct _unkEE788C[4000];
 uint32 _F1AD0C;
 uint32 _F1AD10;
 static paint_struct *_paint_structs[512];
 void *g_currently_drawn_item;
 paint_struct * g_ps_EE7880;
+sint16 gUnk9DE568;
+sint16 gUnk9DE56C;
+paint_struct gUnkF1A4CC;
 uint8 gPaintInteractionType;
 support_height gSupportSegments[9] = { 0 };
 support_height gSupport;
+
 #else
+#define _unkEE788C RCT2_ADDRESS(0x00EE788C, paint_struct)
 #define _paint_structs (RCT2_ADDRESS(0x00F1A50C, paint_struct*))
 #define _F1AD0C RCT2_GLOBAL(0xF1AD0C, uint32)
 #define _F1AD10 RCT2_GLOBAL(0xF1AD10, uint32)
@@ -71,7 +76,7 @@ bool gPaintBoundingBoxes;
  *  rct2: 0x0068615B
  */
 void painter_setup() {
-	unk_EE7888 = RCT2_ADDRESS(0x00EE788C, paint_struct);
+	unk_EE7888 = _unkEE788C;
 	g_ps_F1AD28 = NULL;
 	g_aps_F1AD2C = NULL;
 	for (int i = 0; i < 512; i++) {
@@ -167,7 +172,7 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 	ps->attached_ps = NULL;
 	ps->var_20 = NULL;
 	ps->sprite_type = gPaintInteractionType;
-	ps->var_29 = RCT2_GLOBAL(0x9DE571, uint8);
+	ps->var_29 = 0;
 	ps->map_x = gPaintMapPosition.x;
 	ps->map_y = gPaintMapPosition.y;
 	ps->mapElement = g_currently_drawn_item;
@@ -288,7 +293,7 @@ paint_struct * sub_98196C(
 	ps->attached_ps = NULL;
 	ps->var_20 = NULL;
 	ps->sprite_type = gPaintInteractionType;
-	ps->var_29 = RCT2_GLOBAL(0x9DE571, uint8);
+	ps->var_29 = 0;
 	ps->map_x = gPaintMapPosition.x;
 	ps->map_y = gPaintMapPosition.y;
 	ps->mapElement = g_currently_drawn_item;

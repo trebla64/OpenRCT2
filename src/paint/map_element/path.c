@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../../addresses.h"
 #include "../../config.h"
 #include "../../game.h"
 #include "../../interface/viewport.h"
@@ -366,8 +365,8 @@ static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp,
 		direction &= 3;
 
 		rct_xyz16 boundBoxOffsets = {
-			.x = RCT2_ADDRESS(0x0098D884, sint16)[direction * 4],
-			.y = RCT2_ADDRESS(0x0098D884 + 2, sint16)[direction * 4],
+			.x = BannerBoundBoxes[direction][0].x,
+			.y = BannerBoundBoxes[direction][0].y,
 			.z = height + 2
 		};
 
@@ -375,8 +374,8 @@ static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp,
 		
 		sub_98197C(imageId, 0, 0, 1, 1, 21, height, boundBoxOffsets.x, boundBoxOffsets.y, boundBoxOffsets.z, get_current_rotation());
 
-		boundBoxOffsets.x = RCT2_ADDRESS(0x98D888, sint16)[direction * 4];
-		boundBoxOffsets.y = RCT2_ADDRESS(0x98D888 + 2, sint16)[direction * 4];
+		boundBoxOffsets.x = BannerBoundBoxes[direction][1].x;
+		boundBoxOffsets.y = BannerBoundBoxes[direction][1].y;
 		imageId++;
 		sub_98197C(imageId, 0, 0, 1, 1, 21, height, boundBoxOffsets.x, boundBoxOffsets.y, boundBoxOffsets.z, get_current_rotation());
 
@@ -955,10 +954,9 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 		5
 	};
 
-	RCT2_GLOBAL(0x00F3EF6C, rct_footpath_entry*) = footpathEntry;
 	for (sint8 i = 3; i > -1; --i) {
 		if (!(edges & (1 << i))) {
-			path_b_supports_paint_setup(supports[i], ax, height, imageFlags);
+			path_b_supports_paint_setup(supports[i], ax, height, imageFlags, footpathEntry);
 		}
 	}
 
