@@ -1452,9 +1452,8 @@ void title_handle_keyboard_input()
 			if (w != NULL) {
 				window_text_input_key(w, key);
 			}
-			
-			if (key == gShortcutKeys[SHORTCUT_SCREENSHOT]) {
-				keyboard_shortcut_handle_command(SHORTCUT_SCREENSHOT);
+			else if (!gUsingWidgetTextBox) {
+				keyboard_shortcut_handle(key);
 			}
 		}
 	}
