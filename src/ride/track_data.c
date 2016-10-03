@@ -6257,14 +6257,14 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	0,						// RIDE_TYPE_BOBSLEIGH_COASTER
 	get_track_paint_function_observation_tower,	// RIDE_TYPE_OBSERVATION_TOWER
 	0,						// RIDE_TYPE_LOOPING_ROLLER_COASTER
-	0,						// RIDE_TYPE_DINGHY_SLIDE
+	get_track_paint_function_dinghy_slide,		// RIDE_TYPE_DINGHY_SLIDE
 	0,						// RIDE_TYPE_MINE_TRAIN_COASTER
 	get_track_paint_function_chairlift,		// RIDE_TYPE_CHAIRLIFT
 	0,						// RIDE_TYPE_CORKSCREW_ROLLER_COASTER
 	get_track_paint_function_maze,			// RIDE_TYPE_MAZE
 	get_track_paint_function_spiral_slide,	// RIDE_TYPE_SPIRAL_SLIDE
 	get_track_paint_function_go_karts,		// RIDE_TYPE_GO_KARTS
-	0,						// RIDE_TYPE_LOG_FLUME
+	get_track_paint_function_log_flume,		// RIDE_TYPE_LOG_FLUME
 	get_track_paint_function_river_rapids,	// RIDE_TYPE_RIVER_RAPIDS
 	get_track_paint_function_dodgems,		// RIDE_TYPE_DODGEMS
 	get_track_paint_function_pirate_ship,	// RIDE_TYPE_PIRATE_SHIP
@@ -6301,7 +6301,7 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	0,						// RIDE_TYPE_FLYING_ROLLER_COASTER
 	0,						// RIDE_TYPE_FLYING_ROLLER_COASTER_ALT
 	get_track_paint_function_virginia_reel,		// RIDE_TYPE_VIRGINIA_REEL
-	0,						// RIDE_TYPE_SPLASH_BOATS
+	get_track_paint_function_splash_boats,		// RIDE_TYPE_SPLASH_BOATS
 	get_track_paint_function_mini_helicopters,	// RIDE_TYPE_MINI_HELICOPTERS
 	0,						// RIDE_TYPE_LAY_DOWN_ROLLER_COASTER
 	0,						// RIDE_TYPE_SUSPENDED_MONORAIL
@@ -6315,8 +6315,8 @@ const TRACK_PAINT_FUNCTION_GETTER RideTypeTrackPaintFunctions[91] = {
 	get_track_paint_function_crooked_house,	// RIDE_TYPE_CROOKED_HOUSE
 	get_track_paint_function_monorail_cycles,	// RIDE_TYPE_MONORAIL_CYCLES
 	0,						// RIDE_TYPE_COMPACT_INVERTED_COASTER
-	0,						// RIDE_TYPE_WATER_COASTER
-	0,						// RIDE_TYPE_AIR_POWERED_VERTICAL_COASTER
+	get_track_paint_function_water_rc,			// RIDE_TYPE_WATER_COASTER
+	get_track_paint_function_air_powered_vertical_rc,				// RIDE_TYPE_AIR_POWERED_VERTICAL_COASTER
 	0,						// RIDE_TYPE_INVERTED_HAIRPIN_COASTER
 	get_track_paint_function_magic_carpet,							// RIDE_TYPE_MAGIC_CARPET
 	get_track_paint_function_submarine_ride,						// RIDE_TYPE_SUBMARINE_RIDE

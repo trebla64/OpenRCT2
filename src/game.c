@@ -310,7 +310,6 @@ void game_update()
 	scenario_autosave_check();
 
 	network_update();
-	news_item_update_current();
 	window_dispatch_update_all();
 
 	gGameCommandNestLevel = 0;
@@ -376,6 +375,7 @@ void game_logic_update()
 	research_update();
 	ride_ratings_update_all();
 	ride_measurements_update();
+	news_item_update_current();
 	///////////////////////////
 	gInUpdateCode = false;
 	///////////////////////////
@@ -460,6 +460,7 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 	flags = *ebx;
 
 	if (gGameCommandNestLevel == 0) {
+		gGameCommandErrorText = STR_NONE;
 		gGameCommandIsNetworked = (flags & GAME_COMMAND_FLAG_NETWORKED) != 0;
 	}
 	
@@ -572,7 +573,6 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 	if (gGameCommandNestLevel == 0 && (flags & GAME_COMMAND_FLAG_APPLY) && gUnk141F568 == gUnk13CA740 && !(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && !(flags & GAME_COMMAND_FLAG_NETWORKED))
 		window_error_open(gGameCommandErrorTitle, gGameCommandErrorText);
 
-	gGameCommandErrorText = STR_NONE;
 	return MONEY32_UNDEFINED;
 }
 
@@ -770,6 +770,29 @@ void game_fix_save_vars() {
 					log_error("Unable to fix: Map element limit reached.");
 					return;
 				}
+			}
+		}
+	}
+
+	// Fix invalid research items
+	for (int i = 0; i < 500; i++) {
+		rct_research_item *researchItem = &gResearchItems[i];
+		if (researchItem->entryIndex == RESEARCHED_ITEMS_SEPARATOR) continue;
+		if (researchItem->entryIndex == RESEARCHED_ITEMS_END) continue;
+		if (researchItem->entryIndex == RESEARCHED_ITEMS_END_2) break;
+		if (researchItem->entryIndex & 0x10000) {
+			uint8 entryIndex = researchItem->entryIndex & 0xFF;
+			rct_ride_entry *rideEntry = get_ride_entry(entryIndex);
+			if (rideEntry == NULL || rideEntry == (rct_ride_entry*)-1) {
+				research_remove(researchItem->entryIndex);
+				i--;
+			}
+		} else {
+			uint8 entryIndex = researchItem->entryIndex;
+			rct_scenery_set_entry *sceneryGroupEntry = get_scenery_group_entry(entryIndex);
+			if (sceneryGroupEntry == NULL || sceneryGroupEntry == (rct_scenery_set_entry*)-1) {
+				research_remove(researchItem->entryIndex);
+				i--;
 			}
 		}
 	}

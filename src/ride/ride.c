@@ -5679,7 +5679,7 @@ int ride_get_refund_price(int ride_id)
 		uint8 type = it.element->properties.track.type;
 
 		if (type != TRACK_ELEM_INVERTED_90_DEG_UP_TO_FLAT_QUARTER_LOOP){
-			refundPrice += game_do_command(
+			money32 removePrice = game_do_command(
 				x,
 				GAME_COMMAND_FLAG_APPLY | (rotation << 8),
 				y,
@@ -5687,6 +5687,11 @@ int ride_get_refund_price(int ride_id)
 				GAME_COMMAND_REMOVE_TRACK,
 				z,
 				0);
+			if (removePrice == MONEY32_UNDEFINED) {
+				map_element_remove(it.element);
+			} else {
+				refundPrice += removePrice;
+			}
 			map_element_iterator_restart_for_tile(&it);
 			continue;
 		}
@@ -7636,13 +7641,17 @@ void ride_update_max_vehicles(int rideIndex)
 		ride->max_trains = maxNumTrains;
 
 		numCarsPerTrain = min(ride->proposed_num_cars_per_train, newCarsPerTrain);
-		numVehicles = min(ride->proposed_num_vehicles, maxNumTrains);
 	} else {
 		ride->max_trains = rideEntry->cars_per_flat_ride;
 		ride->min_max_cars_per_train = rideEntry->max_cars_in_train | (rideEntry->min_cars_in_train << 4);
 		numCarsPerTrain = rideEntry->max_cars_in_train;
-		numVehicles = min(ride->proposed_num_vehicles, rideEntry->cars_per_flat_ride);
+		maxNumTrains = rideEntry->cars_per_flat_ride;
 	}
+	
+	if (gCheatsDisableTrainLengthLimit) {
+		maxNumTrains = 31;
+	}
+	numVehicles = min(ride->proposed_num_vehicles, maxNumTrains);
 
 	// Refresh new current num vehicles / num cars per vehicle
 	if (numVehicles != ride->num_vehicles || numCarsPerTrain != ride->num_cars_per_train) {
