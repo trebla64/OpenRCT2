@@ -84,8 +84,7 @@ void editor_load()
 {
 	rct_window *mainWindow;
 
-	audio_pause_sounds();
-	audio_unpause_sounds();
+	audio_stop_all_music_and_sounds();
 	object_manager_unload_all_objects();
 	object_list_load();
 	map_init(150);
@@ -168,6 +167,7 @@ void trackdesigner_load()
 {
 	rct_window *mainWindow;
 
+	audio_stop_all_music_and_sounds();
 	gScreenFlags = SCREEN_FLAGS_TRACK_DESIGNER;
 	gScreenAge = 0;
 
@@ -207,6 +207,7 @@ void trackmanager_load()
 {
 	rct_window *mainWindow;
 
+	audio_stop_all_music_and_sounds();
 	gScreenFlags = SCREEN_FLAGS_TRACK_MANAGER;
 	gScreenAge = 0;
 
@@ -308,7 +309,14 @@ static int editor_load_landscape_from_sc4(const char *path)
  */
 static int editor_read_s6(const char *path)
 {
-	if (!scenario_load(path)) {
+	bool loadResult;
+	const char *extension = path_get_extension(path);
+	if (_stricmp(extension, ".sc6") == 0) {
+		loadResult = scenario_load(path);
+	} else if (_stricmp(extension, ".sv6") == 0) {
+		loadResult = game_load_sv6_path(path);
+	}
+	if (!loadResult) {
 		return 0;
 	}
 

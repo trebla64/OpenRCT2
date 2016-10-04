@@ -233,6 +233,13 @@ bool openrct2_initialise()
 	// 	return false;
 	// }
 
+	if (!rct2_init_directories()) {
+		return false;
+	}
+	if (!rct2_startup_checks()) {
+		return false;
+	}
+
 	if (!gOpenRCT2Headless) {
 		audio_init();
 		audio_populate_devices();
@@ -260,20 +267,6 @@ bool openrct2_initialise()
 	chat_init();
 
 	openrct2_copy_original_user_files_over();
-
-	// TODO move to audio initialise function
-	if (str_is_null_or_empty(gConfigSound.device)) {
-		Mixer_Init(NULL);
-		gAudioCurrentDevice = 0;
-	} else {
-		Mixer_Init(gConfigSound.device);
-		for (int i = 0; i < gAudioDeviceCount; i++) {
-			if (strcmp(gAudioDevices[i].name, gConfigSound.device) == 0) {
-				gAudioCurrentDevice = i;
-			}
-		}
-	}
-
 	return true;
 }
 
@@ -290,13 +283,16 @@ void openrct2_launch()
 		switch (gOpenRCT2StartupAction) {
 		case STARTUP_ACTION_INTRO:
 			gIntroState = INTRO_STATE_PUBLISHER_BEGIN;
+			title_load();
 			break;
 		case STARTUP_ACTION_TITLE:
-			gScreenFlags = SCREEN_FLAGS_TITLE_DEMO;
+			title_load();
 			break;
 		case STARTUP_ACTION_OPEN:
 			assert(gOpenRCT2StartupActionPath != NULL);
 			if (!rct2_open_file(gOpenRCT2StartupActionPath)) {
+				fprintf(stderr, "Failed to load '%s'", gOpenRCT2StartupActionPath);
+				title_load();
 				break;
 			}
 
@@ -322,7 +318,9 @@ void openrct2_launch()
 			if (strlen(gOpenRCT2StartupActionPath) == 0) {
 				editor_load();
 			} else {
-				editor_load_landscape(gOpenRCT2StartupActionPath);
+				if (!editor_load_landscape(gOpenRCT2StartupActionPath)) {
+					title_load();
+				}
 			}
 			break;
 		}
