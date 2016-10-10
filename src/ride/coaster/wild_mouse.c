@@ -38,7 +38,8 @@ enum {
 	SPR_WILD_MOUSE_ROTATION_CONTROL_TOGGLE_NW_SE = 16909,
 	SPR_WILD_MOUSE_FLAT_CHAIN_SW_NE = 16910,
 	SPR_WILD_MOUSE_FLAT_CHAIN_NW_SE = 16911,
-
+	SPR_WILD_MOUSE_FLAT_CHAIN_NE_SW = 16912,
+	SPR_WILD_MOUSE_FLAT_CHAIN_SE_NW = 16913,
 	SPR_WILD_MOUSE_FLAT_TO_25_DEG_SW_NE = 16914,
 	SPR_WILD_MOUSE_FLAT_TO_25_DEG_NW_SE = 16915,
 	SPR_WILD_MOUSE_FLAT_TO_25_DEG_NE_SW = 16916,
@@ -172,8 +173,8 @@ static void wild_mouse_track_flat(uint8 rideIndex, uint8 trackSequence, uint8 di
 	static const uint32 imageIds[4][2] = {
 		{ SPR_WILD_MOUSE_FLAT_SW_NE, SPR_WILD_MOUSE_FLAT_CHAIN_SW_NE },
 		{ SPR_WILD_MOUSE_FLAT_NW_SE, SPR_WILD_MOUSE_FLAT_CHAIN_NW_SE },
-		{ SPR_WILD_MOUSE_FLAT_SW_NE, SPR_WILD_MOUSE_FLAT_CHAIN_SW_NE },
-		{ SPR_WILD_MOUSE_FLAT_NW_SE, SPR_WILD_MOUSE_FLAT_CHAIN_NW_SE },
+		{ SPR_WILD_MOUSE_FLAT_SW_NE, SPR_WILD_MOUSE_FLAT_CHAIN_NE_SW },
+		{ SPR_WILD_MOUSE_FLAT_NW_SE, SPR_WILD_MOUSE_FLAT_CHAIN_SE_NW },
 	};
 
 
@@ -441,7 +442,6 @@ static void wild_mouse_track_right_quarter_turn_3(uint8 rideIndex, uint8 trackSe
 			{ SPR_WILD_MOUSE_QUARTER_TURN_3_SE_NE_PART_2, { 0, 0, 0 }, {  0,  6, 0 }, { 32, 20, 3 } },
 		}
 	};
-	static uint8 supportType[] = { 4, 5, 2, 3 };
 
 	track_paint_util_right_quarter_turn_3_tiles_paint_3(height, direction, get_current_rotation(), trackSequence, gTrackColours[SCHEME_TRACK], imageIds);
 	track_paint_util_right_quarter_turn_3_tiles_tunnel(height, direction, trackSequence, TUNNEL_0);
@@ -591,7 +591,6 @@ static void wild_mouse_track_left_quarter_turn_1(uint8 rideIndex, uint8 trackSeq
 		SPR_WILD_MOUSE_QUARTER_TURN_1_NE_SW,
 		SPR_WILD_MOUSE_QUARTER_TURN_1_SE_NW,
 	};
-	static uint8 supportType[] = { 5, 2, 3, 4 };
 
 	uint32 imageId = imageIds[direction] | gTrackColours[SCHEME_TRACK];
 	switch (direction) {

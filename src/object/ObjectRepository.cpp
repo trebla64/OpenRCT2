@@ -46,6 +46,7 @@ extern "C"
     #include "../platform/platform.h"
     #include "../scenario.h"
     #include "../util/sawyercoding.h"
+	#include "../util/util.h"
 }
 
 constexpr uint16 OBJECT_REPOSITORY_VERSION = 10;
@@ -634,8 +635,8 @@ private:
 
     static void GetRepositoryPath(utf8 * buffer, size_t bufferSize)
     {
-        platform_get_user_directory(buffer, nullptr);
-        strcat(buffer, "objects.idx");
+        platform_get_user_directory(buffer, nullptr, bufferSize);
+        safe_strcat_path(buffer, "objects.idx", bufferSize);
     }
 
     static void GetRCT2ObjectPath(utf8 * buffer, size_t bufferSize)
@@ -645,7 +646,7 @@ private:
 
     static void GetUserObjectPath(utf8 * buffer, size_t bufferSize)
     {
-        platform_get_user_directory(buffer, "object");
+        platform_get_user_directory(buffer, "object", bufferSize);
     }
 
     static uint32 GetPathChecksum(const utf8 * path)
@@ -800,7 +801,7 @@ extern "C"
                 return 0;
             }
 
-            size_t chunkSize = sawyercoding_read_chunk(rw, chunk);
+            size_t chunkSize = sawyercoding_read_chunk_with_size(rw, chunk, 0x600000);
             chunk = Memory::Reallocate(chunk, chunkSize);
             if (chunk == nullptr)
             {

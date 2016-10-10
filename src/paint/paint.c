@@ -295,7 +295,7 @@ paint_struct * sub_98196C(
 
 	g_ps_F1AD28 = ps;
 
-	sint32 edi;
+	sint32 edi = 0;
 	switch (rotation) {
 		case 0:
 			edi = coord_3d.y + coord_3d.x;
@@ -1094,7 +1094,7 @@ void viewport_draw_money_effects()
 	draw_pixel_info_crop_by_zoom(&dpi);
 
 	do {
-		format_string(buffer, ps->string_id, &ps->args);
+		format_string(buffer, 256, ps->string_id, &ps->args);
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
 		bool forceSpriteFont = false;

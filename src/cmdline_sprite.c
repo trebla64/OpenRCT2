@@ -193,8 +193,8 @@ static bool sprite_file_save(const char *path)
 
 static void sprite_file_close()
 {
-	free(spriteFileEntries);
-	free(spriteFileData);
+	SafeFree(spriteFileEntries);
+	SafeFree(spriteFileData);
 }
 
 static bool sprite_file_export(int spriteIndex, const char *outPath)
@@ -547,7 +547,7 @@ int cmdline_for_sprite(const char **argv, int argc)
 		for (int x = 0; x < numbers; x++){
 			outputPath[pathLen + x] = '0';
 		}
-		safe_strcpy(outputPath + pathLen + numbers, ".png", MAX_PATH);
+		safe_strcpy(outputPath + pathLen + numbers, ".png", MAX_PATH - pathLen - numbers);
 
 		for (int spriteIndex = 0; spriteIndex < maxIndex; spriteIndex++){
 
@@ -651,7 +651,9 @@ int cmdline_for_sprite(const char **argv, int argc)
 			safe_strcpy(imagePath, resourcePath, MAX_PATH);
 			if (resourcePath[resourceLength - 1] == '/' || resourcePath[resourceLength - 1] == '\\')
 				imagePath[resourceLength - 1] = 0;
-			sprintf(imagePath, "%s%c%d.png", imagePath, platform_get_path_separator(), i);
+			char filename[16];
+			snprintf(filename, 16, "%d.png", i);
+			safe_strcat_path(imagePath, filename, MAX_PATH);
 
 			file = SDL_RWFromFile(imagePath, "r");
 			if (file != NULL) {
@@ -689,6 +691,7 @@ int cmdline_for_sprite(const char **argv, int argc)
 				}
 				if (!silent)
 					fprintf(stdout, "Added: %s\n", imagePath);
+				sprite_file_close();
 			}
 			i++;
 		} while (file != NULL);

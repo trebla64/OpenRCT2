@@ -122,9 +122,9 @@ bool object_entry_is_empty(const rct_object_entry *entry)
  *
  *  rct2: 0x006AB344
  */
-void object_create_identifier_name(char* string_buffer, const rct_object_entry* object)
+void object_create_identifier_name(char* string_buffer, size_t size, const rct_object_entry* object)
 {
-	sprintf(string_buffer, "%.8s/%4X%4X", object->name, object->flags, object->checksum);
+	snprintf(string_buffer, size, "%.8s/%4X%4X", object->name, object->flags, object->checksum);
 }
 
 /**
@@ -135,7 +135,7 @@ bool object_read_and_load_entries(SDL_RWops* rw)
 {
 	// Read all the object entries
 	rct_object_entry *entries = malloc(OBJECT_ENTRY_COUNT * sizeof(rct_object_entry));
-	sawyercoding_read_chunk(rw, (uint8*)entries);
+	sawyercoding_read_chunk_with_size(rw, (uint8*)entries, OBJECT_ENTRY_COUNT * sizeof(rct_object_entry));
 	bool result = object_load_entries(entries);
 	free(entries);
 	return result;

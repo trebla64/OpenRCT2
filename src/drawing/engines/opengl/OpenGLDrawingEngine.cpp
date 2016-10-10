@@ -277,7 +277,7 @@ public:
         if (_context == nullptr)
         {
             char szRequiredVersion[32];
-            sprintf(szRequiredVersion, "OpenGL %d.%d", requiredVersion.Major, requiredVersion.Minor);
+            snprintf(szRequiredVersion, 32, "OpenGL %d.%d", requiredVersion.Major, requiredVersion.Minor);
             throw Exception(std::string(szRequiredVersion) + std::string(" not available."));
         }
         SDL_GL_MakeCurrent(_window, _context);
@@ -1016,7 +1016,9 @@ void OpenGLDrawingContext::FlushImages()
 void OpenGLDrawingContext::SetDPI(rct_drawpixelinfo * dpi)
 {
     rct_drawpixelinfo * screenDPI = _engine->GetDPI();
+#ifndef NDEBUG
     size_t bitsSize = (size_t)screenDPI->height * (size_t)(screenDPI->width + screenDPI->pitch);
+#endif
     size_t bitsOffset = (size_t)(dpi->bits - screenDPI->bits);
 
     assert(bitsOffset < bitsSize);
