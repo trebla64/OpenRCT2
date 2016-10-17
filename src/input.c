@@ -17,11 +17,11 @@
 #include <SDL_keycode.h>
 #include "audio/audio.h"
 #include "config.h"
-#include "cursors.h"
 #include "game.h"
 #include "input.h"
 #include "interface/chat.h"
 #include "interface/console.h"
+#include "interface/Cursors.h"
 #include "interface/keyboard_shortcut.h"
 #include "interface/viewport.h"
 #include "interface/widget.h"
@@ -73,7 +73,6 @@ widget_ref gTooltipWidget;
 sint32 gTooltipCursorX;
 sint32 gTooltipCursorY;
 
-uint8 gCurrentCursor;
 uint8 gCurrentToolId;
 widget_ref gCurrentToolWidget;
 
@@ -1432,7 +1431,7 @@ void title_handle_keyboard_input()
 
 		// Reserve backtick for console
 		if (key == SDL_SCANCODE_GRAVE) {
-			if (gConfigGeneral.debugging_tools || gConsoleOpen) {
+			if ((gConfigGeneral.debugging_tools && !platform_is_input_active()) || gConsoleOpen) {
 				window_cancel_textbox();
 				console_toggle();
 			}
@@ -1503,7 +1502,7 @@ void game_handle_keyboard_input()
 
 		// Reserve backtick for console
 		if (key == SDL_SCANCODE_GRAVE) {
-			if (gConfigGeneral.debugging_tools || gConsoleOpen) {
+			if ((gConfigGeneral.debugging_tools && !platform_is_input_active()) || gConsoleOpen) {
 				window_cancel_textbox();
 				console_toggle();
 			}
@@ -1560,10 +1559,7 @@ void sub_6ED990(uint8 cursor_id)
 	if (gInputState == INPUT_STATE_RESIZING) {
 		cursor_id = CURSOR_DIAGONAL_ARROWS;
 	}
-	if (cursor_id != gCurrentCursor) {
-		gCurrentCursor = cursor_id;
-		platform_set_cursor(cursor_id);
-	}
+	cursors_setcurrentcursor(cursor_id);
 }
 
 
