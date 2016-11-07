@@ -1053,8 +1053,8 @@ STR_1047    :게임 저장 실패!
 STR_1048    :시나리오 저장 실패
 STR_1049    :풍경 저장 실패!
 STR_1050    :불러오기 실패...{NEWLINE}파일에 유효하지 않은 데이터가 있습니다!
-STR_1051    :트랙 지지대 감추기
-STR_1052    :손님 감추기
+STR_1051    :지지대 감추기
+STR_1052    :사람 감추기
 STR_1053    :{SMALLFONT}{BLACK}공원의 놀이기구나 시설
 STR_1054    :{SMALLFONT}{BLACK}놀이기구/시설 이름
 STR_1055    :{SMALLFONT}{BLACK}손님 이름
@@ -1156,7 +1156,7 @@ STR_1150    :3/4을 태우면
 STR_1151    :모두 태우면
 STR_1152    :한 사람이라도 태우면
 STR_1153    :놀이기구 트랙 높이 표시
-STR_1154    :지형 높이 표시
+STR_1154    :지표면 높이 표시
 STR_1155    :보도 높이 표시
 STR_1156    :{MOVE_X}{SMALLFONT}{STRINGID}
 STR_1157    :{TICK}{MOVE_X}{SMALLFONT}{STRINGID}
@@ -4291,6 +4291,12 @@ STR_5981    :{WINDOW_COLOUR_2}팻말이 아님
 STR_5982    :{WINDOW_COLOUR_2}대형 풍경 종류: {BLACK}{COMMA16}
 STR_5983    :{WINDOW_COLOUR_2}대형 풍경 조각 ID: {BLACK}{COMMA16}
 STR_5984    :막힌 보도:
+STR_5985    :새 폴더
+STR_5986    :새 폴더의 이름을 입력하세요.
+STR_5987    :폴더를 만들 수 없습니다.
+STR_5988    :{SMALLFONT}{BLACK}판매 중인 땅이 더 이상 없습니다.
+STR_5989    :{SMALLFONT}{BLACK}판매 중인 건설권이 더 이상 없습니다.
+STR_5990    :{SMALLFONT}{BLACK}판매 중인 땅이나 건설권이 더 이상 없습니다.
 
 #############
 # Scenarios #
