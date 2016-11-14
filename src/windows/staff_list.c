@@ -586,11 +586,11 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
 		set_format_arg(0, money32, wage_table[selectedTab]);
-		gfx_draw_string_left(dpi, STR_COST_PER_MONTH, gCommonFormatArgs, 0, w->x + w->width - 155, w->y + 0x20);
+		gfx_draw_string_left(dpi, STR_COST_PER_MONTH, gCommonFormatArgs, COLOUR_BLACK, w->x + w->width - 155, w->y + 0x20);
 	}
 
 	if (selectedTab < 3) {
-		gfx_draw_string_left(dpi, STR_UNIFORM_COLOUR, w, 0, w->x + 6, window_staff_list_widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].top + w->y + 1);
+		gfx_draw_string_left(dpi, STR_UNIFORM_COLOUR, w, COLOUR_BLACK, w->x + 6, window_staff_list_widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].top + w->y + 1);
 	}
 
 	int staffTypeStringId = StaffNamingConvention[selectedTab].plural;
@@ -602,7 +602,7 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	set_format_arg(0, uint16, _window_staff_list_selected_type_count);
 	set_format_arg(2, rct_string_id, staffTypeStringId);
 
-	gfx_draw_string_left(dpi, STR_STAFF_LIST_COUNTER, gCommonFormatArgs, 0, w->x + 4, window_staff_list_widgets[WIDX_STAFF_LIST_LIST].bottom + w->y + 2);
+	gfx_draw_string_left(dpi, STR_STAFF_LIST_COUNTER, gCommonFormatArgs, COLOUR_BLACK, w->x + 4, window_staff_list_widgets[WIDX_STAFF_LIST_LIST].bottom + w->y + 2);
 }
 
 /** rct2: 0x00992A08 */
@@ -653,18 +653,18 @@ void window_staff_list_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int sc
 				int format = (_quick_fire_mode ? STR_RED_STRINGID : STR_BLACK_STRING);
 
 				if (i == _windowStaffListHighlightedIndex) {
-					gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x2000031);
+					gfx_filter_rect(dpi, 0, y, 800, y + 9, PALETTE_DARKEN_1);
 					format = (_quick_fire_mode ? STR_LIGHTPINK_STRINGID : STR_WINDOW_COLOUR_2_STRINGID);
 				}
 
 				set_format_arg(0, rct_string_id, peep->name_string_idx);
 				set_format_arg(2, uint32, peep->id);
-				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, 0, 0, y - 1, 107);
+				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, COLOUR_BLACK, 0, y - 1, 107);
 
 				get_arguments_from_action(peep, &argument_1, &argument_2);
 				set_format_arg(0, uint32, argument_1);
 				set_format_arg(4, uint32, argument_2);
-				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, 0, 175, y - 1, 305);
+				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, COLOUR_BLACK, 175, y - 1, 305);
 
 				// True if a patrol path is set for the worker
 				if (gStaffModes[peep->staff_id] & 2) {

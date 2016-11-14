@@ -903,13 +903,13 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 	// Objective label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_OBJECTIVE].top;
-	gfx_draw_string_left(dpi, STR_OBJECTIVE_WINDOW, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_OBJECTIVE_WINDOW, NULL, COLOUR_BLACK, x, y);
 
 	// Objective value
 	x = w->x + w->widgets[WIDX_OBJECTIVE].left + 1;
 	y = w->y + w->widgets[WIDX_OBJECTIVE].top;
 	stringId = ObjectiveDropdownOptionNames[gScenarioObjectiveType];
-	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, &stringId, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, &stringId, COLOUR_BLACK, x, y);
 
 	if (w->widgets[WIDX_OBJECTIVE_ARG_1].type != WWT_EMPTY) {
 		// Objective argument 1 label
@@ -937,7 +937,7 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 			stringId = STR_WINDOW_OBJECTIVE_EXCITEMENT_RATING;
 			break;
 		}
-		gfx_draw_string_left(dpi, stringId, NULL, 0, x, y);
+		gfx_draw_string_left(dpi, stringId, NULL, COLOUR_BLACK, x, y);
 
 		// Objective argument 1 value
 		x = w->x + w->widgets[WIDX_OBJECTIVE_ARG_1].left + 1;
@@ -964,32 +964,32 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 			arg = gScenarioObjectiveCurrency;
 			break;
 		}
-		gfx_draw_string_left(dpi, stringId, &arg, 0, x, y);
+		gfx_draw_string_left(dpi, stringId, &arg, COLOUR_BLACK, x, y);
 	}
 
 	if (w->widgets[WIDX_OBJECTIVE_ARG_2].type != WWT_EMPTY) {
 		// Objective argument 2 label
 		x = w->x + 28;
 		y = w->y + w->widgets[WIDX_OBJECTIVE_ARG_2].top;
-		gfx_draw_string_left(dpi, STR_WINDOW_OBJECTIVE_DATE, NULL, 0, x, y);
+		gfx_draw_string_left(dpi, STR_WINDOW_OBJECTIVE_DATE, NULL, COLOUR_BLACK, x, y);
 
 		// Objective argument 2 value
 		x = w->x + w->widgets[WIDX_OBJECTIVE_ARG_2].left + 1;
 		y = w->y + w->widgets[WIDX_OBJECTIVE_ARG_2].top;
 		arg = (gScenarioObjectiveYear * MONTH_COUNT) - 1;
-		gfx_draw_string_left(dpi, STR_WINDOW_OBJECTIVE_VALUE_DATE, &arg, 0, x, y);
+		gfx_draw_string_left(dpi, STR_WINDOW_OBJECTIVE_VALUE_DATE, &arg, COLOUR_BLACK, x, y);
 	}
 
 	// Climate label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_CLIMATE].top;
-	gfx_draw_string_left(dpi, STR_CLIMATE_LABEL, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_CLIMATE_LABEL, NULL, COLOUR_BLACK, x, y);
 
 	// Climate value
 	x = w->x + w->widgets[WIDX_CLIMATE].left + 1;
 	y = w->y + w->widgets[WIDX_CLIMATE].top;
 	stringId = ClimateNames[gClimate];
-	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, &stringId, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, &stringId, COLOUR_BLACK, x, y);
 
 	// Park name
 	x = w->x + 8;
@@ -1002,7 +1002,7 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 		set_format_arg(0, rct_string_id, gParkName);
 	}
 	set_format_arg(2, uint32, gParkNameArgs);
-	gfx_draw_string_left_clipped(dpi, STR_WINDOW_PARK_NAME, gCommonFormatArgs, 0, x, y, width);
+	gfx_draw_string_left_clipped(dpi, STR_WINDOW_PARK_NAME, gCommonFormatArgs, COLOUR_BLACK, x, y, width);
 
 	// Scenario name
 	x = w->x + 8;
@@ -1017,12 +1017,12 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 		set_format_arg(2, const char *, gS6Info.name);
 	}
 
-	gfx_draw_string_left_clipped(dpi, STR_WINDOW_SCENARIO_NAME, gCommonFormatArgs, 0, x, y, width);
+	gfx_draw_string_left_clipped(dpi, STR_WINDOW_SCENARIO_NAME, gCommonFormatArgs, COLOUR_BLACK, x, y, width);
 
 	// Scenario details label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_DETAILS].top;
-	gfx_draw_string_left(dpi, STR_WINDOW_PARK_DETAILS, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_PARK_DETAILS, NULL, COLOUR_BLACK, x, y);
 
 	// Scenario details value
 	x = w->x + 16;
@@ -1036,18 +1036,18 @@ static void window_editor_objective_options_main_paint(rct_window *w, rct_drawpi
 		set_format_arg(0, rct_string_id, STR_STRING);
 		set_format_arg(2, const char *, gS6Info.details);
 	}
-	gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, STR_BLACK_STRING, 0);
+	gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, STR_BLACK_STRING, COLOUR_BLACK);
 
 	// Scenario category label
 	x = w->x + 8;
 	y = w->y + w->widgets[WIDX_CATEGORY].top;
-	gfx_draw_string_left(dpi, STR_WINDOW_SCENARIO_GROUP, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_SCENARIO_GROUP, NULL, COLOUR_BLACK, x, y);
 
 	// Scenario category value
 	x = w->x + w->widgets[WIDX_CATEGORY].left + 1;
 	y = w->y + w->widgets[WIDX_CATEGORY].top;
 	stringId = ScenarioCategoryStringIds[gS6Info.category];
-	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, &stringId, 0, x, y);
+	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, &stringId, COLOUR_BLACK, x, y);
 }
 
 /**
@@ -1182,7 +1182,7 @@ static void window_editor_objective_options_rides_paint(rct_window *w, rct_drawp
 	window_draw_widgets(w, dpi);
 	window_editor_objective_options_draw_tab_images(w, dpi);
 
-	gfx_draw_string_left(dpi, STR_WINDOW_PRESERVATION_ORDER, NULL, 0, w->x + 6, w->y + w->widgets[WIDX_PAGE_BACKGROUND].top + 3);
+	gfx_draw_string_left(dpi, STR_WINDOW_PRESERVATION_ORDER, NULL, COLOUR_BLACK, w->x + 6, w->y + w->widgets[WIDX_PAGE_BACKGROUND].top + 3);
 }
 
 /**
@@ -1210,7 +1210,7 @@ static void window_editor_objective_options_rides_scrollpaint(rct_window *w, rct
 		// Highlighted
 		if (i == w->selected_list_item) {
 			stringId = STR_WINDOW_COLOUR_2_STRINGID;
-			gfx_fill_rect(dpi, 0, y, w->width, y + 11, 0x2000031);
+			gfx_filter_rect(dpi, 0, y, w->width, y + 11, PALETTE_DARKEN_1);
 		} else {
 			stringId = STR_BLACK_STRING;
 		}
@@ -1223,7 +1223,7 @@ static void window_editor_objective_options_rides_scrollpaint(rct_window *w, rct
 		}
 
 		// Ride name
-		gfx_draw_string_left(dpi, stringId, &ride->name, 0, 15, y);
+		gfx_draw_string_left(dpi, stringId, &ride->name, COLOUR_BLACK, 15, y);
 	}
 }
 

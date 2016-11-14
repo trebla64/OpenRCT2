@@ -93,15 +93,15 @@ public:
         const uint8 * pattern = RainPattern;
         uint8 patternXSpace = *pattern++;
         uint8 patternYSpace = *pattern++;
-    
+
         uint8 patternStartXOffset = xStart % patternXSpace;
         uint8 patternStartYOffset = yStart % patternYSpace;
-    
+
         uint32 pixelOffset = (_screenDPI->pitch + _screenDPI->width) * y + x;
         uint8 patternYPos = patternStartYOffset % patternYSpace;
 
         uint8 * screenBits = _screenDPI->bits;
-    
+
         //Stores the colours of changed pixels
         RainPixel * newPixels = &_rainPixels[_rainPixelsCount];
         for (; height != 0; height--)
@@ -149,7 +149,7 @@ public:
                     // Pixel out of bounds, bail
                     break;
                 }
-                
+
                 bits[rainPixel.Position] = rainPixel.Colour;
             }
             _rainPixelsCount = 0;
@@ -171,6 +171,7 @@ public:
 
     void Clear(uint32 colour) override;
     void FillRect(uint32 colour, sint32 x, sint32 y, sint32 w, sint32 h) override;
+    void FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32 top, sint32 right, sint32 bottom) override;
     void DrawLine(uint32 colour, sint32 x1, sint32 y1, sint32 x2, sint32 y2) override;
     void DrawSprite(uint32 image, sint32 x, sint32 y, uint32 tertiaryColour) override;
     void DrawSpriteRawMasked(sint32 x, sint32 y, uint32 maskImage, uint32 colourImage) override;
@@ -416,7 +417,7 @@ public:
 
         // Originally 0x00683359
         // Adjust for move off screen
-        // NOTE: when zooming, there can be x, y, dx, dy combinations that go off the 
+        // NOTE: when zooming, there can be x, y, dx, dy combinations that go off the
         // screen; hence the checks. This code should ultimately not be called when
         // zooming because this function is specific to updating the screen on move
         int lmargin = Math::Min(x - dx, 0);
@@ -956,54 +957,34 @@ void SoftwareDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, si
     }
     else if (colour & 0x2000000)
     {
-        //0x2000000
-        // 00678B7E   00678C83
-        // Location in screen buffer?
-        uint8 * dst = dpi->bits + (uint32)((startY >> (dpi->zoom_level)) * ((dpi->width >> dpi->zoom_level) + dpi->pitch) + (startX >> dpi->zoom_level));
-    
-        // Find colour in colour table?
-        uint16           g1Index = palette_to_g1_offset[colour & 0xFF];
-        rct_g1_element * g1Element = &g1Elements[g1Index];
-        uint8 *          g1Bits = g1Element->offset;
-    
-        // Fill the rectangle with the colours from the colour table
-        for (int i = 0; i < height >> dpi->zoom_level; i++)
-        {
-            uint8 * nextdst = dst + (dpi->width >> dpi->zoom_level) + dpi->pitch;
-            for (int j = 0; j < (width >> dpi->zoom_level); j++)
-            {
-                *dst = g1Bits[*dst];
-                dst++;
-            }
-            dst = nextdst;
-        }
+        assert(false);
     }
     else if (colour & 0x4000000)
     {
         uint8 * dst = startY * (dpi->width + dpi->pitch) + startX + dpi->bits;
-    
+
         // The pattern loops every 15 lines this is which
         // part the pattern is on.
         int patternY = (startY + dpi->y) % 16;
-    
+
         // The pattern loops every 15 pixels this is which
         // part the pattern is on.
         int startPatternX = (startX + dpi->x) % 16;
         int patternX = startPatternX;
-    
+
         const uint16 * patternsrc = Patterns[colour >> 28]; // or possibly uint8)[esi*4] ?
-    
+
         for (int numLines = height; numLines > 0; numLines--)
         {
             uint8 * nextdst = dst + dpi->width + dpi->pitch;
             uint16  pattern = patternsrc[patternY];
-    
+
             for (int numPixels = width; numPixels > 0; numPixels--)
             {
                 if (pattern & (1 << patternX))
                 {
                     *dst = colour & 0xFF;
-                }    
+                }
                 patternX = (patternX + 1) % 16;
                 dst++;
             }
@@ -1020,6 +1001,68 @@ void SoftwareDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, si
             Memory::Set(dst, colour & 0xFF, width);
             dst += dpi->width + dpi->pitch;
         }
+    }
+}
+
+void SoftwareDrawingContext::FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32 top, sint32 right, sint32 bottom)
+{
+    rct_drawpixelinfo * dpi = _dpi;
+
+    if (left > right) return;
+    if (top > bottom) return;
+    if (dpi->x > right) return;
+    if (left >= dpi->x + dpi->width) return;
+    if (bottom < dpi->y) return;
+    if (top >= dpi->y + dpi->height) return;
+
+    int startX = left - dpi->x;
+    if (startX < 0)
+    {
+        startX = 0;
+    }
+
+    int endX = right - dpi->x + 1;
+    if (endX > dpi->width)
+    {
+        endX = dpi->width;
+    }
+
+    int startY = top - dpi->y;
+    if (startY < 0)
+    {
+        startY = 0;
+    }
+
+    int endY = bottom - dpi->y + 1;
+    if (endY > dpi->height)
+    {
+        endY = dpi->height;
+    }
+
+    int width = endX - startX;
+    int height = endY - startY;
+
+
+    //0x2000000
+    // 00678B7E   00678C83
+    // Location in screen buffer?
+    uint8 * dst = dpi->bits + (uint32)((startY >> (dpi->zoom_level)) * ((dpi->width >> dpi->zoom_level) + dpi->pitch) + (startX >> dpi->zoom_level));
+
+    // Find colour in colour table?
+    uint16           g1Index = palette_to_g1_offset[palette];
+    rct_g1_element * g1Element = &g1Elements[g1Index];
+    uint8 *          g1Bits = g1Element->offset;
+
+    // Fill the rectangle with the colours from the colour table
+    for (int i = 0; i < height >> dpi->zoom_level; i++)
+    {
+        uint8 * nextdst = dst + (dpi->width >> dpi->zoom_level) + dpi->pitch;
+        for (int j = 0; j < (width >> dpi->zoom_level); j++)
+        {
+            *dst = g1Bits[*dst];
+            dst++;
+        }
+        dst = nextdst;
     }
 }
 

@@ -2285,7 +2285,7 @@ void game_command_lower_land(int* eax, int* ebx, int* ecx, int* edx, int* esi, i
 	);
 }
 
-static int map_get_corner_height(rct_map_element *mapElement, int direction)
+static int map_element_get_corner_height(rct_map_element *mapElement, int direction)
 {
 	int z = mapElement->base_height;
 	int slope = mapElement->properties.surface.slope & MAP_ELEMENT_SLOPE_MASK;
@@ -2347,7 +2347,7 @@ static money32 smooth_land_tile(int direction, uint8 flags, int x, int y, int ta
 		log_warning("Invalid coordinates for land smoothing, x = %d, y = %d", x, y);
 		return MONEY32_UNDEFINED;
 	}
-	int baseZ = map_get_corner_height(mapElement, direction);
+	int baseZ = map_element_get_corner_height(mapElement, direction);
 
 	// Check if tile is same height as target tile
 	if (baseZ == targetBaseZ) {
@@ -2461,7 +2461,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 
 		// Corner (North-West)
 		mapElement = map_get_surface_element_at(mapLeft >> 5, mapTop >> 5);
-		z = map_get_corner_height(mapElement, 2);
+		z = map_element_get_corner_height(mapElement, 2);
 		result = smooth_land_tile(0, flags, x, y, z, minZ);
 		if (result != MONEY32_UNDEFINED) {
 			totalCost += result;
@@ -2473,7 +2473,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 			int y2 = clamp(mapTop, y, mapBottom);
 			mapElement = map_get_surface_element_at(mapLeft >> 5, y2 >> 5);
 			if (y >= mapTop) {
-				z = map_get_corner_height(mapElement, 3);
+				z = map_element_get_corner_height(mapElement, 3);
 				result = smooth_land_tile((y <= mapBottom) ? 0 : 1, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2487,7 +2487,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 				}
 			}
 			if (y <= mapBottom) {
-				z = map_get_corner_height(mapElement, 2);
+				z = map_element_get_corner_height(mapElement, 2);
 				result = smooth_land_tile((y >= mapTop) ? 1 : 0, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2499,7 +2499,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 
 		// Corner (South-West)
 		mapElement = map_get_surface_element_at(mapLeft >> 5, mapBottom >> 5);
-		z = map_get_corner_height(mapElement, 3);
+		z = map_element_get_corner_height(mapElement, 3);
 		result = smooth_land_tile(1, flags, x, y, z, minZ);
 		if (result != MONEY32_UNDEFINED) {
 			totalCost += result;
@@ -2511,7 +2511,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 			int x2 = clamp(mapLeft, x, mapRight);
 			mapElement = map_get_surface_element_at(x2 >> 5, mapBottom >> 5);
 			if (x >= mapLeft) {
-				z = map_get_corner_height(mapElement, 0);
+				z = map_element_get_corner_height(mapElement, 0);
 				result = smooth_land_tile((x <= mapRight) ? 1 : 2, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2525,7 +2525,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 				}
 			}
 			if (x <= mapRight) {
-				z = map_get_corner_height(mapElement, 3);
+				z = map_element_get_corner_height(mapElement, 3);
 				result = smooth_land_tile((x >= mapLeft) ? 2 : 1, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2536,7 +2536,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 
 		// Corner (South-East)
 		mapElement = map_get_surface_element_at(mapRight >> 5, mapBottom >> 5);
-		z = map_get_corner_height(mapElement, 0);
+		z = map_element_get_corner_height(mapElement, 0);
 		result = smooth_land_tile(2, flags, x, y, z, minZ);
 		if (result != MONEY32_UNDEFINED) {
 			totalCost += result;
@@ -2548,7 +2548,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 			int y2 = clamp(mapTop, y, mapBottom);
 			mapElement = map_get_surface_element_at(mapRight >> 5, y2 >> 5);
 			if (y <= mapBottom) {
-				z = map_get_corner_height(mapElement, 1);
+				z = map_element_get_corner_height(mapElement, 1);
 				result = smooth_land_tile((y >= mapTop) ? 2 : 3, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2562,7 +2562,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 				}
 			}
 			if (y >= mapTop) {
-				z = map_get_corner_height(mapElement, 0);
+				z = map_element_get_corner_height(mapElement, 0);
 				result = smooth_land_tile((y <= mapBottom) ? 3 : 2, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2574,7 +2574,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 
 		// Corner (North-East)
 		mapElement = map_get_surface_element_at(mapRight >> 5, mapTop >> 5);
-		z = map_get_corner_height(mapElement, 1);
+		z = map_element_get_corner_height(mapElement, 1);
 		result = smooth_land_tile(3, flags, x, y, z, minZ);
 		if (result != MONEY32_UNDEFINED) {
 			totalCost += result;
@@ -2586,7 +2586,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 			int x2 = clamp(mapLeft, x, mapRight);
 			mapElement = map_get_surface_element_at(x2 >> 5, mapTop >> 5);
 			if (x <= mapRight) {
-				z = map_get_corner_height(mapElement, 2);
+				z = map_element_get_corner_height(mapElement, 2);
 				result = smooth_land_tile((x >= mapLeft) ? 3 : 0, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2600,7 +2600,7 @@ static money32 smooth_land(int flags, int centreX, int centreY, int mapLeft, int
 				}
 			}
 			if (x >= mapLeft) {
-				z = map_get_corner_height(mapElement, 1);
+				z = map_element_get_corner_height(mapElement, 1);
 				result = smooth_land_tile((x <= mapRight) ? 0 : 3, flags, x, y, z, minZ);
 				if (result != MONEY32_UNDEFINED) {
 					totalCost += result;
@@ -2838,7 +2838,7 @@ void game_command_place_banner(int* eax, int* ebx, int* ecx, int* edx, int* esi,
 		return;
 	}
 
-	if (!sub_68B044()) {
+	if (!map_check_free_elements_and_reorganise(1)) {
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}
@@ -3036,7 +3036,7 @@ void game_command_place_scenery(int* eax, int* ebx, int* ecx, int* edx, int* esi
 	gCommandPosition.x += 16;
 	gCommandPosition.y += 16;
 	if(game_is_not_paused() || gCheatsBuildInPauseMode){
-		if (sub_68B044()) {
+		if (map_check_free_elements_and_reorganise(1)) {
 			if ((byte_9D8150 & 1) || (x <= gMapSizeMaxXY && y <= gMapSizeMaxXY)) {
 				rct_scenery_entry* scenery_entry = (rct_scenery_entry*)object_entry_groups[OBJECT_TYPE_SMALL_SCENERY].chunks[scenery_type];
 				if(scenery_entry->small_scenery.flags & SMALL_SCENERY_FLAG_FULL_TILE || !(scenery_entry->small_scenery.flags & SMALL_SCENERY_FLAG9)){
@@ -3612,7 +3612,7 @@ void game_command_place_fence(int* eax, int* ebx, int* ecx, int* edx, int* esi, 
 		}
 	}
 
-	if (!sub_68B044()){
+	if (!map_check_free_elements_and_reorganise(1)){
 		*ebx = MONEY32_UNDEFINED;
 		return;
 	}
@@ -3719,11 +3719,6 @@ void game_command_place_large_scenery(int* eax, int* ebx, int* ecx, int* edx, in
 		return;
 	}
 
-	if (!sub_68B044()) {
-		*ebx = MONEY32_UNDEFINED;
-		return;
-	}
-
 	rct_scenery_entry *scenery_entry = get_large_scenery_entry(entry_index);
 	if (scenery_entry == (rct_scenery_entry *)-1)
 	{
@@ -3754,11 +3749,12 @@ void game_command_place_large_scenery(int* eax, int* ebx, int* ecx, int* edx, in
 		}
 	}
 
-
+	uint32 num_elements = 0;
 	sint16 maxHeight = 0xFFFF;
 	for (rct_large_scenery_tile* tile = scenery_entry->large_scenery.tiles;
 		tile->x_offset != -1;
 		tile++) {
+		num_elements++;
 
 		rct_xy16 curTile = {
 			.x = tile->x_offset,
@@ -3769,7 +3765,7 @@ void game_command_place_large_scenery(int* eax, int* ebx, int* ecx, int* edx, in
 
 		curTile.x += x;
 		curTile.y += y;
-
+		
 		if(curTile.x >= 0x1FFF || curTile.y >= 0x1FFF || curTile.x < 0 || curTile.y < 0){
 			continue;
 		}
@@ -3793,6 +3789,11 @@ void game_command_place_large_scenery(int* eax, int* ebx, int* ecx, int* edx, in
 
 	if(z != 0){
 		maxHeight = z;
+	}
+	
+	if (!map_check_free_elements_and_reorganise(num_elements)) {
+		*ebx = MONEY32_UNDEFINED;
+		return;
 	}
 
 	gCommandPosition.z = maxHeight;
@@ -4091,25 +4092,27 @@ void map_reorganise_elements()
 /**
  *
  *  rct2: 0x0068B044
+ *  Returns true on space available for more elements
+ *  Reorganises the map elements to check for space
  */
-int sub_68B044()
+bool map_check_free_elements_and_reorganise(int num_elements)
 {
-	if (gNextFreeMapElement <= gMapElements + MAX_MAP_ELEMENTS)
-		return 1;
+	if ((gNextFreeMapElement + num_elements) <= gMapElements + MAX_MAP_ELEMENTS)
+		return true;
 
 	for (int i = 1000; i != 0; --i)
 		sub_68B089();
 
-	if (gNextFreeMapElement <= gMapElements + MAX_MAP_ELEMENTS)
-		return 1;
+	if ((gNextFreeMapElement + num_elements) <= gMapElements + MAX_MAP_ELEMENTS)
+		return true;
 
 	map_reorganise_elements();
 
-	if (gNextFreeMapElement <= gMapElements + MAX_MAP_ELEMENTS)
-		return 1;
+	if ((gNextFreeMapElement + num_elements) <= gMapElements + MAX_MAP_ELEMENTS)
+		return true;
 	else{
 		gGameCommandErrorText = STR_ERR_LANDSCAPE_DATA_AREA_FULL;
-		return 0;
+		return false;
 	}
 }
 
@@ -4121,7 +4124,7 @@ rct_map_element *map_element_insert(int x, int y, int z, int flags)
 {
 	rct_map_element *originalMapElement, *newMapElement, *insertedElement;
 
-	if (!sub_68B044()) {
+	if (!map_check_free_elements_and_reorganise(1)) {
 		log_error("Cannot insert new element");
 		return NULL;
 	}
@@ -4814,7 +4817,7 @@ rct_map_element *map_get_fence_element_at(int x, int y, int z, int direction)
 	return NULL;
 }
 
-rct_map_element *map_get_park_entrance_element_at(int x, int y, int z, bool ghost) 
+rct_map_element *map_get_park_entrance_element_at(int x, int y, int z, bool ghost)
 {
 	rct_map_element* mapElement = map_get_first_element_at(x >> 5, y >> 5);
 	do {
@@ -4829,7 +4832,7 @@ rct_map_element *map_get_park_entrance_element_at(int x, int y, int z, bool ghos
 
 		if ((ghost == false) && (mapElement->flags & MAP_ELEMENT_FLAG_GHOST))
 			continue;
-		
+
 		return mapElement;
 	} while (!map_element_is_last_for_tile(mapElement++));
 	return NULL;
@@ -5158,7 +5161,7 @@ static money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint
 	// ??
 	gCommandPosition.z = (z & 0xFF) << 4;
 
-	if (!sub_68B044()) {
+	if (!map_check_free_elements_and_reorganise(3)) {
 		return MONEY32_UNDEFINED;
 	}
 
@@ -5213,7 +5216,7 @@ static money32 place_park_entrance(int flags, sint16 x, sint16 y, sint16 z, uint
 
 		if (!(flags & GAME_COMMAND_FLAG_APPLY))
 			continue;
-		
+
 		if (!(flags & GAME_COMMAND_FLAG_GHOST)) {
 			rct_map_element* surfaceElement = map_get_surface_element_at(x / 32, y / 32);
 			surfaceElement->properties.surface.ownership = 0;

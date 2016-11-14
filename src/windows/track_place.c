@@ -171,7 +171,7 @@ void window_track_place_open(const track_design_file_ref *tdFileRef)
 
 	window_track_place_clear_mini_preview();
 	window_track_place_draw_mini_preview(td6);
-	
+
 	_trackDesign = td6;
 }
 
@@ -432,7 +432,7 @@ static void window_track_place_attempt_placement(rct_track_td6 *td6, int x, int 
 	ebx = bl;
 	ecx = y;
 	edi = z;
-	
+
 	gActiveTrackDesign = _trackDesign;
 	result = game_do_command_p(GAME_COMMAND_PLACE_TRACK_DESIGN, &eax, &ebx, &ecx, &edx, &esi, &edi, &ebp);
 	gActiveTrackDesign = NULL;
@@ -467,7 +467,7 @@ static void window_track_place_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Price
 	if (_window_track_place_last_cost != MONEY32_UNDEFINED && !(gParkFlags & PARK_FLAGS_NO_MONEY)) {
-		gfx_draw_string_centred(dpi, STR_COST_LABEL, w->x + 88, w->y + 94, 0, &_window_track_place_last_cost);
+		gfx_draw_string_centred(dpi, STR_COST_LABEL, w->x + 88, w->y + 94, COLOUR_BLACK, &_window_track_place_last_cost);
 	}
 }
 

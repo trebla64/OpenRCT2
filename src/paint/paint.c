@@ -25,7 +25,7 @@
 
 const uint32 construction_markers[] = {
 	COLOUR_DARK_GREEN << 19 | COLOUR_GREY << 24 | IMAGE_TYPE_REMAP, // White
-	2 << 19 | 0b110000 << 19 | IMAGE_TYPE_TRANSPARENT, // Translucent
+	PALETTE_DARKEN_2 << 19 | IMAGE_TYPE_TRANSPARENT, // Translucent
 };
 
 paint_struct * g_ps_F1AD28;
@@ -520,7 +520,7 @@ bool paint_attach_to_previous_attach(uint32 image_id, uint16 x, uint16 y)
 	if (g_aps_F1AD2C == NULL) {
 		return paint_attach_to_previous_ps(image_id, x, y);
 	}
-	
+
 	if (gNextFreePaintStruct >= gEndOfPaintStructArray) {
 		return false;
 	}
@@ -1057,6 +1057,6 @@ void paint_draw_money_structs(rct_drawpixelinfo * dpi, paint_string_struct * ps)
 			forceSpriteFont = true;
 		}
 
-		gfx_draw_string_with_y_offsets(&dpi2, buffer, 0, ps->x, ps->y, (sint8 *)ps->y_offsets, forceSpriteFont);
+		gfx_draw_string_with_y_offsets(&dpi2, buffer, COLOUR_BLACK, ps->x, ps->y, (sint8 *)ps->y_offsets, forceSpriteFont);
 	} while ((ps = ps->next) != NULL);
 }

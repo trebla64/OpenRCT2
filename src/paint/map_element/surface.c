@@ -644,7 +644,7 @@ static void viewport_surface_draw_land_side_bottom(enum edge edge, uint8 height,
 				continue;
 			}
 		}
-		
+
 		// Tunnels
 		uint8 tunnelType = tunnelArray[0].type;
 		uint8 tunnelHeight = stru_97B570[tunnelType][0];
@@ -1363,7 +1363,7 @@ void surface_paint(uint8 direction, uint16 height, rct_map_element * mapElement)
 				image_offset = byte_97B740[surfaceShape & 0xF];
 			}
 
-			int image_id = (SPR_WATER_MASK + image_offset) | 0x61000000;
+			int image_id = (SPR_WATER_MASK + image_offset) | 0x60000000 | PALETTE_WATER << 19;
 			sub_98196C(image_id, 0, 0, 32, 32, -1, waterHeight, rotation);
 
 			paint_attach_to_previous_ps(SPR_WATER_OVERLAY + image_offset, 0, 0);

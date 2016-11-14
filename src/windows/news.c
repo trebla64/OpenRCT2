@@ -292,7 +292,7 @@ static void window_news_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int s
 		// Date text
 		set_format_arg(0, rct_string_id, DateDayNames[newsItem->day - 1]);
 		set_format_arg(2, rct_string_id, DateGameMonthNames[(newsItem->month_year % 8)]);
-		gfx_draw_string_left(dpi, STR_NEWS_DATE_FORMAT, gCommonFormatArgs, 2, 4, y);
+		gfx_draw_string_left(dpi, STR_NEWS_DATE_FORMAT, gCommonFormatArgs, COLOUR_WHITE, 4, y);
 
 		// Item text
 		utf8 buffer[400];
@@ -300,7 +300,7 @@ static void window_news_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int s
 		ch = utf8_write_codepoint(ch, FORMAT_SMALLFONT);
 		memcpy(ch, newsItem->text, 256);
 		ch = buffer;
-		gfx_draw_string_left_wrapped(dpi, &ch, 2, y + 10, 325, STR_STRING, 14);
+		gfx_draw_string_left_wrapped(dpi, &ch, 2, y + 10, 325, STR_STRING, COLOUR_BRIGHT_GREEN);
 
 		// Subject button
 		if ((news_type_properties[newsItem->type] & NEWS_TYPE_HAS_SUBJECT) && !(newsItem->flags & 1)) {

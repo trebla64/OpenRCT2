@@ -521,7 +521,7 @@ typedef struct scenery_item {
 } scenery_item;
 
 static scenery_item window_scenery_count_rows_with_selected_item(int tabIndex)
-{	
+{
 	scenery_item sceneryItem = { 0, 0, -1 };
 	int totalItems = 0;
 	sint16 id = 0;
@@ -532,19 +532,19 @@ static scenery_item window_scenery_count_rows_with_selected_item(int tabIndex)
 			sceneryItem.selected_item = totalItems;
 			sceneryItem.sceneryId = sceneryId;
 		}
-		totalItems++;		
+		totalItems++;
 	}
 	sceneryItem.allRows = count_rows(totalItems + 8);
 	return sceneryItem;
 }
 
 static int window_scenery_count_rows()
-{	
+{
 	int tabIndex = gWindowSceneryActiveTabIndex;
 	int totalItems = 0;
 
 	while (window_scenery_tab_entries[tabIndex][totalItems] != -1){
-		totalItems++;		
+		totalItems++;
 	}
 
 	int rows = count_rows(totalItems + 8);
@@ -1073,12 +1073,12 @@ void window_scenery_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
 		// -14
-		gfx_draw_string_right(dpi, STR_COST_LABEL, gCommonFormatArgs, 0,
+		gfx_draw_string_right(dpi, STR_COST_LABEL, gCommonFormatArgs, COLOUR_BLACK,
 			w->x + w->width - 0x1A, w->y + w->height - 13);
 	}
 
 	set_format_arg(0, rct_string_id, sceneryEntry->name);
-	gfx_draw_string_left_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, 0,
+	gfx_draw_string_left_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, COLOUR_BLACK,
 		w->x + 3, w->y + w->height - 13, w->width - 19);
 }
 
@@ -1147,7 +1147,7 @@ void window_scenery_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scrol
 					gfx_draw_sprite(&clipdpi, imageId, 0x2F, (sceneryEntry->wall.height * 2) + 0x32,
 						tertiaryColour);
 
-					imageId = (sceneryEntry->image + 0x40000006) | ((gWindowSceneryPrimaryColour + 0x70) << 19);
+					imageId = (sceneryEntry->image + 0x40000006) | (GlassPaletteIds[gWindowSceneryPrimaryColour] << 19);
 					gfx_draw_sprite(&clipdpi, imageId, 0x2F, (sceneryEntry->wall.height * 2) + 0x32,
 						tertiaryColour);
 				}
@@ -1202,7 +1202,7 @@ void window_scenery_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scrol
 
 				if (sceneryEntry->small_scenery.flags & SMALL_SCENERY_FLAG_HAS_GLASS) {
 					imageId = ((sceneryEntry->image + gWindowSceneryRotation) + 0x40000004) +
-						((gWindowSceneryPrimaryColour + 0x70) << 19);
+						(GlassPaletteIds[gWindowSceneryPrimaryColour] << 19);
 
 					gfx_draw_sprite(&clipdpi, imageId, 0x20, spriteTop, w->colours[1]);
 				}

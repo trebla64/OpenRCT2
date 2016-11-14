@@ -22,13 +22,6 @@ extern "C"
     #include "../localisation/localisation.h"
 }
 
-enum OBJ_STRING_ID
-{
-    OBJ_STRING_ID_SCENARIO_NAME,
-    OBJ_STRING_ID_PARK_NAME,
-    OBJ_STRING_ID_SCENARIO_DETAILS,
-};
-
 void StexObject::ReadLegacy(IReadObjectContext * context, IStream * stream)
 {
     stream->Seek(6, STREAM_SEEK_CURRENT);
@@ -64,7 +57,7 @@ void StexObject::DrawPreview(rct_drawpixelinfo * dpi, sint32 width, sint32 heigh
     // Write (no image)
     sint32 x = width / 2;
     sint32 y = height / 2;
-    gfx_draw_string_centred(dpi, STR_WINDOW_NO_IMAGE, x, y, 0, nullptr);
+    gfx_draw_string_centred(dpi, STR_WINDOW_NO_IMAGE, x, y, COLOUR_BLACK, nullptr);
 }
 
 const utf8 * StexObject::GetName() const

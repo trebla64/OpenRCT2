@@ -167,7 +167,7 @@ void console_draw(rct_drawpixelinfo *dpi)
 
 	// Background
 	console_invalidate();
-	gfx_fill_rect(dpi, _consoleLeft, _consoleTop, _consoleRight, _consoleBottom, 0x2000000 | 56);
+	gfx_filter_rect(dpi, _consoleLeft, _consoleTop, _consoleRight, _consoleBottom, PALETTE_TRANSLUCENT_LIGHT_BLUE_HIGHLIGHT);
 
 	int x = _consoleLeft + 4;
 	int y = _consoleTop + 4;
@@ -207,7 +207,7 @@ void console_draw(rct_drawpixelinfo *dpi)
 		memcpy(lineCh, ch, lineLength);
 		lineCh[lineLength] = 0;
 
-		gfx_draw_string(dpi, lineBuffer, 100, x, y);	  //Value 100 outlines the letters
+		gfx_draw_string(dpi, lineBuffer, COLOUR_LIGHT_PURPLE | COLOUR_FLAG_OUTLINE | COLOUR_FLAG_INSET, x, y);
 
 		x = gLastDrawStringX;
 
@@ -477,7 +477,7 @@ static int cc_rides(const utf8 **argv, int argc)
 				bool int_valid[2] = { 0 };
 				int ride_index = console_parse_int(argv[2], &int_valid[0]);
 				int friction = console_parse_int(argv[3], &int_valid[1]);
-					
+
 				if (ride_index < 0) {
 					console_printf("Ride index must not be negative");
 				} else if (!int_valid[0] || !int_valid[1]) {
@@ -496,7 +496,7 @@ static int cc_rides(const utf8 **argv, int argc)
 								vehicle->friction=friction;
 								vehicle_index=vehicle->next_vehicle_on_train;
 							}
-						}			
+						}
 					}
 				}
 			}
@@ -528,7 +528,7 @@ static int cc_staff(const utf8 **argv, int argc)
 				bool int_valid[3] = { 0 };
 				int_val[0] = console_parse_int(argv[2], &int_valid[0]);
 				int_val[1] = console_parse_int(argv[3], &int_valid[1]);
-				
+
 				if (int_valid[0] && int_valid[1] && ((GET_PEEP(int_val[0])) != NULL)) {
 					rct_peep *peep = GET_PEEP(int_val[0]);
 

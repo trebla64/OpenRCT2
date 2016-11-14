@@ -189,10 +189,10 @@ void window_dropdown_show_text_custom_width(int x, int y, int extray, uint8 colo
 		window_dropdown_widgets[WIDX_BACKGROUND].bottom + 1,
 		&window_dropdown_events,
 		WC_DROPDOWN,
-		0x02
+		WF_STICK_TO_FRONT
 	);
 	w->widgets = window_dropdown_widgets;
-	if (colour & 0x80)
+	if (colour & COLOUR_FLAG_TRANSLUCENT)
 		w->flags |= WF_TRANSPARENT;
 	w->colours[0] = colour;
 
@@ -260,7 +260,7 @@ void window_dropdown_show_image(int x, int y, int extray, uint8 colour, uint8 fl
 		WF_STICK_TO_FRONT
 	);
 	w->widgets = window_dropdown_widgets;
-	if (colour & 0x80)
+	if (colour & COLOUR_FLAG_TRANSLUCENT)
 		w->flags |= WF_TRANSPARENT;
 	w->colours[0] = colour;
 
@@ -297,8 +297,9 @@ static void window_dropdown_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			b = t;
 
 			if (w->colours[0] & COLOUR_FLAG_TRANSLUCENT) {
-				gfx_fill_rect(dpi, l, t, r, b, (_9DEDF4[w->colours[0]] | 0x02000000) + 1);
-				gfx_fill_rect(dpi, l, t + 1, r, b + 1, (_9DEDF4[w->colours[0]] | 0x02000000) + 2);
+				translucent_window_palette palette = TranslucentWindowPalettes[BASE_COLOUR(w->colours[0])];
+				gfx_filter_rect(dpi, l, t, r, b, palette.highlight);
+				gfx_filter_rect(dpi, l, t + 1, r, b + 1, palette.shadow);
 			} else {
 				gfx_fill_rect(dpi, l, t, r, b, ColourMapA[w->colours[0]].mid_dark);
 				gfx_fill_rect(dpi, l, t + 1, r, b + 1, ColourMapA[w->colours[0]].lightest);
@@ -310,7 +311,7 @@ static void window_dropdown_paint(rct_window *w, rct_drawpixelinfo *dpi)
 				t = w->y + 2 + (cell_y * _dropdown_item_height);
 				r = l + _dropdown_item_width - 1;
 				b = t + _dropdown_item_height - 1;
-				gfx_fill_rect(dpi, l, t, r, b, 0x2000000 | 0x2F);
+				gfx_filter_rect(dpi, l, t, r, b, PALETTE_DARKEN_3);
 			}
 
 			item = gDropdownItemsFormat[i];
@@ -337,10 +338,10 @@ static void window_dropdown_paint(rct_window *w, rct_drawpixelinfo *dpi)
 				// Calculate colour
 				colour = NOT_TRANSLUCENT(w->colours[0]);
 				if (i == highlightedIndex)
-					colour = 2;
+					colour = COLOUR_WHITE;
 				if (dropdown_is_disabled(i))
 					if (i < 64)
-						colour = NOT_TRANSLUCENT(w->colours[0]) | 0x40;
+						colour = NOT_TRANSLUCENT(w->colours[0]) | COLOUR_FLAG_INSET;
 
 				// Draw item string
 				gfx_draw_string_left_clipped(

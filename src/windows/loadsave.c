@@ -409,7 +409,7 @@ static void window_loadsave_textinput(rct_window *w, int widgetIndex, char *text
 
 			safe_strcpy(path, _directory, sizeof(path));
 			safe_strcat_path(path, text, sizeof(path));
-			
+
 			if (!platform_ensure_directory_exists(path)) {
 				window_error_open(STR_UNABLE_TO_CREATE_FOLDER, STR_NONE);
 				return;
@@ -457,8 +457,8 @@ static void window_loadsave_textinput(rct_window *w, int widgetIndex, char *text
 				window_loadsave_select(w, path);
 			break;
 	}
-	
-	
+
+
 }
 
 static void window_loadsave_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
@@ -488,14 +488,14 @@ static void window_loadsave_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	safe_strcpy(ch, _shortenedDirectory, sizeof(buffer) - (ch - buffer));
 
 	// Draw shadow
-	gfx_draw_string(dpi, buffer, 0, w->x + 4, w->y + 20);
+	gfx_draw_string(dpi, buffer, COLOUR_BLACK, w->x + 4, w->y + 20);
 	rct_string_id id = STR_NONE;
 	// Name button text
 	if (gConfigGeneral.load_save_sort == SORT_NAME_ASCENDING)
 		id = STR_UP;
 	else if (gConfigGeneral.load_save_sort == SORT_NAME_DESCENDING)
 		id = STR_DOWN;
-	gfx_draw_string_centred_clipped(dpi, STR_NAME, &id, 1, w->x + 4 + (w->width - 8) / 4, w->y + 50, (w->width - 8) / 2);
+	gfx_draw_string_centred_clipped(dpi, STR_NAME, &id, COLOUR_GREY, w->x + 4 + (w->width - 8) / 4, w->y + 50, (w->width - 8) / 2);
 	// Date button text
 	if (gConfigGeneral.load_save_sort == SORT_DATE_ASCENDING)
 		id = STR_UP;
@@ -503,7 +503,7 @@ static void window_loadsave_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		id = STR_DOWN;
 	else
 		id = STR_NONE;
-	gfx_draw_string_centred_clipped(dpi, STR_DATE, &id, 1, w->x + 4 + (w->width - 8) * 3 / 4, w->y + 50, (w->width - 8) / 2);
+	gfx_draw_string_centred_clipped(dpi, STR_DATE, &id, COLOUR_GREY, w->x + 4 + (w->width - 8) * 3 / 4, w->y + 50, (w->width - 8) / 2);
 }
 
 static void window_loadsave_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scrollIndex)
@@ -524,12 +524,12 @@ static void window_loadsave_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, i
 		stringId = STR_BLACK_STRING;
 		if (i == w->selected_list_item) {
 			stringId = STR_WINDOW_COLOUR_2_STRINGID;
-			gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x2000031);
+			gfx_filter_rect(dpi, 0, y, 800, y + 9, PALETTE_DARKEN_1);
 		}
 
 		set_format_arg(0, rct_string_id, STR_STRING);
 		set_format_arg(2, char*, _listItems[i].name);
-		gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, 0, 0, y - 1);
+		gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, COLOUR_BLACK, 0, y - 1);
 	}
 }
 
@@ -965,13 +965,13 @@ static void window_overwrite_prompt_invalidate(rct_window *w)
 static void window_overwrite_prompt_paint(rct_window *w, rct_drawpixelinfo *dpi)
 {
 	window_draw_widgets(w, dpi);
-	
+
 	set_format_arg(0, rct_string_id, STR_STRING);
 	set_format_arg(2, char *, _window_overwrite_prompt_name);
 
 	int x = w->x + w->width / 2;
 	int y = w->y + (w->height / 2) - 3;
-	gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, w->width - 4, STR_FILEBROWSER_OVERWRITE_PROMPT, 0);
+	gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, w->width - 4, STR_FILEBROWSER_OVERWRITE_PROMPT, COLOUR_BLACK);
 }
 
 

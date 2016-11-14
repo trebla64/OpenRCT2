@@ -412,7 +412,7 @@ static void widget_text_unknown(rct_drawpixelinfo *dpi, rct_window *w, int widge
 
 	if (widget->type == WWT_13) {
 		if (widget_is_disabled(w, widgetIndex))
-			colour |= 0x40;
+			colour |= COLOUR_FLAG_INSET;
 		gfx_draw_string_left_clipped(
 			dpi,
 			stringId,
@@ -425,7 +425,7 @@ static void widget_text_unknown(rct_drawpixelinfo *dpi, rct_window *w, int widge
 	} else {
 		colour &= ~(1 << 7);
 		if (widget_is_disabled(w, widgetIndex))
-			colour |= 0x40;
+			colour |= COLOUR_FLAG_INSET;
 		gfx_draw_string_centred_clipped(
 			dpi,
 			stringId,
@@ -460,7 +460,7 @@ static void widget_text(rct_drawpixelinfo *dpi, rct_window *w, int widgetIndex)
 		return;
 
 	if (widget_is_disabled(w, widgetIndex))
-		colour |= 0x40;
+		colour |= COLOUR_FLAG_INSET;
 	gfx_draw_string_left_clipped(dpi, widget->text, gCommonFormatArgs, colour, l + 1, t, r - l);
 }
 
@@ -599,7 +599,7 @@ static void widget_caption_draw(rct_drawpixelinfo *dpi, rct_window *w, int widge
 	if (colour == 0)
 		gfx_fill_rect(dpi, l + 1, t + 1, r - 1, b - 1, ColourMapA[colour].dark);
 	else
-		gfx_fill_rect(dpi, l + 1, t + 1, r - 1, b - 1, 0x2000000 | 47);
+		gfx_filter_rect(dpi, l + 1, t + 1, r - 1, b - 1, PALETTE_DARKEN_3);
 
 	// Draw text
 	if (widget->text == STR_NONE)
@@ -614,7 +614,7 @@ static void widget_caption_draw(rct_drawpixelinfo *dpi, rct_window *w, int widge
 			width -= 10;
 	}
 	l += width / 2;
-	gfx_draw_string_centred_clipped(dpi, widget->text, gCommonFormatArgs, 34, l, t, width);
+	gfx_draw_string_centred_clipped(dpi, widget->text, gCommonFormatArgs, COLOUR_WHITE | COLOUR_FLAG_OUTLINE, l, t, width);
 }
 
 /**
@@ -652,7 +652,7 @@ static void widget_closebox_draw(rct_drawpixelinfo *dpi, rct_window *w, int widg
 	t = w->y + max(widget->top, (widget->top + widget->bottom) / 2 - 5);
 
 	if (widget_is_disabled(w, widgetIndex))
-		colour |= 0x40;
+		colour |= COLOUR_FLAG_INSET;
 
 	gfx_draw_string_centred_clipped(dpi, widget->text, gCommonFormatArgs, colour, l, t, widget->right - widget->left - 2);
 }
@@ -682,7 +682,7 @@ static void widget_checkbox_draw(rct_drawpixelinfo *dpi, rct_window *w, int widg
 		// fill it when checkbox is pressed
 		if (widget_is_pressed(w, widgetIndex)) {
 			gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
-			gfx_draw_string(dpi, (char*)CheckBoxMarkString, colour & 0x7F, l, yMid - 5);
+			gfx_draw_string(dpi, (char*)CheckBoxMarkString, NOT_TRANSLUCENT(colour), l, yMid - 5);
 		}
 	}
 
@@ -691,7 +691,7 @@ static void widget_checkbox_draw(rct_drawpixelinfo *dpi, rct_window *w, int widg
 		return;
 
 	if (widget_is_disabled(w, widgetIndex)) {
-		colour |= 0x40;
+		colour |= COLOUR_FLAG_INSET;
 	}
 
 	gfx_draw_string_left_centred(dpi, widget->text, gCommonFormatArgs, colour, l + 14, yMid);
@@ -781,7 +781,7 @@ static void widget_hscrollbar_draw(rct_drawpixelinfo *dpi, rct_scroll *scroll, i
 
 	// Left button
 	gfx_fill_rect_inset(dpi, l, t, l + 9, b, colour, (scroll->flags & HSCROLLBAR_LEFT_PRESSED ? INSET_RECT_FLAG_BORDER_INSET : 0));
-	gfx_draw_string(dpi, (char*)BlackLeftArrowString, 0, l + 1, t);
+	gfx_draw_string(dpi, (char*)BlackLeftArrowString, COLOUR_BLACK, l + 1, t);
 
 	// Thumb
 	gfx_fill_rect_inset(dpi,
@@ -791,7 +791,7 @@ static void widget_hscrollbar_draw(rct_drawpixelinfo *dpi, rct_scroll *scroll, i
 
 	// Right button
 	gfx_fill_rect_inset(dpi, r - 9, t, r, b, colour, (scroll->flags & HSCROLLBAR_RIGHT_PRESSED ? INSET_RECT_FLAG_BORDER_INSET : 0));
-	gfx_draw_string(dpi, (char*)BlackRightArrowString, 0, r - 6, t);
+	gfx_draw_string(dpi, (char*)BlackRightArrowString, COLOUR_BLACK, r - 6, t);
 }
 
 static void widget_vscrollbar_draw(rct_drawpixelinfo *dpi, rct_scroll *scroll, int l, int t, int r, int b, int colour)
@@ -807,7 +807,7 @@ static void widget_vscrollbar_draw(rct_drawpixelinfo *dpi, rct_scroll *scroll, i
 
 	// Up button
 	gfx_fill_rect_inset(dpi, l, t, r, t + 9, colour, (scroll->flags & VSCROLLBAR_UP_PRESSED ? INSET_RECT_FLAG_BORDER_INSET : 0));
-	gfx_draw_string(dpi, (char*)BlackUpArrowString, 0, l + 1, t - 1);
+	gfx_draw_string(dpi, (char*)BlackUpArrowString, COLOUR_BLACK, l + 1, t - 1);
 
 	// Thumb
 	gfx_fill_rect_inset(dpi,
@@ -817,7 +817,7 @@ static void widget_vscrollbar_draw(rct_drawpixelinfo *dpi, rct_scroll *scroll, i
 
 	// Down button
 	gfx_fill_rect_inset(dpi, l, b - 9, r, b, colour, (scroll->flags & VSCROLLBAR_DOWN_PRESSED ? INSET_RECT_FLAG_BORDER_INSET : 0));
-	gfx_draw_string(dpi, (char*)BlackDownArrowString, 0, l + 1, b - 9);
+	gfx_draw_string(dpi, (char*)BlackDownArrowString, COLOUR_BLACK, l + 1, b - 9);
 }
 
 /**
