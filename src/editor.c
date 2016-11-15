@@ -113,6 +113,7 @@ void editor_load()
 	mainWindow->flags &= ~WF_SCROLLING_TO_LOCATION;
 	load_palette();
 	gfx_invalidate_screen();
+	window_tile_inspector_clear_clipboard();
 	gScreenAge = 0;
 
 	safe_strcpy(gScenarioName, language_get_string(STR_MY_NEW_SCENARIO), 64);
@@ -197,6 +198,7 @@ void trackdesigner_load()
 	mainWindow->flags &= ~WF_SCROLLING_TO_LOCATION;
 	load_palette();
 	gfx_invalidate_screen();
+	window_tile_inspector_clear_clipboard();
 }
 
 /**
@@ -237,6 +239,7 @@ void trackmanager_load()
 	mainWindow->flags &= ~WF_SCROLLING_TO_LOCATION;
 	load_palette();
 	gfx_invalidate_screen();
+	window_tile_inspector_clear_clipboard();
 }
 
 /**
@@ -258,17 +261,18 @@ bool editor_load_landscape(const utf8 *path)
 {
 	window_close_construction_windows();
 
-	char *extension = strrchr(path, '.');
-	if (extension != NULL) {
-		if (_stricmp(extension, ".sv4") == 0) {
-			return editor_load_landscape_from_sv4(path);
-		} else if (_stricmp(extension, ".sc4") == 0) {
+	uint32 extension = get_file_extension_type(path);
+	switch (extension) {
+		case FILE_EXTENSION_SC6:
+		case FILE_EXTENSION_SV6:
+			return editor_read_s6(path);
+		case FILE_EXTENSION_SC4:
 			return editor_load_landscape_from_sc4(path);
-		}
+		case FILE_EXTENSION_SV4:
+			return editor_load_landscape_from_sv4(path);
+		default:
+			return 0;
 	}
-
-	// Load SC6 / SV6
-	return editor_read_s6(path);
 }
 
 /**
@@ -483,6 +487,7 @@ static void editor_finalise_main_view()
 	gWindowUpdateTicks = 0;
 	load_palette();
 	gfx_invalidate_screen();
+	window_tile_inspector_clear_clipboard();
 }
 
 /**
