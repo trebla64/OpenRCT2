@@ -450,9 +450,10 @@ static void window_scenarioselect_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 static void window_scenarioselect_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scrollIndex)
 {
-	int colour = ColourMapA[w->colours[1]].mid_light;
-	colour = (colour << 24) | (colour << 16) | (colour << 8) | colour;
-	gfx_clear(dpi, colour);
+	int colour;
+
+	uint8 paletteIndex = ColourMapA[w->colours[1]].mid_light;
+	gfx_clear(dpi, paletteIndex);
 
 	rct_string_id highlighted_format = (theme_get_flags() & UITHEME_FLAG_USE_ALTERNATIVE_SCENARIO_SELECT_FONT) ? STR_WHITE_STRING : STR_WINDOW_COLOUR_2_STRINGID;
 	rct_string_id unhighlighted_format = (theme_get_flags() & UITHEME_FLAG_USE_ALTERNATIVE_SCENARIO_SELECT_FONT) ? STR_WHITE_STRING : STR_BLACK_STRING;
@@ -493,7 +494,7 @@ static void window_scenarioselect_scrollpaint(rct_window *w, rct_drawpixelinfo *
 			set_format_arg(2, char *, buffer);
 			colour = isDisabled ? w->colours[1] | COLOUR_FLAG_INSET : COLOUR_BLACK;
 			if (isDisabled) {
-				gCurrentFontSpriteBase = -1;
+				gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM_DARK;
 			}
 			gfx_draw_string_centred(dpi, format, wide ? 270 : 210, y + 1, colour, gCommonFormatArgs);
 

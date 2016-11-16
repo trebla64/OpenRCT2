@@ -1399,9 +1399,8 @@ static void window_editor_object_selection_scrollpaint(rct_window *w, rct_drawpi
 
 	bool ridePage = (w->selected_tab == WINDOW_OBJECT_SELECTION_PAGE_RIDE_VEHICLES_ATTRACTIONS);
 
-	colour = ColourMapA[w->colours[1]].mid_light;
-	colour = (colour << 24) | (colour << 16) | (colour << 8) | colour;
-	gfx_clear(dpi, colour);
+	uint8 paletteIndex = ColourMapA[w->colours[1]].mid_light;
+	gfx_clear(dpi, paletteIndex);
 
 	y = 0;
 	for (i = 0; i < _numListItems; i++) {
@@ -1422,7 +1421,7 @@ static void window_editor_object_selection_scrollpaint(rct_window *w, rct_drawpi
 			// Draw checkmark
 			if (!(gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER) && (*listItem->flags & OBJECT_SELECTION_FLAG_SELECTED)) {
 				x = 2;
-				gCurrentFontSpriteBase = colour == COLOUR_BRIGHT_GREEN ? -2 : -1;
+				gCurrentFontSpriteBase = colour == COLOUR_BRIGHT_GREEN ? FONT_SPRITE_BASE_MEDIUM_EXTRA_DARK : FONT_SPRITE_BASE_MEDIUM_DARK;
 				colour2 = NOT_TRANSLUCENT(w->colours[1]);
 				if (*listItem->flags & (OBJECT_SELECTION_FLAG_IN_USE | OBJECT_SELECTION_FLAG_ALWAYS_REQUIRED))
 					colour2 |= COLOUR_FLAG_INSET;
@@ -1436,7 +1435,7 @@ static void window_editor_object_selection_scrollpaint(rct_window *w, rct_drawpi
 			char *buffer = utf8_write_codepoint(bufferWithColour, colour);
 			if (*listItem->flags & OBJECT_SELECTION_FLAG_6) {
 				colour = w->colours[1] & 0x7F;
-				gCurrentFontSpriteBase = -1;
+				gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM_DARK;
 			}
 			else {
 				colour = COLOUR_BLACK;

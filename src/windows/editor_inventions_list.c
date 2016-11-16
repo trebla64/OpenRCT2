@@ -834,7 +834,6 @@ static void window_editor_inventions_list_paint(rct_window *w, rct_drawpixelinfo
  */
 static void window_editor_inventions_list_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scrollIndex)
 {
-	uint32 colour;
 	rct_research_item *researchItem;
 	int left, top, bottom, itemY, disableItemMovement;
 	sint32 researchItemEndMarker;
@@ -842,9 +841,8 @@ static void window_editor_inventions_list_scrollpaint(rct_window *w, rct_drawpix
 	utf8 buffer[256], *ptr;
 
 	// Draw background
-	colour = ColourMapA[w->colours[1]].mid_light;
-	colour = (colour << 24) | (colour << 16) | (colour << 8) | colour;
-	gfx_clear(dpi, colour);
+	uint8 paletteIndex = ColourMapA[w->colours[1]].mid_light;
+	gfx_clear(dpi, paletteIndex);
 
 	researchItem = gResearchItems;
 
@@ -898,9 +896,9 @@ static void window_editor_inventions_list_scrollpaint(rct_window *w, rct_drawpix
 		format_string(ptr, 256, stringId, NULL);
 
 		if (disableItemMovement) {
-			gCurrentFontSpriteBase = -1;
+			gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM_DARK;
 			if (colour == COLOUR_BRIGHT_GREEN && _editorInventionsListDraggedItem == NULL) {
-				gCurrentFontSpriteBase = -2;
+				gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM_EXTRA_DARK;
 			}
 			colour = COLOUR_FLAG_INSET | w->colours[1];
 		} else {

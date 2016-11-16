@@ -800,7 +800,7 @@ void window_themes_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scroll
 
 	if ((w->colours[1] & 0x80) == 0)
 		//gfx_fill_rect(dpi, dpi->x, dpi->y, dpi->x + dpi->width - 1, dpi->y + dpi->height - 1, ColourMapA[w->colours[1]].mid_light);
-		gfx_clear(dpi, ColourMapA[w->colours[1]].mid_light * 0x1010101);
+		gfx_clear(dpi, ColourMapA[w->colours[1]].mid_light);
 	y = 0;
 	for (int i = 0; i < get_colour_scheme_tab_count(); i++) {
 		if (y > dpi->y + dpi->height) {
@@ -837,7 +837,7 @@ void window_themes_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scroll
 
 				gfx_fill_rect_inset(dpi, _button_offset_x + 12 * j, y + _check_offset_y, _button_offset_x + 12 * j + 9, y + _check_offset_y + 10, w->colours[1], INSET_RECT_F_E0);
 				if (colour & COLOUR_FLAG_TRANSLUCENT) {
-					gCurrentFontSpriteBase = -1;
+					gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM_DARK;
 					gfx_draw_string(dpi, (char*)CheckBoxMarkString, w->colours[1] & 0x7F, _button_offset_x + 12 * j, y + _check_offset_y);
 				}
 
