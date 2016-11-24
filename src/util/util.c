@@ -18,6 +18,7 @@
 #include "../common.h"
 
 #include <SDL.h>
+#include "../core/Guard.hpp"
 #include "../localisation/localisation.h"
 #include "../platform/platform.h"
 #include "util.h"
@@ -65,22 +66,22 @@ bool filename_valid_characters(const utf8 *filename)
 utf8 *path_get_directory(const utf8 *path)
 {
 	// Find the last slash or backslash in the path
-	char *filename = strrchr(path, platform_get_path_separator());
-	
+	char *filename = strrchr(path, *PATH_SEPARATOR);
+
 	// If the path is invalid (e.g. just a file name), return NULL
 	if (filename == NULL)
 		return NULL;
-	
+
 	char *directory = _strdup(path);
 	safe_strtrunc(directory, strlen(path) - strlen(filename) + 2);
-	
+
 	return directory;
 }
-	
+
 const char *path_get_filename(const utf8 *path)
 {
 	// Find last slash or backslash in the path
-	char *filename = strrchr(path, platform_get_path_separator());
+	char *filename = strrchr(path, *PATH_SEPARATOR);
 
 	// Checks if the path is valid (e.g. not just a file name)
 	if (filename == NULL)
@@ -112,24 +113,23 @@ const char *path_get_extension(const utf8 *path)
 	return extension;
 }
 
-void path_set_extension(utf8 *path, const utf8 *newExtension)
+void path_set_extension(utf8 *path, const utf8 *newExtension, size_t size)
 {
 	// Remove existing extension (check first if there is one)
 	if (path_get_extension(path) < strrchr(path, '\0'))
 		path_remove_extension(path);
 	// Append new extension
-	path_append_extension(path, newExtension);
+	path_append_extension(path, newExtension, size);
 }
 
-void path_append_extension(utf8 *path, const utf8 *newExtension)
+void path_append_extension(utf8 *path, const utf8 *newExtension, size_t size)
 {
 	// Append a dot to the filename if the new extension doesn't start with it
-	char *endOfString = strrchr(path, '\0');
 	if (newExtension[0] != '.')
-		*endOfString++ = '.';
+		safe_strcat(path, ".", size);
 
 	// Append the extension to the path
-	safe_strcpy(endOfString, newExtension, MAX_PATH - (endOfString - path) - 1);
+	safe_strcat(path, newExtension, size);
 }
 
 void path_remove_extension(utf8 *path)
@@ -142,10 +142,18 @@ void path_remove_extension(utf8 *path)
 		log_warning("No extension found. (path = %s)", path);
 }
 
-bool readentirefile(const utf8 *path, void **outBuffer, int *outLength)
+void path_end_with_separator(utf8 *path, size_t size) {
+	size_t length = strnlen(path, size);
+	if (length >= size - 1) return;
+
+	if (path[length - 1] != *PATH_SEPARATOR)
+		safe_strcat(path, PATH_SEPARATOR, size);
+}
+
+bool readentirefile(const utf8 *path, void **outBuffer, size_t *outLength)
 {
 	SDL_RWops *fp;
-	int fpLength;
+	size_t fpLength;
 	void *fpBuffer;
 
 	// Open file
@@ -154,7 +162,7 @@ bool readentirefile(const utf8 *path, void **outBuffer, int *outLength)
 		return 0;
 
 	// Get length
-	fpLength = (int)SDL_RWsize(fp);
+	fpLength = (size_t)SDL_RWsize(fp);
 
 	// Read whole file into a buffer
 	fpBuffer = malloc(fpLength);
@@ -188,15 +196,74 @@ int bitscanforward(int source)
 	#endif
 }
 
-int bitcount(int source)
+#if defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+	#include <cpuid.h>
+	#define OpenRCT2_POPCNT_GNUC
+#elif defined(_MSC_VER) && (_MSC_VER >= 1500) && (defined(_M_X64) || defined(_M_IX86)) // VS2008
+	#include <nmmintrin.h>
+	#define OpenRCT2_POPCNT_MSVC
+#endif
+
+static bool bitcount_popcnt_available()
 {
-	int result = 0;
-	for (int i = 0; i < 32; i++) {
-		if (source & (1u << i)) {
-			result++;
-		}
-	}
-	return result;
+	// POPCNT support is declared as the 23rd bit of ECX with CPUID(EAX = 1).
+	#if defined(OpenRCT2_POPCNT_GNUC)
+		// we could use __builtin_cpu_supports, but it requires runtime support from
+		// the compiler's library, which clang doesn't have yet.
+		unsigned int eax, ebx, ecx = 0, edx; // avoid "maybe uninitialized"
+		__get_cpuid(1, &eax, &ebx, &ecx, &edx);
+		return (ecx & (1 << 23));
+	#elif defined(OpenRCT2_POPCNT_MSVC)
+		int regs[4];
+		__cpuid(regs, 1);
+		return (regs[2] & (1 << 23));
+	#else
+		return false;
+	#endif
+}
+
+static int bitcount_popcnt(uint32 source)
+{
+	#if defined(OpenRCT2_POPCNT_GNUC)
+		// use asm directly in order to actually emit the instruction : using
+		// __builtin_popcount results in an extra call to a library function.
+		int rv;
+		asm volatile ("popcnt %1,%0" : "=r"(rv) : "rm"(source) : "cc");
+		return rv;
+	#elif defined(OpenRCT2_POPCNT_MSVC)
+		return _mm_popcnt_u32(source);
+	#else
+		openrct2_assert(false, "bitcount_popcnt() called, without support compiled in");
+		return INT_MAX;
+	#endif
+}
+
+static int bitcount_lut(uint32 source)
+{
+	// https://graphics.stanford.edu/~seander/bithacks.html
+	static const unsigned char BitsSetTable256[256] =
+	{
+	#define B2(n) n,     n+1,     n+1,     n+2
+	#define B4(n) B2(n), B2(n+1), B2(n+1), B2(n+2)
+	#define B6(n) B4(n), B4(n+1), B4(n+1), B4(n+2)
+	B6(0), B6(1), B6(1), B6(2)
+	};
+	return BitsSetTable256[source & 0xff] +
+		BitsSetTable256[(source >> 8) & 0xff] +
+		BitsSetTable256[(source >> 16) & 0xff] +
+		BitsSetTable256[source >> 24];
+}
+
+static int(*bitcount_fn)(uint32);
+
+void bitcount_init()
+{
+	bitcount_fn = bitcount_popcnt_available() ? bitcount_popcnt : bitcount_lut;
+}
+
+int bitcount(uint32 source)
+{
+	return bitcount_fn(source);
 }
 
 bool strequals(const char *a, const char *b, int length, bool caseInsensitive)
@@ -252,7 +319,7 @@ utf8 * safe_strtrunc(utf8 * text, size_t size)
 	assert(text != NULL);
 
 	if (size == 0) return text;
-	
+
 	const char *sourceLimit = text + size - 1;
 	char *ch = text;
 	char *last = text;
@@ -338,18 +405,7 @@ char *safe_strcat(char *destination, const char *source, size_t size)
 
 char *safe_strcat_path(char *destination, const char *source, size_t size)
 {
-	const char pathSeparator = platform_get_path_separator();
-
-	size_t length = strnlen(destination, size);
-	if (length >= size - 1) {
-		return destination;
-	}
-
-	if (destination[length - 1] != pathSeparator) {
-		destination[length] = pathSeparator;
-		destination[length + 1] = '\0';
-	}
-
+	path_end_with_separator(destination, size);
 	return safe_strcat(destination, source, size);
 }
 
@@ -403,15 +459,15 @@ uint32 util_rand() {
 unsigned char *util_zlib_inflate(unsigned char *data, size_t data_in_size, size_t *data_out_size)
 {
 	int ret = Z_OK;
-	uLongf out_size = *data_out_size;
+	uLongf out_size = (uLong)*data_out_size;
 	if (out_size == 0)
 	{
 		// Try to guesstimate the size needed for output data by applying the
 		// same ratio it would take to compress data_in_size.
-		out_size = data_in_size * data_in_size / compressBound(data_in_size);
+		out_size = (uLong)data_in_size * (uLong)data_in_size / compressBound((uLong)data_in_size);
 		out_size = min(MAX_ZLIB_REALLOC, out_size);
 	}
-	size_t buffer_size = out_size;
+	uLongf buffer_size = out_size;
 	unsigned char *buffer = malloc(buffer_size);
 	do {
 		if (ret == Z_BUF_ERROR)
@@ -428,7 +484,7 @@ unsigned char *util_zlib_inflate(unsigned char *data, size_t data_in_size, size_
 			free(buffer);
 			return NULL;
 		}
-		ret = uncompress(buffer, &out_size, data, data_in_size);
+		ret = uncompress(buffer, &out_size, data, (uLong)data_in_size);
 	} while (ret != Z_OK);
 	buffer = realloc(buffer, out_size);
 	*data_out_size = out_size;
@@ -446,8 +502,8 @@ unsigned char *util_zlib_inflate(unsigned char *data, size_t data_in_size, size_
 unsigned char *util_zlib_deflate(unsigned char *data, size_t data_in_size, size_t *data_out_size)
 {
 	int ret = Z_OK;
-	uLongf out_size = *data_out_size;
-	size_t buffer_size = compressBound(data_in_size);
+	uLongf out_size = (uLongf)*data_out_size;
+	uLong buffer_size = compressBound((uLong)data_in_size);
 	unsigned char *buffer = malloc(buffer_size);
 	do {
 		if (ret == Z_BUF_ERROR)
@@ -460,7 +516,7 @@ unsigned char *util_zlib_deflate(unsigned char *data, size_t data_in_size, size_
 			free(buffer);
 			return NULL;
 		}
-		ret = compress(buffer, &out_size, data, data_in_size);
+		ret = compress(buffer, &out_size, data, (uLong)data_in_size);
 	} while (ret != Z_OK);
 	*data_out_size = out_size;
 	buffer = realloc(buffer, *data_out_size);

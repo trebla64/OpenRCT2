@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../cheats.h"
 #include "../config.h"
@@ -909,7 +908,7 @@ static bool track_remove_station_element(int x, int y, int z, int direction, int
 			finaliseStationDone = false;
 		}
 	} while (!finaliseStationDone);
-	
+
 	return true;
 }
 
@@ -922,7 +921,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 		return MONEY32_UNDEFINED;
 	}
 	rct_ride_entry *rideEntry = get_ride_entry(ride->subtype);
-	if (rideEntry == (rct_ride_entry *)0xFFFFFFFF || rideEntry == NULL)
+	if (rideEntry == (rct_ride_entry *)-1 || rideEntry == NULL)
 	{
 		log_warning("Invalid ride type for track placement, rideIndex = %d", rideIndex);
 		return MONEY32_UNDEFINED;
@@ -935,9 +934,6 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 	gCommandPosition.z = originZ;
 	sint16 trackpieceZ = originZ;
 	direction &= 3;
-	RCT2_GLOBAL(0x00F441D5, uint32) = properties_1;
-	RCT2_GLOBAL(0x00F441D9, uint32) = properties_2;
-	RCT2_GLOBAL(0x00F441DD, uint32) = properties_3;
 	gTrackGroundFlags = 0;
 
 	uint64 enabledTrackPieces = 0;
@@ -945,15 +941,12 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 	enabledTrackPieces <<= 32;
 	enabledTrackPieces |= rideEntry->enabledTrackPiecesA & gResearchedTrackTypesA[ride->type];
 	uint32 rideTypeFlags = RideProperties[ride->type].flags;
-	RCT2_GLOBAL(0x00F44068, uint32) = rideTypeFlags;
 
 	if ((ride->lifecycle_flags & RIDE_LIFECYCLE_INDESTRUCTIBLE_TRACK) && type == 1) {
 		gGameCommandErrorText = STR_NOT_ALLOWED_TO_MODIFY_STATION;
 		return MONEY32_UNDEFINED;
 	}
-	if (!sub_68B044()) {
-		return MONEY32_UNDEFINED;
-	}
+
 	if (!(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED)) {
 		if (game_is_paused() && !gCheatsBuildInPauseMode) {
 			gGameCommandErrorText = STR_CONSTRUCTION_NOT_POSSIBLE_WHILE_GAME_IS_PAUSED;
@@ -971,7 +964,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 				return MONEY32_UNDEFINED;
 			}
 		} else if (type == TRACK_ELEM_CABLE_LIFT_HILL) {
-			if (ride->lifecycle_flags & RIDE_LIFECYCLE_16) {
+			if (ride->lifecycle_flags & RIDE_LIFECYCLE_CABLE_LIFT_HILL_COMPONENT_USED) {
 				gGameCommandErrorText = STR_ONLY_ONE_CABLE_LIFT_HILL_PER_RIDE;
 				return MONEY32_UNDEFINED;
 			}
@@ -988,7 +981,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 
 	money32 cost = 0;
 	const rct_preview_track *trackBlock = get_track_def_from_ride(ride, type);
-
+	uint32 num_elements = 0;
 	// First check if any of the track pieces are outside the park
 	for (; trackBlock->index != 0xFF; trackBlock++) {
 		int x, y, z, offsetX, offsetY;
@@ -1020,19 +1013,23 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 			gGameCommandErrorText = STR_LAND_NOT_OWNED_BY_PARK;
 			return MONEY32_UNDEFINED;
 		}
+		num_elements++;
 	}
 
+	if (!map_check_free_elements_and_reorganise(num_elements)) {
+		return MONEY32_UNDEFINED;
+	}
 	const uint16 *trackFlags = (rideTypeFlags & RIDE_TYPE_FLAG_FLAT_RIDE) ?
 		FlatTrackFlags :
 		TrackFlags;
 	if (trackFlags[type] & TRACK_ELEM_FLAG_0100) {
 		if ((originZ & 0x0F) != 8) {
-			gGameCommandErrorText = 954;
+			gGameCommandErrorText = STR_CONSTRUCTION_ERR_UNKNOWN;
 			return MONEY32_UNDEFINED;
 		}
 	} else {
 		if ((originZ & 0x0F) != 0) {
-			gGameCommandErrorText = 954;
+			gGameCommandErrorText = STR_CONSTRUCTION_ERR_UNKNOWN;
 			return MONEY32_UNDEFINED;
 		}
 	}
@@ -1142,7 +1139,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 
 		gTrackGroundFlags = bh;
 		if (rideTypeFlags & RIDE_TYPE_FLAG_FLAT_RIDE) {
-			if (FlatTrackFlags[type] & TRACK_ELEM_FLAG_0200) {
+			if (FlatTrackFlags[type] & TRACK_ELEM_FLAG_ONLY_ABOVE_GROUND) {
 				if (gTrackGroundFlags & TRACK_ELEMENT_LOCATION_IS_UNDERGROUND) {
 					gGameCommandErrorText = STR_CAN_ONLY_BUILD_THIS_ABOVE_GROUND;
 					return MONEY32_UNDEFINED;
@@ -1150,7 +1147,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 			}
 		}
 		else {
-			if (TrackFlags[type] & TRACK_ELEM_FLAG_0200) {
+			if (TrackFlags[type] & TRACK_ELEM_FLAG_ONLY_ABOVE_GROUND) {
 				if (gTrackGroundFlags & TRACK_ELEMENT_LOCATION_IS_UNDERGROUND) {
 					gGameCommandErrorText = STR_CAN_ONLY_BUILD_THIS_ABOVE_GROUND;
 					return MONEY32_UNDEFINED;
@@ -1159,7 +1156,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 		}
 
 		if (rideTypeFlags & RIDE_TYPE_FLAG_FLAT_RIDE) {
-			if (FlatTrackFlags[type] & TRACK_ELEM_FLAG_0001) {
+			if (FlatTrackFlags[type] & TRACK_ELEM_FLAG_ONLY_UNDERWATER) {
 				if (!(gMapGroundFlags & ELEMENT_IS_UNDERWATER)) {
 					gGameCommandErrorText = STR_CAN_ONLY_BUILD_THIS_UNDERWATER;
 					return MONEY32_UNDEFINED;
@@ -1167,7 +1164,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 			}
 		}
 		else {
-			if (TrackFlags[type] & TRACK_ELEM_FLAG_0001) { // No element has this flag
+			if (TrackFlags[type] & TRACK_ELEM_FLAG_ONLY_UNDERWATER) { // No element has this flag
 				if (gMapGroundFlags & ELEMENT_IS_UNDERWATER) {
 					gGameCommandErrorText = STR_CAN_ONLY_BUILD_THIS_UNDERWATER;
 					return MONEY32_UNDEFINED;
@@ -1270,7 +1267,7 @@ static money32 track_place(int rideIndex, int type, int originX, int originY, in
 		case TRACK_ELEM_CABLE_LIFT_HILL:
 			if (trackBlock->index != 0)
 				break;
-			ride->lifecycle_flags |= RIDE_LIFECYCLE_16;
+			ride->lifecycle_flags |= RIDE_LIFECYCLE_CABLE_LIFT_HILL_COMPONENT_USED;
 			ride->cable_lift_x = x;
 			ride->cable_lift_y = y;
 			ride->cable_lift_z = baseZ;
@@ -1438,7 +1435,6 @@ static money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 o
 	gCommandPosition.y = originY + 16;
 	gCommandPosition.z = originZ;
 	sint16 trackpieceZ = originZ;
-	RCT2_GLOBAL(0x00F440E1, uint8) = sequence;
 
 	switch (type){
 	case TRACK_ELEM_BEGIN_STATION:
@@ -1500,9 +1496,7 @@ static money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 o
 
 	uint8 rideIndex = mapElement->properties.track.ride_index;
 	type = mapElement->properties.track.type;
-	RCT2_GLOBAL(0x00F44139, uint8) = type;
-	RCT2_GLOBAL(0x00F44138, uint8) = rideIndex;
-	RCT2_GLOBAL(0x00F4414C, uint8) = mapElement->type;
+	bool isLiftHill = track_element_is_lift_hill(mapElement);
 
 	rct_ride* ride = get_ride(rideIndex);
 	const rct_preview_track* trackBlock = get_track_def_from_ride(ride, type);
@@ -1558,8 +1552,6 @@ static money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 o
 		z += trackBlock->z;
 
 		map_invalidate_tile_full(x, y);
-		RCT2_GLOBAL(0x00F441C4, sint16) = x;
-		RCT2_GLOBAL(0x00F441C6, sint16) = y;
 
 		trackpieceZ = z;
 
@@ -1647,7 +1639,7 @@ static money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 o
 			ride->lifecycle_flags &= ~RIDE_LIFECYCLE_ON_RIDE_PHOTO;
 			break;
 		case TRACK_ELEM_CABLE_LIFT_HILL:
-			ride->lifecycle_flags &= ~RIDE_LIFECYCLE_16;
+			ride->lifecycle_flags &= ~RIDE_LIFECYCLE_CABLE_LIFT_HILL_COMPONENT_USED;
 			break;
 		case 216:
 			ride->num_block_brakes--;
@@ -1666,7 +1658,7 @@ static money32 track_remove(uint8 type, uint8 sequence, sint16 originX, sint16 o
 		case TRACK_ELEM_60_DEG_UP_TO_FLAT:
 		case TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT:
 		case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
-			if (!(RCT2_GLOBAL(0x00F4414C, uint8) & (1 << 7)))
+			if (!isLiftHill)
 				break;
 			// Fall through
 		case TRACK_ELEM_CABLE_LIFT_HILL:
@@ -1767,7 +1759,7 @@ static money32 set_maze_track(uint16 x, uint8 flags, uint8 direction, uint16 y, 
 
 	money32 cost = 0;
 
-	if (!sub_68B044()) {
+	if (!map_check_free_elements_and_reorganise(1)) {
 		return MONEY32_UNDEFINED;
 	}
 
@@ -1777,9 +1769,7 @@ static money32 set_maze_track(uint16 x, uint8 flags, uint8 direction, uint16 y, 
 	}
 
 	if ((z & 0xF) != 0) {
-		// ‘Can't construct this here…’
-		// TODO: This string is empty
-		gGameCommandErrorText = 954;
+		gGameCommandErrorText = STR_CONSTRUCTION_ERR_UNKNOWN;
 		return MONEY32_UNDEFINED;
 	}
 
@@ -2132,7 +2122,7 @@ void track_get_front(rct_xy_element *input, rct_xy_element *output)
 
 bool track_element_is_lift_hill(rct_map_element *trackElement)
 {
-	return trackElement->type & 0x80;
+	return trackElement->type & TRACK_ELEMENT_FLAG_CHAIN_LIFT;
 }
 
 /**
@@ -2169,6 +2159,11 @@ void track_element_set_cable_lift(rct_map_element *trackElement) {
 
 void track_element_clear_cable_lift(rct_map_element *trackElement) {
 	trackElement->properties.track.colour &= ~TRACK_ELEMENT_COLOUR_FLAG_CABLE_LIFT;
+}
+
+bool track_element_is_inverted(rct_map_element *trackElement)
+{
+	return trackElement->properties.track.colour & TRACK_ELEMENT_COLOUR_FLAG_INVERTED;
 }
 
 int track_get_actual_bank(rct_map_element *mapElement, int bank)

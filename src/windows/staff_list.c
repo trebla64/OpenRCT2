@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../drawing/drawing.h"
@@ -212,22 +211,12 @@ void window_staff_list_close(rct_window *w)
 */
 static void window_staff_list_mouseup(rct_window *w, int widgetIndex)
 {
-	uint16 newStaffId;
-
 	switch (widgetIndex) {
 	case WIDX_STAFF_LIST_CLOSE:
 		window_close(w);
 		break;
 	case WIDX_STAFF_LIST_HIRE_BUTTON:
-		newStaffId = hire_new_staff_member(_windowStaffListSelectedTab);
-
-		if (newStaffId == 0xFFFF) {
-			rct_window* window = window_find_by_class(WC_STAFF_LIST);
-			window_invalidate(window);
-		} else {
-			window_staff_open(&get_sprite(newStaffId)->peep);
-		}
-
+		hire_new_staff_member(_windowStaffListSelectedTab);
 		break;
 	case WIDX_STAFF_LIST_SHOW_PATROL_AREA_BUTTON:
 		if (!tool_set(w, WIDX_STAFF_LIST_SHOW_PATROL_AREA_BUTTON, 12)) {
@@ -287,7 +276,7 @@ static void window_staff_list_mousedown(int widgetIndex, rct_window* w, rct_widg
 		window_staff_list_cancel_tools(w);
 		break;
 	case WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER:
-		window_dropdown_show_colour(w, widget, w->colours[1], gStaffColours[_windowStaffListSelectedTab]);
+		window_dropdown_show_colour(w, widget, w->colours[1], staff_get_colour(_windowStaffListSelectedTab));
 		break;
 	}
 
@@ -482,7 +471,7 @@ void window_staff_list_scrollmouseover(rct_window *w, int scrollIndex, int x, in
 */
 void window_staff_list_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	set_format_arg(0, uint16, STR_LIST);
+	set_format_arg(0, rct_string_id, STR_LIST);
 }
 
 /**
@@ -504,7 +493,7 @@ void window_staff_list_invalidate(rct_window *w)
 	if (tabIndex < 3) {
 		window_staff_list_widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].type = WWT_COLOURBTN;
 		window_staff_list_widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].image =
-			((uint32)gStaffColours[tabIndex] << 19) | 0x60000000 | SPR_PALETTE_BTN;
+			((uint32)staff_get_colour(tabIndex) << 19) | 0x60000000 | SPR_PALETTE_BTN;
 	}
 	if (_quick_fire_mode)
 		w->pressed_widgets |= (1ULL << WIDX_STAFF_LIST_QUICK_FIRE);
@@ -597,11 +586,11 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
 		set_format_arg(0, money32, wage_table[selectedTab]);
-		gfx_draw_string_left(dpi, STR_COST_PER_MONTH, gCommonFormatArgs, 0, w->x + w->width - 155, w->y + 0x20);
+		gfx_draw_string_left(dpi, STR_COST_PER_MONTH, gCommonFormatArgs, COLOUR_BLACK, w->x + w->width - 155, w->y + 0x20);
 	}
 
 	if (selectedTab < 3) {
-		gfx_draw_string_left(dpi, STR_UNIFORM_COLOUR, w, 0, w->x + 6, window_staff_list_widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].top + w->y + 1);
+		gfx_draw_string_left(dpi, STR_UNIFORM_COLOUR, w, COLOUR_BLACK, w->x + 6, window_staff_list_widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].top + w->y + 1);
 	}
 
 	int staffTypeStringId = StaffNamingConvention[selectedTab].plural;
@@ -611,9 +600,9 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	}
 
 	set_format_arg(0, uint16, _window_staff_list_selected_type_count);
-	set_format_arg(2, uint16, staffTypeStringId);
+	set_format_arg(2, rct_string_id, staffTypeStringId);
 
-	gfx_draw_string_left(dpi, STR_STAFF_LIST_COUNTER, gCommonFormatArgs, 0, w->x + 4, window_staff_list_widgets[WIDX_STAFF_LIST_LIST].bottom + w->y + 2);
+	gfx_draw_string_left(dpi, STR_STAFF_LIST_COUNTER, gCommonFormatArgs, COLOUR_BLACK, w->x + 4, window_staff_list_widgets[WIDX_STAFF_LIST_LIST].bottom + w->y + 2);
 }
 
 /** rct2: 0x00992A08 */
@@ -664,21 +653,21 @@ void window_staff_list_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int sc
 				int format = (_quick_fire_mode ? STR_RED_STRINGID : STR_BLACK_STRING);
 
 				if (i == _windowStaffListHighlightedIndex) {
-					gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x2000031);
+					gfx_filter_rect(dpi, 0, y, 800, y + 9, PALETTE_DARKEN_1);
 					format = (_quick_fire_mode ? STR_LIGHTPINK_STRINGID : STR_WINDOW_COLOUR_2_STRINGID);
 				}
 
-				set_format_arg(0, uint16, peep->name_string_idx);
+				set_format_arg(0, rct_string_id, peep->name_string_idx);
 				set_format_arg(2, uint32, peep->id);
-				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, 0, 0, y - 1, 107);
+				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, COLOUR_BLACK, 0, y - 1, 107);
 
 				get_arguments_from_action(peep, &argument_1, &argument_2);
 				set_format_arg(0, uint32, argument_1);
 				set_format_arg(4, uint32, argument_2);
-				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, 0, 175, y - 1, 305);
+				gfx_draw_string_left_clipped(dpi, format, gCommonFormatArgs, COLOUR_BLACK, 175, y - 1, 305);
 
 				// True if a patrol path is set for the worker
-				if (RCT2_ADDRESS(RCT2_ADDRESS_STAFF_MODE_ARRAY, uint8)[peep->staff_id] & 2) {
+				if (gStaffModes[peep->staff_id] & 2) {
 					gfx_draw_sprite(dpi, SPR_STAFF_PATROL_PATH, 110, y - 1, 0);
 				}
 

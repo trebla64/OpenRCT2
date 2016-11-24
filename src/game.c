@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "addresses.h"
 #include "audio/audio.h"
 #include "cheats.h"
 #include "config.h"
@@ -67,6 +66,13 @@ bool gInUpdateCode = false;
 int gGameCommandNestLevel;
 bool gGameCommandIsNetworked;
 
+uint8 gUnk13CA740;
+uint8 gUnk141F568;
+
+#ifdef NO_RCT2
+uint32 gCurrentTicks;
+#endif
+
 GAME_COMMAND_CALLBACK_POINTER* game_command_callback = 0;
 GAME_COMMAND_CALLBACK_POINTER* game_command_callback_table[] = {
 	0,
@@ -76,6 +82,9 @@ GAME_COMMAND_CALLBACK_POINTER* game_command_callback_table[] = {
 	game_command_callback_ride_remove_track_piece,
 	game_command_callback_place_banner,
 	game_command_callback_place_ride_entrance_or_exit,
+	game_command_callback_hire_new_staff_member,
+	game_command_callback_pickup_guest,
+	game_command_callback_pickup_staff,
 };
 int game_command_playerid = -1;
 
@@ -130,6 +139,19 @@ void game_create_windows()
 	window_resize_gui(gScreenWidth, gScreenHeight);
 }
 
+enum {
+	SPR_GAME_PALETTE_DEFAULT = 1532,
+	SPR_GAME_PALETTE_WATER = 1533,
+	SPR_GAME_PALETTE_WATER_DARKER_1 = 1534,
+	SPR_GAME_PALETTE_WATER_DARKER_2 = 1535,
+	SPR_GAME_PALETTE_3 = 1536,
+	SPR_GAME_PALETTE_3_DARKER_1 = 1537,
+	SPR_GAME_PALETTE_3_DARKER_2 = 1538,
+	SPR_GAME_PALETTE_4 = 1539,
+	SPR_GAME_PALETTE_4_DARKER_1 = 1540,
+	SPR_GAME_PALETTE_4_DARKER_2 = 1541,
+};
+
 /**
 *
 *  rct2: 0x006838BD
@@ -140,7 +162,7 @@ void update_palette_effects()
 
 	if (gClimateLightningFlash == 1) {
 		// change palette to lighter colour during lightning
-		int palette = 1532;
+		int palette = SPR_GAME_PALETTE_DEFAULT;
 
 		if ((intptr_t)water_type != -1) {
 			palette = water_type->image_id;
@@ -159,7 +181,7 @@ void update_palette_effects()
 	} else {
 		if (gClimateLightningFlash == 2) {
 			// change palette back to normal after lightning
-			int palette = 1532;
+			int palette = SPR_GAME_PALETTE_DEFAULT;
 
 			if ((intptr_t)water_type != -1) {
 				palette = water_type->image_id;
@@ -178,17 +200,19 @@ void update_palette_effects()
 
 		// animate the water/lava/chain movement palette
 		int q = 0;
-		extern const sint32 WeatherColours[4];
-		int weather_colour = WeatherColours[gClimateCurrentWeatherGloom];
-		if (weather_colour != -1) {
-			q = 1;
-			if (weather_colour != 0x2000031) {
-				q = 2;
+		if (gConfigGeneral.render_weather_gloom) {
+			uint8 gloom = gClimateCurrentWeatherGloom;
+			if (gloom != 0) {
+				FILTER_PALETTE_ID weatherColour = ClimateWeatherGloomColours[gloom];
+				q = 1;
+				if (weatherColour != PALETTE_DARKEN_1) {
+					q = 2;
+				}
 			}
 		}
 		uint32 j = gPaletteEffectFrame;
 		j = (((uint16)((~j / 2) * 128) * 15) >> 16);
-		int p = 1533;
+		int p = SPR_GAME_PALETTE_WATER;
 		if ((intptr_t)water_type != -1) {
 			p = water_type->var_06;
 		}
@@ -207,7 +231,7 @@ void update_palette_effects()
 			vd += 4;
 		}
 
-		p = 1536;
+		p = SPR_GAME_PALETTE_3;
 		if ((intptr_t)water_type != -1) {
 			p = water_type->var_0A;
 		}
@@ -226,7 +250,7 @@ void update_palette_effects()
 		}
 
 		j = ((uint16)(gPaletteEffectFrame * -960) * 3) >> 16;
-		p = 1539;
+		p = SPR_GAME_PALETTE_4;
 		g1_element = g1Elements[q + p];
 		vs = &g1_element.offset[j * 3];
 		vd += 12;
@@ -283,34 +307,30 @@ void game_update()
 	// Update the game one or more times
 	for (i = 0; i < numUpdates; i++) {
 		game_logic_update();
-		audio_start_title_music();
 
 		if (gGameSpeed > 1)
 			continue;
 
-		// Possibly smooths viewport scrolling, I don't see a difference though
-		if (RCT2_GLOBAL(0x009E2D74, uint32) == 1) {
-			RCT2_GLOBAL(0x009E2D74, uint32) = 0;
-			break;
-		} else {
-			if (gInputState == INPUT_STATE_RESET ||
-				gInputState == INPUT_STATE_NORMAL
-			) {
-				if (gInputFlags & INPUT_FLAG_VIEWPORT_SCROLLING) {
-					gInputFlags &= ~INPUT_FLAG_VIEWPORT_SCROLLING;
-					break;
-				}
-			} else {
+		if (gInputState == INPUT_STATE_RESET ||
+			gInputState == INPUT_STATE_NORMAL
+		) {
+			if (gInputFlags & INPUT_FLAG_VIEWPORT_SCROLLING) {
+				gInputFlags &= ~INPUT_FLAG_VIEWPORT_SCROLLING;
 				break;
 			}
+		} else {
+			break;
 		}
 	}
 
 	// Always perform autosave check, even when paused
-	scenario_autosave_check();
+	if (!(gScreenFlags & SCREEN_FLAGS_TITLE_DEMO) &&
+		!(gScreenFlags & SCREEN_FLAGS_TRACK_DESIGNER) &&
+		!(gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER)
+	) {
+		scenario_autosave_check();
+	}
 
-	network_update();
-	news_item_update_current();
 	window_dispatch_update_all();
 
 	gGameCommandNestLevel = 0;
@@ -338,7 +358,7 @@ void game_update()
 	window_map_tooltip_update_visibility();
 
 	// Input
-	RCT2_GLOBAL(0x0141F568, uint8) = RCT2_GLOBAL(0x0013CA740, uint8);
+	gUnk141F568 = gUnk13CA740;
 	game_handle_input();
 }
 
@@ -364,8 +384,11 @@ void game_logic_update()
 	scenario_update();
 	climate_update();
 	map_update_tiles();
+	// Temporarily remove provisional paths to prevent peep from interacting with them
+	map_remove_provisional_elements();
 	map_update_path_wide_flags();
 	peep_update_all();
+	map_restore_provisional_elements();
 	vehicle_update_all();
 	sprite_misc_update_all();
 	ride_update_all();
@@ -373,6 +396,7 @@ void game_logic_update()
 	research_update();
 	ride_ratings_update_all();
 	ride_measurements_update();
+	news_item_update_current();
 	///////////////////////////
 	gInUpdateCode = false;
 	///////////////////////////
@@ -383,7 +407,7 @@ void game_logic_update()
 	climate_update_sound();
 	editor_open_windows_for_current_step();
 
-	RCT2_GLOBAL(RCT2_ADDRESS_SAVED_AGE, uint16)++;
+	gSavedAge++;
 
 	// Update windows
 	//window_dispatch_update_all();
@@ -410,7 +434,7 @@ void game_logic_update()
 static int game_check_affordability(int cost)
 {
 	if (cost <= 0)return cost;
-	if (RCT2_GLOBAL(0x141F568, uint8) & 0xF0)return cost;
+	if (gUnk141F568 & 0xF0) return cost;
 	if (cost <= (sint32)(DECRYPT_MONEY(gCashEncrypted)))return cost;
 
 	set_format_arg(0, uint32, cost);
@@ -457,9 +481,10 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 	flags = *ebx;
 
 	if (gGameCommandNestLevel == 0) {
+		gGameCommandErrorText = STR_NONE;
 		gGameCommandIsNetworked = (flags & GAME_COMMAND_FLAG_NETWORKED) != 0;
 	}
-	
+
 	// Increment nest count
 	gGameCommandNestLevel++;
 
@@ -541,7 +566,7 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 			if (!(flags & 0x20)) {
 				// Update money balance
 				finance_payment(cost, gCommandExpenditureType);
-				if (RCT2_GLOBAL(0x0141F568, uint8) == RCT2_GLOBAL(0x013CA740, uint8)) {
+				if (gUnk141F568 == gUnk13CA740) {
 					// Create a +/- money text effect
 					if (cost != 0)
 						money_effect_create(cost);
@@ -561,15 +586,14 @@ int game_do_command_p(int command, int *eax, int *ebx, int *ecx, int *edx, int *
 
 	// Decrement nest count
 	gGameCommandNestLevel--;
-	
+
 	// Clear the game command callback to prevent the next command triggering it
 	game_command_callback = 0;
 
 	// Show error window
-	if (gGameCommandNestLevel == 0 && (flags & GAME_COMMAND_FLAG_APPLY) && RCT2_GLOBAL(0x0141F568, uint8) == RCT2_GLOBAL(0x013CA740, uint8) && !(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && !(flags & GAME_COMMAND_FLAG_NETWORKED))
+	if (gGameCommandNestLevel == 0 && (flags & GAME_COMMAND_FLAG_APPLY) && gUnk141F568 == gUnk13CA740 && !(flags & GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED) && !(flags & GAME_COMMAND_FLAG_NETWORKED))
 		window_error_open(gGameCommandErrorTitle, gGameCommandErrorText);
 
-	gGameCommandErrorText = STR_NONE;
 	return MONEY32_UNDEFINED;
 }
 
@@ -643,7 +667,7 @@ static void utf8_to_rct2_self(char *buffer, size_t length)
 {
 	char tempBuffer[512];
 	utf8_to_rct2(tempBuffer, buffer);
-	
+
 	size_t i = 0;
 	const char *src = tempBuffer;
 	char *dst = buffer;
@@ -673,8 +697,7 @@ static void rct2_to_utf8_self(char *buffer, size_t length)
 	char tempBuffer[512];
 	if (length > 0) {
 		rct2_to_utf8(tempBuffer, buffer);
-		strncpy(buffer, tempBuffer, length - 1);
-		buffer[length - 1] = '\0';
+		safe_strcpy(buffer, tempBuffer, length);
 	}
 }
 
@@ -770,6 +793,29 @@ void game_fix_save_vars() {
 			}
 		}
 	}
+
+	// Fix invalid research items
+	for (int i = 0; i < 500; i++) {
+		rct_research_item *researchItem = &gResearchItems[i];
+		if (researchItem->entryIndex == RESEARCHED_ITEMS_SEPARATOR) continue;
+		if (researchItem->entryIndex == RESEARCHED_ITEMS_END) continue;
+		if (researchItem->entryIndex == RESEARCHED_ITEMS_END_2) break;
+		if (researchItem->entryIndex & 0x10000) {
+			uint8 entryIndex = researchItem->entryIndex & 0xFF;
+			rct_ride_entry *rideEntry = get_ride_entry(entryIndex);
+			if (rideEntry == NULL || rideEntry == (rct_ride_entry*)-1) {
+				research_remove(researchItem->entryIndex);
+				i--;
+			}
+		} else {
+			uint8 entryIndex = researchItem->entryIndex;
+			rct_scenery_set_entry *sceneryGroupEntry = get_scenery_group_entry(entryIndex);
+			if (sceneryGroupEntry == NULL || sceneryGroupEntry == (rct_scenery_set_entry*)-1) {
+				research_remove(researchItem->entryIndex);
+				i--;
+			}
+		}
+	}
 }
 
 /**
@@ -780,7 +826,6 @@ bool game_load_save(const utf8 *path)
 {
 	log_verbose("loading saved game, %s", path);
 
-	safe_strcpy(RCT2_ADDRESS(0x0141EF68, char), path, MAX_PATH);
 	safe_strcpy((char*)gRCT2AddressSavedGamesPath2, path, MAX_PATH);
 
 	safe_strcpy(gScenarioSavePath, path, MAX_PATH);
@@ -828,6 +873,7 @@ void game_load_init()
 	rct_window *mainWindow;
 
 	gScreenFlags = SCREEN_FLAGS_PLAYING;
+	audio_stop_all_music_and_sounds();
 	viewport_init_all();
 	game_create_windows();
 	mainWindow = window_get_main();
@@ -860,16 +906,13 @@ void game_load_init()
 	scenery_set_default_placement_configuration();
 	window_new_ride_init_vars();
 	gWindowUpdateTicks = 0;
-	if (RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32) == 0)		// this check is not in scenario play
-		finance_update_loan_hash();
 
 	load_palette();
 	gfx_invalidate_screen();
+	window_tile_inspector_clear_clipboard();
 	window_update_all();
 
 	gGameSpeed = 1;
-
-	scenario_set_filename(RCT2_ADDRESS(0x0135936C, char));
 }
 
 /**
@@ -926,38 +969,38 @@ static void limit_autosave_count(const size_t numberOfFilesToKeep)
 	size_t numAutosavesToDelete = 0;
 
 	file_info fileInfo;
-	
+
 	utf8 filter[MAX_PATH];
-	
+
 	utf8 **autosaveFiles = NULL;
-	
+
 	size_t i=0;
-	
-	platform_get_user_directory(filter, "save");
-	strncat(filter, "autosave_*.sv6", sizeof(filter) - strnlen(filter, MAX_PATH) - 1);
-	
+
+	platform_get_user_directory(filter, "save", sizeof(filter));
+	safe_strcat_path(filter, "autosave_*.sv6", sizeof(filter));
+
 	// At first, count how many autosaves there are
 	fileEnumHandle = platform_enumerate_files_begin(filter);
 	while (platform_enumerate_files_next(fileEnumHandle, &fileInfo)) {
 		autosavesCount++;
 	}
 	platform_enumerate_files_end(fileEnumHandle);
-	
+
 	// If there are fewer autosaves than the number of files to keep we don't need to delete anything
 	if(autosavesCount <= numberOfFilesToKeep) {
 		return;
 	}
-	
+
 	autosaveFiles = (utf8**) malloc(sizeof(utf8*) * autosavesCount);
-	
+
 	fileEnumHandle = platform_enumerate_files_begin(filter);
 	for(i = 0; i < autosavesCount; i++) {
 		autosaveFiles[i] = (utf8*)malloc(sizeof(utf8) * MAX_PATH);
 		memset(autosaveFiles[i], 0, sizeof(utf8) * MAX_PATH);
-		
+
 		if(platform_enumerate_files_next(fileEnumHandle, &fileInfo)) {
-			platform_get_user_directory(autosaveFiles[i], "save");
-			strcat(autosaveFiles[i], fileInfo.path);
+			platform_get_user_directory(autosaveFiles[i], "save", sizeof(utf8) * MAX_PATH);
+			safe_strcat_path(autosaveFiles[i], fileInfo.path, sizeof(utf8) * MAX_PATH);
 		}
 	}
 	platform_enumerate_files_end(fileEnumHandle);
@@ -966,28 +1009,33 @@ static void limit_autosave_count(const size_t numberOfFilesToKeep)
 
 	// calculate how many saves we need to delete.
 	numAutosavesToDelete = autosavesCount - numberOfFilesToKeep;
-	
+
 	i=0;
 	while (numAutosavesToDelete > 0) {
 		platform_file_delete(autosaveFiles[i]);
-		
+
 		i++;
 		numAutosavesToDelete--;
 	}
-	
-	
+
+
 	for(i = 0; i < autosavesCount; i++) {
 		free(autosaveFiles[i]);
 	}
-	
+
 	free(autosaveFiles);
 }
 
 void game_autosave()
 {
-	utf8 path[MAX_PATH];
-	utf8 backupPath[MAX_PATH];
-	utf8 timeString[21]="";
+	const char * subDirectory = "save";
+	const char * fileExtension = ".sv6";
+	uint32 saveFlags = 0x80000000;
+	if (gScreenFlags & SCREEN_FLAGS_EDITOR) {
+		subDirectory = "landscape";
+		fileExtension = ".sc6";
+		saveFlags |= 2;
+	}
 
 	// retrieve current time
 	rct2_date currentDate;
@@ -995,18 +1043,21 @@ void game_autosave()
 	rct2_time currentTime;
 	platform_get_time_local(&currentTime);
 
-	sprintf(timeString, "%d-%02d-%02d_%02d-%02d-%02d", currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute,currentTime.second);
+	utf8 timeName[34];
+	snprintf(timeName, 34, "autosave_%d-%02d-%02d_%02d-%02d-%02d%s",
+		currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute,currentTime.second,
+		fileExtension);
 
 	limit_autosave_count(NUMBER_OF_AUTOSAVES_TO_KEEP);
 
-	platform_get_user_directory(path, "save");
-	safe_strcpy(backupPath, path, MAX_PATH);
-
-	strcat(path, "autosave_");
-	strcat(path, timeString);
-	strcat(path, ".sv6");
-	
-	strcat(backupPath, "autosave.sv6.bak");
+	utf8 path[MAX_PATH];
+	utf8 backupPath[MAX_PATH];
+	platform_get_user_directory(path, subDirectory, sizeof(path));
+	safe_strcpy(backupPath, path, sizeof(backupPath));
+	safe_strcat_path(path, timeName, sizeof(path));
+	safe_strcat_path(backupPath, "autosave", sizeof(backupPath));
+	safe_strcat(backupPath, fileExtension, sizeof(backupPath));
+	safe_strcat(backupPath, ".bak", sizeof(backupPath));
 
 	if (platform_file_exists(path)) {
 		platform_file_copy(path, backupPath, true);
@@ -1014,7 +1065,7 @@ void game_autosave()
 
 	SDL_RWops* rw = SDL_RWFromFile(path, "wb+");
 	if (rw != NULL) {
-		scenario_save(rw, 0x80000000);
+		scenario_save(rw, saveFlags);
 		SDL_RWclose(rw);
 	}
 }
@@ -1027,10 +1078,10 @@ void rct2_exit_reason(rct_string_id title, rct_string_id body){
 	// Before this would set a quit message
 
 	char exit_title[255];
-	format_string(exit_title, title, 0);
+	format_string(exit_title, 256, title, 0);
 
 	char exit_body[255];
-	format_string(exit_body, body, 0);
+	format_string(exit_body, 256, body, 0);
 
 	log_error(exit_title);
 	log_error(exit_body);
@@ -1071,6 +1122,7 @@ void game_load_or_quit_no_save_prompt()
 			gInputFlags &= ~INPUT_FLAG_5;
 		}
 		gGameSpeed = 1;
+		gFirstTimeSave = 1;
 		title_load();
 		break;
 	default:
@@ -1079,7 +1131,7 @@ void game_load_or_quit_no_save_prompt()
 	}
 }
 
-GAME_COMMAND_POINTER* new_game_command_table[68] = {
+GAME_COMMAND_POINTER* new_game_command_table[GAME_COMMAND_COUNT] = {
 	game_command_set_ride_appearance,
 	game_command_set_land_height,
 	game_pause_toggle,
@@ -1147,4 +1199,7 @@ GAME_COMMAND_POINTER* new_game_command_table[68] = {
 	game_command_modify_groups,
 	game_command_kick_player,
 	game_command_cheat,
+	game_command_pickup_guest,
+	game_command_pickup_staff,
+	game_command_balloon_press,
 };

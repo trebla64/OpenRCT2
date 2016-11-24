@@ -23,7 +23,7 @@ extern "C"
     #include "../ride/ride.h"
 }
 
-class RideObject : public Object
+class RideObject final : public Object
 {
 private:
     rct_ride_entry              _legacyType = { 0 };
@@ -31,7 +31,7 @@ private:
     sint8 *                     _peepLoadingPositions[4] = { nullptr };
 
 public:
-    explicit RideObject(const rct_object_entry &entry) : Object(entry) { };
+    explicit RideObject(const rct_object_entry &entry) : Object(entry) { }
     ~RideObject();
 
     void * GetLegacyData()  override { return &_legacyType; }
@@ -49,4 +49,5 @@ public:
 
 private:
     void ReadLegacyVehicle(IReadObjectContext * context, IStream * stream, rct_ride_entry_vehicle * vehicle);
+    void PerformRCT1CompatibilityFixes();
 };

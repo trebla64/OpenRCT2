@@ -55,7 +55,7 @@ int NetworkConnection::ReadPacket()
         {
             return status;
         }
-        
+
         InboundPacket.transferred += readBytes;
         if (InboundPacket.transferred == sizeof(InboundPacket.size))
         {
@@ -121,7 +121,17 @@ void NetworkConnection::QueuePacket(std::unique_ptr<NetworkPacket> packet, bool 
         packet->size = (uint16)packet->data->size();
         if (front)
         {
-            _outboundPackets.push_front(std::move(packet));
+            // If the first packet was already partially sent add new packet to second position
+            if (_outboundPackets.size() > 0 && _outboundPackets.front()->transferred > 0)
+            {
+                auto it = _outboundPackets.begin();
+                it++; // Second position
+                _outboundPackets.insert(it, std::move(packet));
+            }
+            else
+            {
+                _outboundPackets.push_front(std::move(packet));
+            }
         }
         else
         {
@@ -181,7 +191,7 @@ void NetworkConnection::SetLastDisconnectReason(const utf8 * src)
 void NetworkConnection::SetLastDisconnectReason(const rct_string_id string_id, void *args)
 {
     char buffer[NETWORK_DISCONNECT_REASON_BUFFER_SIZE];
-    format_string(buffer, string_id, args);
+    format_string(buffer, NETWORK_DISCONNECT_REASON_BUFFER_SIZE, string_id, args);
     SetLastDisconnectReason(buffer);
 }
 

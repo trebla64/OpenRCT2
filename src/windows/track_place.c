@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../cheats.h"
 #include "../game.h"
@@ -27,12 +26,17 @@
 #include "../ride/track.h"
 #include "../ride/track_data.h"
 #include "../ride/track_design.h"
+#include "../ride/TrackDesignRepository.h"
 #include "../sprites.h"
 #include "../util/util.h"
 
 #define TRACK_MINI_PREVIEW_WIDTH	168
 #define TRACK_MINI_PREVIEW_HEIGHT	78
 #define TRACK_MINI_PREVIEW_SIZE		(TRACK_MINI_PREVIEW_WIDTH * TRACK_MINI_PREVIEW_HEIGHT)
+
+#define PALETTE_INDEX_TRANSPARENT (0)
+#define PALETTE_INDEX_PRIMARY_MID_DARK (248)
+#define PALETTE_INDEX_PRIMARY_LIGHTEST (252)
 
 enum {
 	WIDX_BACKGROUND,
@@ -46,7 +50,7 @@ enum {
 
 static rct_widget window_track_place_widgets[] = {
 	{ WWT_FRAME,			0,	0,		199,	0,		123,	0xFFFFFFFF,						STR_NONE									},
-	{ WWT_CAPTION,			0,	1,		198,	1,		14,		3155,							STR_WINDOW_TITLE_TIP						},
+	{ WWT_CAPTION,			0,	1,		198,	1,		14,		STR_STRING,						STR_WINDOW_TITLE_TIP						},
 	{ WWT_CLOSEBOX,			0,	187,	197,	2,		13,		STR_CLOSE_X,					STR_CLOSE_WINDOW_TIP						},
 	{ WWT_FLATBTN,			0,	173,	196,	83,		106,	SPR_ROTATE_ARROW,				STR_ROTATE_90_TIP							},
 	{ WWT_FLATBTN,			0,	173,	196,	59,		82,		SPR_MIRROR_ARROW,				STR_MIRROR_IMAGE_TIP						},
@@ -127,7 +131,7 @@ static uint8 *draw_mini_preview_get_pixel_ptr(rct_xy16 pixel);
  */
 static void window_track_place_clear_mini_preview()
 {
-	memset(_window_track_place_mini_preview, 220, TRACK_MINI_PREVIEW_SIZE);
+	memset(_window_track_place_mini_preview, PALETTE_INDEX_TRANSPARENT, TRACK_MINI_PREVIEW_SIZE);
 }
 
 #define swap(x, y) x = x ^ y; y = x ^ y; x = x ^ y;
@@ -146,7 +150,6 @@ void window_track_place_open(const track_design_file_ref *tdFileRef)
 	window_close_construction_windows();
 
 	_window_track_place_mini_preview = malloc(TRACK_MINI_PREVIEW_SIZE);
-	window_track_place_clear_mini_preview();
 
 	rct_window *w = window_create(
 		0,
@@ -158,7 +161,10 @@ void window_track_place_open(const track_design_file_ref *tdFileRef)
 		0
 	);
 	w->widgets = window_track_place_widgets;
-	w->enabled_widgets = 4 | 8 | 0x10 | 0x20;
+	w->enabled_widgets = 1 << WIDX_CLOSE
+		| 1 << WIDX_ROTATE
+		| 1 << WIDX_MIRROR
+		| 1 << WIDX_SELECT_DIFFERENT_DESIGN;
 	window_init_scroll_widgets(w);
 	tool_set(w, 6, 12);
 	gInputFlags |= INPUT_FLAG_6;
@@ -167,12 +173,10 @@ void window_track_place_open(const track_design_file_ref *tdFileRef)
 	_window_track_place_last_cost = MONEY32_UNDEFINED;
 	_window_track_place_last_x = 0xFFFF;
 	_currentTrackPieceDirection = (2 - get_current_rotation()) & 3;
+
+	window_track_place_clear_mini_preview();
 	window_track_place_draw_mini_preview(td6);
 
-	// TODO: 3155 appears to be empty. What is this supposed to do?
-	char *title = (char*)language_get_string(3155);
-	format_string(title, STR_TRACK_LIST_NAME_FORMAT, &td6->name);
-	
 	_trackDesign = td6;
 }
 
@@ -320,9 +324,9 @@ static void window_track_place_tooldown(rct_window* w, int widgetIndex, int x, i
 	// Try increasing Z until a feasible placement is found
 	mapZ = window_track_place_get_base_z(mapX, mapY);
 	for (i = 0; i < 7; i++) {
-		RCT2_GLOBAL(0x009A8C29, uint8) |= 1;
+		gDisableErrorWindowSound = true;
 		window_track_place_attempt_placement(_trackDesign, mapX, mapY, mapZ, 1, &cost, &rideIndex);
-		RCT2_GLOBAL(0x009A8C29, uint8) &= ~1;
+		gDisableErrorWindowSound = false;
 
 		if (cost != MONEY32_UNDEFINED) {
 			window_close_by_class(WC_ERROR);
@@ -372,6 +376,7 @@ static void window_track_place_unknown14(rct_window *w)
 static void window_track_place_invalidate(rct_window *w)
 {
 	colour_scheme_update(w);
+	window_track_place_draw_mini_preview(_trackDesign);
 }
 
 /**
@@ -431,7 +436,7 @@ static void window_track_place_attempt_placement(rct_track_td6 *td6, int x, int 
 	ebx = bl;
 	ecx = y;
 	edi = z;
-	
+
 	gActiveTrackDesign = _trackDesign;
 	result = game_do_command_p(GAME_COMMAND_PLACE_TRACK_DESIGN, &eax, &ebx, &ecx, &edx, &esi, &edi, &ebp);
 	gActiveTrackDesign = NULL;
@@ -446,6 +451,7 @@ static void window_track_place_attempt_placement(rct_track_td6 *td6, int x, int 
  */
 static void window_track_place_paint(rct_window *w, rct_drawpixelinfo *dpi)
 {
+	set_format_arg(0, char *, _trackDesign->name);
 	window_draw_widgets(w, dpi);
 
 	// Draw mini tile preview
@@ -459,13 +465,13 @@ static void window_track_place_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		substituteElement->x_offset = 0;
 		substituteElement->y_offset = 0;
 		substituteElement->flags = 0;
-		gfx_draw_sprite(&clippedDpi, 0, 0, 0, 0);
+		gfx_draw_sprite(&clippedDpi, 0 | IMAGE_TYPE_REMAP | NOT_TRANSLUCENT(w->colours[0]) << 19, 0, 0, 0);
 		*substituteElement = tmpElement;
 	}
 
 	// Price
 	if (_window_track_place_last_cost != MONEY32_UNDEFINED && !(gParkFlags & PARK_FLAGS_NO_MONEY)) {
-		gfx_draw_string_centred(dpi, STR_COST_LABEL, w->x + 88, w->y + 94, 0, &_window_track_place_last_cost);
+		gfx_draw_string_centred(dpi, STR_COST_LABEL, w->x + 88, w->y + 94, COLOUR_BLACK, &_window_track_place_last_cost);
 	}
 }
 
@@ -526,13 +532,13 @@ static void window_track_place_draw_mini_preview_track(rct_track_td6 *td6, int p
 					bits = (bits & 0x0F) | ((bits & 0xF0) >> 4);
 
 					// Station track is a lighter colour
-					uint8 colour = TrackSequenceProperties[trackType][0] & TRACK_SEQUENCE_FLAG_ORIGIN ? 222 : 218;
+					uint8 colour = TrackSequenceProperties[trackType][0] & TRACK_SEQUENCE_FLAG_ORIGIN ? PALETTE_INDEX_PRIMARY_LIGHTEST : PALETTE_INDEX_PRIMARY_MID_DARK;
 
 					for (int i = 0; i < 4; i++) {
-						if (bits & 1) pixel[338 + i] = colour;
-						if (bits & 2) pixel[168 + i] = colour;
-						if (bits & 4) pixel[  2 + i] = colour;
-						if (bits & 8) pixel[172 + i] = colour;
+						if (bits & 1) pixel[338 + i] = colour; // x + 2, y + 2
+						if (bits & 2) pixel[168 + i] = colour; //        y + 1
+						if (bits & 4) pixel[  2 + i] = colour; // x + 2
+						if (bits & 8) pixel[172 + i] = colour; // x + 4, y + 1
 					}
 				}
 			}
@@ -581,13 +587,13 @@ static void window_track_place_draw_mini_preview_maze(rct_track_td6 *td6, int pa
 				uint8 *pixel = draw_mini_preview_get_pixel_ptr(pixelPosition);
 
 				// Entrance or exit is a lighter colour
-				uint8 colour = mazeElement->type == 8 || mazeElement->type == 128 ? 222 : 218;
+				uint8 colour = mazeElement->type == 8 || mazeElement->type == 128 ? PALETTE_INDEX_PRIMARY_LIGHTEST : PALETTE_INDEX_PRIMARY_MID_DARK;
 
 				for (int i = 0; i < 4; i++) {
-					pixel[338 + i] = colour;
-					pixel[168 + i] = colour;
-					pixel[  2 + i] = colour;
-					pixel[172 + i] = colour;
+					pixel[338 + i] = colour; // x + 2, y + 2
+					pixel[168 + i] = colour; //        y + 1
+					pixel[  2 + i] = colour; // x + 2
+					pixel[172 + i] = colour; // x + 4, y + 1
 				}
 			}
 		}

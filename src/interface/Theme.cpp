@@ -14,6 +14,7 @@
  *****************************************************************************/
 #pragma endregion
 
+#include <vector>
 #include <jansson.h>
 
 extern "C"
@@ -25,7 +26,6 @@ extern "C"
 }
 
 #include "../core/Json.hpp"
-#include "../core/List.hpp"
 #include "../core/Math.hpp"
 #include "../core/Memory.hpp"
 #include "../core/Path.hpp"
@@ -34,9 +34,6 @@ extern "C"
 #include "../localisation/string_ids.h"
 
 struct WindowThemeDesc;
-
-// Don't try to load theme files that exceed 64 MiB
-constexpr uint64 MAX_THEME_SIZE = 64 * 1024 * 1024;
 
 /**
  * Represents a window theming style such as the colour scheme.
@@ -65,9 +62,9 @@ struct UIThemeWindowEntry
 class UITheme
 {
 public:
-    utf8 *                   Name;
-    List<UIThemeWindowEntry> Entries;
-    uint8                    Flags;
+    utf8 *                          Name;
+    std::vector<UIThemeWindowEntry> Entries;
+    uint8                           Flags;
 
     UITheme(const utf8 * name);
     UITheme(const UITheme & copy);
@@ -258,7 +255,7 @@ static void ThrowThemeLoadException()
 json_t * UIThemeWindowEntry::ToJson() const
 {
     const WindowThemeDesc * wtDesc = GetWindowThemeDescriptor(WindowClass);
-        
+
     json_t * jsonColours = json_array();
     for (uint8 i = 0; i < wtDesc->NumColours; i++) {
         colour_t colour = Theme.Colours[i];
@@ -285,7 +282,7 @@ UIThemeWindowEntry UIThemeWindowEntry::FromJson(const WindowThemeDesc * wtDesc, 
     UIThemeWindowEntry result;
     result.WindowClass = wtDesc->WindowClass;
     result.Theme = wtDesc->DefaultTheme;
-    
+
     for (uint8 i = 0; i < numColours; i++)
     {
         result.Theme.Colours[i] = (colour_t)json_integer_value(json_array_get(jsonColours, i));
@@ -323,7 +320,7 @@ void UITheme::SetName(const utf8 * name)
 
 const UIThemeWindowEntry * UITheme::GetEntry(rct_windowclass windowClass) const
 {
-    for (size_t i = 0; i < Entries.GetCount(); i++)
+    for (size_t i = 0; i < Entries.size(); i++)
     {
         const UIThemeWindowEntry * entry = &Entries[i];
         if (entry->WindowClass == windowClass)
@@ -337,7 +334,7 @@ const UIThemeWindowEntry * UITheme::GetEntry(rct_windowclass windowClass) const
 void UITheme::SetEntry(const UIThemeWindowEntry * newEntry)
 {
     // Try to replace existing entry
-    for (size_t i = 0; i < Entries.GetCount(); i++)
+    for (size_t i = 0; i < Entries.size(); i++)
     {
         UIThemeWindowEntry * entry = &Entries[i];
         if (entry->WindowClass == newEntry->WindowClass)
@@ -347,18 +344,18 @@ void UITheme::SetEntry(const UIThemeWindowEntry * newEntry)
         }
     }
 
-    Entries.Add(*newEntry);
+    Entries.push_back(*newEntry);
 }
 
 void UITheme::RemoveEntry(rct_windowclass windowClass)
 {
     // Remove existing entry
-    for (size_t i = 0; i < Entries.GetCount(); i++)
+    for (size_t i = 0; i < Entries.size(); i++)
     {
         UIThemeWindowEntry * entry = &Entries[i];
         if (entry->WindowClass == windowClass)
         {
-            Entries.RemoveAt(i);
+            Entries.erase(Entries.begin() + i);
             break;
         }
     }
@@ -485,7 +482,7 @@ UITheme UITheme::CreatePredefined(const utf8 * name, const UIThemeWindowEntry * 
         numEntries++;
     }
 
-    theme.Entries = List<UIThemeWindowEntry>(entries, numEntries);
+    theme.Entries = std::vector<UIThemeWindowEntry>(entries, entries + numEntries);
     return theme;
 }
 
@@ -499,21 +496,21 @@ namespace ThemeManager
         utf8 Name[96];
     };
 
-    utf8 *               CurrentThemePath;
-    UITheme *            CurrentTheme;
-    List<AvailableTheme> AvailableThemes;
-    size_t               ActiveAvailableThemeIndex = SIZE_MAX;
-    size_t               NumPredefinedThemes = 0;
+    utf8 *                      CurrentThemePath;
+    UITheme *                   CurrentTheme;
+    std::vector<AvailableTheme> AvailableThemes;
+    size_t                      ActiveAvailableThemeIndex = SIZE_MAX;
+    size_t                      NumPredefinedThemes = 0;
 
     void GetThemeFileName(utf8 * buffer, size_t bufferSize, const utf8 * name);
     bool EnsureThemeDirectoryExists();
     void GetThemePath(utf8 * buffer, size_t bufferSize);
 
-    static void GetAvailableThemes(List<AvailableTheme> * outThemes)
+    static void GetAvailableThemes(std::vector<AvailableTheme> * outThemes)
     {
         Guard::ArgumentNotNull(outThemes, GUARD_LINE);
 
-        outThemes->Clear();
+        outThemes->clear();
 
         NumPredefinedThemes = 0;
         for (const UITheme * * predefinedTheme = PredefinedThemes; *predefinedTheme != nullptr; predefinedTheme++)
@@ -521,7 +518,7 @@ namespace ThemeManager
             AvailableTheme theme;
             String::Set(theme.Path, sizeof(theme.Path), String::Empty);
             String::Set(theme.Name, sizeof(theme.Name), (*predefinedTheme)->Name);
-            outThemes->Add(theme);
+            outThemes->push_back(theme);
 
             NumPredefinedThemes++;
         }
@@ -539,12 +536,12 @@ namespace ThemeManager
                 AvailableTheme theme;
                 Path::GetFileNameWithoutExtension(theme.Name, sizeof(theme.Name), fileInfo.path);
                 GetThemeFileName(theme.Path, sizeof(theme.Path), theme.Name);
-                
-                outThemes->Add(theme);
+
+                outThemes->push_back(theme);
 
                 if (Path::Equals(CurrentThemePath, fileInfo.path))
                 {
-                    ActiveAvailableThemeIndex = outThemes->GetCount() - 1;
+                    ActiveAvailableThemeIndex = outThemes->size() - 1;
                 }
             }
             platform_enumerate_files_end(handle);
@@ -590,7 +587,7 @@ namespace ThemeManager
 
     static bool LoadThemeByName(const utf8 * name)
     {
-        for (size_t i = 0; i < ThemeManager::AvailableThemes.GetCount(); i++)
+        for (size_t i = 0; i < ThemeManager::AvailableThemes.size(); i++)
         {
             if (String::Equals(name, ThemeManager::AvailableThemes[i].Name))
             {
@@ -624,7 +621,7 @@ namespace ThemeManager
                 configValid = true;
             }
         }
-        
+
         if (!configValid)
         {
             String::DiscardDuplicate(&gConfigInterface.current_theme_preset, theme_manager_get_available_theme_name(1));
@@ -647,7 +644,7 @@ namespace ThemeManager
 
     void GetThemePath(utf8 * buffer, size_t bufferSize)
     {
-        platform_get_user_directory(buffer, "themes");
+        platform_get_user_directory(buffer, "themes", bufferSize);
     }
 }
 
@@ -660,7 +657,7 @@ extern "C"
 
     size_t theme_manager_get_num_available_themes()
     {
-        return ThemeManager::AvailableThemes.GetCount();
+        return ThemeManager::AvailableThemes.size();
     }
 
     const utf8 * theme_manager_get_available_theme_path(size_t index)
@@ -766,7 +763,7 @@ extern "C"
         ThemeManager::CurrentTheme->WriteToFile(ThemeManager::CurrentThemePath);
 
         theme_manager_load_available_themes();
-        for (size_t i = 0; i < ThemeManager::AvailableThemes.GetCount(); i++)
+        for (size_t i = 0; i < ThemeManager::AvailableThemes.size(); i++)
         {
             if (Path::Equals(newPath, ThemeManager::AvailableThemes[i].Path))
             {
@@ -794,7 +791,7 @@ extern "C"
         ThemeManager::LoadTheme(newPath);
 
         theme_manager_load_available_themes();
-        for (size_t i = 0; i < ThemeManager::AvailableThemes.GetCount(); i++)
+        for (size_t i = 0; i < ThemeManager::AvailableThemes.size(); i++)
         {
             if (Path::Equals(newPath, ThemeManager::AvailableThemes[i].Path))
             {
@@ -849,12 +846,8 @@ extern "C"
             windowTheme = &desc->DefaultTheme;
         }
 
-        bool transparent = false;
         for (int i = 0; i < 6; i++) {
             window->colours[i] = windowTheme->Colours[i];
-            if (windowTheme->Colours[i] & COLOUR_FLAG_TRANSLUCENT) {
-                transparent = true;
-            }
         }
         // Some windows need to be transparent even if the colours aren't.
         // There doesn't seem to be any side-effects for all windows being transparent

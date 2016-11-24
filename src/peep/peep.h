@@ -20,6 +20,12 @@
 #include "../common.h"
 #include "../world/map.h"
 
+#if defined(DEBUG_LEVEL_1) && DEBUG_LEVEL_1
+// Some variables used for the path finding debugging.
+extern bool gPathFindDebug;
+extern utf8 gPathFindDebugPeepName[256];
+#endif // defined(DEBUG_LEVEL_1) && DEBUG_LEVEL_1
+
 #define PEEP_MAX_THOUGHTS 5
 
 #define PEEP_HUNGER_WARNING_THRESHOLD 25
@@ -275,7 +281,7 @@ enum PEEP_FLAGS {
 	PEEP_FLAGS_NICE_RIDE_DEPRECATED = (1 << 26), // Used to make the peep think "Nice ride! But not as good as the Phoenix..." on exiting a ride
 	PEEP_FLAGS_INTAMIN_DEPRECATED = (1 << 27), // Used to make the peep think "I'm so excited - It's an Intamin ride!" while riding on a Intamin ride.
 	PEEP_FLAGS_HERE_WE_ARE = (1 << 28), // Makes the peep think  "...and here we are on X!" while riding a ride
-	PEEP_FLAGS_TWITCH = (1 << 31)		// Added for twitch integration
+	PEEP_FLAGS_TWITCH = (1u << 31)		// Added for twitch integration
 };
 
 enum PEEP_NAUSEA_TOLERANCE {
@@ -489,7 +495,7 @@ typedef struct rct_peep {
 	uint8 pad_77;
 	union{
 		uint8 maze_last_edge;			// 0x78
-		uint8 var_78;	//Direction ?
+		uint8 direction;	//Direction ?
 	};
 	uint8 var_79;
 	uint16 time_in_queue;			// 0x7A
@@ -551,7 +557,7 @@ typedef struct rct_peep {
 	uint8 voucher_type;				// 0xF0
 	uint8 voucher_arguments;		// 0xF1 ride_id or string_offset_id
 	uint8 var_F2;
-	uint8 var_F3;
+	uint8 angriness;
 	uint8 var_F4;
 	uint8 days_in_queue;			// 0xF5
 	uint8 balloon_colour;			// 0xF6
@@ -638,7 +644,7 @@ void peep_update_days_in_queue();
 void peep_applause();
 rct_peep *peep_generate(int x, int y, int z);
 void get_arguments_from_action(rct_peep* peep, uint32 *argument_1, uint32* argument_2);
-void get_arguments_from_thought(rct_peep_thought thought, uint32* argument_1, uint32* argument_2);
+void peep_thought_set_format_args(rct_peep_thought *thought);
 int get_peep_face_sprite_small(rct_peep *peep);
 int get_peep_face_sprite_large(rct_peep *peep);
 int peep_check_easteregg_name(int index, rct_peep *peep);
@@ -646,6 +652,11 @@ int peep_get_easteregg_name_id(rct_peep *peep);
 int peep_is_mechanic(rct_peep *peep);
 bool peep_has_item(rct_peep *peep, int peepItem);
 int peep_has_food(rct_peep* peep);
+void peep_pickup(rct_peep* peep);
+void peep_pickup_abort(rct_peep* peep, int old_x);
+bool peep_pickup_place(rct_peep* peep, int x, int y, int z, bool apply);
+bool peep_pickup_command(unsigned int peepnum, int x, int y, int z, int action, bool apply);
+void game_command_pickup_guest(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* edi, int* ebp);
 void peep_sprite_remove(rct_peep* peep);
 void peep_remove(rct_peep* peep);
 void peep_update_sprite_type(rct_peep* peep);

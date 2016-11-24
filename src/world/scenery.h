@@ -125,7 +125,7 @@ typedef enum {
 	WALL_SCENERY_FLAG1 = (1 << 0),		// 0x1
 	WALL_SCENERY_FLAG2 = (1 << 1),		// 0x2
 	WALL_SCENERY_CANT_BUILD_ON_SLOPE = (1 << 2),		// 0x4
-	WALL_SCENERY_FLAG4 = (1 << 3),		// 0x8  // Probably indicates translucency
+	WALL_SCENERY_IS_BANNER = (1 << 3),		// 0x8  // Probably indicates translucency
 	WALL_SCENERY_IS_DOOR = (1 << 4),		// 0x10
 	WALL_SCENERY_FLAG6 = (1 << 5),		// 0x20
 	WALL_SCENERY_HAS_SECONDARY_COLOUR = (1 << 6),		// 0x40
@@ -133,7 +133,8 @@ typedef enum {
 } WALL_SCENERY_FLAGS;
 
 typedef enum {
-	WALL_SCENERY_2_FLAG_5 = (1 << 4),		// 0x10
+	WALL_SCENERY_2_FLAG4 = (1 << 3),		// 0x8
+	WALL_SCENERY_2_FLAG5 = (1 << 4),		// 0x10
 } WALL_SCENERY_2_FLAGS;
 
 typedef struct rct_path_bit_scenery_entry {
@@ -176,7 +177,7 @@ typedef struct rct_scenery_set_entry {
 	uint8 var_107;
 	uint8 var_108;					// 0x108, order?
 	uint8 pad_109;
-	uint32 var_10A;
+	uint32 entertainer_costumes;	// 0x10A
 } rct_scenery_set_entry;
 assert_struct_size(rct_scenery_set_entry, 14 + 2 * 0x80);
 #pragma pack(pop)
@@ -220,7 +221,7 @@ extern colour_t gWindowScenerySecondaryColour;
 extern colour_t gWindowSceneryTertiaryColour;
 
 extern rct_map_element *gSceneryMapElement;
-extern uint8 gSceneryMapElementType; 
+extern uint8 gSceneryMapElementType;
 
 extern money32 gSceneryPlaceCost;
 extern sint16 gSceneryPlaceObject;
@@ -247,6 +248,8 @@ extern uint8 gSceneryGroundFlags;
 extern const rct_xy8 ScenerySubTileOffsets[];
 
 extern sint16 window_scenery_tab_entries[20][SCENERY_ENTRIES_BY_TAB + 1];
+
+extern money32 gClearSceneryCost;
 
 void init_scenery();
 void scenery_update_tile(int x, int y);

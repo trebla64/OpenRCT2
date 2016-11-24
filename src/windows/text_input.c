@@ -21,7 +21,6 @@
  * that is used for inputing new text for ride names and peep names.
  */
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../platform/platform.h"
 #include "../interface/window.h"
@@ -108,11 +107,7 @@ void window_text_input_open(rct_window* call_w, int call_widget, rct_string_id t
 	// Enter in the the text input buffer any existing
 	// text.
 	if (existing_text != STR_NONE)
-		format_string(text_input, existing_text, &existing_args);
-
-	// In order to prevent strings that exceed the maxLength
-	// from crashing the game.
-	text_input[maxLength - 1] = '\0';
+		format_string(text_input, maxLength, existing_text, &existing_args);
 
 	utf8_remove_format_codes(text_input, false);
 
@@ -275,21 +270,21 @@ static void window_text_input_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	// +13 for cursor when max length.
 	gfx_wrap_string(wrapped_string, WW - (24 + 13), &no_lines, &font_height);
 
-	gfx_fill_rect_inset(dpi, w->x + 10, y, w->x + WW - 10, y + 10 * (no_lines + 1) + 3, w->colours[1], 0x60);
+	gfx_fill_rect_inset(dpi, w->x + 10, y, w->x + WW - 10, y + 10 * (no_lines + 1) + 3, w->colours[1], INSET_RECT_F_60);
 
 	y += 1;
 
 	char* wrap_pointer = wrapped_string;
-	int char_count = 0;
+	size_t char_count = 0;
 	uint8 cur_drawn = 0;
 
-	int cursorX, cursorY;
+	int cursorX = 0, cursorY = 0;
 	for (int line = 0; line <= no_lines; line++) {
 		gfx_draw_string(dpi, wrap_pointer, w->colours[1], w->x + 12, y);
 
-		int string_length = get_string_size(wrap_pointer) - 1;
+		size_t string_length = get_string_size(wrap_pointer) - 1;
 
-		if (!cur_drawn && (gTextInput.selection_offset <= (size_t)(char_count + string_length))) {
+		if (!cur_drawn && (gTextInput.selection_offset <= char_count + string_length)) {
 			// Make a copy of the string for measuring the width.
 			char temp_string[512] = { 0 };
 			memcpy(temp_string, wrap_pointer, gTextInput.selection_offset - char_count);
@@ -337,7 +332,7 @@ static void window_text_input_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 		gfx_fill_rect(dpi, x - 1, y - 1, x + w + 1, y + h + 1, 12);
 		gfx_fill_rect(dpi, x, y, x + w, y + h, 0);
-		gfx_draw_string(dpi, gTextInputComposition, 12, x, y);
+		gfx_draw_string(dpi, gTextInputComposition, COLOUR_DARK_GREEN, x, y);
 	}
 }
 

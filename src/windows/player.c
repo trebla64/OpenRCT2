@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../input.h"
@@ -361,18 +360,18 @@ void window_player_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int groupindex = network_get_group_index(network_get_player_group(player));
 	if (groupindex != -1) {
 		rct_widget* widget = &window_player_overview_widgets[WIDX_GROUP];
-		char buffer[300] = {0};
+		char buffer[300];
 		char* lineCh;
 		lineCh = buffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WINDOW_COLOUR_2);
-		strcpy(lineCh, network_get_group_name(groupindex));
+		safe_strcpy(lineCh, network_get_group_name(groupindex), sizeof(buffer) - (lineCh - buffer));
 		set_format_arg(0, const char *, buffer);
 
 		gfx_draw_string_centred_clipped(
 			dpi,
 			STR_STRING,
 			gCommonFormatArgs,
-			0,
+			COLOUR_BLACK,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
 			widget->right - widget->left - 8
@@ -383,22 +382,22 @@ void window_player_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int x = w->x + 90;
 	int y = w->y + 24;
 
-	set_format_arg(0, uint16, STR_PING);
+	set_format_arg(0, rct_string_id, STR_PING);
 	gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, 0, x, y);
 	char ping[64];
-	sprintf(ping, "%d ms", network_get_player_ping(player));
+	snprintf(ping, 64, "%d ms", network_get_player_ping(player));
 	gfx_draw_string(dpi, ping, w->colours[2], x + 30, y);
-	
+
 	// Draw last action
 	x = w->x + (w->width / 2);
 	y = w->y + w->height - 13;
 	int width = w->width - 8;
 	int lastaction = network_get_player_last_action(player, 0);
-	set_format_arg(0, uint16, STR_ACTION_NA);
+	set_format_arg(0, rct_string_id, STR_ACTION_NA);
 	if (lastaction != -999) {
-		set_format_arg(0, uint16, network_get_action_name_string_id(lastaction));
+		set_format_arg(0, rct_string_id, network_get_action_name_string_id(lastaction));
 	}
-	gfx_draw_string_centred_clipped(dpi, STR_LAST_ACTION_RAN, gCommonFormatArgs, 0, x, y, width);
+	gfx_draw_string_centred_clipped(dpi, STR_LAST_ACTION_RAN, gCommonFormatArgs, COLOUR_BLACK, x, y, width);
 
 	if (w->viewport != NULL && w->var_492 != -1) {
 		window_draw_viewport(dpi, w);
@@ -531,12 +530,12 @@ void window_player_statistics_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int y = w->y + window_player_overview_widgets[WIDX_PAGE_BACKGROUND].top + 4;
 
 	set_format_arg(0, uint32, network_get_player_commands_ran(player));
-	gfx_draw_string_left(dpi, STR_COMMANDS_RAN, gCommonFormatArgs, 0,x, y);
+	gfx_draw_string_left(dpi, STR_COMMANDS_RAN, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	y += 10;
-	
+
 	set_format_arg(0, uint32, network_get_player_money_spent(player));
-	gfx_draw_string_left(dpi, STR_MONEY_SPENT, gCommonFormatArgs, 0,x, y);
+	gfx_draw_string_left(dpi, STR_MONEY_SPENT, gCommonFormatArgs, COLOUR_BLACK, x, y);
 }
 
 static void window_player_set_page(rct_window* w, int page)
@@ -635,7 +634,7 @@ static void window_player_update_viewport(rct_window *w, bool scroll)
 				}
 				widget_invalidate(w, WIDX_VIEWPORT);
 			}
-			
+
 			// Draw the viewport
 			w->var_492 = 0;
 		} else {

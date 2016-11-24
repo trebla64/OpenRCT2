@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../cheats.h"
 #include "../config.h"
 #include "../game.h"
@@ -35,6 +34,8 @@ void sub_6A7642(int x, int y, rct_map_element *mapElement);
 
 uint8 gFootpathProvisionalFlags;
 rct_xyz16 gFootpathProvisionalPosition;
+uint8 gFootpathProvisionalType;
+uint8 gFootpathProvisionalSlope;
 uint8 gFootpathConstructionMode;
 uint16 gFootpathSelectedId;
 uint8 gFootpathSelectedType;
@@ -83,7 +84,7 @@ static const uint8 connected_path_count[] = {
 	4, // 0b1111
 };
 
-static int entrance_get_directions(rct_map_element *mapElement)
+int entrance_get_directions(rct_map_element *mapElement)
 {
 	uint8 entranceType = mapElement->properties.entrance.type;
 	uint8 sequence = mapElement->properties.entrance.index & 0x0F;
@@ -181,7 +182,7 @@ static money32 footpath_element_insert(int type, int x, int y, int z, int slope,
 	rct_map_element *mapElement;
 	int bl, zHigh;
 
-	if (!sub_68B044())
+	if (!map_check_free_elements_and_reorganise(1))
 		return MONEY32_UNDEFINED;
 
 	if ((flags & GAME_COMMAND_FLAG_APPLY) && !(flags & (GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED | GAME_COMMAND_FLAG_GHOST)))
@@ -221,7 +222,7 @@ static money32 footpath_element_insert(int type, int x, int y, int z, int slope,
 		mapElement->properties.path.additions = pathItemType;
 		mapElement->properties.path.addition_status = 255;
 		mapElement->flags &= ~MAP_ELEMENT_FLAG_BROKEN;
-		if (flags & (1 << 6))
+		if (flags & GAME_COMMAND_FLAG_GHOST)
 			mapElement->flags |= MAP_ELEMENT_FLAG_GHOST;
 
 		footpath_queue_chain_reset();
@@ -382,7 +383,7 @@ static money32 footpath_place_real(int type, int x, int y, int z, int slope, int
 	}
 
 	// Force ride construction to recheck area
-	_currentTrackSelectionFlags |= 8;
+	_currentTrackSelectionFlags |= TRACK_SELECTION_FLAG_RECHECK;
 
 	if (gGameCommandNestLevel == 1 && !(flags & GAME_COMMAND_FLAG_GHOST)) {
 		rct_xyz16 coord;
@@ -615,9 +616,11 @@ money32 footpath_provisional_set(int type, int x, int y, int z, int slope)
 
 	cost = footpath_place(type, x, y, z, slope, GAME_COMMAND_FLAG_GHOST | GAME_COMMAND_FLAG_5 | GAME_COMMAND_FLAG_4 | GAME_COMMAND_FLAG_ALLOW_DURING_PAUSED | GAME_COMMAND_FLAG_APPLY);
 	if (cost != MONEY32_UNDEFINED) {
+		gFootpathProvisionalType = type;
 		gFootpathProvisionalPosition.x = x;
 		gFootpathProvisionalPosition.y = y;
 		gFootpathProvisionalPosition.z = z & 0xFF;
+		gFootpathProvisionalSlope = slope;
 		gFootpathProvisionalFlags |= PROVISIONAL_PATH_FLAG_1;
 
 		if (gFootpathGroundFlags & ELEMENT_IS_UNDERGROUND) {
@@ -1406,7 +1409,7 @@ void footpath_chain_ride_queue(int rideIndex, int entranceIndex, int x, int y, r
 			mapElement->properties.path.ride_index = rideIndex;
 			mapElement->properties.path.additions &= 0x8F;
 			mapElement->properties.path.additions |= (entranceIndex & 7) << 4;
-			
+
 			map_invalidate_element(x, y, mapElement);
 
 			if (lastQueuePathElement == NULL) {
@@ -1503,15 +1506,6 @@ void sub_6A759F()
  */
 static void footpath_unown(int x, int y, rct_map_element *pathElement)
 {
-	int ownershipUnk = 0;
-	int z = pathElement->base_height;
-	rct_map_element *surfaceElement = map_get_surface_element_at(x >> 5, y >> 5);
-	if (surfaceElement->base_height != z) {
-		z -= 2;
-		if (surfaceElement->base_height != z) {
-			ownershipUnk = (surfaceElement->properties.surface.ownership & 0xCF) >> 4;
-		}
-	}
 	map_buy_land_rights(x, y, x, y, 6, 1);
 }
 
@@ -1763,18 +1757,23 @@ void footpath_update_path_wide_flags(int x, int y)
 		return;
 
 	footpath_clear_wide(x, y);
-	x += 0x20;
-	footpath_clear_wide(x, y);
-	y += 0x20;
-	footpath_clear_wide(x, y);
-	x -= 0x20;
-	footpath_clear_wide(x, y);
-	y -= 0x20;
-
-	if (!(x & 0xE0))
-		return;
-	if (!(y & 0xE0))
-		return;
+	/* Rather than clearing the wide flag of the following tiles and
+	 * checking the state of them later, leave them intact and assume
+	 * they were cleared. Consequently only the wide flag for this single
+	 * tile is modified by this update.
+	 * This is important for avoiding glitches in pathfinding that occurs
+	 * between between the batches of updates to the path wide flags.
+	 * Corresponding pathList[] indexes for the following tiles
+	 * are: 2, 3, 4, 5.
+	 * Note: indexes 3, 4, 5 are reset in the current call;
+	 *       index 2 is reset in the previous call. */
+	//x += 0x20;
+	//footpath_clear_wide(x, y);
+	//y += 0x20;
+	//footpath_clear_wide(x, y);
+	//x -= 0x20;
+	//footpath_clear_wide(x, y);
+	//y -= 0x20;
 
 	rct_map_element *mapElement = map_get_first_element_at(x / 32, y / 32);
 	do {
@@ -1785,6 +1784,9 @@ void footpath_update_path_wide_flags(int x, int y)
 			continue;
 
 		if (footpath_element_is_sloped(mapElement))
+			continue;
+
+		if ((mapElement->properties.path.edges & 0xF) == 0)
 			continue;
 
 		uint8 height = mapElement->base_height;
@@ -1833,20 +1835,30 @@ void footpath_update_path_wide_flags(int x, int y)
 
 		if (mapElement->properties.path.edges & 2) {
 			F3EFA5 |= 0x8;
-			if (pathList[3] != NULL) {
-				if (footpath_element_is_wide(pathList[3])) {
-					F3EFA5 &= ~0x8;
-				}
-			}
+			/* In the following:
+			 * footpath_element_is_wide(pathList[3])
+			 * is always false due to the tile update order
+			 * in combination with reset tiles.
+			 * Commented out since it will never occur. */
+			//if (pathList[3] != NULL) {
+			//	if (footpath_element_is_wide(pathList[3])) {
+			//		F3EFA5 &= ~0x8;
+			//	}
+			//}
 		}
 
 		if (mapElement->properties.path.edges & 4) {
 			F3EFA5 |= 0x20;
-			if (pathList[5] != NULL) {
-				if (footpath_element_is_wide(pathList[5])) {
-					F3EFA5 &= ~0x20;
-				}
-			}
+			/* In the following:
+			 * footpath_element_is_wide(pathList[5])
+			 * is always false due to the tile update order
+			 * in combination with reset tiles.
+			 * Commented out since it will never occur. */
+			//if (pathList[5] != NULL) {
+			//	if (footpath_element_is_wide(pathList[5])) {
+			//		F3EFA5 &= ~0x20;
+			//	}
+			//}
 		}
 
 		if ((F3EFA5 & 0x80) && (pathList[7] != NULL) && !(footpath_element_is_wide(pathList[7]))) {
@@ -1857,27 +1869,44 @@ void footpath_update_path_wide_flags(int x, int y)
 				F3EFA5 |= 0x1;
 			}
 
+			/* In the following:
+			 * footpath_element_is_wide(pathList[5])
+			 * is always false due to the tile update order
+			 * in combination with reset tiles.
+			 * Short circuit the logic appropriately. */
 			if ((F3EFA5 & 0x20) &&
 				(pathList[6] != NULL) && (!footpath_element_is_wide(pathList[6])) &&
 				((pathList[6]->properties.path.edges & 3) == 3) && // N W
-				(pathList[5] != NULL) && (!footpath_element_is_wide(pathList[5]))) {
+				(pathList[5] != NULL) && (true || !footpath_element_is_wide(pathList[5]))) {
 				F3EFA5 |= 0x40;
 			}
 		}
 
 
-		if ((F3EFA5 & 0x8) && (pathList[3] != NULL) && !(pathList[3]->type & 2)) {
+		/* In the following:
+		  * footpath_element_is_wide(pathList[2])
+		  * footpath_element_is_wide(pathList[3])
+		 * are always false due to the tile update order
+		 * in combination with reset tiles.
+		 * Short circuit the logic appropriately. */
+		if ((F3EFA5 & 0x8) && (pathList[3] != NULL) && (true || !footpath_element_is_wide(pathList[3]))) {
 			if ((F3EFA5 & 2) &&
-				(pathList[2] != NULL) && (!footpath_element_is_wide(pathList[2])) &&
+				(pathList[2] != NULL) && (true || !footpath_element_is_wide(pathList[2])) &&
 				((pathList[2]->properties.path.edges & 0xC) == 0xC) &&
 				(pathList[1] != NULL) && (!footpath_element_is_wide(pathList[1]))) {
 				F3EFA5 |= 0x4;
 			}
 
+			/* In the following:
+			 * footpath_element_is_wide(pathList[4])
+			 * footpath_element_is_wide(pathList[5])
+			 * are always false due to the tile update order
+			 * in combination with reset tiles.
+			 * Short circuit the logic appropriately. */
 			if ((F3EFA5 & 0x20) &&
-				(pathList[4] != NULL) && (!footpath_element_is_wide(pathList[4])) &&
+				(pathList[4] != NULL) && (true || !footpath_element_is_wide(pathList[4])) &&
 				((pathList[4]->properties.path.edges & 9) == 9) &&
-				(pathList[5] != NULL) && (!footpath_element_is_wide(pathList[5]))) {
+				(pathList[5] != NULL) && (true || !footpath_element_is_wide(pathList[5]))) {
 				F3EFA5 |= 0x10;
 			}
 		}

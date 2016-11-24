@@ -15,7 +15,6 @@
 #pragma endregion
 
 #include "chat.h"
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../audio/mixer.h"
 #include "../interface/themes.h"
@@ -103,7 +102,7 @@ void chat_draw(rct_drawpixelinfo * dpi)
 				continue;
 			}
 
-			safe_strcpy(lineBuffer, chat_history_get(i), CHAT_INPUT_SIZE + 10);
+			safe_strcpy(lineBuffer, chat_history_get(i), sizeof(lineBuffer));
 
 			int lineHeight = chat_string_wrapped_get_height((void*)&lineCh, _chatWidth - 10);
 			_chatTop -= (lineHeight + 5);
@@ -119,12 +118,12 @@ void chat_draw(rct_drawpixelinfo * dpi)
 		}
 
 		gfx_set_dirty_blocks(_chatLeft, _chatTop - 5, _chatRight, _chatBottom + 5); //Background area + Textbox
-		gfx_fill_rect(dpi, _chatLeft, _chatTop - 5, _chatRight, _chatBottom + 5, 0x2000000 | 51); //Opaque gray background
-		gfx_fill_rect_inset(dpi, _chatLeft, _chatTop - 5, _chatRight, _chatBottom + 5, chatBackgroundColor, 0x10);
-		gfx_fill_rect_inset(dpi, _chatLeft + 1, _chatTop - 4, _chatRight - 1, _chatBottom - inputLineHeight - 6, chatBackgroundColor, 0x20);
-		gfx_fill_rect_inset(dpi, _chatLeft + 1, _chatBottom - inputLineHeight - 5, _chatRight - 1, _chatBottom + 4, chatBackgroundColor, 0x20); //Textbox
+		gfx_filter_rect(dpi, _chatLeft, _chatTop - 5, _chatRight, _chatBottom + 5, PALETTE_51); //Opaque gray background
+		gfx_fill_rect_inset(dpi, _chatLeft, _chatTop - 5, _chatRight, _chatBottom + 5, chatBackgroundColor, INSET_RECT_FLAG_FILL_NONE);
+		gfx_fill_rect_inset(dpi, _chatLeft + 1, _chatTop - 4, _chatRight - 1, _chatBottom - inputLineHeight - 6, chatBackgroundColor, INSET_RECT_FLAG_BORDER_INSET);
+		gfx_fill_rect_inset(dpi, _chatLeft + 1, _chatBottom - inputLineHeight - 5, _chatRight - 1, _chatBottom + 4, chatBackgroundColor, INSET_RECT_FLAG_BORDER_INSET); //Textbox
 	}
-	
+
 	int x = _chatLeft + 5;
 	int y = _chatBottom - inputLineHeight - 20;
 	int stringHeight = 0;
@@ -135,7 +134,7 @@ void chat_draw(rct_drawpixelinfo * dpi)
 			break;
 		}
 
-		safe_strcpy(lineBuffer, chat_history_get(i), CHAT_INPUT_SIZE + 10);
+		safe_strcpy(lineBuffer, chat_history_get(i), sizeof(lineBuffer));
 
 		stringHeight = chat_history_draw_string(dpi, (void*) &lineCh, x, y, _chatWidth - 10) + 5;
 		gfx_set_dirty_blocks(x, y - stringHeight, x + _chatWidth, y + 20);
@@ -144,7 +143,7 @@ void chat_draw(rct_drawpixelinfo * dpi)
 			break;
 		}
 	}
-	
+
 	// Draw current chat input
 	if (gChatOpen) {
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_OUTLINE);
@@ -153,9 +152,10 @@ void chat_draw(rct_drawpixelinfo * dpi)
 		safe_strcpy(lineCh, _chatCurrentLine, sizeof(_chatCurrentLine));
 		y = _chatBottom - inputLineHeight - 5;
 
-		int inputLineHeight = gfx_draw_string_left_wrapped(dpi, (void*)&lineCh, x, y + 3, _chatWidth - 10, STR_STRING, 255);
+		lineCh = lineBuffer;
+		int inputLineHeight = gfx_draw_string_left_wrapped(dpi, (void*)&lineCh, x, y + 3, _chatWidth - 10, STR_STRING, TEXT_COLOUR_255);
 		gfx_set_dirty_blocks(x, y, x + _chatWidth, y + inputLineHeight + 15);
-		
+
 		//TODO: Show caret if the input text have multiple lines
 		if (_chatCaretTicks < 15 && gfx_get_string_width(lineBuffer) < (_chatWidth - 10)) {
 			memcpy(lineBuffer, _chatCurrentLine, gTextInput.selection_offset);
@@ -215,13 +215,12 @@ static void chat_clear_input()
 int chat_history_draw_string(rct_drawpixelinfo *dpi, void *args, int x, int y, int width)
 {
 	int fontSpriteBase, lineHeight, lineY, numLines;
-	
+
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
-	char* buffer = RCT2_ADDRESS(0x009C383D, char);
-	gfx_draw_string(dpi, buffer, 255, dpi->x, dpi->y);
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
-	format_string(buffer, STR_STRING, args);
+	gfx_draw_string(dpi, "", TEXT_COLOUR_255, dpi->x, dpi->y);
+	char *buffer = gCommonStringFormatBuffer;
+	format_string(buffer, 256, STR_STRING, args);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 	gfx_wrap_string(buffer, width, &numLines, &fontSpriteBase);
@@ -236,7 +235,7 @@ int chat_history_draw_string(rct_drawpixelinfo *dpi, void *args, int x, int y, i
 
 	lineY = y;
 	for (int line = 0; line <= numLines; ++line) {
-		gfx_draw_string(dpi, buffer, 0xFE, x, lineY - (numLines * lineHeight));
+		gfx_draw_string(dpi, buffer, TEXT_COLOUR_254, x, lineY - (numLines * lineHeight));
 		buffer = get_string_end(buffer) + 1;
 		lineY += lineHeight;
 	}
@@ -251,14 +250,13 @@ int chat_string_wrapped_get_height(void *args, int width)
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
-	char* buffer = RCT2_ADDRESS(0x009C383D, char);
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
-	format_string(buffer, STR_STRING, args);
+	char *buffer = gCommonStringFormatBuffer;
+	format_string(buffer, 256, STR_STRING, args);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 	gfx_wrap_string(buffer, width, &numLines, &fontSpriteBase);
 	lineHeight = font_get_line_height(fontSpriteBase);
-	
+
 	gCurrentFontFlags = 0;
 
 	lineY = 0;

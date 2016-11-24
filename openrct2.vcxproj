@@ -1,9 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build0;Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="Build0">
-    <Copy SourceFiles="openrct2.exe" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="curl-ca-bundle.crt" DestinationFolder="$(OutDir)" />
-  </Target>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -23,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="curl-ca-bundle.crt" />
     <None Include="data\shaders\copyframebuffer.frag" />
     <None Include="data\shaders\copyframebuffer.vert" />
     <None Include="data\shaders\drawimage.frag" />
@@ -50,7 +45,7 @@
     <ClCompile Include="src\config.c" />
     <ClCompile Include="src\core\Console.cpp" />
     <ClCompile Include="src\core\Diagnostics.cpp" />
-    <ClCompile Include="src\core\FileEnumerator.cpp" />
+    <ClCompile Include="src\core\FileScanner.cpp" />
     <ClCompile Include="src\core\Guard.cpp" />
     <ClCompile Include="src\core\IStream.cpp" />
     <ClCompile Include="src\core\Json.cpp" />
@@ -59,7 +54,8 @@
     <ClCompile Include="src\core\Stopwatch.cpp" />
     <ClCompile Include="src\core\String.cpp" />
     <ClCompile Include="src\core\textinputbuffer.c" />
-    <ClCompile Include="src\cursors.c" />
+    <ClCompile Include="src\interface\CursorData.cpp" />
+    <ClCompile Include="src\interface\Cursors.cpp" />
     <ClCompile Include="src\diagnostic.c" />
     <ClCompile Include="src\drawing\drawing.c" />
     <ClCompile Include="src\drawing\drawing_fast.cpp" />
@@ -76,6 +72,7 @@
     <ClCompile Include="src\drawing\engines\SoftwareDrawingEngine.cpp" />
     <ClCompile Include="src\drawing\font.c" />
     <ClCompile Include="src\drawing\Image.cpp" />
+    <ClCompile Include="src\drawing\lightfx.c" />
     <ClCompile Include="src\drawing\line.c" />
     <ClCompile Include="src\drawing\NewDrawing.cpp" />
     <ClCompile Include="src\drawing\Rain.cpp" />
@@ -123,6 +120,7 @@
     <ClCompile Include="src\network\NetworkKey.cpp" />
     <ClCompile Include="src\network\NetworkPacket.cpp" />
     <ClCompile Include="src\network\NetworkPlayer.cpp" />
+    <ClCompile Include="src\network\NetworkServerAdvertiser.cpp" />
     <ClCompile Include="src\network\NetworkUser.cpp" />
     <ClCompile Include="src\network\TcpSocket.cpp" />
     <ClCompile Include="src\network\twitch.cpp" />
@@ -154,6 +152,7 @@
     <ClCompile Include="src\paint\map_element\scenery_multiple.c" />
     <ClCompile Include="src\paint\map_element\surface.c" />
     <ClCompile Include="src\paint\paint.c" />
+    <ClCompile Include="src\paint\paint_helpers.c" />
     <ClCompile Include="src\paint\sprite\litter.c" />
     <ClCompile Include="src\paint\sprite\misc.c" />
     <ClCompile Include="src\paint\sprite\peep.c" />
@@ -241,14 +240,15 @@
     <ClCompile Include="src\ride\thrill\top_spin.c" />
     <ClCompile Include="src\ride\thrill\twist.c" />
     <ClCompile Include="src\ride\track.c" />
+    <ClCompile Include="src\ride\TrackDesignRepository.cpp" />
     <ClCompile Include="src\ride\track_data.c" />
+    <ClCompile Include="src\ride\track_data_old.c" />
     <ClCompile Include="src\ride\track_design.c" />
     <ClCompile Include="src\ride\track_design_save.c" />
-    <ClCompile Include="src\ride\track_design_index.c" />
     <ClCompile Include="src\ride\track_paint.c" />
     <ClCompile Include="src\ride\transport\chairlift.c" />
     <ClCompile Include="src\ride\transport\lift.c" />
-    <ClCompile Include="src\ride\transport\minature_railway.c" />
+    <ClCompile Include="src\ride\transport\miniature_railway.c" />
     <ClCompile Include="src\ride\transport\monorail.c" />
     <ClCompile Include="src\ride\transport\suspended_monorail.c" />
     <ClCompile Include="src\ride\vehicle.c" />
@@ -263,7 +263,7 @@
     <ClCompile Include="src\ride\water\submarine_ride.c" />
     <ClCompile Include="src\ride\water\water_coaster.c" />
     <ClCompile Include="src\scenario.c" />
-    <ClCompile Include="src\scenario_list.c" />
+    <ClCompile Include="src\ScenarioRepository.cpp" />
     <ClCompile Include="src\windows\changelog.c" />
     <ClCompile Include="src\windows\multiplayer.c" />
     <ClCompile Include="src\windows\network_status.c" />
@@ -366,15 +366,15 @@
     <ClInclude Include="src\cmdline_sprite.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\core\Collections.hpp" />
     <ClInclude Include="src\core\Console.hpp" />
     <ClInclude Include="src\core\Diagnostics.hpp" />
     <ClInclude Include="src\core\Exception.hpp" />
-    <ClInclude Include="src\core\FileEnumerator.h" />
+    <ClInclude Include="src\core\FileScanner.h" />
     <ClInclude Include="src\core\FileStream.hpp" />
     <ClInclude Include="src\core\Guard.hpp" />
     <ClInclude Include="src\core\IStream.hpp" />
     <ClInclude Include="src\core\Json.hpp" />
-    <ClInclude Include="src\core\List.hpp" />
     <ClInclude Include="src\core\Math.hpp" />
     <ClInclude Include="src\core\Memory.hpp" />
     <ClInclude Include="src\core\MemoryStream.h" />
@@ -387,7 +387,7 @@
     <ClInclude Include="src\core\StringReader.hpp" />
     <ClInclude Include="src\core\textinputbuffer.h" />
     <ClInclude Include="src\core\Util.hpp" />
-    <ClInclude Include="src\cursors.h" />
+    <ClInclude Include="src\interface\Cursors.h" />
     <ClInclude Include="src\diagnostic.h" />
     <ClInclude Include="src\drawing\drawing.h" />
     <ClInclude Include="src\drawing\engines\OpenGLAPI.h" />
@@ -407,6 +407,7 @@
     <ClInclude Include="src\drawing\IDrawingEngine.h" />
     <ClInclude Include="src\drawing\NewDrawing.h" />
     <ClInclude Include="src\drawing\Rain.h" />
+    <ClInclude Include="src\drawing\lightfx.h" />
     <ClInclude Include="src\editor.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\hook.h" />
@@ -431,6 +432,7 @@
     <ClInclude Include="src\localisation\LanguagePack.h" />
     <ClInclude Include="src\localisation\localisation.h" />
     <ClInclude Include="src\localisation\string_ids.h" />
+    <ClInclude Include="src\localisation\user.h" />
     <ClInclude Include="src\management\award.h" />
     <ClInclude Include="src\management\finance.h" />
     <ClInclude Include="src\management\marketing.h" />
@@ -442,6 +444,7 @@
     <ClInclude Include="src\network\NetworkGroup.h" />
     <ClInclude Include="src\network\NetworkPacket.h" />
     <ClInclude Include="src\network\NetworkPlayer.h" />
+    <ClInclude Include="src\network\NetworkServerAdvertiser.h" />
     <ClInclude Include="src\network\NetworkTypes.h" />
     <ClInclude Include="src\network\NetworkUser.h" />
     <ClInclude Include="src\network\TcpSocket.h" />
@@ -490,6 +493,7 @@
     <ClInclude Include="src\ride\ride_ratings.h" />
     <ClInclude Include="src\ride\station.h" />
     <ClInclude Include="src\ride\track.h" />
+    <ClInclude Include="src\ride\TrackDesignRepository.h" />
     <ClInclude Include="src\ride\track_data.h" />
     <ClInclude Include="src\ride\track_design.h" />
     <ClInclude Include="src\ride\track_paint.h" />
@@ -497,7 +501,9 @@
     <ClInclude Include="src\ride\vehicle_data.h" />
     <ClInclude Include="src\ride\vehicle_paint.h" />
     <ClInclude Include="src\scenario.h" />
-    <ClCompile Include="src\scenario_sources.c" />
+    <ClCompile Include="src\ScenarioSources.cpp" />
+    <ClInclude Include="src\ScenarioRepository.h" />
+    <ClInclude Include="src\ScenarioSources.h" />
     <ClInclude Include="src\sprites.h" />
     <ClInclude Include="src\version.h" />
     <ClInclude Include="src\title.h" />
@@ -530,6 +536,7 @@
     <ProjectGuid>{D24D94F6-2A74-480C-B512-629C306CE92F}</ProjectGuid>
     <RootNamespace>openrct2</RootNamespace>
     <ProjectName>openrct2</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -539,7 +546,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -570,14 +577,14 @@
     <IncludePath>$(SolutionDir)lib\include;$(SolutionDir)lib\include\breakpad;$(SolutionDir)lib\include\libspeex;$(SolutionDir)lib\include\sdl;$(SolutionDir)lib\include\jansson;$(SolutionDir)lib\include\sdl_ttf;$(SolutionDir)lib\include\libpng;$(SolutionDir)lib\include\zlib;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
     <LinkIncremental />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir)lib\include;$(SolutionDir)lib\include\breakpad;$(SolutionDir)lib\include\libspeex;$(SolutionDir)lib\include\sdl;$(SolutionDir)lib\include\jansson;$(SolutionDir)lib\include\sdl_ttf;$(SolutionDir)lib\include\libpng;$(SolutionDir)lib\include\zlib;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)lib\include;$(SolutionDir)lib\include\breakpad;$(SolutionDir)lib\include\libspeex;$(SolutionDir)lib\include\sdl;$(SolutionDir)lib\include\jansson;$(SolutionDir)lib\include\sdl_ttf;$(SolutionDir)lib\include\libpng;$(SolutionDir)lib\include\zlib;$(IncludePath)</IncludePath>
@@ -585,14 +592,14 @@
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
     <LinkIncremental />
-    <TargetName>$(ProjectName)_x64</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)lib\include;$(SolutionDir)lib\include\breakpad;$(SolutionDir)lib\include\libspeex;$(SolutionDir)lib\include\sdl;$(SolutionDir)lib\include\jansson;$(SolutionDir)lib\include\sdl_ttf;$(SolutionDir)lib\include\libpng;$(SolutionDir)lib\include\zlib;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
-    <TargetName>$(ProjectName)_x64</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Breakpad)'=='true'">
     <ClCompile>
@@ -605,17 +612,18 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>$(OpenRCT2_DEFINES);DEBUG;OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
       <MinimalRebuild>false</MinimalRebuild>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>$(OPENRCT2_CL_ADDITIONALOPTIONS)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openrct2-libs-vs2015-x86.lib;imm32.lib;version.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openrct2-libs-vs2015-x86.lib;imm32.lib;version.lib;winmm.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/OPT:NOLBR /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -632,19 +640,24 @@
       <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
       <OmitFramePointers />
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <PreprocessorDefinitions>$(OpenRCT2_DEFINES);OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NO_RCT2;OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>$(OPENRCT2_CL_ADDITIONALOPTIONS)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>openrct2-libs-vs2015-x86.lib;imm32.lib;version.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openrct2-libs-vs2015-x86.lib;imm32.lib;version.lib;winmm.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <SubSystem>Windows</SubSystem>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -652,17 +665,18 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>USE_MMAP;$(OpenRCT2_DEFINES);DEBUG;OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
       <MinimalRebuild>false</MinimalRebuild>
-      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>$(OPENRCT2_CL_ADDITIONALOPTIONS)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openrct2-libs-vs2015-x64.lib;imm32.lib;version.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openrct2-libs-vs2015-x64.lib;imm32.lib;version.lib;winmm.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/OPT:NOLBR /ignore:4099 %(AdditionalOptions)</AdditionalOptions>
       <SubSystem>Console</SubSystem>
@@ -683,17 +697,18 @@
       <TreatSpecificWarningsAsErrors>4013</TreatSpecificWarningsAsErrors>
       <OmitFramePointers />
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <PreprocessorDefinitions>USE_MMAP;$(OpenRCT2_DEFINES);OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>OPENGL_NO_LINK;_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;CURL_STATICLIB;SDL_MAIN_HANDLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>$(OPENRCT2_CL_ADDITIONALOPTIONS)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>openrct2-libs-vs2015-x64.lib;imm32.lib;version.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openrct2-libs-vs2015-x64.lib;imm32.lib;version.lib;winmm.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
       <SubSystem>Windows</SubSystem>
     </Link>

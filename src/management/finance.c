@@ -14,13 +14,13 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../game.h"
 #include "../interface/window.h"
 #include "../localisation/date.h"
 #include "../localisation/localisation.h"
 #include "../peep/peep.h"
 #include "../ride/ride.h"
+#include "../util/util.h"
 #include "../world/park.h"
 #include "../world/sprite.h"
 #include "finance.h"
@@ -54,6 +54,7 @@ uint8 gBankLoanInterestRate;
 money32 gMaxBankLoan;
 money32 gCurrentExpenditure;
 money32 gCurrentProfit;
+money32 gHistoricalProfit;
 money32 gWeeklyProfitAverageDividend;
 uint16 gWeeklyProfitAverageDivisor;
 money32 gCashHistory[128];
@@ -194,7 +195,7 @@ void finance_init() {
 	gBankLoan = MONEY(10000,00);
 	gMaxBankLoan = MONEY(20000,00);
 
-	RCT2_GLOBAL(0x013587D0, uint32) = 0;
+	gHistoricalProfit = 0;
 
 	gBankLoanInterestRate = 10;
 	gParkValue = 0;
@@ -202,10 +203,7 @@ void finance_init() {
 	gScenarioCompletedCompanyValue = MONEY32_UNDEFINED;
 	gTotalAdmissions = 0;
 	gTotalIncomeFromAdmissions = 0;
-
-	RCT2_GLOBAL(RCT2_ADDRESS_SCENARIO_COMPLETED_BY, uint16) = 0x3F;
-
-	finance_update_loan_hash();
+	safe_strcpy(gScenarioCompletedBy, "?", sizeof(gScenarioCompletedBy));
 }
 
 /**
@@ -257,19 +255,6 @@ void finance_update_daily_profit()
 	gWeeklyProfitAverageDivisor += 1;
 
 	window_invalidate_by_class(WC_FINANCES);
-}
-
-// This subroutine is used to mark loan changes as 'legitimate', to prevent cheat detection from incorrectly interfering
-void finance_update_loan_hash()
-{
-	sint32 value = 0x70093A;
-	value -= gInitialCash;
-	value = ror32(value, 5);
-	value -= gBankLoan;
-	value = ror32(value, 7);
-	value += gMaxBankLoan;
-	value = ror32(value, 3);
-	RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, sint32) = value;
 }
 
 void finance_set_loan(money32 loan)
@@ -330,7 +315,6 @@ void game_command_set_current_loan(int* eax, int* ebx, int* ecx, int* edx, int* 
 		gBankLoan = newLoan;
 		gInitialCash = money;
 		gCashEncrypted = ENCRYPT_MONEY(money);
-		finance_update_loan_hash();
 
 		window_invalidate_by_class(WC_FINANCES);
 		gToolbarDirtyFlags |= BTM_TB_DIRTY_FLAG_MONEY;
@@ -352,7 +336,7 @@ void finance_shift_expenditure_table()
 		for (uint32 i = EXPENDITURE_TABLE_TOTAL_COUNT - RCT_EXPENDITURE_TYPE_COUNT; i < EXPENDITURE_TABLE_TOTAL_COUNT; i++) {
 			sum += gExpenditureTable[i];
 		}
-		RCT2_GLOBAL(0x013587D0, money32) += sum;
+		gHistoricalProfit += sum;
 	}
 
 	// Shift the table
@@ -375,4 +359,20 @@ void finance_shift_expenditure_table()
 void finance_reset_cash_to_initial()
 {
 	gCashEncrypted = ENCRYPT_MONEY(gInitialCash);
+}
+
+/**
+ * Gets the last month's profit from food, drink and merchandise.
+ */
+money32 finance_get_last_month_shop_profit()
+{
+	money32 profit = 0;
+	if (gDateMonthsElapsed != 0) {
+		money32 * lastMonthExpenditure = &gExpenditureTable[1 * RCT_EXPENDITURE_TYPE_COUNT];
+		profit += lastMonthExpenditure[RCT_EXPENDITURE_TYPE_SHOP_SHOP_SALES];
+		profit += lastMonthExpenditure[RCT_EXPENDITURE_TYPE_SHOP_STOCK];
+		profit += lastMonthExpenditure[RCT_EXPENDITURE_TYPE_FOODDRINK_SALES];
+		profit += lastMonthExpenditure[RCT_EXPENDITURE_TYPE_FOODDRINK_STOCK];
+	}
+	return profit;
 }

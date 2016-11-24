@@ -88,22 +88,30 @@ typedef struct viewport_interaction_info {
 
 #define MAX_VIEWPORT_COUNT WINDOW_LIMIT_MAX
 
-#define gSavedViewX				RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_X, sint16)
-#define gSavedViewY				RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_Y, sint16)
-#define gSavedViewZoom			RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ZOOM, uint8)
-#define gSavedViewRotation		RCT2_GLOBAL(RCT2_ADDRESS_SAVED_VIEW_ROTATION, uint8)
-#define gCurrentRotation		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_ROTATION, uint8)
-extern uint32 gCurrentViewportFlags;
+/**
+ * A reference counter for whether something is forcing the grid lines to show. When the counter
+ * is decremented to 0, the grid lines are hidden.
+ */
+extern uint8 gShowGridLinesRefCount;
+extern uint8 gShowLandRightsRefCount;
+extern uint8 gShowConstuctionRightsRefCount;
 
 // rct2: 0x014234BC
 extern rct_viewport g_viewport_list[MAX_VIEWPORT_COUNT];
 extern rct_viewport *g_music_tracking_viewport;
+extern sint16 gSavedViewX;
+extern sint16 gSavedViewY;
+extern uint8 gSavedViewZoom;
+extern uint8 gSavedViewRotation;
+
 #ifdef NO_RCT2
-extern paint_struct *unk_EE7884;
-extern paint_struct *unk_EE7888;
+extern paint_entry *gNextFreePaintStruct;
+extern uint8 gCurrentRotation;
+extern uint32 gCurrentViewportFlags;
 #else
-	#define unk_EE7884 RCT2_GLOBAL(0x00EE7884, paint_struct*)
-	#define unk_EE7888 RCT2_GLOBAL(0x00EE7888, paint_struct*)
+	#define gNextFreePaintStruct RCT2_GLOBAL(0x00EE7888, paint_entry*)
+	#define gCurrentRotation		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_ROTATION, uint8)
+	#define gCurrentViewportFlags	RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_VIEWPORT_FLAGS, uint32)
 #endif
 
 void viewport_init_all();
@@ -113,7 +121,7 @@ void viewport_update_pointers();
 void viewport_update_position(rct_window *window);
 void viewport_update_sprite_follow(rct_window *window);
 void viewport_render(rct_drawpixelinfo *dpi, rct_viewport *viewport, int left, int top, int right, int bottom);
-void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, int left, int top, int right, int bottom);
+void viewport_paint(rct_viewport* viewport, rct_drawpixelinfo* dpi, sint16 left, sint16 top, sint16 right, sint16 bottom);
 
 void sub_689174(sint16* x, sint16* y, sint16 *z);
 
@@ -142,9 +150,6 @@ void sub_68A15E(int screenX, int screenY, short *x, short *y, int *direction, rc
 void viewport_interaction_remove_park_entrance(rct_map_element *mapElement, int x, int y);
 
 void sub_68B2B7(int x, int y);
-void painter_setup();
-void paint_quadrant_ps();
-void sub_688217();
 
 void viewport_invalidate(rct_viewport *viewport, int left, int top, int right, int bottom);
 

@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../interface/viewport.h"
@@ -303,6 +302,8 @@ static const uint32 staffCostumeNames[] = {
 	STR_STAFF_OPTION_COSTUME_PIRATE,
 };
 
+static uint8 _availableCostumes[ENTERTAINER_COSTUME_COUNT];
+
 /**
 *
 *  rct2: 0x006BEE98
@@ -432,6 +433,25 @@ void window_staff_set_page(rct_window* w, int page)
 	if (listen && w->viewport) w->viewport->flags |= VIEWPORT_FLAG_SOUND_ON;
 }
 
+void game_command_callback_pickup_staff(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	switch(ecx){
+	case 0:{
+		int peepnum = eax;
+		rct_window* w = window_find_by_number(WC_PEEP, peepnum);
+		if (w) {
+			tool_set(w, WIDX_PICKUP, 7);
+		}
+		}break;
+	case 2:
+		if (ebx == 0) {
+			tool_cancel();
+			gPickupPeepImage = UINT32_MAX;
+		}
+		break;
+	}
+}
+
 /**
  *
  *  rct2: 0x006BDF55
@@ -453,19 +473,15 @@ void window_staff_overview_mouseup(rct_window *w, int widgetIndex)
 		window_scroll_to_viewport(w);
 		break;
 	case WIDX_PICKUP:
-		if (tool_set(w, widgetIndex, 7)) {
-			return;
-		}
-
+		{
+		// this is called in callback when hiring staff, setting nestlevel to 0 so that command is sent separately
+		int oldNestLevel = gGameCommandNestLevel;
+		gGameCommandNestLevel = 0;
+		game_command_callback = game_command_callback_pickup_staff;
 		w->picked_peep_old_x = peep->x;
-
-		remove_peep_from_ride(peep);
-		invalidate_sprite_2((rct_sprite*)peep);
-
-		sprite_move( 0x8000, peep->y, peep->z, (rct_sprite*)peep);
-		peep_decrement_num_riders(peep);
-		peep->state = PEEP_STATE_PICKED;
-		peep_window_state_update(peep);
+		game_do_command(w->number, GAME_COMMAND_FLAG_APPLY, 0, 0, GAME_COMMAND_PICKUP_STAFF, 0, 0);
+		gGameCommandNestLevel = oldNestLevel;
+		}
 		break;
 	case WIDX_FIRE:
 		window_staff_fire_prompt_open(peep);
@@ -550,7 +566,7 @@ void window_staff_overview_mousedown(int widgetIndex, rct_window* w, rct_widget*
 	rct_peep* peep = GET_PEEP(w->number);
 
 	// Disable clear patrol area if no area is set.
-	if (!(RCT2_ADDRESS(RCT2_ADDRESS_STAFF_MODE_ARRAY, uint8)[peep->staff_id] & 2)) {
+	if (!(gStaffModes[peep->staff_id] & 2)) {
 		gDropdownItemsDisabled |= (1ULL << 1);
 	}
 }
@@ -568,12 +584,11 @@ void window_staff_overview_dropdown(rct_window *w, int widgetIndex, int dropdown
 	// Clear patrol
 	if (dropdownIndex == 1) {
 		rct_peep* peep = GET_PEEP(w->number);
-
-		for (int i = 0; i < 128; i++)
-		{
-			RCT2_ADDRESS(RCT2_ADDRESS_STAFF_PATROL_AREAS + (peep->staff_id * 512), uint32)[i] = 0;
+		uint32 *addr = (uint32*)((uintptr_t)gStaffPatrolAreas + (peep->staff_id * 512));
+		for (int i = 0; i < 128; i++) {
+			addr[i] = 0;
 		}
-		RCT2_ADDRESS(RCT2_ADDRESS_STAFF_MODE_ARRAY, uint8)[peep->staff_id] &= ~2;
+		gStaffModes[peep->staff_id] &= ~2;
 
 		gfx_invalidate_screen();
 		staff_update_greyed_patrol_areas();
@@ -613,7 +628,7 @@ static void window_staff_set_order(rct_window* w, int order_id)
 	int ax = peep->staff_orders ^ (1 << order_id);
 	int flags = (ax << 8) | 1;
 
-	game_do_command(peep->x, flags, peep->y, w->number, GAME_COMMAND_SET_STAFF_ORDER, (int)peep, 0);
+	game_do_command(peep->x, flags, peep->y, w->number, GAME_COMMAND_SET_STAFF_ORDER, 0, 0);
 }
 
 /**
@@ -742,7 +757,7 @@ void window_staff_stats_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	window_staff_stats_widgets[WIDX_BACKGROUND].right = w->width - 1;
@@ -777,7 +792,7 @@ void window_staff_options_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	switch (peep->staff_type){
@@ -852,7 +867,7 @@ void window_staff_overview_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	window_staff_overview_widgets[WIDX_BACKGROUND].right = w->width - 1;
@@ -922,7 +937,7 @@ void window_staff_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int x = (widget->left + widget->right) / 2 + w->x;
 	int y = w->y + widget->top;
 	int width = widget->right - widget->left;
-	gfx_draw_string_centred_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, 0, x, y, width);
+	gfx_draw_string_centred_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, COLOUR_BLACK, x, y, width);
 }
 
 /**
@@ -1060,27 +1075,27 @@ void window_staff_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	if (!(gParkFlags & PARK_FLAGS_NO_MONEY)) {
 		set_format_arg(0, money32, wage_table[peep->staff_type]);
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_WAGES, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_WAGES, gCommonFormatArgs, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 
-	gfx_draw_string_left(dpi, STR_STAFF_STAT_EMPLOYED_FOR, (void*)&peep->time_in_park, 0, x, y);
+	gfx_draw_string_left(dpi, STR_STAFF_STAT_EMPLOYED_FOR, (void*)&peep->time_in_park, COLOUR_BLACK, x, y);
 	y += 10;
 
 	switch (peep->staff_type){
 	case STAFF_TYPE_HANDYMAN:
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_LAWNS_MOWN, (void*)&peep->staff_lawns_mown, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_LAWNS_MOWN, (void*)&peep->staff_lawns_mown, COLOUR_BLACK, x, y);
 		y += 10;
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_GARDENS_WATERED, (void*)&peep->staff_gardens_watered, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_GARDENS_WATERED, (void*)&peep->staff_gardens_watered, COLOUR_BLACK, x, y);
 		y += 10;
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_LITTER_SWEPT, (void*)&peep->staff_litter_swept, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_LITTER_SWEPT, (void*)&peep->staff_litter_swept, COLOUR_BLACK, x, y);
 		y += 10;
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_BINS_EMPTIED, (void*)&peep->staff_bins_emptied, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_BINS_EMPTIED, (void*)&peep->staff_bins_emptied, COLOUR_BLACK, x, y);
 		break;
 	case STAFF_TYPE_MECHANIC:
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_RIDES_INSPECTED, (void*)&peep->staff_rides_inspected, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_RIDES_INSPECTED, (void*)&peep->staff_rides_inspected, COLOUR_BLACK, x, y);
 		y += 10;
-		gfx_draw_string_left(dpi, STR_STAFF_STAT_RIDES_FIXED, (void*)&peep->staff_rides_fixed, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_STAT_RIDES_FIXED, (void*)&peep->staff_rides_fixed, COLOUR_BLACK, x, y);
 		break;
 	}
 }
@@ -1144,49 +1159,14 @@ void window_staff_overview_tool_down(rct_window* w, int widgetIndex, int x, int 
 {
 	if (widgetIndex == WIDX_PICKUP) {
 		int dest_x, dest_y;
-		rct_map_element *mapElement;
+		rct_map_element* mapElement;
 		footpath_get_coordinates_from_pos(x, y + 16, &dest_x, &dest_y, NULL, &mapElement);
 
-		if (dest_x == (sint16)0x8000)return;
-
-		// Set the coordinate of destination to be exactly
-		// in the middle of a tile.
-		dest_x += 16;
-		dest_y += 16;
-		// Set the tile coordinate to top left of tile
-		int tile_y = dest_y & 0xFFE0;
-		int tile_x = dest_x & 0xFFE0;
-
-		int dest_z = mapElement->base_height * 8 + 16;
-
-		if (!map_is_location_owned(tile_x, tile_y, dest_z)){
-			window_error_open(STR_ERR_CANT_PLACE_PERSON_HERE, STR_NONE);
+		if (dest_x == (sint16)0x8000)
 			return;
-		}
 
-		if (!map_can_construct_at(tile_x, tile_y, dest_z / 8, (dest_z / 8) + 1, 15)){
-			if (gGameCommandErrorText != STR_RAISE_OR_LOWER_LAND_FIRST){
-				if (gGameCommandErrorText != STR_FOOTPATH_IN_THE_WAY){
-					window_error_open(STR_ERR_CANT_PLACE_PERSON_HERE, STR_NONE);
-					return;
-				}
-			}
-		}
-
-		rct_peep* peep = GET_PEEP(w->number);
-		sprite_move(dest_x, dest_y, dest_z, (rct_sprite*)peep);
-		invalidate_sprite_2((rct_sprite*)peep);
-		peep_decrement_num_riders(peep);
-		peep->state = PEEP_STATE_FALLING;
-		peep_window_state_update(peep);
-		peep->action = 0xFF;
-		peep->special_sprite = 0;
-		peep->action_sprite_image_offset = 0;
-		peep->action_sprite_type = 0;
-		peep->var_C4 = 0;
-
-		tool_cancel();
-		gPickupPeepImage = UINT32_MAX;
+		game_command_callback = game_command_callback_pickup_staff;
+		game_do_command(w->number, GAME_COMMAND_FLAG_APPLY, 2, mapElement->base_height, GAME_COMMAND_PICKUP_STAFF, dest_x, dest_y);
 	}
 	else if (widgetIndex == WIDX_PATROL){
 		int dest_x, dest_y;
@@ -1205,24 +1185,7 @@ void window_staff_overview_tool_down(rct_window* w, int widgetIndex, int x, int 
 void window_staff_overview_tool_abort(rct_window *w, int widgetIndex)
 {
 	if (widgetIndex == WIDX_PICKUP) {
-		rct_peep* peep = GET_PEEP(w->number);
-		if (peep->state != PEEP_STATE_PICKED) return;
-
-		sprite_move(w->picked_peep_old_x, peep->y, peep->z + 8, (rct_sprite*)peep);
-		invalidate_sprite_2((rct_sprite*)peep);
-
-		if (peep->x != (sint16)0x8000){
-			peep_decrement_num_riders(peep);
-			peep->state = PEEP_STATE_FALLING;
-			peep_window_state_update(peep);
-			peep->action = 0xFF;
-			peep->special_sprite = 0;
-			peep->action_sprite_image_offset = 0;
-			peep->action_sprite_type = 0;
-			peep->var_C4 = 0;
-		}
-
-		gPickupPeepImage = UINT32_MAX;
+		game_do_command(w->number, GAME_COMMAND_FLAG_APPLY, 1, 0, GAME_COMMAND_PICKUP_STAFF, w->picked_peep_old_x, 0);
 	}
 	else if (widgetIndex == WIDX_PATROL){
 		hide_gridlines();
@@ -1293,7 +1256,7 @@ void window_staff_viewport_init(rct_window* w){
 	}
 	else{
 		viewport_flags = 0;
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_FLAGS, uint8) & 0x1)
+		if (gConfigGeneral.always_show_gridlines)
 			viewport_flags |= VIEWPORT_FLAG_GRIDLINES;
 	}
 
@@ -1335,36 +1298,35 @@ void window_staff_options_mousedown(int widgetIndex, rct_window* w, rct_widget* 
 
 	init_scenery();
 
-	int ebx = 0;
+	uint32 entertainerCostumes = 0;
 	for (int i = 0; i < 19; i++) {
 		if (window_scenery_tab_entries[i][0] != -1) {
 			rct_scenery_set_entry* scenery_entry = get_scenery_group_entry(i);
-			ebx |= scenery_entry->var_10A;
+			entertainerCostumes |= scenery_entry->entertainer_costumes;
 		}
 	}
 
-	uint8* ebp = RCT2_ADDRESS(0xF4391B, uint8);
-	uint16 no_entries = 0;
-	for (uint8 i = 0; i < 32; ++i){
-		if (ebx & (1 << i)){
-			*ebp++ = i;
-			no_entries++;
+	uint8 *costume = _availableCostumes;
+	uint16 numCostumes = 0;
+	for (uint8 i = 0; i < ENTERTAINER_COSTUME_COUNT; i++) {
+		if (entertainerCostumes & (1 << i)) {
+			// For some reason the flags are +4 from the actual costume IDs
+			*costume++ = (i - 4);
+			numCostumes++;
 		}
 	}
-	// Save number of entrys. Not required any more.
-	RCT2_GLOBAL(0xF43926, uint16) = no_entries;
 
 	rct_peep* peep = GET_PEEP(w->number);
-	int item_checked = 0;
+	int itemsChecked = 0;
 	//This will be moved below where Items Checked is when all
 	//of dropdown related functions are finished. This prevents
 	//the dropdown from not working on first click.
-	for (int i = 0; i < no_entries; ++i){
-		int eax = RCT2_ADDRESS(0xF4391B, uint8)[i];
-		if (eax == peep->sprite_type){
-			item_checked = 1 << i;
+	for (int i = 0; i < numCostumes; ++i){
+		uint8 costume = _availableCostumes[i];
+		if (costume == peep->sprite_type) {
+			itemsChecked = 1 << i;
 		}
-		gDropdownItemsArgs[i] = staffCostumeNames[eax - 4];
+		gDropdownItemsArgs[i] = staffCostumeNames[costume];
 		gDropdownItemsFormat[i] = STR_DROPDOWN_MENU_LABEL;
 	}
 
@@ -1375,10 +1337,10 @@ void window_staff_options_mousedown(int widgetIndex, rct_window* w, rct_widget* 
 	int y = widget->top + w->y;
 	int extray = widget->bottom - widget->top + 1;
 	int width = widget->right - widget->left - 3;
-	window_dropdown_show_text_custom_width(x, y, extray, w->colours[1], DROPDOWN_FLAG_STAY_OPEN, no_entries, width);
+	window_dropdown_show_text_custom_width(x, y, extray, w->colours[1], DROPDOWN_FLAG_STAY_OPEN, numCostumes, width);
 
 	// See above note.
-	gDropdownItemsChecked = item_checked;
+	gDropdownItemsChecked = itemsChecked;
 }
 
 /**
@@ -1395,6 +1357,6 @@ void window_staff_options_dropdown(rct_window *w, int widgetIndex, int dropdownI
 		return;
 
 	rct_peep* peep = GET_PEEP(w->number);
-	int costume = (RCT2_ADDRESS(0xF4391B, uint8)[dropdownIndex] - 4) | 0x80;
-	game_do_command(peep->x, (costume << 8) | 1, peep->y, w->number, GAME_COMMAND_SET_STAFF_ORDER, (int)peep, 0);
+	int costume = _availableCostumes[dropdownIndex] | 0x80;
+	game_do_command(peep->x, (costume << 8) | 1, peep->y, w->number, GAME_COMMAND_SET_STAFF_ORDER, 0, 0);
 }

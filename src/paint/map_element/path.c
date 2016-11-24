@@ -14,21 +14,22 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "map_element.h"
-#include "../../addresses.h"
-#include "../../interface/viewport.h"
-#include "../../ride/track.h"
-#include "../../world/footpath.h"
 #include "../../config.h"
-#include "../paint.h"
-#include "../../world/scenery.h"
-#include "surface.h"
-#include "../../ride/track_paint.h"
-#include "../../localisation/localisation.h"
 #include "../../game.h"
-#include "../supports.h"
-#include "../../peep/staff.h"
+#include "../../interface/viewport.h"
+#include "../../localisation/localisation.h"
 #include "../../object_list.h"
+#include "../../peep/staff.h"
+#include "../../ride/track.h"
+#include "../../ride/track_paint.h"
+#include "../../world/footpath.h"
+#include "../../world/scenery.h"
+#include "../paint.h"
+#include "../supports.h"
+#include "map_element.h"
+#include "surface.h"
+#include "../../world/map.h"
+#include "../../drawing/lightfx.h"
 
 // #3628: Until path_paint is implemented, this variable is used by scrolling_text_setup
 //        to use the old string arguments array. Remove when scrolling_text_setup is no
@@ -150,11 +151,13 @@ static void path_bit_bins_paint(rct_scenery_entry* pathBitEntry, rct_map_element
 
 		if (!(mapElement->flags & MAP_ELEMENT_FLAG_BROKEN)) {
 			imageId -= 4;
-			
-			if (!(mapElement->properties.path.addition_status & (0x3 << get_current_rotation())))
+
+			// Edges have been rotated around the rotation to check addition status
+			// this will also need to be rotated.
+			if (!(mapElement->properties.path.addition_status & ror8(0x3,(2 * get_current_rotation()))))
 				imageId += 8;
 		}
-		
+
 
 		sub_98197C(imageId, 7, 16, 1, 1, 7, height, 7, 16, height + 2, get_current_rotation());
 	}
@@ -166,10 +169,12 @@ static void path_bit_bins_paint(rct_scenery_entry* pathBitEntry, rct_map_element
 		if (!(mapElement->flags & MAP_ELEMENT_FLAG_BROKEN)) {
 			imageId -= 4;
 
-			if (!(mapElement->properties.path.addition_status & rol8(0xC, get_current_rotation())))
+			// Edges have been rotated around the rotation to check addition status
+			// this will also need to be rotated.
+			if (!(mapElement->properties.path.addition_status & ror8(0xC, (2 * get_current_rotation()))))
 				imageId += 8;
 		}
-		
+
 
 		sub_98197C(imageId, 16, 25, 1, 1, 7, height, 16, 25, height + 2, get_current_rotation());
 	}
@@ -182,10 +187,12 @@ static void path_bit_bins_paint(rct_scenery_entry* pathBitEntry, rct_map_element
 		if (!(mapElement->flags & MAP_ELEMENT_FLAG_BROKEN)) {
 			imageId -= 4;
 
-			if (!(mapElement->properties.path.addition_status & rol8(0x30, get_current_rotation())))
+			// Edges have been rotated around the rotation to check addition status
+			// this will also need to be rotated.
+			if (!(mapElement->properties.path.addition_status & ror8(0x30, (2 * get_current_rotation()))))
 				imageId += 8;
 		}
-		
+
 
 		sub_98197C(imageId, 25, 16, 1, 1, 7, height, 25, 16, height + 2, get_current_rotation());
 	}
@@ -198,10 +205,12 @@ static void path_bit_bins_paint(rct_scenery_entry* pathBitEntry, rct_map_element
 		if (!(mapElement->flags & MAP_ELEMENT_FLAG_BROKEN)) {
 			imageId -= 4;
 
-			if (!(mapElement->properties.path.addition_status & rol8(0xC0, get_current_rotation())))
+			// Edges have been rotated around the rotation to check addition status
+			// this will also need to be rotated.
+			if (!(mapElement->properties.path.addition_status & ror8(0xC0, (2 * get_current_rotation()))))
 				imageId += 8;
 		}
-		
+
 
 		sub_98197C(imageId, 16, 7, 1, 1, 7, height, 16, 7, height + 2, get_current_rotation());
 	}
@@ -366,17 +375,17 @@ static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp,
 		direction &= 3;
 
 		rct_xyz16 boundBoxOffsets = {
-			.x = RCT2_ADDRESS(0x0098D884, sint16)[direction * 4],
-			.y = RCT2_ADDRESS(0x0098D884 + 2, sint16)[direction * 4],
+			.x = BannerBoundBoxes[direction][0].x,
+			.y = BannerBoundBoxes[direction][0].y,
 			.z = height + 2
 		};
 
 		uint32 imageId = (direction << 1) + base_image_id + 101;
-		
+
 		sub_98197C(imageId, 0, 0, 1, 1, 21, height, boundBoxOffsets.x, boundBoxOffsets.y, boundBoxOffsets.z, get_current_rotation());
 
-		boundBoxOffsets.x = RCT2_ADDRESS(0x98D888, sint16)[direction * 4];
-		boundBoxOffsets.y = RCT2_ADDRESS(0x98D888 + 2, sint16)[direction * 4];
+		boundBoxOffsets.x = BannerBoundBoxes[direction][1].x;
+		boundBoxOffsets.y = BannerBoundBoxes[direction][1].y;
 		imageId++;
 		sub_98197C(imageId, 0, 0, 1, 1, 21, height, boundBoxOffsets.x, boundBoxOffsets.y, boundBoxOffsets.z, get_current_rotation());
 
@@ -392,19 +401,19 @@ static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp,
 			rct_ride* ride = get_ride(map_element->properties.path.ride_index);
 			rct_string_id string_id = STR_RIDE_ENTRANCE_CLOSED;
 			if (ride->status == RIDE_STATUS_OPEN && !(ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN)){
-				set_format_arg(0, uint16, ride->name);
+				set_format_arg(0, rct_string_id, ride->name);
 				set_format_arg(2, uint32, ride->name_arguments);
 				string_id = STR_RIDE_ENTRANCE_NAME;
 			}
 			if (gConfigGeneral.upper_case_banners) {
-				format_string_to_upper(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, gCommonFormatArgs);
+				format_string_to_upper(gCommonStringFormatBuffer, 256, string_id, gCommonFormatArgs);
 			} else {
-				format_string(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char), string_id, gCommonFormatArgs);
+				format_string(gCommonStringFormatBuffer, 256, string_id, gCommonFormatArgs);
 			}
 
 			gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
 
-			uint16 string_width = gfx_get_string_width(RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char));
+			uint16 string_width = gfx_get_string_width(gCommonStringFormatBuffer);
 			uint16 scroll = (gCurrentTicks / 2) % string_width;
 
 			sub_98199C(scrolling_text_setup(string_id, scroll, scrollingMode), 0, 0, 1, 1, 21, height + 7,  boundBoxOffsets.x,  boundBoxOffsets.y,  boundBoxOffsets.z, get_current_rotation());
@@ -590,7 +599,7 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
 	rct_drawpixelinfo * dpi = unk_140E9A8;
 
 	if (dpi->zoom_level <= 1) {
-		if (!(RCT2_GLOBAL(0x9DEA6F, uint8) & 1)) {
+		if (!gTrackDesignSaveMode) {
 			uint8 additions = map_element->properties.path.additions & 0xF;
 			if (additions != 0) {
 				gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_FOOTPATH_ITEM;
@@ -614,7 +623,7 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
 					path_bit_jumping_fountains_paint(sceneryEntry, map_element, height, (uint8)bp, sceneryImageFlags, dpi);
 					break;
 				}
-				
+
 				gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_FOOTPATH;
 
 				if (sceneryImageFlags != 0) {
@@ -624,8 +633,7 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
 		}
 
 		// Redundant zoom-level check removed
-		RCT2_GLOBAL(0xF3EF78, uint32) = footpathEntry->image | imageFlags;
-		//RCT2_CALLPROC_X(0x6A4101, 0, 0, 0, 0, (int) map_element, 0, 0);
+
 		sub_6A4101(map_element, height, bp, word_F3F038, footpathEntry, footpathEntry->image | imageFlags, imageFlags);
 	}
 
@@ -664,14 +672,6 @@ static void sub_6A3F61(rct_map_element * map_element, uint16 bp, uint16 height, 
  */
 void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 {
-	if (gUseOriginalRidePaint) {
-		TempForScrollText = true;
-		RCT2_CALLPROC_X(0x6A3590, 0, 0, direction, height, (int) map_element, 0, 0);
-		TempForScrollText = false;
-		return;
-	}
-
-
 	gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_FOOTPATH;
 
 	bool word_F3F038 = false;
@@ -679,9 +679,9 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 	uint32 sceneryImageFlags = 0;
 	uint32 imageFlags = 0;
 
-	if (RCT2_GLOBAL(0x9DEA6F, uint8) & 1) {
+	if (gTrackDesignSaveMode) {
 		if (map_element->type & 1) {
-			if (map_element->properties.path.ride_index != RCT2_GLOBAL(0x00F64DE8, uint8)) {
+			if (map_element->properties.path.ride_index != gTrackDesignSaveRideIndex) {
 				return;
 			}
 		}
@@ -700,7 +700,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 		imageFlags = construction_markers[gConfigGeneral.construction_marker_colour];
 	}
 
-	sint16 x = RCT2_GLOBAL(0x009DE56A, sint16), y = RCT2_GLOBAL(0x009DE56E, sint16);
+	sint16 x = gPaintMapPosition.x, y = gPaintMapPosition.y;
 
 	rct_map_element * surface = map_get_surface_element_at(x / 32, y / 32);
 
@@ -727,7 +727,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 		sint32 staffIndex = gStaffDrawPatrolAreas;
 		uint8 staffType = staffIndex & 0x7FFF;
 		bool is_staff_list = staffIndex & 0x8000;
-		sint16 x = RCT2_GLOBAL(0x009DE56A, sint16), y = RCT2_GLOBAL(0x009DE56E, sint16);
+		sint16 x = gPaintMapPosition.x, y = gPaintMapPosition.y;
 
 		uint8 patrolColour = COLOUR_LIGHT_BLUE;
 
@@ -739,12 +739,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 			staffType = staff->staff_type;
 		}
 
-		x = (x & 0x1F80) >> 7;
-		y = (y & 0x1F80) >> 1;
-		int offset = (x | y) >> 5;
-		int bitIndex = (x | y) & 0x1F;
-		int ebx = (staffType + 200) * 512;
-		if (RCT2_ADDRESS(RCT2_ADDRESS_STAFF_PATROL_AREAS + ebx, uint32)[offset] & (1 << bitIndex)) {
+		if (staff_is_patrol_area_set(200 + staffType, x, y)) {
 			uint32 imageId = 2618;
 			int height = map_element->base_height * 8;
 			if (footpath_element_is_sloped(map_element)) {
@@ -764,7 +759,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 		}
 		uint32 imageId = (SPR_HEIGHT_MARKER_BASE + height / 16) | COLOUR_GREY << 19 | 0x20000000;
 		imageId += get_height_marker_offset();
-		imageId -= RCT2_GLOBAL(0x01359208, uint16);
+		imageId -= gMapBaseZ;
 		sub_98196C(imageId, 16, 16, 1, 1, 0, height, get_current_rotation());
 	}
 
@@ -776,6 +771,26 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 	} else {
 		loc_6A3B57(map_element, height, footpathEntry, word_F3F038, imageFlags, sceneryImageFlags);
 	}
+
+#ifdef __ENABLE_LIGHTFX__
+	if (footpath_element_has_path_scenery(map_element) && !(map_element->flags & MAP_ELEMENT_FLAG_BROKEN)) {
+		rct_scenery_entry *sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
+		if (sceneryEntry->path_bit.flags & PATH_BIT_FLAG_LAMP) {
+			if (!(map_element->properties.path.edges & (1 << 0))) {
+				lightfx_add_3d_light_magic_from_drawing_tile(-16, 0, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+			}
+			if (!(map_element->properties.path.edges & (1 << 1))) {
+				lightfx_add_3d_light_magic_from_drawing_tile(0, 16, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+			}
+			if (!(map_element->properties.path.edges & (1 << 2))) {
+				lightfx_add_3d_light_magic_from_drawing_tile(16, 0, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+			}
+			if (!(map_element->properties.path.edges & (1 << 3))) {
+				lightfx_add_3d_light_magic_from_drawing_tile(0, -16, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+			}
+		}
+	}
+#endif
 }
 
 void loc_6A37C9(rct_map_element * mapElement, int height, rct_footpath_entry * footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags)
@@ -805,14 +820,14 @@ void loc_6A37C9(rct_map_element * mapElement, int height, rct_footpath_entry * f
 		imageId += 51;
 	}
 
-	if (!RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!gDidPassSurface) {
 		boundBoxOffset.x = 3;
 		boundBoxOffset.y = 3;
 		boundBoxSize.x = 26;
 		boundBoxSize.y = 26;
 	}
 
-	if (!hasFences || !RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!hasFences || !gDidPassSurface) {
 		sub_98197C(imageId | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 	} else {
 		uint32 image_id;
@@ -919,14 +934,14 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 	}
 
 	// Below Surface
-	if (!RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!gDidPassSurface) {
 		boundBoxOffset.x = 3;
 		boundBoxOffset.y = 3;
 		boundBoxSize.x = 26;
 		boundBoxSize.y = 26;
 	}
 
-	if (!hasFences || !RCT2_GLOBAL(0x9DE57C, bool)) {
+	if (!hasFences || !gDidPassSurface) {
 		sub_98197C(imageId | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 	}
 	else {
@@ -960,10 +975,9 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 		5
 	};
 
-	RCT2_GLOBAL(0x00F3EF6C, rct_footpath_entry*) = footpathEntry;
 	for (sint8 i = 3; i > -1; --i) {
 		if (!(edges & (1 << i))) {
-			path_b_supports_paint_setup(supports[i], ax, height, imageFlags);
+			path_b_supports_paint_setup(supports[i], ax, height, imageFlags, footpathEntry);
 		}
 	}
 
@@ -973,7 +987,7 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 	}
 
 	paint_util_set_general_support_height(height, 0x20);
-	
+
 	if ((mapElement->type & 1)
 	    || (mapElement->properties.path.edges != 0xFF && hasFences)
 		) {

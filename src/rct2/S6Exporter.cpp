@@ -17,6 +17,8 @@
 #include "../core/Exception.hpp"
 #include "../core/IStream.hpp"
 #include "../core/String.hpp"
+#include "../object/ObjectRepository.h"
+#include "../object/Object.h"
 #include "S6Exporter.h"
 
 extern "C"
@@ -38,6 +40,7 @@ extern "C"
     #include "../ride/ride_ratings.h"
     #include "../scenario.h"
     #include "../util/sawyercoding.h"
+    #include "../util/util.h"
     #include "../world/climate.h"
     #include "../world/map_animation.h"
     #include "../world/park.h"
@@ -45,7 +48,6 @@ extern "C"
 
 S6Exporter::S6Exporter()
 {
-    ExportObjects = false;
     RemoveTracklessRides = false;
     memset(&_s6, 0, sizeof(_s6));
 }
@@ -89,7 +91,7 @@ void S6Exporter::SaveScenario(SDL_RWops *rw)
 void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
 {
     _s6.header.type = isScenario ? S6_TYPE_SCENARIO : S6_TYPE_SAVEDGAME;
-    _s6.header.num_packed_objects = ExportObjects ? scenario_get_num_packed_objects_to_write() : 0;
+    _s6.header.num_packed_objects = uint16(ExportObjectsList.size());
     _s6.header.version = S6_RCT2_VERSION;
     _s6.header.magic_number = S6_MAGIC_NUMBER;
 
@@ -101,9 +103,9 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
         log_error("Unable to allocate enough space for a write buffer.");
         throw Exception("Unable to allocate memory.");
     }
-    
+
     sawyercoding_chunk_header chunkHeader;
-    int encodedLength;
+    size_t encodedLength;
 
     // 0: Write header chunk
     chunkHeader.encoding = CHUNK_ENCODING_ROTATE;
@@ -120,10 +122,11 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
         SDL_RWwrite(rw, buffer, encodedLength, 1);
     }
 
+    log_warning("exporting %u objects", _s6.header.num_packed_objects);
     // 2: Write packed objects
     if (_s6.header.num_packed_objects > 0)
     {
-        if (!scenario_write_packed_objects(rw))
+        if (!scenario_write_packed_objects(rw, ExportObjectsList))
         {
             free(buffer);
             throw Exception("Unable to pack objects.");
@@ -153,7 +156,7 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
         // 6:
         chunkHeader.encoding = CHUNK_ENCODING_RLECOMPRESSED;
         chunkHeader.length = 0x27104C;
-        encodedLength = sawyercoding_write_chunk_buffer(buffer, (uint8*)&_s6.dword_010E63B8, chunkHeader);
+        encodedLength = sawyercoding_write_chunk_buffer(buffer, (uint8*)&_s6.next_free_map_element_pointer_index, chunkHeader);
         SDL_RWwrite(rw, buffer, encodedLength, 1);
 
         // 7:
@@ -203,12 +206,12 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
         // 6: Everything else...
         chunkHeader.encoding = CHUNK_ENCODING_RLECOMPRESSED;
         chunkHeader.length = 0x2E8570;
-        encodedLength = sawyercoding_write_chunk_buffer(buffer, (uint8*)&_s6.dword_010E63B8, chunkHeader);
+        encodedLength = sawyercoding_write_chunk_buffer(buffer, (uint8*)&_s6.next_free_map_element_pointer_index, chunkHeader);
         SDL_RWwrite(rw, buffer, encodedLength, 1);
     }
 
     free(buffer);
-    
+
     // Determine number of bytes written
     size_t fileSize = (size_t)SDL_RWtell(rw);
     SDL_RWseek(rw, 0, RW_SEEK_SET);
@@ -226,13 +229,13 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
 
 void S6Exporter::Export()
 {
-    _s6.info = *gS6Info;
+    _s6.info = gS6Info;
 
     for (int i = 0; i < OBJECT_ENTRY_COUNT; i++)
     {
         const rct_object_entry * entry = get_loaded_object_entry(i);
         void * entryData = get_loaded_object_chunk(i);
-        if (entryData == (void *)0xFFFFFFFF)
+        if (entryData == (void *)-1)
         {
             Memory::Set(&_s6.objects[i], 0xFF, sizeof(rct_object_entry));
         }
@@ -250,7 +253,7 @@ void S6Exporter::Export()
 
     memcpy(_s6.map_elements, gMapElements, sizeof(_s6.map_elements));
 
-    _s6.dword_010E63B8 = RCT2_GLOBAL(0x0010E63B8, uint32);
+    _s6.next_free_map_element_pointer_index = gNextFreeMapElementPointerIndex;
     for (int i = 0; i < MAX_SPRITES; i++)
     {
         memcpy(&_s6.sprites[i], get_sprite(i), sizeof(rct_sprite));
@@ -329,7 +332,7 @@ void S6Exporter::Export()
     _s6.current_expenditure = gCurrentExpenditure;
     _s6.current_profit = gCurrentProfit;
     _s6.weekly_profit_average_dividend = gWeeklyProfitAverageDividend;
-	_s6.weekly_profit_average_divisor = gWeeklyProfitAverageDivisor;
+    _s6.weekly_profit_average_divisor = gWeeklyProfitAverageDivisor;
     // pad_0135833A
 
     memcpy(_s6.weekly_profit_history, gWeeklyProfitHistory, sizeof(_s6.weekly_profit_history));
@@ -346,20 +349,20 @@ void S6Exporter::Export()
     memcpy(_s6.awards, gCurrentAwards, sizeof(_s6.awards));
     _s6.land_price = gLandPrice;
     _s6.construction_rights_price = gConstructionRightsPrice;
-    _s6.word_01358774 = RCT2_GLOBAL(0x01358774, uint16);
+    // unk_01358774
     // pad_01358776
     // _s6.cd_key
     // _s6.game_version_number
     _s6.completed_company_value_record = gScenarioCompanyValueRecord;
-    _s6.loan_hash = RCT2_GLOBAL(RCT2_ADDRESS_LOAN_HASH, uint32);
-    _s6.ride_count = RCT2_GLOBAL(RCT2_ADDRESS_RIDE_COUNT, uint16);
+    _s6.loan_hash = GetLoanHash(gInitialCash, gBankLoan, gMaxBankLoan);
+    _s6.ride_count = gRideCount;
     // pad_013587CA
-    _s6.dword_013587D0 = RCT2_GLOBAL(0x013587D0, uint32);
+    _s6.historical_profit = gHistoricalProfit;
     // pad_013587D4
     memcpy(_s6.scenario_completed_name, gScenarioCompletedBy, sizeof(_s6.scenario_completed_name));
     _s6.cash = gCashEncrypted;
     // pad_013587FC
-    _s6.word_0135882E = RCT2_GLOBAL(0x0135882E, uint16);
+    _s6.park_rating_casualty_penalty = gParkRatingCasualtyPenalty;
     _s6.map_size_units = gMapSizeUnits;
     _s6.map_size_minus_2 = gMapSizeMinus2;
     _s6.map_size = gMapSize;
@@ -367,11 +370,11 @@ void S6Exporter::Export()
     _s6.same_price_throughout = gSamePriceThroughoutParkA;
     _s6.suggested_max_guests = _suggestedGuestMaximum;
     _s6.park_rating_warning_days = gScenarioParkRatingWarningDays;
-    _s6.last_entrance_style = RCT2_GLOBAL(RCT2_ADDRESS_LAST_ENTRANCE_STYLE, uint8);
+    _s6.last_entrance_style = gLastEntranceStyle;
     // rct1_water_colour
     // pad_01358842
     memcpy(_s6.research_items, gResearchItems, sizeof(_s6.research_items));
-    _s6.word_01359208 = RCT2_GLOBAL(0x01359208, uint16);
+    _s6.map_base_z = gMapBaseZ;
     memcpy(_s6.scenario_name, gScenarioName, sizeof(_s6.scenario_name));
     memcpy(_s6.scenario_description, gScenarioDetails, sizeof(_s6.scenario_description));
     _s6.current_interest_rate = gBankLoanInterestRate;
@@ -381,13 +384,13 @@ void S6Exporter::Export()
     memcpy(_s6.park_entrance_y, gParkEntranceY, sizeof(_s6.park_entrance_y));
     memcpy(_s6.park_entrance_z, gParkEntranceZ, sizeof(_s6.park_entrance_z));
     memcpy(_s6.park_entrance_direction, gParkEntranceDirection, sizeof(_s6.park_entrance_direction));
-    memcpy(_s6.scenario_filename, RCT2_ADDRESS(0x0135936C, char), sizeof(_s6.scenario_filename));
-    memcpy(_s6.saved_expansion_pack_names, RCT2_ADDRESS(0x0135946C, uint8), sizeof(_s6.saved_expansion_pack_names));
+    safe_strcpy(_s6.scenario_filename, _scenarioFileName, sizeof(_s6.scenario_filename));
+    memcpy(_s6.saved_expansion_pack_names, gScenarioExpansionPacks, sizeof(_s6.saved_expansion_pack_names));
     memcpy(_s6.banners, gBanners, sizeof(_s6.banners));
     memcpy(_s6.custom_strings, gUserStrings, sizeof(_s6.custom_strings));
     _s6.game_ticks_1 = gCurrentTicks;
     memcpy(_s6.rides, gRideList, sizeof(_s6.rides));
-    _s6.saved_age = RCT2_GLOBAL(RCT2_ADDRESS_SAVED_AGE, uint16);
+    _s6.saved_age = gSavedAge;
     _s6.saved_view_x = gSavedViewX;
     _s6.saved_view_y = gSavedViewY;
     _s6.saved_view_zoom = gSavedViewZoom;
@@ -404,10 +407,10 @@ void S6Exporter::Export()
     memcpy(_s6.staff_modes, gStaffModes, sizeof(_s6.staff_modes));
     // unk_13CA73E
     // pad_13CA73F
-    _s6.byte_13CA740 = RCT2_GLOBAL(0x013CA740, uint8);
+    _s6.byte_13CA740 = gUnk13CA740;
     _s6.climate = gClimate;
     // pad_13CA741;
-    memcpy(_s6.byte_13CA742, RCT2_ADDRESS(0x013CA742, uint8), sizeof(_s6.byte_13CA742));
+    // byte_13CA742
     // pad_013CA747
     _s6.climate_update_timer = gClimateUpdateTimer;
     _s6.current_weather = gClimateCurrentWeather;
@@ -438,12 +441,130 @@ void S6Exporter::Export()
     game_convert_strings_to_rct2(&_s6);
 }
 
+uint32 S6Exporter::GetLoanHash(money32 initialCash, money32 bankLoan, uint32 maxBankLoan)
+{
+    sint32 value = 0x70093A;
+    value -= initialCash;
+    value = ror32(value, 5);
+    value -= bankLoan;
+    value = ror32(value, 7);
+    value += maxBankLoan;
+    value = ror32(value, 3);
+    return value;
+}
+
+
+// Save game state without modifying any of the state for multiplayer
+int scenario_save_network(SDL_RWops * rw, const std::vector<const ObjectRepositoryItem *> &objects)
+{
+    viewport_set_saved_view();
+
+    bool result = false;
+    auto s6exporter = new S6Exporter();
+    try
+    {
+        s6exporter->ExportObjectsList = objects;
+        s6exporter->Export();
+        s6exporter->SaveGame(rw);
+        result = true;
+    }
+    catch (Exception)
+    {
+    }
+    delete s6exporter;
+
+    if (!result)
+    {
+        return 0;
+    }
+
+    // Write other data not in normal save files
+    SDL_RWwrite(rw, gSpriteSpatialIndex, 0x10001 * sizeof(uint16), 1);
+    SDL_WriteLE32(rw, gGamePaused);
+    SDL_WriteLE32(rw, _guestGenerationProbability);
+    SDL_WriteLE32(rw, _suggestedGuestMaximum);
+    SDL_WriteU8(rw, gCheatsSandboxMode);
+    SDL_WriteU8(rw, gCheatsDisableClearanceChecks);
+    SDL_WriteU8(rw, gCheatsDisableSupportLimits);
+    SDL_WriteU8(rw, gCheatsDisableTrainLengthLimit);
+    SDL_WriteU8(rw, gCheatsEnableChainLiftOnAllTrack);
+    SDL_WriteU8(rw, gCheatsShowAllOperatingModes);
+    SDL_WriteU8(rw, gCheatsShowVehiclesFromOtherTrackTypes);
+    SDL_WriteU8(rw, gCheatsFastLiftHill);
+    SDL_WriteU8(rw, gCheatsDisableBrakesFailure);
+    SDL_WriteU8(rw, gCheatsDisableAllBreakdowns);
+    SDL_WriteU8(rw, gCheatsUnlockAllPrices);
+    SDL_WriteU8(rw, gCheatsBuildInPauseMode);
+    SDL_WriteU8(rw, gCheatsIgnoreRideIntensity);
+    SDL_WriteU8(rw, gCheatsDisableVandalism);
+    SDL_WriteU8(rw, gCheatsDisableLittering);
+    SDL_WriteU8(rw, gCheatsNeverendingMarketing);
+    SDL_WriteU8(rw, gCheatsFreezeClimate);
+    SDL_WriteU8(rw, gCheatsDisablePlantAging);
+    SDL_WriteU8(rw, gCheatsAllowArbitraryRideTypeChanges);
+
+    gfx_invalidate_screen();
+    return 1;
+}
+
+static bool object_is_custom(const ObjectRepositoryItem * object)
+{
+    Guard::ArgumentNotNull(object);
+
+    // Validate the object is not one from base game or expansion pack
+    return (object->LoadedObject != nullptr &&
+            object->LoadedObject->GetLegacyData() != nullptr
+            && !(object->ObjectEntry.flags & 0xF0));
+}
+
+int scenario_write_packed_objects(SDL_RWops* rw, std::vector<const ObjectRepositoryItem *> &objects)
+{
+    log_verbose("exporting packed objects");
+    for (const auto &object : objects)
+    {
+        Guard::ArgumentNotNull(object);
+        log_verbose("exporting object %.8s", object->ObjectEntry.name);
+        if (object_is_custom(object))
+        {
+            if (!object_saved_packed(rw, &object->ObjectEntry))
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            log_warning("Refusing to pack vanilla/expansion object \"%s\"", object->ObjectEntry.name);
+        }
+    }
+    return 1;
+}
+
+/**
+ *
+ *  rct2: 0x006AA244
+ */
+std::vector<const ObjectRepositoryItem *> scenario_get_packable_objects()
+{
+    std::vector<const ObjectRepositoryItem *> objects;
+    IObjectRepository * repo = GetObjectRepository();
+    for (size_t i = 0; i < repo->GetNumObjects(); i++)
+    {
+        const ObjectRepositoryItem *item = &repo->GetObjects()[i];
+        // Validate the object is not one from base game or expansion pack
+        if (object_is_custom(item))
+        {
+            objects.push_back(item);
+        }
+    }
+    return objects;
+}
+
 extern "C"
 {
     enum {
         S6_SAVE_FLAG_EXPORT    = 1 << 0,
         S6_SAVE_FLAG_SCENARIO  = 1 << 1,
-        S6_SAVE_FLAG_AUTOMATIC = 1 << 31,
+        S6_SAVE_FLAG_AUTOMATIC = 1u << 31,
     };
 
     /**
@@ -476,7 +597,9 @@ extern "C"
         auto s6exporter = new S6Exporter();
         try
         {
-            s6exporter->ExportObjects = (flags & S6_SAVE_FLAG_EXPORT);
+            if (flags & S6_SAVE_FLAG_EXPORT) {
+                s6exporter->ExportObjectsList = scenario_get_packable_objects();
+            }
             s6exporter->RemoveTracklessRides = true;
             s6exporter->Export();
             if (flags & S6_SAVE_FLAG_SCENARIO)
@@ -501,58 +624,5 @@ extern "C"
             gScreenAge = 0;
         }
         return result;
-    }
-
-    // Save game state without modifying any of the state for multiplayer
-    int scenario_save_network(SDL_RWops * rw)
-    {
-        viewport_set_saved_view();
-
-        bool result = false;
-        auto s6exporter = new S6Exporter();
-        try
-        {
-            s6exporter->ExportObjects = true;
-            s6exporter->Export();
-            s6exporter->SaveGame(rw);
-            result = true;
-        }
-        catch (Exception)
-        {
-        }
-        delete s6exporter;
-
-        if (!result)
-        {
-            return 0;
-        }
-
-        // Write other data not in normal save files
-        SDL_RWwrite(rw, gSpriteSpatialIndex, 0x10001 * sizeof(uint16), 1);
-        SDL_WriteLE32(rw, gGamePaused);
-        SDL_WriteLE32(rw, _guestGenerationProbability);
-        SDL_WriteLE32(rw, _suggestedGuestMaximum);
-        SDL_WriteU8(rw, gCheatsSandboxMode);
-        SDL_WriteU8(rw, gCheatsDisableClearanceChecks);
-        SDL_WriteU8(rw, gCheatsDisableSupportLimits);
-        SDL_WriteU8(rw, gCheatsDisableTrainLengthLimit);
-        SDL_WriteU8(rw, gCheatsEnableChainLiftOnAllTrack);
-        SDL_WriteU8(rw, gCheatsShowAllOperatingModes);
-        SDL_WriteU8(rw, gCheatsShowVehiclesFromOtherTrackTypes);
-        SDL_WriteU8(rw, gCheatsFastLiftHill);
-        SDL_WriteU8(rw, gCheatsDisableBrakesFailure);
-        SDL_WriteU8(rw, gCheatsDisableAllBreakdowns);
-        SDL_WriteU8(rw, gCheatsUnlockAllPrices);
-        SDL_WriteU8(rw, gCheatsBuildInPauseMode);
-        SDL_WriteU8(rw, gCheatsIgnoreRideIntensity);
-        SDL_WriteU8(rw, gCheatsDisableVandalism);
-        SDL_WriteU8(rw, gCheatsDisableLittering);
-        SDL_WriteU8(rw, gCheatsNeverendingMarketing);
-        SDL_WriteU8(rw, gCheatsFreezeClimate);
-        SDL_WriteU8(rw, gCheatsDisablePlantAging);
-        SDL_WriteU8(rw, gCheatsAllowArbitraryRideTypeChanges);
-
-        gfx_invalidate_screen();
-        return 1;
     }
 }

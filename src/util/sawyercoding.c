@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../platform/platform.h"
 #include "sawyercoding.h"
 #include "../scenario.h"
@@ -85,7 +84,7 @@ bool sawyercoding_read_chunk_safe(SDL_RWops *rw, void *dst, size_t dstLength)
 {
 	// Allocate 16 MB to store uncompressed data
 	uint8 *tempBuffer = malloc(16 * 1024 * 1024);
-	size_t uncompressedLength = sawyercoding_read_chunk(rw, tempBuffer);
+	size_t uncompressedLength = sawyercoding_read_chunk_with_size(rw, tempBuffer, 16 * 1024 * 1024);
 	if (uncompressedLength == SIZE_MAX) {
 		free(tempBuffer);
 		return false;
@@ -108,51 +107,6 @@ bool sawyercoding_skip_chunk(SDL_RWops *rw)
 	// Skip chunk data
 	SDL_RWseek(rw, chunkHeader.length, RW_SEEK_CUR);
 	return true;
-}
-
-/**
- *
- *  rct2: 0x0067685F
- * buffer (esi)
- */
-size_t sawyercoding_read_chunk(SDL_RWops* rw, uint8 *buffer)
-{
-	sawyercoding_chunk_header chunkHeader;
-
-	// Read chunk header
-	if (SDL_RWread(rw, &chunkHeader, sizeof(sawyercoding_chunk_header), 1) != 1) {
-		log_error("Unable to read chunk header!");
-		return -1;
-	}
-
-	uint8* src_buffer = malloc(chunkHeader.length);
-
-	// Read chunk data
-	if (SDL_RWread(rw, src_buffer, chunkHeader.length, 1) != 1) {
-		free(src_buffer);
-		log_error("Unable to read chunk data!");
-		return -1;
-	}
-
-	// Decode chunk data
-	switch (chunkHeader.encoding) {
-	case CHUNK_ENCODING_NONE:
-		memcpy(buffer, src_buffer, chunkHeader.length);
-		break;
-	case CHUNK_ENCODING_RLE:
-		chunkHeader.length = decode_chunk_rle(src_buffer, buffer, chunkHeader.length);
-		break;
-	case CHUNK_ENCODING_RLECOMPRESSED:
-		chunkHeader.length = decode_chunk_rle(src_buffer, buffer, chunkHeader.length);
-		chunkHeader.length = decode_chunk_repeat(buffer, chunkHeader.length);
-		break;
-	case CHUNK_ENCODING_ROTATE:
-		memcpy(buffer, src_buffer, chunkHeader.length);
-		decode_chunk_rotate(buffer, chunkHeader.length);
-		break;
-	}
-	free(src_buffer);
-	return chunkHeader.length;
 }
 
 /**
@@ -190,11 +144,11 @@ size_t sawyercoding_read_chunk_with_size(SDL_RWops* rw, uint8 *buffer, const siz
 		memcpy(buffer, src_buffer, chunkHeader.length);
 		break;
 	case CHUNK_ENCODING_RLE:
-		chunkHeader.length = decode_chunk_rle_with_size(src_buffer, buffer, chunkHeader.length, buffer_size);
+		chunkHeader.length = (uint32)decode_chunk_rle_with_size(src_buffer, buffer, chunkHeader.length, buffer_size);
 		break;
 	case CHUNK_ENCODING_RLECOMPRESSED:
-		chunkHeader.length = decode_chunk_rle_with_size(src_buffer, buffer, chunkHeader.length, buffer_size);
-		chunkHeader.length = decode_chunk_repeat(buffer, chunkHeader.length);
+		chunkHeader.length = (uint32)decode_chunk_rle_with_size(src_buffer, buffer, chunkHeader.length, buffer_size);
+		chunkHeader.length = (uint32)decode_chunk_repeat(buffer, chunkHeader.length);
 		break;
 	case CHUNK_ENCODING_ROTATE:
 		memcpy(buffer, src_buffer, chunkHeader.length);
@@ -228,7 +182,7 @@ size_t sawyercoding_write_chunk_buffer(uint8 *dst_file, uint8* buffer, sawyercod
 		break;
 	case CHUNK_ENCODING_RLE:
 		encode_buffer = malloc(0x600000);
-		chunkHeader.length = encode_chunk_rle(buffer, encode_buffer, chunkHeader.length);
+		chunkHeader.length = (uint32)encode_chunk_rle(buffer, encode_buffer, chunkHeader.length);
 		memcpy(dst_file, &chunkHeader, sizeof(sawyercoding_chunk_header));
 		dst_file += sizeof(sawyercoding_chunk_header);
 		memcpy(dst_file, encode_buffer, chunkHeader.length);
@@ -238,8 +192,8 @@ size_t sawyercoding_write_chunk_buffer(uint8 *dst_file, uint8* buffer, sawyercod
 	case CHUNK_ENCODING_RLECOMPRESSED:
 		encode_buffer = malloc(chunkHeader.length * 2);
 		encode_buffer2 = malloc(0x600000);
-		chunkHeader.length = encode_chunk_repeat(buffer, encode_buffer, chunkHeader.length);
-		chunkHeader.length = encode_chunk_rle(encode_buffer, encode_buffer2, chunkHeader.length);
+		chunkHeader.length = (uint32)encode_chunk_repeat(buffer, encode_buffer, chunkHeader.length);
+		chunkHeader.length = (uint32)encode_chunk_rle(encode_buffer, encode_buffer2, chunkHeader.length);
 		memcpy(dst_file, &chunkHeader, sizeof(sawyercoding_chunk_header));
 		dst_file += sizeof(sawyercoding_chunk_header);
 		memcpy(dst_file, encode_buffer2, chunkHeader.length);
@@ -262,20 +216,20 @@ size_t sawyercoding_write_chunk_buffer(uint8 *dst_file, uint8* buffer, sawyercod
 	return chunkHeader.length + sizeof(sawyercoding_chunk_header);
 }
 
-size_t sawyercoding_decode_sv4(const uint8 *src, uint8 *dst, size_t length)
+size_t sawyercoding_decode_sv4(const uint8 *src, uint8 *dst, size_t length, size_t bufferLength)
 {
 	// (0 to length - 4): RLE chunk
 	// (length - 4 to length): checksum
-	return decode_chunk_rle(src, dst, length - 4);
+	return decode_chunk_rle_with_size(src, dst, length - 4, bufferLength);
 }
 
-size_t sawyercoding_decode_sc4(const uint8 *src, uint8 *dst, size_t length)
+size_t sawyercoding_decode_sc4(const uint8 *src, uint8 *dst, size_t length, size_t bufferLength)
 {
 	size_t decodedLength, i;
 	uint32 *code;
 
 	// Uncompress
-	decodedLength = decode_chunk_rle(src, dst, length - 4);
+	decodedLength = decode_chunk_rle_with_size(src, dst, length - 4, bufferLength);
 
 	// Decode
 	for (i = 0x60018; i <= min(decodedLength - 1, 0x1F8353); i++)
@@ -511,7 +465,7 @@ static size_t encode_chunk_repeat(const uint8 *src_buffer, uint8 *dst_buffer, si
 {
 	size_t i, j, outLength;
 	size_t searchIndex, searchEnd, maxRepeatCount;
-	size_t bestRepeatIndex, bestRepeatCount, repeatIndex, repeatCount;
+	size_t bestRepeatIndex = 0, bestRepeatCount = 0, repeatIndex, repeatCount;
 
 	if (length == 0)
 		return 0;

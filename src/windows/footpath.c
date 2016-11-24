@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../game.h"
 #include "../localisation/localisation.h"
@@ -620,7 +619,7 @@ static void window_footpath_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		// Draw build this... label
 		x = w->x + (window_footpath_widgets[WIDX_CONSTRUCT].left + window_footpath_widgets[WIDX_CONSTRUCT].right) / 2;
 		y = w->y + window_footpath_widgets[WIDX_CONSTRUCT].bottom - 23;
-		gfx_draw_string_centred(dpi, STR_BUILD_THIS, x, y, 0, 0);
+		gfx_draw_string_centred(dpi, STR_BUILD_THIS, x, y, COLOUR_BLACK, NULL);
 	}
 
 	// Draw cost
@@ -628,7 +627,7 @@ static void window_footpath_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	y = w->y + window_footpath_widgets[WIDX_CONSTRUCT].bottom - 12;
 	if (_window_footpath_cost != MONEY32_UNDEFINED)
 		if (!(gParkFlags & PARK_FLAGS_NO_MONEY))
-			gfx_draw_string_centred(dpi, STR_COST_LABEL, x, y, 0, &_window_footpath_cost);
+			gfx_draw_string_centred(dpi, STR_COST_LABEL, x, y, COLOUR_BLACK, &_window_footpath_cost);
 }
 
 /**
@@ -852,7 +851,7 @@ static void window_footpath_start_bridge_at_point(int screenX, int screenY)
 	if (map_element_get_type(mapElement) == MAP_ELEMENT_TYPE_SURFACE) {
 		// If we start the path on a slope, the arrow is slightly raised, so we
 		// expect the path to be slightly raised as well.
-		uint8_t slope = mapElement->properties.surface.slope;
+		uint8 slope = mapElement->properties.surface.slope;
 		z = mapElement->base_height;
 		if (slope & 0x10) {
 			// Steep diagonal slope

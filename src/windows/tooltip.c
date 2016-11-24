@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../drawing/drawing.h"
 #include "../localisation/localisation.h"
 #include "../input.h"
@@ -31,12 +30,11 @@ static rct_widget window_tooltip_widgets[] = {
 	{ WIDGETS_END },
 };
 
-static void window_tooltip_onclose(rct_window *w);
 static void window_tooltip_update(rct_window *w);
 static void window_tooltip_paint(rct_window *w, rct_drawpixelinfo *dpi);
 
 static rct_window_event_list window_tooltip_events = {
-	window_tooltip_onclose,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -66,6 +64,9 @@ static rct_window_event_list window_tooltip_events = {
 	NULL
 };
 
+static utf8 _tooltipText[sizeof(gCommonStringFormatBuffer)];
+static sint16 _tooltipNumLines;
+
 void window_tooltip_reset(int x, int y)
 {
 	gTooltipCursorX = x;
@@ -76,8 +77,6 @@ void window_tooltip_reset(int x, int y)
 	gInputFlags &= ~INPUT_FLAG_4;
 }
 
-uint8* gTooltip_text_buffer = RCT2_ADDRESS(RCT2_ADDRESS_TOOLTIP_TEXT_BUFFER, uint8);
-
 void window_tooltip_show(rct_string_id id, int x, int y)
 {
 	rct_window *w;
@@ -87,15 +86,14 @@ void window_tooltip_show(rct_string_id id, int x, int y)
 	if (w != NULL)
 		return;
 
-	RCT2_GLOBAL(0x0142006C, sint32) = -1;
-	char* buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+	char* buffer = gCommonStringFormatBuffer;
 
-	format_string(buffer, id, gCommonFormatArgs);
+	format_string(buffer, 256, id, gCommonFormatArgs);
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
 	int tooltip_text_width;
 	tooltip_text_width = gfx_get_string_width_new_lined(buffer);
-	buffer = RCT2_ADDRESS(RCT2_ADDRESS_COMMON_STRING_FORMAT_BUFFER, char);
+	buffer = gCommonStringFormatBuffer;
 	tooltip_text_width = min(tooltip_text_width, 196);
 
 	gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
@@ -103,13 +101,13 @@ void window_tooltip_show(rct_string_id id, int x, int y)
 	int numLines, fontSpriteBase;
 	tooltip_text_width = gfx_wrap_string(buffer, tooltip_text_width + 1, &numLines, &fontSpriteBase);
 
-	RCT2_GLOBAL(RCT2_ADDRESS_TOOLTIP_TEXT_HEIGHT, sint16) = numLines;
+	_tooltipNumLines = numLines;
 	width = tooltip_text_width + 3;
 	height = ((numLines + 1) * font_get_line_height(gCurrentFontSpriteBase)) + 4;
 	window_tooltip_widgets[WIDX_BACKGROUND].right = width;
 	window_tooltip_widgets[WIDX_BACKGROUND].bottom = height;
 
-	memcpy(gTooltip_text_buffer, buffer, 512);
+	memcpy(_tooltipText, buffer, sizeof(_tooltipText));
 
 	x = clamp(0, x - (width / 2), gScreenWidth - width);
 
@@ -173,17 +171,6 @@ void window_tooltip_close()
 	window_close_by_class(WC_TOOLTIP);
 	gTooltipTimeout = 0;
 	gTooltipWidget.window_classification = 255;
-	RCT2_GLOBAL(0x0142006C, sint32) = -1;
-	RCT2_GLOBAL(0x009DE51E, uint8) = 0;
-}
-
-/**
- *
- *  rct2: 0x006EA578
- */
-static void window_tooltip_onclose(rct_window *w)
-{
-	RCT2_GLOBAL(0x009BC3B0, uint8) = 0;
 }
 
 /**
@@ -192,8 +179,7 @@ static void window_tooltip_onclose(rct_window *w)
  */
 static void window_tooltip_update(rct_window *w)
 {
-	if (RCT2_GLOBAL(0x009DE51E, uint8) == 0)
-		gTooltipNotShownTicks = 0;
+	gTooltipNotShownTicks = 0;
 }
 
 /**
@@ -208,23 +194,23 @@ static void window_tooltip_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int bottom = w->y + w->height - 1;
 
 	// Background
-	gfx_fill_rect(dpi, left + 1, top + 1, right - 1, bottom - 1, 0x0200002D);
-	gfx_fill_rect(dpi, left + 1, top + 1, right - 1, bottom - 1, 0x02000084);
+	gfx_filter_rect(dpi, left + 1, top + 1, right - 1, bottom - 1, PALETTE_45);
+	gfx_filter_rect(dpi, left + 1, top + 1, right - 1, bottom - 1, PALETTE_GLASS_LIGHT_ORANGE);
 
 	// Sides
-	gfx_fill_rect(dpi, left  + 0, top    + 2, left  + 0, bottom - 2, 0x0200002F);
-	gfx_fill_rect(dpi, right + 0, top    + 2, right + 0, bottom - 2, 0x0200002F);
-	gfx_fill_rect(dpi, left  + 2, bottom + 0, right - 2, bottom + 0, 0x0200002F);
-	gfx_fill_rect(dpi, left  + 2, top    + 0, right - 2, top    + 0, 0x0200002F);
+	gfx_filter_rect(dpi, left  + 0, top    + 2, left  + 0, bottom - 2, PALETTE_DARKEN_3);
+	gfx_filter_rect(dpi, right + 0, top    + 2, right + 0, bottom - 2, PALETTE_DARKEN_3);
+	gfx_filter_rect(dpi, left  + 2, bottom + 0, right - 2, bottom + 0, PALETTE_DARKEN_3);
+	gfx_filter_rect(dpi, left  + 2, top    + 0, right - 2, top    + 0, PALETTE_DARKEN_3);
 
 	// Corners
-	gfx_draw_pixel(dpi, left  + 1, top    + 1, 0x0200002F);
-	gfx_draw_pixel(dpi, right - 1, top    + 1, 0x0200002F);
-	gfx_draw_pixel(dpi, left  + 1, bottom - 1, 0x0200002F);
-	gfx_draw_pixel(dpi, right - 1, bottom - 1, 0x0200002F);
+	gfx_filter_pixel(dpi, left  + 1, top    + 1, PALETTE_DARKEN_3);
+	gfx_filter_pixel(dpi, right - 1, top    + 1, PALETTE_DARKEN_3);
+	gfx_filter_pixel(dpi, left  + 1, bottom - 1, PALETTE_DARKEN_3);
+	gfx_filter_pixel(dpi, right - 1, bottom - 1, PALETTE_DARKEN_3);
 
 	// Text
 	left = w->x + ((w->width + 1) / 2) - 1;
 	top = w->y + 1;
-	draw_string_centred_raw(dpi, left, top, RCT2_GLOBAL(RCT2_ADDRESS_TOOLTIP_TEXT_HEIGHT, uint16), (char *)gTooltip_text_buffer);
+	draw_string_centred_raw(dpi, left, top, _tooltipNumLines, _tooltipText);
 }

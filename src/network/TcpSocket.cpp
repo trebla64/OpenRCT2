@@ -28,6 +28,7 @@
     #include <winsock2.h>
     #include <ws2tcpip.h>
 
+    #undef GetMessage
     #define LAST_SOCKET_ERROR() WSAGetLastError()
     #undef EWOULDBLOCK
     #define EWOULDBLOCK WSAEWOULDBLOCK
@@ -85,6 +86,8 @@ private:
     SOCKET_STATUS   _status         = SOCKET_STATUS_CLOSED;
     uint16          _listeningPort  = 0;
     SOCKET          _socket         = INVALID_SOCKET;
+
+    std::string     _hostName;
 
     SDL_mutex *     _connectMutex   = nullptr;
     std::string     _error;
@@ -181,9 +184,11 @@ public:
         {
             throw Exception("Socket not listening.");
         }
+        struct sockaddr_storage client_addr;
+        socklen_t client_len = sizeof(struct sockaddr_storage);
 
         ITcpSocket * tcpSocket = nullptr;
-        SOCKET socket = accept(_socket, nullptr, nullptr);
+        SOCKET socket = accept(_socket, (struct sockaddr *)&client_addr, &client_len);
         if (socket == INVALID_SOCKET)
         {
             if (LAST_SOCKET_ERROR() != EWOULDBLOCK)
@@ -200,8 +205,21 @@ public:
             }
             else
             {
+                char hostName[NI_MAXHOST];
+                int rc = getnameinfo(
+                    (struct sockaddr *)&client_addr,
+                    client_len,
+                    hostName,
+                    sizeof(hostName),
+                    nullptr,
+                    0,
+                    NI_NUMERICHOST | NI_NUMERICSERV);
                 SetTCPNoDelay(socket, true);
                 tcpSocket = new TcpSocket(socket);
+                if (rc == 0)
+                {
+                    _hostName = std::string(hostName);
+                }
             }
         }
         return tcpSocket;
@@ -213,7 +231,7 @@ public:
         {
             throw Exception("Socket not closed.");
         }
-        
+
         try
         {
             // Resolve address
@@ -272,7 +290,7 @@ public:
                 timeval timeout;
                 timeout.tv_sec = 0;
                 timeout.tv_usec = 0;
-                if (select(_socket + 1, nullptr, &writeFD, nullptr, &timeout) > 0)
+                if (select((int)(_socket + 1), nullptr, &writeFD, nullptr, &timeout) > 0)
                 {
                     error = 0;
                     socklen_t len = sizeof(error);
@@ -321,7 +339,7 @@ public:
                 }
                 catch (Exception ex)
                 {
-                    req->Socket->_error = std::string(ex.GetMsg());
+                    req->Socket->_error = std::string(ex.GetMessage());
                 }
 
                 SDL_UnlockMutex(req->Socket->_connectMutex);
@@ -368,7 +386,7 @@ public:
             throw Exception("Socket not connected.");
         }
 
-        int readBytes = recv(_socket, (char *)buffer, size, 0);
+        int readBytes = recv(_socket, (char *)buffer, (int)size, 0);
         if (readBytes == 0)
         {
             *sizeReceived = 0;
@@ -400,6 +418,11 @@ public:
             CloseSocket();
         }
         SDL_UnlockMutex(_connectMutex);
+    }
+
+    const char * GetHostName() const override
+    {
+        return _hostName.empty() ? nullptr : _hostName.c_str();
     }
 
 private:
@@ -439,7 +462,7 @@ private:
         else
         {
             memcpy(ss, result->ai_addr, result->ai_addrlen);
-            *ss_len = result->ai_addrlen;
+            *ss_len = (int)result->ai_addrlen;
             freeaddrinfo(result);
             return true;
         }

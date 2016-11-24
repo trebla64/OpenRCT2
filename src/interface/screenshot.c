@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../config.h"
 #include "../drawing/drawing.h"
@@ -29,6 +28,8 @@
 #include "screenshot.h"
 #include "viewport.h"
 
+uint8 gScreenshotCountdown = 0;
+
 /**
  *
  *  rct2: 0x006E3AEC
@@ -37,21 +38,18 @@ void screenshot_check()
 {
 	int screenshotIndex;
 
-	if (RCT2_GLOBAL(RCT2_ADDRESS_SCREENSHOT_COUNTDOWN, uint8) != 0) {
-		RCT2_GLOBAL(RCT2_ADDRESS_SCREENSHOT_COUNTDOWN, uint8)--;
-		if (RCT2_GLOBAL(RCT2_ADDRESS_SCREENSHOT_COUNTDOWN, uint8) == 0) {
+	if (gScreenshotCountdown != 0) {
+		gScreenshotCountdown--;
+		if (gScreenshotCountdown == 0) {
 			// update_rain_animation();
 			screenshotIndex = screenshot_dump();
 
 			if (screenshotIndex != -1) {
-				RCT2_GLOBAL(0x009A8C29, uint8) |= 1;
-
 				audio_play_sound(SOUND_WINDOW_OPEN, 100, gScreenWidth / 2);
 			} else {
 				window_error_open(STR_SCREENSHOT_FAILED, STR_NONE);
 			}
 
-			RCT2_GLOBAL(0x009A8C29, uint8) &= ~1;
 			// redraw_rain();
 		}
 	}
@@ -69,18 +67,18 @@ static void screenshot_get_rendered_palette(rct_palette* palette) {
 	}
 }
 
-static int screenshot_get_next_path(char *path)
+static int screenshot_get_next_path(char *path, size_t size)
 {
 	char screenshotPath[MAX_PATH];
 
-	platform_get_user_directory(screenshotPath, "screenshot");
+	platform_get_user_directory(screenshotPath, "screenshot", sizeof(screenshotPath));
 	if (!platform_ensure_directory_exists(screenshotPath)) {
 		log_error("Unable to save screenshots in OpenRCT2 screenshot directory.\n");
 		return -1;
 	}
 
-	char park_name[128] = { 0 };
-	format_string(park_name, gParkName, &gParkNameArgs);
+	char park_name[128];
+	format_string(park_name, 128, gParkName, &gParkNameArgs);
 
 	// retrieve current time
 	rct2_date currentDate;
@@ -89,7 +87,7 @@ static int screenshot_get_next_path(char *path)
 	platform_get_time_local(&currentTime);
 
 	// Glue together path and filename
-	sprintf(path, "%s%s %d-%02d-%02d %02d-%02d-%02d.png", screenshotPath, park_name, currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute, currentTime.second);
+	snprintf(path, size, "%s%s %d-%02d-%02d %02d-%02d-%02d.png", screenshotPath, park_name, currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute, currentTime.second);
 
 	if (!platform_file_exists(path)) {
 		return 0; // path ok
@@ -104,7 +102,7 @@ static int screenshot_get_next_path(char *path)
 	int i;
 	for (i = 1; i < 1000; i++) {
 		// Glue together path and filename
-		sprintf(path, "%s%s %d-%02d-%02d %02d-%02d-%02d (%d).png", screenshotPath, park_name, currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute, currentTime.second, i);
+		snprintf(path, size, "%s%s %d-%02d-%02d %02d-%02d-%02d (%d).png", screenshotPath, park_name, currentDate.year, currentDate.month, currentDate.day, currentTime.hour, currentTime.minute, currentTime.second, i);
 
 		if (!platform_file_exists(path)) {
 			return i;
@@ -120,7 +118,7 @@ int screenshot_dump_png(rct_drawpixelinfo *dpi)
 	// Get a free screenshot path
 	int index;
 	char path[MAX_PATH] = "";
-	if ((index = screenshot_get_next_path(path)) == -1) {
+	if ((index = screenshot_get_next_path(path, MAX_PATH)) == -1) {
 		return -1;
 	}
 
@@ -139,7 +137,7 @@ int screenshot_dump_png_32bpp(sint32 width, sint32 height, const void *pixels)
 	// Get a free screenshot path
 	int index;
 	char path[MAX_PATH] = "";
-	if ((index = screenshot_get_next_path(path)) == -1) {
+	if ((index = screenshot_get_next_path(path, MAX_PATH)) == -1) {
 		return -1;
 	}
 
@@ -181,7 +179,7 @@ void screenshot_giant()
 	int centreX = (mapSize / 2) * 32 + 16;
 	int centreY = (mapSize / 2) * 32 + 16;
 
-	int x, y;
+	int x = 0, y = 0;
 	int z = map_element_height(centreX, centreY) & 0xFFFF;
 	switch (rotation) {
 	case 0:
@@ -224,9 +222,9 @@ void screenshot_giant()
 	// Get a free screenshot path
 	char path[MAX_PATH];
 	int index;
-	if ((index = screenshot_get_next_path(path)) == -1) {
+	if ((index = screenshot_get_next_path(path, MAX_PATH)) == -1) {
 		log_error("Giant screenshot failed, unable to find a suitable destination path.");
-		window_error_open(STR_SCREENSHOT_FAILED, -1);
+		window_error_open(STR_SCREENSHOT_FAILED, STR_NONE);
 		return;
 	}
 
@@ -238,9 +236,8 @@ void screenshot_giant()
 	free(dpi.bits);
 
 	// Show user that screenshot saved successfully
-	rct_string_id stringId = STR_PLACEHOLDER;
-	strcpy((char*)language_get_string(stringId), path_get_filename(path));
-	set_format_arg(0, rct_string_id, stringId);
+	set_format_arg(0, rct_string_id, STR_STRING);
+	set_format_arg(2, char *, path_get_filename(path));
 	window_error_open(STR_SCREENSHOT_SAVED_AS, STR_NONE);
 }
 
@@ -256,7 +253,7 @@ int cmdline_for_screenshot(const char **argv, int argc)
 	bool customLocation = false;
 	bool centreMapX = false;
 	bool centreMapY = false;
-	int resolutionWidth, resolutionHeight, customX, customY, customZoom, customRotation;
+	int resolutionWidth, resolutionHeight, customX = 0, customY = 0, customZoom, customRotation;
 
 	const char *inputPath = argv[0];
 	const char *outputPath = argv[1];
@@ -322,7 +319,7 @@ int cmdline_for_screenshot(const char **argv, int argc)
 			if (centreMapY)
 				customY = (mapSize / 2) * 32 + 16;
 
-			int x, y;
+			int x = 0, y = 0;
 			int z = map_element_height(customX, customY) & 0xFFFF;
 			switch (customRotation) {
 			case 0:

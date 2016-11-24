@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../localisation/date.h"
 #include "../localisation/localisation.h"
 #include "graph.h"
@@ -31,8 +30,8 @@ static void graph_draw_months_uint8(rct_drawpixelinfo *dpi, uint8 *history, int 
 	for (i = count - 1; i >= 0; i--) {
 		if (history[i] != 0 && history[i] != 255 && yearOver32 % 4 == 0) {
 			// Draw month text
-			set_format_arg(0, uint32, DateGameMonthNames[((yearOver32 / 4) + 8) % 8]);
-			gfx_draw_string_centred(dpi, STR_GRAPH_LABEL, x, y - 10, 0, gCommonFormatArgs);
+			set_format_arg(0, uint32, DateGameShortMonthNames[((yearOver32 / 4) + 8) % 8]);
+			gfx_draw_string_centred(dpi, STR_GRAPH_LABEL, x, y - 10, COLOUR_BLACK, gCommonFormatArgs);
 
 			// Draw month mark
 			gfx_fill_rect(dpi, x, y, x, y + 3, 10);
@@ -47,6 +46,7 @@ static void graph_draw_line_a_uint8(rct_drawpixelinfo *dpi, uint8 *history, int 
 {
 	int i, x, y, lastX, lastY;
 	lastX = -1;
+	lastY = -1;
 	x = baseX;
 	for (i = count - 1; i >= 0; i--) {
 		if (history[i] != 0 && history[i] != 255) {
@@ -71,6 +71,7 @@ static void graph_draw_line_b_uint8(rct_drawpixelinfo *dpi, uint8 *history, int 
 	int i, x, y, lastX, lastY;
 
 	lastX = -1;
+	lastY = -1;
 	x = baseX;
 	for (i = count - 1; i >= 0; i--) {
 		if (history[i] != 0 && history[i] != 255) {
@@ -107,8 +108,8 @@ static void graph_draw_months_money32(rct_drawpixelinfo *dpi, money32 *history, 
 	for (i = count - 1; i >= 0; i--) {
 		if (history[i] != 0x80000000 && yearOver32 % 4 == 0) {
 			// Draw month text
-			sint32 monthFormat = DateGameMonthNames[((yearOver32 / 4) + 8) % 8];
-			gfx_draw_string_centred(dpi, STR_GRAPH_LABEL, x, y - 10, 0, &monthFormat);
+			sint32 monthFormat = DateGameShortMonthNames[((yearOver32 / 4) + 8) % 8];
+			gfx_draw_string_centred(dpi, STR_GRAPH_LABEL, x, y - 10, COLOUR_BLACK, &monthFormat);
 
 			// Draw month mark
 			gfx_fill_rect(dpi, x, y, x, y + 3, 10);
@@ -123,6 +124,7 @@ static void graph_draw_line_a_money32(rct_drawpixelinfo *dpi, money32 *history, 
 {
 	int i, x, y, lastX, lastY;
 	lastX = -1;
+	lastY = -1;
 	x = baseX;
 	for (i = count - 1; i >= 0; i--) {
 		if (history[i] != 0x80000000) {
@@ -147,6 +149,7 @@ static void graph_draw_line_b_money32(rct_drawpixelinfo *dpi, money32 *history, 
 	int i, x, y, lastX, lastY;
 
 	lastX = -1;
+	lastY = -1;
 	x = baseX;
 	for (i = count - 1; i >= 0; i--) {
 		if (history[i] != 0x80000000) {

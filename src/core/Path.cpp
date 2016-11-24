@@ -36,8 +36,7 @@ namespace Path
 
     utf8 * GetDirectory(utf8 * buffer, size_t bufferSize, const utf8 * path)
     {
-        const char pathSeperator = platform_get_path_separator();
-        size_t lastPathSepIndex = String::LastIndexOf(path, pathSeperator);
+        size_t lastPathSepIndex = String::LastIndexOf(path, *PATH_SEPARATOR);
         if (lastPathSepIndex == SIZE_MAX)
         {
             return String::Set(buffer, bufferSize, String::Empty);
@@ -54,7 +53,7 @@ namespace Path
         const utf8 * lastPathSeperator = nullptr;
         for (const utf8 * ch = path; *ch != '\0'; ch++)
         {
-            if (*ch == platform_get_path_separator())
+            if (*ch == *PATH_SEPARATOR)
             {
                 lastPathSeperator = ch;
             }
@@ -124,7 +123,7 @@ namespace Path
 #ifdef __WINDOWS__
         wchar_t * relativePathW = utf8_to_widechar(relativePath);
         wchar_t   absolutePathW[MAX_PATH];
-        DWORD length = GetFullPathNameW(relativePathW, Util::CountOf(absolutePathW), absolutePathW, NULL);
+        DWORD length = GetFullPathNameW(relativePathW, (DWORD)Util::CountOf(absolutePathW), absolutePathW, NULL);
         Memory::Free(relativePathW);
         if (length == 0)
         {

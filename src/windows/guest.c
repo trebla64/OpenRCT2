@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../input.h"
@@ -593,6 +592,25 @@ void window_guest_overview_resize(rct_window *w){
 	window_guest_viewport_init(w);
 }
 
+void game_command_callback_pickup_guest(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	switch(ecx){
+	case 0:{
+		int peepnum = eax;
+		rct_window* w = window_find_by_number(WC_PEEP, peepnum);
+		if (w) {
+			tool_set(w, WIDX_PICKUP, 7);
+		}
+		}break;
+	case 2:
+		if (ebx == 0) {
+			tool_cancel();
+			gPickupPeepImage = UINT32_MAX;
+		}
+		break;
+	}
+}
+
 /**
  *
  *  rct2: 0x00696A06
@@ -614,32 +632,12 @@ void window_guest_overview_mouse_up(rct_window *w, int widgetIndex)
 		window_guest_set_page(w, widgetIndex - WIDX_TAB_1);
 		break;
 	case WIDX_PICKUP:
-		{ // remove this block when peep pick up is finally converted to a game command
-			int player = network_get_player_index(network_get_current_player_id());
-			if (player != -1) {
-				if (!network_can_perform_action(network_get_group_index(network_get_player_group(player)), 11/*Guest action*/)) {
-					window_error_open(STR_CANT_DO_THIS, STR_PERMISSION_DENIED);
-					return;
-				}
-			}
-		} //
 		if (!peep_can_be_picked_up(peep)) {
 			return;
 		}
-		if (tool_set(w, widgetIndex, 7)) {
-			return;
-		}
-
 		w->picked_peep_old_x = peep->x;
-
-		remove_peep_from_ride(peep);
-		invalidate_sprite_2((rct_sprite*)peep);
-
-		sprite_move(0x8000, peep->y, peep->z, (rct_sprite*)peep);
-		peep_decrement_num_riders(peep);
-		peep->state = PEEP_STATE_PICKED;
-		peep->sub_state = 0;
-		peep_window_state_update(peep);
+		game_command_callback = game_command_callback_pickup_guest;
+		game_do_command(w->number, GAME_COMMAND_FLAG_APPLY, 0, 0, GAME_COMMAND_PICKUP_GUEST, 0, 0);
 		break;
 	case WIDX_RENAME:
 		window_text_input_open(w, widgetIndex, STR_GUEST_RENAME_TITLE, STR_GUEST_RENAME_PROMPT, peep->name_string_idx, peep->id, 32);
@@ -777,8 +775,9 @@ void window_guest_viewport_init(rct_window* w){
 	}
 	else{
 		viewport_flags = 0;
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_FLAGS, uint8) & 0x1)
+		if (gConfigGeneral.always_show_gridlines) {
 			viewport_flags |= VIEWPORT_FLAG_GRIDLINES;
+		}
 	}
 
 	window_event_invalidate_call(w);
@@ -1013,7 +1012,7 @@ void window_guest_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int x = (widget->left + widget->right) / 2 + w->x;
 	int y = w->y + widget->top - 1;
 	int width = widget->right - widget->left;
-	gfx_draw_string_centred_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, 0, x, y, width);
+	gfx_draw_string_centred_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, COLOUR_BLACK, x, y, width);
 
 	// Draw the marquee thought
 	widget = &w->widgets[WIDX_MARQUEE];
@@ -1041,14 +1040,9 @@ void window_guest_overview_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		return;
 	}
 
-	get_arguments_from_thought(peep->thoughts[i], &argument1, &argument2);
-
-	set_format_arg(0, uint32, argument1);
-	set_format_arg(4, uint32, argument2);
-	set_format_arg(8, uint16, 0);
-
 	x = widget->right - widget->left - w->list_information_type;
-	gfx_draw_string_left(&dpi_marquee, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, 0, x, 0);
+	peep_thought_set_format_args(&peep->thoughts[i]);
+	gfx_draw_string_left(&dpi_marquee, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, COLOUR_BLACK, x, 0);
 }
 
 /**
@@ -1068,7 +1062,7 @@ void window_guest_overview_invalidate(rct_window *w)
 	w->pressed_widgets |= 1ULL << (w->page + WIDX_TAB_1);
 
 	rct_peep* peep = GET_PEEP(w->number);
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	w->pressed_widgets &= ~(1<<WIDX_TRACK);
@@ -1220,52 +1214,14 @@ void window_guest_overview_tool_down(rct_window* w, int widgetIndex, int x, int 
 		return;
 
 	int dest_x, dest_y;
-	rct_map_element *mapElement;
+	rct_map_element* mapElement;
 	footpath_get_coordinates_from_pos(x, y + 16, &dest_x, &dest_y, NULL, &mapElement);
 
-	if (dest_x == (sint16)0x8000)return;
-
-	// Set the coordinate of destination to be exactly
-	// in the middle of a tile.
-	dest_x += 16;
-	dest_y += 16;
-	// Set the tile coordinate to top left of tile
-	int tile_y = dest_y & 0xFFE0;
-	int tile_x = dest_x & 0xFFE0;
-
-	int dest_z = mapElement->base_height * 8 + 16;
-
-	if (!map_is_location_owned(tile_x, tile_y, dest_z)){
-		window_error_open(STR_ERR_CANT_PLACE_PERSON_HERE, STR_NONE);
+	if (dest_x == (sint16)0x8000)
 		return;
-	}
-	
-	if (!map_can_construct_at(tile_x, tile_y, dest_z / 8, (dest_z / 8) + 1, 15)){
-		if (gGameCommandErrorText != STR_RAISE_OR_LOWER_LAND_FIRST) {
-			if (gGameCommandErrorText != STR_FOOTPATH_IN_THE_WAY) {
-				window_error_open(STR_ERR_CANT_PLACE_PERSON_HERE, STR_NONE);
-				return;
-			}
-		}
-	}
 
-	rct_peep* peep = GET_PEEP(w->number);
-	sprite_move(dest_x, dest_y, dest_z, (rct_sprite*)peep);
-	invalidate_sprite_2((rct_sprite*)peep);
-	peep_decrement_num_riders(peep);
-	peep->state = 0;
-	peep_window_state_update(peep);
-	peep->action = 0xFF;
-	peep->special_sprite = 0;
-	peep->action_sprite_image_offset = 0;
-	peep->action_sprite_type = 0xFF;
-	peep->var_C4 = 0;
-
-	peep->happiness_growth_rate = max(peep->happiness_growth_rate - 10, 0);
-
-	sub_693B58(peep);
-	tool_cancel();
-	gPickupPeepImage = UINT32_MAX;
+	game_command_callback = game_command_callback_pickup_guest;
+	game_do_command(w->number, GAME_COMMAND_FLAG_APPLY, 2, mapElement->base_height, GAME_COMMAND_PICKUP_GUEST, dest_x, dest_y);
 }
 
 /**
@@ -1277,25 +1233,7 @@ void window_guest_overview_tool_abort(rct_window *w, int widgetIndex)
 	if (widgetIndex != WIDX_PICKUP)
 		return;
 
-	rct_peep* peep = GET_PEEP(w->number);
-	if (peep->state != PEEP_STATE_PICKED)
-		return;
-
-	sprite_move(w->picked_peep_old_x, peep->y, peep->z + 8, (rct_sprite*)peep);
-	invalidate_sprite_2((rct_sprite*)peep);
-
-	if (peep->x != (sint16)0x8000){
-		peep_decrement_num_riders(peep);
-		peep->state = 0;
-		peep_window_state_update(peep);
-		peep->action = 0xFF;
-		peep->special_sprite = 0;
-		peep->action_sprite_image_offset = 0;
-		peep->action_sprite_type = 0;
-		peep->var_C4 = 0;
-	}
-
-	gPickupPeepImage = UINT32_MAX;
+	game_do_command(w->number, GAME_COMMAND_FLAG_APPLY, 1, 0, GAME_COMMAND_PICKUP_GUEST, w->picked_peep_old_x, 0);
 }
 
 /**
@@ -1366,7 +1304,7 @@ void window_guest_stats_invalidate(rct_window *w)
 	w->pressed_widgets |= 1ULL << (w->page + WIDX_TAB_1);
 
 	rct_peep* peep = GET_PEEP(w->number);
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	window_guest_stats_widgets[WIDX_BACKGROUND].right = w->width - 1;
@@ -1393,10 +1331,10 @@ static void window_guest_stats_bars_paint(int value, int x, int y, rct_window *w
 	value *= 0x76;
 	value >>= 8;
 
-	gfx_fill_rect_inset(dpi, x + 0x3A, y + 1, x + 0x3A + 0x79, y + 9, w->colours[1], 0x30);
+	gfx_fill_rect_inset(dpi, x + 0x3A, y + 1, x + 0x3A + 0x79, y + 9, w->colours[1], INSET_RECT_F_30);
 
-	int blink_flag = colour & (1 << 0x1F); //0x80000000
-	colour &= ~(1 << 0x1F);
+	int blink_flag = colour & (1u << 0x1F); //0x80000000
+	colour &= ~(1u << 0x1F);
 	if (!blink_flag ||
 		game_is_paused() ||
 		(gCurrentTicks & 8) == 0)
@@ -1432,11 +1370,11 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int y = w->y + window_guest_rides_widgets[WIDX_PAGE_BACKGROUND].top + 4;
 
 	//Happiness
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_HAPPINESS_LABEL, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_HAPPINESS_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	int happiness = peep->happiness;
 	if (happiness < 10)happiness = 10;
-	int ebp = 14;
+	int ebp = COLOUR_BRIGHT_GREEN;
 	if (happiness < 50){
 		ebp |= 0x80000000;
 	}
@@ -1444,10 +1382,10 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	//Energy
 	y += 10;
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_ENERGY_LABEL, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_ENERGY_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	int energy = ((peep->energy - 32) * 85) / 32;
-	ebp = 14;
+	ebp = COLOUR_BRIGHT_GREEN;
 	if (energy < 50){
 		ebp |= 0x80000000;
 	}
@@ -1456,7 +1394,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	//Hunger
 	y += 10;
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_HUNGER_LABEL, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_HUNGER_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	int hunger = peep->hunger;
 	if (hunger > 190) hunger = 190;
@@ -1467,7 +1405,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	hunger /= 32;
 	hunger = 0xFF & ~hunger;
 
-	ebp = 28;
+	ebp = COLOUR_BRIGHT_RED;
 	if (hunger > 170){
 		ebp |= 0x80000000;
 	}
@@ -1475,7 +1413,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	//Thirst
 	y += 10;
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_THIRST_LABEL, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_THIRST_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	int thirst = peep->thirst;
 	if (thirst > 190) thirst = 190;
@@ -1486,7 +1424,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	thirst /= 32;
 	thirst = 0xFF & ~thirst;
 
-	ebp = 28;
+	ebp = COLOUR_BRIGHT_RED;
 	if (thirst > 170){
 		ebp |= 0x80000000;
 	}
@@ -1494,7 +1432,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	//Nausea
 	y += 10;
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_NAUSEA_LABEL, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_NAUSEA_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	int nausea = peep->nausea - 32;
 
@@ -1502,7 +1440,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	nausea *= 36;
 	nausea /= 32;
 
-	ebp = 28;
+	ebp = COLOUR_BRIGHT_RED;
 	if (nausea > 120){
 		ebp |= 0x80000000;
 	}
@@ -1510,7 +1448,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	//Bathroom
 	y += 10;
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_TOILET_LABEL, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_TOILET_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	int bathroom = peep->bathroom - 32;
 	if (bathroom > 210) bathroom = 210;
@@ -1520,7 +1458,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	bathroom *= 45;
 	bathroom /= 32;
 
-	ebp = 28;
+	ebp = COLOUR_BRIGHT_RED;
 	if (bathroom > 160){
 		ebp |= 0x80000000;
 	}
@@ -1533,14 +1471,14 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		eax -= peep->time_in_park;
 		eax >>= 11;
 		set_format_arg(0, uint16, eax & 0xFFFF);
-		gfx_draw_string_left(dpi, STR_GUEST_STAT_TIME_IN_PARK, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_STAT_TIME_IN_PARK, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 
 	y += 19;
-	gfx_fill_rect_inset(dpi, x, y - 6, x + 179, y - 5, w->colours[1], 32);
+	gfx_fill_rect_inset(dpi, x, y - 6, x + 179, y - 5, w->colours[1], INSET_RECT_FLAG_BORDER_INSET);
 
 	// Preferred Ride
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_PREFERRED_RIDE, (void *) 0, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_PREFERRED_RIDE, NULL, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Intensity
@@ -1554,7 +1492,7 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		if (intensity == 15) string_id = STR_GUEST_STAT_PREFERRED_INTESITY_ABOVE;
 	}
 
-	gfx_draw_string_left(dpi, string_id, gCommonFormatArgs, 0, x + 4, y);
+	gfx_draw_string_left(dpi, string_id, gCommonFormatArgs, COLOUR_BLACK, x + 4, y);
 
 	// Nausea tolerance
 	static const rct_string_id nauseaTolerances[] = {
@@ -1565,8 +1503,8 @@ void window_guest_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	};
 	y += 10;
 	int nausea_tolerance = peep->nausea_tolerance & 0x3;
-	set_format_arg(0, uint16, nauseaTolerances[nausea_tolerance]);
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_NAUSEA_TOLERANCE, gCommonFormatArgs, 0, x, y);
+	set_format_arg(0, rct_string_id, nauseaTolerances[nausea_tolerance]);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_NAUSEA_TOLERANCE, gCommonFormatArgs, COLOUR_BLACK, x, y);
 }
 
 /**
@@ -1621,7 +1559,7 @@ void window_guest_rides_update(rct_window *w)
  */
 void window_guest_rides_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	set_format_arg(0, uint16, STR_LIST);
+	set_format_arg(0, rct_string_id, STR_LIST);
 }
 
 /**
@@ -1738,7 +1676,7 @@ void window_guest_rides_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	//dx
 	int y = w->y + window_guest_rides_widgets[WIDX_PAGE_BACKGROUND].top + 2;
 
-	gfx_draw_string_left(dpi, STR_GUEST_LABEL_RIDES_BEEN_ON, (void*)0, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_LABEL_RIDES_BEEN_ON, NULL, COLOUR_BLACK, x, y);
 
 	y = w->y + window_guest_rides_widgets[WIDX_PAGE_BACKGROUND].bottom - 12;
 
@@ -1749,10 +1687,10 @@ void window_guest_rides_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		ride_string_arguments = ride->name_arguments;
 		ride_string_id = ride->name;
 	}
-	set_format_arg(0, uint16, ride_string_id);
+	set_format_arg(0, rct_string_id, ride_string_id);
 	set_format_arg(2, uint32, ride_string_arguments);
 
-	gfx_draw_string_left_clipped(dpi, STR_FAVOURITE_RIDE, gCommonFormatArgs, 0, x, y, w->width - 14);
+	gfx_draw_string_left_clipped(dpi, STR_FAVOURITE_RIDE, gCommonFormatArgs, COLOUR_BLACK, x, y, w->width - 14);
 }
 
 /**
@@ -1777,12 +1715,12 @@ void window_guest_rides_scroll_paint(rct_window *w, rct_drawpixelinfo *dpi, int 
 		int y = list_index * 10;
 		int string_format = STR_BLACK_STRING;
 		if (list_index == w->selected_list_item){
-			gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x2000031);
+			gfx_filter_rect(dpi, 0, y, 800, y + 9, PALETTE_DARKEN_1);
 			string_format = STR_WINDOW_COLOUR_2_STRINGID;
 		}
 		rct_ride* ride = get_ride(w->list_item_positions[list_index]);
 
-		gfx_draw_string_left(dpi, string_format, (void*)&ride->name, 0, 0, y - 1);
+		gfx_draw_string_left(dpi, string_format, (void*)&ride->name, COLOUR_BLACK, 0, y - 1);
 	}
 }
 
@@ -1824,7 +1762,7 @@ void window_guest_finance_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	window_guest_finance_widgets[WIDX_BACKGROUND].right = w->width - 1;
@@ -1864,29 +1802,29 @@ void window_guest_finance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Cash in pocket
 	set_format_arg(0, money32, peep->cash_in_pocket);
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_CASH_IN_POCKET, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_CASH_IN_POCKET, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	// Cash spent
 	y += 10;
 	set_format_arg(0, money32, peep->cash_spent);
-	gfx_draw_string_left(dpi, STR_GUEST_STAT_CASH_SPENT, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_STAT_CASH_SPENT, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	y += 20;
-	gfx_fill_rect_inset(dpi, x, y - 6, x + 179, y - 5, w->colours[1], 32);
+	gfx_fill_rect_inset(dpi, x, y - 6, x + 179, y - 5, w->colours[1], INSET_RECT_FLAG_BORDER_INSET);
 
 	// Paid to enter
 	set_format_arg(0, money32, peep->paid_to_enter);
-	gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_ENTRANCE_FEE, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_ENTRANCE_FEE, gCommonFormatArgs, COLOUR_BLACK, x, y);
 
 	// Paid on rides
 	y += 10;
 	set_format_arg(0, money32, peep->paid_on_rides);
 	set_format_arg(4, uint16, peep->no_of_rides);
 	if (peep->no_of_rides != 1){
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_RIDE_PLURAL, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_RIDE_PLURAL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	else{
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_RIDE, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_RIDE, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 
 	// Paid on food
@@ -1894,10 +1832,10 @@ void window_guest_finance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	set_format_arg(0, money32, peep->paid_on_food);
 	set_format_arg(4, uint16, peep->no_of_food);
 	if (peep->no_of_food != 1){
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_FOOD_PLURAL, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_FOOD_PLURAL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	else{
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_FOOD, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_FOOD, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 
 	// Paid on drinks
@@ -1905,10 +1843,10 @@ void window_guest_finance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	set_format_arg(0, money32, peep->paid_on_drink);
 	set_format_arg(4, uint16, peep->no_of_drinks);
 	if (peep->no_of_drinks != 1){
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_DRINK_PLURAL, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_DRINK_PLURAL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	else{
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_DRINK, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_DRINK, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 
 	// Paid on souvenirs
@@ -1916,10 +1854,10 @@ void window_guest_finance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	set_format_arg(0, money32, peep->paid_on_souvenirs);
 	set_format_arg(4, uint16, peep->no_of_souvenirs);
 	if (peep->no_of_souvenirs != 1){
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_SOUVENIR_PLURAL, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_SOUVENIR_PLURAL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	else{
-		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_SOUVENIR, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_GUEST_EXPENSES_SOUVENIR, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 }
 
@@ -1967,7 +1905,7 @@ void window_guest_thoughts_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	window_guest_thoughts_widgets[WIDX_BACKGROUND].right = w->width - 1;
@@ -2005,23 +1943,19 @@ void window_guest_thoughts_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	//dx
 	int y = w->y + window_guest_thoughts_widgets[WIDX_PAGE_BACKGROUND].top + 4;
 
-	gfx_draw_string_left(dpi, STR_GUEST_RECENT_THOUGHTS_LABEL, (void*)0, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUEST_RECENT_THOUGHTS_LABEL, NULL, COLOUR_BLACK, x, y);
 
 	y += 10;
 	for (rct_peep_thought* thought = peep->thoughts; thought < &peep->thoughts[PEEP_MAX_THOUGHTS]; ++thought){
 		if (thought->type == PEEP_THOUGHT_TYPE_NONE) return;
 		if (thought->var_2 == 0) continue;
 
-		uint32 argument1, argument2;
-		get_arguments_from_thought(*thought, &argument1, &argument2);
-		set_format_arg(0, uint32, argument1);
-		set_format_arg(4, uint32, argument2);
-
 		int width = window_guest_thoughts_widgets[WIDX_PAGE_BACKGROUND].right
 			- window_guest_thoughts_widgets[WIDX_PAGE_BACKGROUND].left
 			- 8;
 
-		y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, STR_BLACK_STRING, 0);
+		peep_thought_set_format_args(thought);
+		y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, width, STR_BLACK_STRING, COLOUR_BLACK);
 
 		// If this is the last visible line end drawing.
 		if (y > w->y + window_guest_thoughts_widgets[WIDX_PAGE_BACKGROUND].bottom - 32) return;
@@ -2073,7 +2007,7 @@ void window_guest_inventory_invalidate(rct_window *w)
 
 	rct_peep* peep = GET_PEEP(w->number);
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	window_guest_inventory_widgets[WIDX_BACKGROUND].right = w->width - 1;
@@ -2096,8 +2030,8 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 
 	// Default arguments
 	set_format_arg(0, uint32, ShopItemImage[item]);
-	set_format_arg(4, uint16, ShopItemStringIds[item].display);
-	set_format_arg(6, uint16, gParkName);
+	set_format_arg(4, rct_string_id, ShopItemStringIds[item].display);
+	set_format_arg(6, rct_string_id, gParkName);
 	set_format_arg(8, uint32, gParkNameArgs);
 
 	// Special overrides
@@ -2107,7 +2041,7 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 		break;
 	case SHOP_ITEM_PHOTO:
 		ride = get_ride(peep->photo1_ride_ref);
-		set_format_arg(6, uint16, ride->name);
+		set_format_arg(6, rct_string_id, ride->name);
 		set_format_arg(8, uint32, ride->name_arguments);
 		break;
 	case SHOP_ITEM_UMBRELLA:
@@ -2116,24 +2050,24 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 	case SHOP_ITEM_VOUCHER:
 		switch (peep->voucher_type) {
 		case VOUCHER_TYPE_PARK_ENTRY_FREE:
-			set_format_arg(6, uint16, STR_PEEP_INVENTORY_VOUCHER_PARK_ENTRY_FREE);
-			set_format_arg(8, uint16, gParkName);
+			set_format_arg(6, rct_string_id, STR_PEEP_INVENTORY_VOUCHER_PARK_ENTRY_FREE);
+			set_format_arg(8, rct_string_id, gParkName);
 			set_format_arg(10, uint32, gParkNameArgs);
 			break;
 		case VOUCHER_TYPE_RIDE_FREE:
 			ride = get_ride(peep->voucher_arguments);
-			set_format_arg(6, uint16, STR_PEEP_INVENTORY_VOUCHER_RIDE_FREE);
-			set_format_arg(8, uint16, ride->name);
+			set_format_arg(6, rct_string_id, STR_PEEP_INVENTORY_VOUCHER_RIDE_FREE);
+			set_format_arg(8, rct_string_id, ride->name);
 			set_format_arg(10, uint32, ride->name_arguments);
 			break;
 		case VOUCHER_TYPE_PARK_ENTRY_HALF_PRICE:
-			set_format_arg(6, uint16, STR_PEEP_INVENTORY_VOUCHER_PARK_ENTRY_HALF_PRICE);
-			set_format_arg(8, uint16, gParkName);
+			set_format_arg(6, rct_string_id, STR_PEEP_INVENTORY_VOUCHER_PARK_ENTRY_HALF_PRICE);
+			set_format_arg(8, rct_string_id, gParkName);
 			set_format_arg(10, uint32, gParkNameArgs);
 			break;
 		case VOUCHER_TYPE_FOOD_OR_DRINK_FREE:
-			set_format_arg(6, uint16, STR_PEEP_INVENTORY_VOUCHER_FOOD_OR_DRINK_FREE);
-			set_format_arg(8, uint16, ShopItemStringIds[peep->voucher_arguments].singular);
+			set_format_arg(6, rct_string_id, STR_PEEP_INVENTORY_VOUCHER_FOOD_OR_DRINK_FREE);
+			set_format_arg(8, rct_string_id, ShopItemStringIds[peep->voucher_arguments].singular);
 			break;
 		}
 		break;
@@ -2145,17 +2079,17 @@ static rct_string_id window_guest_inventory_format_item(rct_peep *peep, int item
 		break;
 	case SHOP_ITEM_PHOTO2:
 		ride = get_ride(peep->photo2_ride_ref);
-		set_format_arg(6, uint16, ride->name);
+		set_format_arg(6, rct_string_id, ride->name);
 		set_format_arg(8, uint32, ride->name_arguments);
 		break;
 	case SHOP_ITEM_PHOTO3:
 		ride = get_ride(peep->photo3_ride_ref);
-		set_format_arg(6, uint16, ride->name);
+		set_format_arg(6, rct_string_id, ride->name);
 		set_format_arg(8, uint32, ride->name_arguments);
 		break;
 	case SHOP_ITEM_PHOTO4:
 		ride = get_ride(peep->photo4_ride_ref);
-		set_format_arg(6, uint16, ride->name);
+		set_format_arg(6, rct_string_id, ride->name);
 		set_format_arg(8, uint32, ride->name_arguments);
 		break;
 	}
@@ -2187,7 +2121,7 @@ void window_guest_inventory_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	int maxY = w->y + w->height - 22;
 	int numItems = 0;
 
-	gfx_draw_string_left(dpi, STR_CARRYING, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_CARRYING, NULL, COLOUR_BLACK, x, y);
 	y += 10;
 
 	for (int item = 0; item < SHOP_ITEM_COUNT; item++) {
@@ -2195,11 +2129,11 @@ void window_guest_inventory_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		if (!peep_has_item(peep, item)) continue;
 
 		rct_string_id stringId = window_guest_inventory_format_item(peep, item);
-		y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, itemNameWidth, stringId, 0);
+		y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, itemNameWidth, stringId, COLOUR_BLACK);
 		numItems++;
 	}
 
 	if (numItems == 0) {
-		gfx_draw_string_left(dpi, STR_NOTHING, (void*)0, 0, x, y);
+		gfx_draw_string_left(dpi, STR_NOTHING, NULL, COLOUR_BLACK, x, y);
 	}
 }

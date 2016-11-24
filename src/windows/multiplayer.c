@@ -103,7 +103,7 @@ static rct_widget *window_multiplayer_page_widgets[] = {
 	window_multiplayer_groups_widgets,
 	window_multiplayer_options_widgets
 };
- 
+
 const uint64 window_multiplayer_page_enabled_widgets[] = {
 	(1 << WIDX_CLOSE) | (1 << WIDX_TAB1) | (1 << WIDX_TAB2) | (1 << WIDX_TAB3) | (1 << WIDX_TAB4),
 	(1 << WIDX_CLOSE) | (1 << WIDX_TAB1) | (1 << WIDX_TAB2) | (1 << WIDX_TAB3) | (1 << WIDX_TAB4),
@@ -460,19 +460,19 @@ static void window_multiplayer_information_paint(rct_window *w, rct_drawpixelinf
 
 		const utf8 * providerName = network_get_server_provider_name();
 		if (!str_is_null_or_empty(providerName)) {
-			gfx_draw_string_left(dpi, STR_PROVIDER_NAME, (void*)&providerName, 0, x, y);
+			gfx_draw_string_left(dpi, STR_PROVIDER_NAME, (void*)&providerName, COLOUR_BLACK, x, y);
 			y += 11;
 		}
 
 		const utf8 * providerEmail = network_get_server_provider_email();
 		if (!str_is_null_or_empty(providerEmail)) {
-			gfx_draw_string_left(dpi, STR_PROVIDER_EMAIL, (void*)&providerEmail, 0, x, y);
+			gfx_draw_string_left(dpi, STR_PROVIDER_EMAIL, (void*)&providerEmail, COLOUR_BLACK, x, y);
 			y += 11;
 		}
 
 		const utf8 * providerWebsite = network_get_server_provider_website();
 		if (!str_is_null_or_empty(providerWebsite)) {
-			gfx_draw_string_left(dpi, STR_PROVIDER_WEBSITE, (void*)&providerWebsite, 0, x, y);
+			gfx_draw_string_left(dpi, STR_PROVIDER_WEBSITE, (void*)&providerWebsite, COLOUR_BLACK, x, y);
 		}
 	}
 }
@@ -586,7 +586,7 @@ static void window_multiplayer_players_paint(rct_window *w, rct_drawpixelinfo *d
 	gfx_draw_string_left(dpi, STR_PING, NULL, w->colours[2], w->x + 363, 58 - 12 + w->y + 1);
 
 	// Number of players
-	stringId = w->no_list_items == 1 ? STR_RIDE_COMPONENT_PLAYER_COUNT : STR_RIDE_COMPONENT_PLAYER_COUNT_PLURAL;
+	stringId = w->no_list_items == 1 ? STR_MULTIPLAYER_PLAYER_COUNT : STR_MULTIPLAYER_PLAYER_COUNT_PLURAL;
 	x = w->x + 4;
 	y = w->y + w->widgets[WIDX_LIST].bottom + 2;
 	gfx_draw_string_left(dpi, stringId, &w->no_list_items, w->colours[2], x, y);
@@ -607,10 +607,10 @@ static void window_multiplayer_players_scrollpaint(rct_window *w, rct_drawpixeli
 
 			// Draw player name
 			char* lineCh = buffer;
-			int colour = 0;
+			int colour = COLOUR_BLACK;
 			if (i == w->selected_list_item) {
-				gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x02000031);
-				safe_strcpy(&buffer[0], network_get_player_name(i), sizeof(buffer));
+				gfx_filter_rect(dpi, 0, y, 800, y + 9, PALETTE_DARKEN_1);
+				safe_strcpy(buffer, network_get_player_name(i), sizeof(buffer));
 				colour = w->colours[2];
 			} else {
 				if (network_get_player_flags(i) & NETWORK_PLAYER_FLAG_ISSERVER) {
@@ -635,11 +635,11 @@ static void window_multiplayer_players_scrollpaint(rct_window *w, rct_drawpixeli
 
 			// Draw last action
 			int action = network_get_player_last_action(i, 2000);
-			set_format_arg(0, uint16, STR_ACTION_NA);
+			set_format_arg(0, rct_string_id, STR_ACTION_NA);
 			if (action != -999) {
-				set_format_arg(0, uint16, network_get_action_name_string_id(action));
+				set_format_arg(0, rct_string_id, network_get_action_name_string_id(action));
 			}
-			gfx_draw_string_left_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, 0, 256, y - 1, 100);
+			gfx_draw_string_left_clipped(dpi, STR_BLACK_STRING, gCommonFormatArgs, COLOUR_BLACK, 256, y - 1, 100);
 
 			// Draw ping
 			lineCh = buffer;
@@ -652,7 +652,7 @@ static void window_multiplayer_players_scrollpaint(rct_window *w, rct_drawpixeli
 			} else {
 				lineCh = utf8_write_codepoint(lineCh, FORMAT_RED);
 			}
-			sprintf(lineCh, "%d ms", ping);
+			snprintf(lineCh, sizeof(buffer) - (lineCh - buffer), "%d ms", ping);
 			gfx_draw_string(dpi, buffer, colour, 356, y - 1);
 		}
 		y += 10;
@@ -819,17 +819,17 @@ static void window_multiplayer_groups_paint(rct_window *w, rct_drawpixelinfo *dp
 	rct_widget* widget = &window_multiplayer_groups_widgets[WIDX_DEFAULT_GROUP];
 	int group = network_get_group_index(network_get_default_group());
 	if (group != -1) {
-		char buffer[300] = {0};
+		char buffer[300];
 		char* lineCh;
 		lineCh = buffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WINDOW_COLOUR_2);
-		strcpy(lineCh, network_get_group_name(group));
+		safe_strcpy(lineCh, network_get_group_name(group), sizeof(buffer) - (lineCh - buffer));
 		set_format_arg(0, const char *, buffer);
 		gfx_draw_string_centred_clipped(
 			dpi,
 			STR_STRING,
 			gCommonFormatArgs,
-			0,
+			COLOUR_BLACK,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
 			widget->right - widget->left - 8
@@ -843,22 +843,22 @@ static void window_multiplayer_groups_paint(rct_window *w, rct_drawpixelinfo *dp
 
 	y += 20;
 
-	gfx_fill_rect_inset(dpi, x, y - 6, x + 310, y - 5, w->colours[1], 32);
+	gfx_fill_rect_inset(dpi, x, y - 6, x + 310, y - 5, w->colours[1], INSET_RECT_FLAG_BORDER_INSET);
 
 	widget = &window_multiplayer_groups_widgets[WIDX_SELECTED_GROUP];
 	group = network_get_group_index(_selectedGroup);
 	if (group != -1) {
-		char buffer[300] = {0};
+		char buffer[300];
 		char* lineCh;
 		lineCh = buffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WINDOW_COLOUR_2);
-		strcpy(lineCh, network_get_group_name(group));
+		safe_strcpy(lineCh, network_get_group_name(group), sizeof(buffer) - (lineCh - buffer));
 		set_format_arg(0, const char *, buffer);
 		gfx_draw_string_centred_clipped(
 			dpi,
 			STR_STRING,
 			gCommonFormatArgs,
-			0,
+			COLOUR_BLACK,
 			w->x + (widget->left + widget->right - 11) / 2,
 			w->y + widget->top,
 			widget->right - widget->left - 8
@@ -874,7 +874,7 @@ static void window_multiplayer_groups_scrollpaint(rct_window *w, rct_drawpixelin
 
 	for (int i = 0; i < network_get_num_actions(); i++) {
 		if (i == w->selected_list_item) {
-			gfx_fill_rect(dpi, 0, y, 800, y + 9, 0x02000031);
+			gfx_filter_rect(dpi, 0, y, 800, y + 9, PALETTE_DARKEN_1);
 		}
 		if (y > dpi->y + dpi->height) {
 			break;
@@ -889,13 +889,13 @@ static void window_multiplayer_groups_scrollpaint(rct_window *w, rct_drawpixelin
 					lineCh = buffer;
 					lineCh = utf8_write_codepoint(lineCh, FORMAT_WINDOW_COLOUR_2);
 					lineCh = utf8_write_codepoint(lineCh, FORMAT_TICK);
-					gfx_draw_string(dpi, buffer, 0, 0, y - 1);
+					gfx_draw_string(dpi, buffer, COLOUR_BLACK, 0, y - 1);
 				}
 			}
 
 			// Draw action name
 			set_format_arg(0, uint16, network_get_action_name_string_id(i));
-			gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, 0, 10, y - 1);
+			gfx_draw_string_left(dpi, STR_WINDOW_COLOUR_2_STRINGID, gCommonFormatArgs, COLOUR_BLACK, 10, y - 1);
 		}
 		y += 10;
 	}

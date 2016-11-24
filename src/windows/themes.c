@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../drawing/drawing.h"
@@ -359,7 +358,7 @@ void window_themes_open()
 
 static void window_themes_mouseup(rct_window *w, int widgetIndex)
 {
-	int activeAvailableThemeIndex;
+	size_t activeAvailableThemeIndex;
 	const utf8 * activeThemeName;
 
 	switch (widgetIndex) {
@@ -496,7 +495,7 @@ static void window_themes_mousedown(int widgetIndex, rct_window* w, rct_widget* 
 			gDropdownItemsFormat[i] = STR_OPTIONS_DROPDOWN_ITEM;
 			gDropdownItemsArgs[i] = (uintptr_t)theme_manager_get_available_theme_name(i);
 		}
-		
+
 		window_dropdown_show_text_custom_width(
 			w->x + widget->left,
 			w->y + widget->top,
@@ -507,7 +506,7 @@ static void window_themes_mousedown(int widgetIndex, rct_window* w, rct_widget* 
 			widget->right - widget->left - 3
 		);
 
-		dropdown_set_checked(theme_manager_get_active_available_theme_index(), true);
+		dropdown_set_checked((int)theme_manager_get_active_available_theme_index(), true);
 		break;
 	case WIDX_THEMES_RCT1_RIDE_LIGHTS:
 		if (theme_get_flags() & UITHEME_FLAG_PREDEFINED) {
@@ -680,7 +679,7 @@ static void window_themes_textinput(rct_window *w, int widgetIndex, char *text)
 
 void window_themes_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	set_format_arg(0, uint16, STR_LIST);
+	set_format_arg(0, rct_string_id, STR_LIST);
 }
 
 void window_themes_invalidate(rct_window *w)
@@ -765,7 +764,7 @@ void window_themes_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	window_themes_draw_tab_images(dpi, w);
 
 	if (_selected_tab == WINDOW_THEMES_TAB_SETTINGS) {
-		int activeAvailableThemeIndex = theme_manager_get_active_available_theme_index();
+		size_t activeAvailableThemeIndex = theme_manager_get_active_available_theme_index();
 		const utf8 * activeThemeName = theme_manager_get_available_theme_name(activeAvailableThemeIndex);
 		set_format_arg(0, uintptr_t, (uintptr_t)activeThemeName);
 		gfx_draw_string_left(dpi, STR_THEMES_LABEL_CURRENT_THEME, NULL, w->colours[1], w->x + 10, w->y + window_themes_widgets[WIDX_THEMES_PRESETS].top + 1);
@@ -801,7 +800,7 @@ void window_themes_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scroll
 
 	if ((w->colours[1] & 0x80) == 0)
 		//gfx_fill_rect(dpi, dpi->x, dpi->y, dpi->x + dpi->width - 1, dpi->y + dpi->height - 1, ColourMapA[w->colours[1]].mid_light);
-		gfx_clear(dpi, ColourMapA[w->colours[1]].mid_light * 0x1010101);
+		gfx_clear(dpi, ColourMapA[w->colours[1]].mid_light);
 	y = 0;
 	for (int i = 0; i < get_colour_scheme_tab_count(); i++) {
 		if (y > dpi->y + dpi->height) {
@@ -811,11 +810,10 @@ void window_themes_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scroll
 			if (i + 1 < get_colour_scheme_tab_count()) {
 				int colour = w->colours[1];
 				if (colour & COLOUR_FLAG_TRANSLUCENT) {
-					colour = _9DEDF4[colour];
+					translucent_window_palette windowPalette = TranslucentWindowPalettes[BASE_COLOUR(colour)];
 
-					colour = colour | 0x2000000;
-					gfx_fill_rect(dpi, 0, y + _row_height - 2, window_themes_widgets[WIDX_THEMES_LIST].right, y + _row_height - 2, colour + 1);
-					gfx_fill_rect(dpi, 0, y + _row_height - 1, window_themes_widgets[WIDX_THEMES_LIST].right, y + _row_height - 1, colour + 2);
+					gfx_filter_rect(dpi, 0, y + _row_height - 2, window_themes_widgets[WIDX_THEMES_LIST].right, y + _row_height - 2, windowPalette.highlight);
+					gfx_filter_rect(dpi, 0, y + _row_height - 1, window_themes_widgets[WIDX_THEMES_LIST].right, y + _row_height - 1, windowPalette.shadow);
 				}
 				else {
 					colour = ColourMapA[w->colours[1]].mid_dark;
@@ -837,9 +835,9 @@ void window_themes_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int scroll
 				}
 				gfx_draw_sprite(dpi, image, _button_offset_x + 12 * j, y + _button_offset_y, 0);
 
-				gfx_fill_rect_inset(dpi, _button_offset_x + 12 * j, y + _check_offset_y, _button_offset_x + 12 * j + 9, y + _check_offset_y + 10, w->colours[1], 0xE0);
+				gfx_fill_rect_inset(dpi, _button_offset_x + 12 * j, y + _check_offset_y, _button_offset_x + 12 * j + 9, y + _check_offset_y + 10, w->colours[1], INSET_RECT_F_E0);
 				if (colour & COLOUR_FLAG_TRANSLUCENT) {
-					gCurrentFontSpriteBase = -1;
+					gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM_DARK;
 					gfx_draw_string(dpi, (char*)CheckBoxMarkString, w->colours[1] & 0x7F, _button_offset_x + 12 * j, y + _check_offset_y);
 				}
 

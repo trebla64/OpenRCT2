@@ -150,6 +150,7 @@ enum {
 	MAP_ELEMENT_FLAG_GHOST = (1 << 4),
 	MAP_ELEMENT_FLAG_BROKEN = (1 << 5),
 	MAP_ELEMENT_FLAG_BLOCK_BRAKE_CLOSED = (1 << 5),
+	MAP_ELEMENT_FLAG_CANNOT_REMOVE_TRACK = (1 << 6),
 	MAP_ELEMENT_FLAG_LAST_TILE = (1 << 7)
 };
 
@@ -272,6 +273,20 @@ typedef struct rct_xyz16 {
 } rct_xyz16;
 assert_struct_size(rct_xyz16, 6);
 
+typedef struct rct_xyzd16 {
+	sint16 x, y, z;
+	uint8 direction;
+} rct_xyzd16;
+assert_struct_size(rct_xyzd16, 7);
+
+typedef struct rct_xy32 {
+	sint32 x, y;
+} rct_xy32;
+
+typedef struct rct_xyz32 {
+	sint32 x, y, z;
+} rct_xyz32;
+
 typedef struct rct_xy_element {
 	int x, y;
 	rct_map_element *element;
@@ -316,14 +331,15 @@ enum {
 extern const rct_xy16 TileDirectionDelta[];
 extern const money32 TerrainPricing[];
 
-#define gWidePathTileLoopX				RCT2_GLOBAL(0x013CE774, uint16)
-#define gWidePathTileLoopY				RCT2_GLOBAL(0x013CE776, uint16)
-#define gGrassSceneryTileLoopPosition	RCT2_GLOBAL(RCT2_ADDRESS_GRASS_SCENERY_TILEPOS, uint16)
+extern uint16 gWidePathTileLoopX;
+extern uint16 gWidePathTileLoopY;
+extern uint16 gGrassSceneryTileLoopPosition;
 
-#define gMapSizeUnits		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_UNITS, sint16)
-#define gMapSizeMinus2		RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE_MINUS_2, sint16)
-#define gMapSize			RCT2_GLOBAL(RCT2_ADDRESS_MAP_SIZE, sint16)
-#define gMapSizeMaxXY		RCT2_GLOBAL(RCT2_ADDRESS_MAP_MAX_XY, sint16)
+extern sint16 gMapSizeUnits;
+extern sint16 gMapSizeMinus2;
+extern sint16 gMapSize;
+extern sint16 gMapSizeMaxXY;
+extern sint16 gMapBaseZ;
 
 extern uint16		gMapSelectFlags;
 extern uint16		gMapSelectType;
@@ -342,10 +358,11 @@ extern rct_map_element *gMapElements;
 extern rct_map_element **gMapElementTilePointers;
 #endif
 
-extern rct_xy16 *gMapSelectionTiles;
-extern rct2_peep_spawn *gPeepSpawns;
+extern rct_xy16 gMapSelectionTiles[300];
+extern rct2_peep_spawn gPeepSpawns[2];
 
 extern rct_map_element *gNextFreeMapElement;
+extern uint32 gNextFreeMapElementPointerIndex;
 
 // Used in the land tool window to enable mountain tool / land smoothing
 extern bool gLandMountainMode;
@@ -365,14 +382,22 @@ extern uint8 gLandToolTerrainSurface;
 extern uint8 gLandToolTerrainEdge;
 extern money32 gWaterToolRaiseCost;
 extern money32 gWaterToolLowerCost;
+extern money32 gLandRightsCost;
+
+extern uint16 gLandRemainingOwnershipSales;
+extern uint16 gLandRemainingConstructionSales;
 
 extern rct_xyz16 gCommandPosition;
 
+extern uint8 gUnk9E2E28;
+
 void map_init(int size);
+void map_count_remaining_land_rights();
 void map_update_tile_pointers();
 rct_map_element *map_get_first_element_at(int x, int y);
 void map_set_tile_elements(int x, int y, rct_map_element *elements);
 int map_element_is_last_for_tile(const rct_map_element *element);
+uint8 map_element_get_scenery_quadrant(const rct_map_element *element);
 int map_element_get_type(const rct_map_element *element);
 int map_element_get_direction(const rct_map_element *element);
 int map_element_get_terrain(const rct_map_element *element);
@@ -385,9 +410,12 @@ rct_map_element *map_get_surface_element_at(int x, int y);
 rct_map_element* map_get_path_element_at(int x, int y, int z);
 rct_map_element *map_get_fence_element_at(int x, int y, int z, int direction);
 rct_map_element *map_get_small_scenery_element_at(int x, int y, int z, int type, uint8 quadrant);
+rct_map_element *map_get_park_entrance_element_at(int x, int y, int z, bool ghost);
 int map_element_height(int x, int y);
 void sub_68B089();
 int map_coord_is_connected(int x, int y, int z, uint8 faceDirection);
+void map_remove_provisional_elements();
+void map_restore_provisional_elements();
 void map_update_path_wide_flags();
 bool map_is_location_valid(int x, int y);
 bool map_is_location_owned(int x, int y, int z);
@@ -400,7 +428,7 @@ void map_remove_all_rides();
 void map_invalidate_map_selection_tiles();
 void map_invalidate_selection_rect();
 void map_reorganise_elements();
-int sub_68B044();
+bool map_check_free_elements_and_reorganise(int num_elements);
 rct_map_element *map_element_insert(int x, int y, int z, int flags);
 
 typedef int (CLEAR_FUNC)(rct_map_element** map_element, int x, int y, uint8 flags, money32* price);
@@ -489,6 +517,7 @@ bool map_large_scenery_get_origin(
 );
 
 void map_offset_with_rotation(sint16 *x, sint16 *y, sint16 offsetX, sint16 offsetY, uint8 rotation);
+rct_xy32 translate_3d_to_2d_with_z(sint32 rotation, rct_xyz32 pos);
 
 rct_map_element *map_get_track_element_at(int x, int y, int z);
 rct_map_element *map_get_track_element_at_of_type(int x, int y, int z, int trackType);

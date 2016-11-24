@@ -208,8 +208,9 @@ public:
     void Resize(sint32 width, sint32 height);
     void ResetPalette();
 
-    void Clear(uint32 colour) override;
+    void Clear(uint8 paletteIndex) override;
     void FillRect(uint32 colour, sint32 x, sint32 y, sint32 w, sint32 h) override;
+    void FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32 top, sint32 right, sint32 bottom) override;
     void DrawLine(uint32 colour, sint32 x1, sint32 y1, sint32 x2, sint32 y2) override;
     void DrawSprite(uint32 image, sint32 x, sint32 y, uint32 tertiaryColour) override;
     void DrawSpriteRawMasked(sint32 x, sint32 y, uint32 maskImage, uint32 colourImage) override;
@@ -257,6 +258,8 @@ public:
     ~OpenGLDrawingEngine() override
     {
         delete _copyFramebufferShader;
+        delete _screenFramebuffer;
+        delete _swapFramebuffer;
 
         delete _drawingContext;
         delete [] _bits;
@@ -277,7 +280,7 @@ public:
         if (_context == nullptr)
         {
             char szRequiredVersion[32];
-            sprintf(szRequiredVersion, "OpenGL %d.%d", requiredVersion.Major, requiredVersion.Minor);
+            snprintf(szRequiredVersion, 32, "OpenGL %d.%d", requiredVersion.Major, requiredVersion.Minor);
             throw Exception(std::string(szRequiredVersion) + std::string(" not available."));
         }
         SDL_GL_MakeCurrent(_window, _context);
@@ -340,12 +343,12 @@ public:
             window_update_all_viewports();
             window_draw_all(&_bitsDPI, 0, 0, _width, _height);
             window_update_all();
-        
+
             gfx_draw_pickedup_peep(&_bitsDPI);
 
             _drawingContext->FlushCommandBuffers();
             _swapFramebuffer->SwapCopy();
-        
+
             rct2_draw(&_bitsDPI);
         }
 
@@ -361,13 +364,13 @@ public:
         CheckGLError();
         Display();
     }
-    
+
     sint32 Screenshot() override
     {
         const OpenGLFramebuffer * framebuffer = _swapFramebuffer->GetTargetFramebuffer();
         framebuffer->Bind();
         void * pixels = framebuffer->GetPixels();
-        
+
         int result = screenshot_dump_png_32bpp(_width, _height, pixels);
         Memory::Free(pixels);
         return result;
@@ -503,7 +506,6 @@ IDrawingEngine * DrawingEngineFactory::CreateOpenGL()
 OpenGLDrawingContext::OpenGLDrawingContext(OpenGLDrawingEngine * engine)
 {
     _engine = engine;
-    _textureCache = new TextureCache();
 }
 
 OpenGLDrawingContext::~OpenGLDrawingContext()
@@ -522,6 +524,7 @@ IDrawingEngine * OpenGLDrawingContext::GetEngine()
 
 void OpenGLDrawingContext::Initialise()
 {
+    _textureCache = new TextureCache();
     _drawImageShader = new DrawImageShader();
     _drawLineShader = new DrawLineShader();
     _fillRectShader = new FillRectShader();
@@ -548,9 +551,9 @@ void OpenGLDrawingContext::ResetPalette()
     _drawImageShader->SetPalette(_engine->GLPalette);
 }
 
-void OpenGLDrawingContext::Clear(uint32 colour)
+void OpenGLDrawingContext::Clear(uint8 paletteIndex)
 {
-    FillRect(colour, _clipLeft - _offsetX, _clipTop - _offsetY, _clipRight, _clipBottom);
+    FillRect(paletteIndex, _clipLeft - _offsetX, _clipTop - _offsetY, _clipRight, _clipBottom);
 }
 
 void OpenGLDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, sint32 right, sint32 bottom)
@@ -575,26 +578,68 @@ void OpenGLDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, sint
     }
     else if (colour & 0x2000000)
     {
-        uint8 tableIndex = colour & 0xFF;
-        if (tableIndex <   44) return;
-        if (tableIndex >= 144) return;
-        tableIndex -= 44;
-
-        vec3f transformColour = TransparentColourTable[tableIndex];
-        paletteColour[0].r = transformColour.r;
-        paletteColour[0].g = transformColour.g;
-        paletteColour[0].b = transformColour.b;
-        paletteColour[0].a = 1;
-        paletteColour[1] = paletteColour[0];
-
-        GLuint srcTexture =  _engine->SwapCopyReturningSourceTexture();
-        command.flags = 1;
-        command.sourceFramebuffer = srcTexture;
+        assert(false);
+        // Should be FilterRect
     }
     else
     {
         command.flags = 0;
     }
+
+    command.colours[0] = paletteColour[0];
+    command.colours[1] = paletteColour[1];
+
+    command.clip[0] = _clipLeft;
+    command.clip[1] = _clipTop;
+    command.clip[2] = _clipRight;
+    command.clip[3] = _clipBottom;
+
+    command.bounds[0] = left;
+    command.bounds[1] = top;
+    command.bounds[2] = right + 1;
+    command.bounds[3] = bottom + 1;
+
+    _commandBuffers.rectangles.push_back(command);
+
+    // Must be rendered in order, depends on already rendered contents
+    FlushCommandBuffers();
+}
+
+void OpenGLDrawingContext::FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32 top, sint32 right, sint32 bottom)
+{
+    left += _offsetX;
+    top += _offsetY;
+    right += _offsetX;
+    bottom += _offsetY;
+
+    DrawRectCommand command = {};
+
+    command.sourceFramebuffer = _fillRectShader->GetSourceFramebuffer();
+
+    vec4f paletteColour[2];
+    //paletteColour[0] = _engine->GLPalette[(colour >> 0) & 0xFF];
+    //paletteColour[1] = paletteColour[0];
+
+    // START FILTER
+
+    uint8 tableIndex = palette;
+    if (tableIndex <   44) return;
+    if (tableIndex >= 144) return;
+    tableIndex -= 44;
+
+    vec3f transformColour = TransparentColourTable[tableIndex];
+    paletteColour[0].r = transformColour.r;
+    paletteColour[0].g = transformColour.g;
+    paletteColour[0].b = transformColour.b;
+    paletteColour[0].a = 1;
+    paletteColour[1] = paletteColour[0];
+
+    GLuint srcTexture =  _engine->SwapCopyReturningSourceTexture();
+    command.flags = 1;
+    command.sourceFramebuffer = srcTexture;
+
+    // END FILTER
+
 
     command.colours[0] = paletteColour[0];
     command.colours[1] = paletteColour[1];
@@ -623,7 +668,7 @@ void OpenGLDrawingContext::DrawLine(uint32 colour, sint32 x1, sint32 y1, sint32 
     y2 += _offsetY;
 
     vec4f paletteColour = _engine->GLPalette[colour & 0xFF];
-    
+
     DrawLineCommand command = {};
 
     command.colour = paletteColour;
@@ -662,7 +707,7 @@ void OpenGLDrawingContext::DrawSprite(uint32 image, sint32 x, sint32 y, uint32 t
             zoomedDPI.pitch = _dpi->pitch;
             zoomedDPI.zoom_level = _dpi->zoom_level - 1;
             SetDPI(&zoomedDPI);
-            DrawSprite((image << 28) | (g1Id - g1Element->zoomed_offset), x >> 1, y >> 1, tertiaryColour);
+            DrawSprite((image & 0xE0000000) | (g1Id - g1Element->zoomed_offset), x >> 1, y >> 1, tertiaryColour);
             return;
         }
         if (g1Element->flags & (1 << 5))
@@ -680,8 +725,25 @@ void OpenGLDrawingContext::DrawSprite(uint32 image, sint32 x, sint32 y, uint32 t
 
     sint32 left = x + drawOffsetX;
     sint32 top = y + drawOffsetY;
+
+    int zoom_mask = 0xFFFFFFFF << _dpi->zoom_level;
+    if (_dpi->zoom_level && g1Element->flags & G1_FLAG_RLE_COMPRESSION){
+        top -= ~zoom_mask;
+    }
+
+    if (!(g1Element->flags & G1_FLAG_RLE_COMPRESSION)) {
+        top &= zoom_mask;
+        left += ~zoom_mask;
+    }
+
+    left &= zoom_mask;
+
     sint32 right = left + drawWidth;
     sint32 bottom = top + drawHeight;
+
+    if (_dpi->zoom_level && g1Element->flags & G1_FLAG_RLE_COMPRESSION) {
+        bottom += top & ~zoom_mask;
+    }
 
     if (left > right)
     {
@@ -719,6 +781,28 @@ void OpenGLDrawingContext::DrawSprite(uint32 image, sint32 x, sint32 y, uint32 t
 
     auto texture = _textureCache->GetOrLoadImageTexture(image);
     command.texColour = texture;
+
+    bool special = false;
+    if (!(image & IMAGE_TYPE_REMAP_2_PLUS) && (image & IMAGE_TYPE_REMAP)) {
+        if (((image >> 19) & 0x7F) == 32) {
+            special = true;
+        }
+    }
+
+    if (!((image & IMAGE_TYPE_REMAP_2_PLUS) && !(image & IMAGE_TYPE_REMAP))) {
+        tertiaryColour = 0;
+    }
+
+    texture = _textureCache->GetOrLoadPaletteTexture(image, tertiaryColour, special);
+    command.texPalette = texture;
+
+    if (image & IMAGE_TYPE_TRANSPARENT) {
+        command.flags |= (1 << 3);
+    }
+    else if (image & (IMAGE_TYPE_REMAP_2_PLUS | IMAGE_TYPE_REMAP)){
+        command.flags |= (1 << 1);
+    }
+    command.flags |= special << 2;
 
     command.bounds[0] = left;
     command.bounds[1] = top;
@@ -938,7 +1022,7 @@ void OpenGLDrawingContext::FlushImages()
     if (_commandBuffers.images.size() == 0) return;
 
     OpenGLAPI::SetTexture(0, GL_TEXTURE_2D_ARRAY, _textureCache->GetAtlasesTexture());
-    
+
     std::vector<DrawImageInstance> instances;
     instances.reserve(_commandBuffers.images.size());
 
@@ -955,26 +1039,37 @@ void OpenGLDrawingContext::FlushImages()
         instance.colour = command.colour;
         instance.bounds = {command.bounds[0], command.bounds[1], command.bounds[2], command.bounds[3]};
         instance.mask = command.mask;
+        instance.texPaletteAtlas = command.texPalette.index;
+        if (instance.flags != 0) {
+            instance.texPaletteBounds = {
+                command.texPalette.normalizedBounds.x,
+                command.texPalette.normalizedBounds.y,
+                (command.texPalette.normalizedBounds.z - command.texPalette.normalizedBounds.x) / (float)(command.texPalette.bounds.z - command.texPalette.bounds.x),
+                (command.texPalette.normalizedBounds.w - command.texPalette.normalizedBounds.y) / (float)(command.texPalette.bounds.w - command.texPalette.bounds.y)
+            };
+        }
 
         instances.push_back(instance);
     }
 
     _drawImageShader->Use();
     _drawImageShader->DrawInstances(instances);
-    
+
     _commandBuffers.images.clear();
 }
 
 void OpenGLDrawingContext::SetDPI(rct_drawpixelinfo * dpi)
 {
     rct_drawpixelinfo * screenDPI = _engine->GetDPI();
+#ifndef NDEBUG
     size_t bitsSize = (size_t)screenDPI->height * (size_t)(screenDPI->width + screenDPI->pitch);
+#endif
     size_t bitsOffset = (size_t)(dpi->bits - screenDPI->bits);
 
     assert(bitsOffset < bitsSize);
 
-    _clipLeft = bitsOffset % (screenDPI->width + screenDPI->pitch);
-    _clipTop = bitsOffset / (screenDPI->width + screenDPI->pitch);
+    _clipLeft = (sint32)(bitsOffset % (screenDPI->width + screenDPI->pitch));
+    _clipTop = (sint32)(bitsOffset / (screenDPI->width + screenDPI->pitch));
 
     _clipRight = _clipLeft + dpi->width;
     _clipBottom = _clipTop + dpi->height;

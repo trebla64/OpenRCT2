@@ -15,7 +15,6 @@
 #pragma endregion
 
 #include "map_element.h"
-#include "../../addresses.h"
 #include "../../config.h"
 #include "../../game.h"
 #include "../../interface/viewport.h"
@@ -52,7 +51,8 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 	boxoffset.y = 0;
 	boxoffset.z = height;
 	int baseImageid = 0;
-	if (RCT2_GLOBAL(0x009DEA6F, uint8) & 1) {
+	const int rotation = get_current_rotation();
+	if (gTrackDesignSaveMode) {
 		if (!track_design_save_contains_map_element(mapElement)) {
 			baseImageid = 0x21700000;
 		}
@@ -62,7 +62,7 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 		baseImageid = construction_markers[gConfigGeneral.construction_marker_colour];
 	}
 	uint32 dword_F64EB0 = baseImageid;
-	
+
 	rct_scenery_entry *entry = get_small_scenery_entry(mapElement->properties.scenery.type);
 	baseImageid = entry->image + direction;
 	boxlength.x = 2;
@@ -98,7 +98,7 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 		}
 	} else {
 		// 6DFFC2:
-		uint32 ecx = ((mapElement->type >> 6) + get_current_rotation()) & 3;
+		uint8 ecx = (map_element_get_scenery_quadrant(mapElement) + rotation) & 3;
 		x_offset = ScenerySubTileOffsets[ecx].x;
 		y_offset = ScenerySubTileOffsets[ecx].y;
 		boxoffset.x = x_offset;
@@ -127,14 +127,15 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 		baseImageid = (baseImageid & 0x7FFFF) | dword_F64EB0;
 	}
 	if (!(entry->small_scenery.flags & SMALL_SCENERY_FLAG21)) {
-		sub_98197C(baseImageid, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+		sub_98197C(baseImageid, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 	}
 
 	if (entry->small_scenery.flags & SMALL_SCENERY_FLAG_HAS_GLASS) {
 		if (dword_F64EB0 == 0) {
 			// Draw translucent overlay:
-			int image_id = (baseImageid & 0x7FFFF) + (((mapElement->properties.scenery.colour_1 & 0x1F) + 112) << 19) + 0x40000004;
-			sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+			// TODO: Name palette entries
+			int image_id = (baseImageid & 0x7FFFF) + (GlassPaletteIds[(mapElement->properties.scenery.colour_1 & 0x1F)] << 19) + 0x40000004;
+			sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 		}
 	}
 
@@ -148,7 +149,7 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 			} else
 			if (entry->small_scenery.flags & SMALL_SCENERY_FLAG13) {
 				// 6E043B:
@@ -156,19 +157,19 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 
 				image_id = direction + entry->image + 4;
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 
 				image_id = ((gCurrentTicks / 2) & 0xF) + entry->image + 24;
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 			} else
 			if (entry->small_scenery.flags & SMALL_SCENERY_FLAG_IS_CLOCK) {
 				// 6E035C:
@@ -185,12 +186,12 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 				if (image_id >= 48) {
 					image_id -= 48;
 				}
-				
+
 				image_id = image_id + entry->image + 68;
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 
 				image_id = gRealTimeOfDay.minute + (direction * 15);
 				if (image_id >= 60) {
@@ -200,19 +201,19 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 			} else
 			if (entry->small_scenery.flags & SMALL_SCENERY_FLAG15) {
 				// 6E02F6:
 				int image_id = gCurrentTicks;
-				image_id += RCT2_GLOBAL(0x009DE568, sint16) / 4;
-				image_id += RCT2_GLOBAL(0x009DE56C, sint16) / 4;
+				image_id += gUnk9DE568 / 4;
+				image_id += gUnk9DE56C / 4;
 				image_id = (image_id / 4) & 15;
 				image_id += entry->image;
 				if (dword_F64EB0 != 0) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
-				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+				sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 			} else {
 				if (entry->small_scenery.flags & SMALL_SCENERY_FLAG16) {
 					// nothing
@@ -220,7 +221,7 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 				int esi = gCurrentTicks;
 				if (!(entry->small_scenery.flags & SMALL_SCENERY_FLAG22)) {
 					// 6E01F8:
-					esi += ((RCT2_GLOBAL(0x9DE568, sint16) / 4) + (RCT2_GLOBAL(0x9DE56C, sint16) / 4));
+					esi += ((gUnk9DE568 / 4) + (gUnk9DE56C / 4));
 					esi += (mapElement->type & 0xC0) / 16;
 				}
 				// 6E0222:
@@ -246,9 +247,9 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 					image_id = (image_id & 0x7FFFF) | dword_F64EB0;
 				}
 				if (entry->small_scenery.flags & SMALL_SCENERY_FLAG21) {
-					sub_98197C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+					sub_98197C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 				} else {
-					sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, get_current_rotation());
+					sub_98199C(image_id, x_offset, y_offset, boxlength.x, boxlength.y, boxlength.z - 1, height, boxoffset.x, boxoffset.y, boxoffset.z, rotation);
 				}
 			}
 		}
@@ -270,9 +271,9 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 				supportImageColourFlags = dword_F64EB0;
 			}
 			if (direction & 1) {
-				wooden_b_supports_paint_setup(1, ax, supportHeight, supportImageColourFlags);
+				wooden_b_supports_paint_setup(1, ax, supportHeight, supportImageColourFlags, NULL);
 			} else {
-				wooden_b_supports_paint_setup(0, ax, supportHeight, supportImageColourFlags);
+				wooden_b_supports_paint_setup(0, ax, supportHeight, supportImageColourFlags, NULL);
 			}
 		}
 	}
@@ -293,11 +294,12 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 			}
 			return;
 		}
-		if (!(entry->small_scenery.flags & SMALL_SCENERY_FLAG_VOFFSET_CENTRE)) {
+		if (entry->small_scenery.flags & SMALL_SCENERY_FLAG_VOFFSET_CENTRE) {
+			// 6E075C:
+			uint8 direction = (map_element_get_scenery_quadrant(mapElement) + rotation) % 4;
+			paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_B4 | SEGMENT_C8 | SEGMENT_CC, direction), height, 0x20);
 			return;
 		}
-		// 6E075C:
-		paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_B4 | SEGMENT_C8 | SEGMENT_CC, get_current_rotation()), height, 0x20);
 		return;
 	}
 	if (entry->small_scenery.flags & (SMALL_SCENERY_FLAG27 | SMALL_SCENERY_FLAG_FULL_TILE)) {
@@ -307,9 +309,9 @@ void scenery_paint(uint8 direction, int height, rct_map_element* mapElement) {
 		}
 		return;
 	}
-	if (!(entry->small_scenery.flags & SMALL_SCENERY_FLAG_VOFFSET_CENTRE)) {
+	if (entry->small_scenery.flags & SMALL_SCENERY_FLAG_VOFFSET_CENTRE) {
+		uint8 direction = (map_element_get_scenery_quadrant(mapElement) + rotation) % 4;
+		paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_B4 | SEGMENT_C8 | SEGMENT_CC, direction), 0xFFFF, 0);
 		return;
 	}
-	paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_B4 | SEGMENT_C8 | SEGMENT_CC, get_current_rotation()), 0xFFFF, 0);
-	return;
 }

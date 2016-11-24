@@ -39,6 +39,11 @@ OpenRCT2 requires original files of RollerCoaster Tycoon 2 to play. It can be bo
 
 [OpenRCT2.org](https://openrct2.org/downloads) offers precompiled builds and installers of the latest stable and the develop branch. There is also a cross platform [Launcher](https://github.com/LRFLEW/OpenRCT2Launcher/releases) available that will automatically update your build of the game so that you always have the latest version.
 
+Some Linux distributions offer native packages already. These packages are usually third-party, but we're trying to resolve issues they are facing.
+* ArchLinux AUR: [openrct2-git](https://aur.archlinux.org/packages/openrct2-git) and [openrct2](https://aur.archlinux.org/packages/openrct2)
+* Ubuntu PPA: [`master` branch](https://launchpad.net/~openrct2/+archive/ubuntu/master) and [`develop` branch](https://launchpad.net/~openrct2/+archive/ubuntu/nightly) (`develop` branch builds are temporarily on hold due to [missing functionality in bzr](https://bugs.launchpad.net/ubuntu/+source/bzr-git/+bug/1084403))
+* OpenSUSE OBS: [games/openrct2](https://build.opensuse.org/package/view_file/games/openrct2/openrct2.spec)
+
 # 3 Building the game
 
 ## 3.1 Building prerequisites
@@ -48,12 +53,19 @@ OpenRCT2 requires original files of RollerCoaster Tycoon 2 to play. It can be bo
 ### Windows:
 - Vista / 7 / 8 / 10
 - Visual Studio 2015 Update 2 (Enterprise / Professional / [Community (Free)](https://www.visualstudio.com/products/visual-studio-community-vs))
-- [Powershell 4.0](http://social.technet.microsoft.com/wiki/contents/articles/21016.how-to-install-windows-powershell-4-0.aspx).
+- [7-Zip](http://www.7-zip.org/) (for deployment only)
+- [NSIS](http://nsis.sourceforge.net/) (for deployment only)
 
-### Mac:
+### macOS:
+- Xcode 8
+
+The program can also be built as a command line program using CMake. This type of build requires:
+
+- Xcode Command Line Tools
 - [Homebrew](http://brew.sh)
+- CMake (available through Homebrew)
 
-### Mac / Linux:
+### Linux:
 - sdl2
 - sdl2-ttf
 - speexdsp
@@ -66,32 +78,48 @@ All libs listed here (bar cmake) required in 32 bit variants.
 ## 3.2 Compiling and running
 ### Windows:
 1. Check out the repository. This can be done using [GitHub Desktop](https://desktop.github.com) or [other tools](https://help.github.com/articles/which-remote-url-should-i-use).
-2. Open a new Developer Command Prompt for VS2015, run PowerShell and then navigate to the repository.
-3. Run the ```setenv.ps1``` script in the repository to set up your PowerShell environment for OpenRCT2 development. This will warn you of any missing applications required to build OpenRCT2.
-4. Run ```install``` to download the required dependencies to build OpenRCT2.
-5. Run ```build all``` to build all the required components for OpenRCT2.
-6. Run ```run``` to run OpenRCT2.
+2. Open a new Developer Command Prompt for VS2015, then navigate to the repository (e.g. `cd C:\GitHub\OpenRCT2`).
+3. Run `msbuild openrct2.proj /t:build`.
 
-These PowerShell scripts are stored in ```.\scripts\ps``` and have parameters. Once you have used the build script once, further development can be done within Visual Studio by opening ```openrct2.sln```. The build scripts have several commands allowing you to rebuild certain components such ```g2.dat``` or language files.
+Once you have ran msbuild once, further development can be done within Visual Studio by opening `openrct2.sln`.
 
-### Mac:
-We support native builds for macOS (limited to i386 only for now).
-Make sure that you have [Homebrew](http://brew.sh/) installed and than run the following commands to install all the needed libraries and build OpenRCT2.
+Other examples:
 ```
-# Install libraries
-./install.sh
-
-# Build OpenRCT2
-./build.sh
-
-# Run the game
-./openrct2
+msbuild openrct2.proj /t:clean
+msbuild openrct2.proj /t:rebuild /p:configuration=release /p:platform=x64
+msbuild openrct2.proj /t:g2
+msbuild openrct2.proj /t:PublishPortable
 ```
+
+### macOS:
+#### Xcode:
+The recommended way of building OpenRCT2 for macOS is with Xcode. The Xcode build will create a self-contained application bundles which include all the necessary game files and dependencies. Open the project file OpenRCT2.xcodeproj in Xcode and build from there. Building this way will handle the dependencies for you automatically. You can also invoke an Xcode build from the command line using `xcodebuild`.
+
+#### CMake:
+A command line version of OpenRCT2 can be built using CMake. This type of build requires you to provide the dependencies yourself. The supported method of doing this is with [Homebrew](http://brew.sh). Once you have Homebrew installed, you can download all the required libraries with this command:
+```
+brew install cmake openssl jansson libpng sdl2 sdl2_ttf speex
+```
+
+Once you have the dependencies installed, you can build the project using CMake using the following commands:
+```
+mkdir build
+cd build
+cmake ..
+make
+ln -s ../data data
+```
+Then you can run the game by running `./openrct2`.
 
 ### Linux:
-We support native builds for Linux (limited to i386 only for now).
-As the easiest approach depends on your distribution, please take a look at the [wiki](https://github.com/OpenRCT2/OpenRCT2/wiki/Building-OpenRCT2-on-Linux).
-
+The standard CMake build procedure is to install the [required libraries](https://github.com/OpenRCT2/OpenRCT2#mac--linux), then:
+```
+mkdir build
+cd build
+cmake ../
+make
+```
+Detailed instructions can be found on our [wiki](https://github.com/OpenRCT2/OpenRCT2/wiki/Building-OpenRCT2-on-Linux).
 
 # 4 Contributing
 OpenRCT2 uses the [gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). If you are implementing a new feature or logic from the original game, please branch off and perform pull requests to ```develop```. If you are fixing a bug for the next release, please branch off and perform pull requests to the correct release branch. ```master``` only contains tagged releases, you should never branch off this.

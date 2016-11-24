@@ -52,14 +52,48 @@ void TextureCache::InvalidateImage(uint32 image)
 
 CachedTextureInfo TextureCache::GetOrLoadImageTexture(uint32 image)
 {
-    auto kvp = _imageTextureMap.find(image & 0x7FFFF);
+    image &= 0x7FFFF;
+    auto kvp = _imageTextureMap.find(image);
     if (kvp != _imageTextureMap.end())
     {
         return kvp->second;
     }
 
     auto cacheInfo = LoadImageTexture(image);
-    _imageTextureMap[image & 0x7FFFF] = cacheInfo;
+    _imageTextureMap[image] = cacheInfo;
+
+    return cacheInfo;
+}
+
+CachedTextureInfo TextureCache::GetOrLoadPaletteTexture(uint32 image, uint32 tertiaryColour, bool special)
+{
+    if ((image & (IMAGE_TYPE_REMAP | IMAGE_TYPE_REMAP_2_PLUS | IMAGE_TYPE_TRANSPARENT)) == 0)
+        return CachedTextureInfo{ 0 };
+
+    uint32 uniquePaletteId = image & (IMAGE_TYPE_REMAP | IMAGE_TYPE_REMAP_2_PLUS | IMAGE_TYPE_TRANSPARENT);
+    if (!(image & IMAGE_TYPE_REMAP_2_PLUS)) {
+        uniquePaletteId = (image >> 19) & 0xFF;
+        if (!(image & IMAGE_TYPE_TRANSPARENT)) {
+            uniquePaletteId &= 0x7F;
+        }
+    }
+    else {
+        uniquePaletteId |= ((image >> 19) & 0x1F);
+        uniquePaletteId |= ((image >> 24) & 0x1F) << 8;
+
+        if (!(image & IMAGE_TYPE_REMAP)) {
+            uniquePaletteId |= tertiaryColour << 16;
+        }
+    }
+
+    auto kvp = _paletteTextureMap.find(uniquePaletteId);
+    if (kvp != _paletteTextureMap.end())
+    {
+        return kvp->second;
+    }
+
+    auto cacheInfo = LoadPaletteTexture(image, tertiaryColour, special);
+    _paletteTextureMap[uniquePaletteId] = cacheInfo;
 
     return cacheInfo;
 }
@@ -123,20 +157,34 @@ void TextureCache::EnlargeAtlasesTexture(GLuint newEntries)
 
     // Restore old data
     glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, _atlasesTextureDimensions, _atlasesTextureDimensions, _atlasesTextureIndices, GL_RED_INTEGER, GL_UNSIGNED_BYTE, oldPixels.data());
-    
+
     _atlasesTextureIndices = newIndices;
 }
 
 CachedTextureInfo TextureCache::LoadImageTexture(uint32 image)
 {
     rct_drawpixelinfo * dpi = GetImageAsDPI(image, 0);
-    
+
     auto cacheInfo = AllocateImage(dpi->width, dpi->height);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, _atlasesTexture);
     glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, cacheInfo.bounds.x, cacheInfo.bounds.y, cacheInfo.index, dpi->width, dpi->height, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, dpi->bits);
 
     DeleteDPI(dpi);
+
+    return cacheInfo;
+}
+
+CachedTextureInfo TextureCache::LoadPaletteTexture(uint32 image, uint32 tertiaryColour, bool special)
+{
+    rct_drawpixelinfo dpi;
+    dpi.bits = gfx_draw_sprite_get_palette(image, tertiaryColour);
+    dpi.width = 256;
+    dpi.height = special ? 5 : 1;
+    auto cacheInfo = AllocateImage(dpi.width, dpi.height);
+
+    glBindTexture(GL_TEXTURE_2D_ARRAY, _atlasesTexture);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, cacheInfo.bounds.x, cacheInfo.bounds.y, cacheInfo.index, dpi.width, dpi.height, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, dpi.bits);
 
     return cacheInfo;
 }
@@ -197,7 +245,7 @@ CachedTextureInfo TextureCache::AllocateImage(int imageWidth, int imageHeight)
     log_verbose("new texture atlas #%d (size %d) allocated\n", atlasIndex, atlasSize);
 #endif
 
-    _atlases.push_back(std::move(Atlas(atlasIndex, atlasSize)));
+    _atlases.emplace_back(atlasIndex, atlasSize);
     _atlases.back().Initialise(_atlasesTextureDimensions, _atlasesTextureDimensions);
 
     // Enlarge texture array to support new atlas
@@ -212,7 +260,7 @@ rct_drawpixelinfo * TextureCache::GetImageAsDPI(uint32 image, uint32 tertiaryCol
     rct_g1_element * g1Element = gfx_get_g1_element(image & 0x7FFFF);
     sint32 width = g1Element->width;
     sint32 height = g1Element->height;
-    
+
     rct_drawpixelinfo * dpi = CreateDPI(width, height);
     gfx_draw_sprite_software(dpi, image, -g1Element->x_offset, -g1Element->y_offset, tertiaryColour);
     return dpi;
@@ -239,7 +287,7 @@ rct_drawpixelinfo * TextureCache::GetGlyphAsDPI(uint32 image, uint8 * palette)
     rct_g1_element * g1Element = gfx_get_g1_element(image & 0x7FFFF);
     sint32 width = g1Element->width;
     sint32 height = g1Element->height;
-    
+
     rct_drawpixelinfo * dpi = CreateDPI(width, height);
     gfx_draw_sprite_palette_set_software(dpi, image, -g1Element->x_offset, -g1Element->y_offset, palette, nullptr);
     return dpi;

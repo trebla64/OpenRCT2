@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../input.h"
 #include "../interface/widget.h"
 #include "../interface/window.h"
@@ -209,6 +208,23 @@ static void window_land_rights_invalidate(rct_window *w)
 	window_land_rights_widgets[WIDX_PREVIEW].image = gLandToolSize <= 7 ?
 		SPR_LAND_TOOL_SIZE_0 + gLandToolSize :
 		0xFFFFFFFF;
+
+	// Disable ownership and/or construction buying functions if there're no tiles left for sale
+	if (gLandRemainingOwnershipSales == 0) {
+		w->disabled_widgets |= (1 << WIDX_BUY_LAND_RIGHTS);
+		window_land_rights_widgets[WIDX_BUY_LAND_RIGHTS].tooltip = STR_NO_LAND_RIGHTS_FOR_SALE_TIP;
+	} else {
+		w->disabled_widgets &= ~(1 << WIDX_BUY_LAND_RIGHTS);
+		window_land_rights_widgets[WIDX_BUY_LAND_RIGHTS].tooltip = STR_BUY_LAND_RIGHTS_TIP;
+	}
+
+	if (gLandRemainingConstructionSales == 0) {
+		w->disabled_widgets |= (1 << WIDX_BUY_CONSTRUCTION_RIGHTS);
+		window_land_rights_widgets[WIDX_BUY_CONSTRUCTION_RIGHTS].tooltip = STR_NO_CONSTRUCTION_RIGHTS_FOR_SALE_TIP;
+	} else {
+		w->disabled_widgets &= ~(1 << WIDX_BUY_CONSTRUCTION_RIGHTS);
+		window_land_rights_widgets[WIDX_BUY_CONSTRUCTION_RIGHTS].tooltip = STR_BUY_CONSTRUCTION_RIGHTS_TIP;
+	}
 }
 
 static void window_land_rights_paint(rct_window *w, rct_drawpixelinfo *dpi)
@@ -221,15 +237,18 @@ static void window_land_rights_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	window_draw_widgets(w, dpi);
 	// Draw number for tool sizes bigger than 7
 	if (gLandToolSize > 7) {
-		gfx_draw_string_centred(dpi, STR_LAND_TOOL_SIZE_VALUE, x, y - 2, 0, &gLandToolSize);
+		gfx_draw_string_centred(dpi, STR_LAND_TOOL_SIZE_VALUE, x, y - 2, COLOUR_BLACK, &gLandToolSize);
 	}
 	y = w->y + window_land_rights_widgets[WIDX_PREVIEW].bottom + 5;
 
 	// Draw cost amount
 	x = (window_land_rights_widgets[WIDX_PREVIEW].left + window_land_rights_widgets[WIDX_PREVIEW].right) / 2 + w->x;
 	y = window_land_rights_widgets[WIDX_PREVIEW].bottom + w->y + 32;
-	if (RCT2_GLOBAL(0x00F1AD62, uint32) != MONEY32_UNDEFINED && RCT2_GLOBAL(0x00F1AD62, uint32) != 0)
-		gfx_draw_string_centred(dpi, STR_COST_AMOUNT, x, y, 0, RCT2_ADDRESS(0x00F1AD62, void));
+	if (gLandRightsCost != MONEY32_UNDEFINED &&
+		gLandRightsCost != 0
+	) {
+		gfx_draw_string_centred(dpi, STR_COST_AMOUNT, x, y, COLOUR_BLACK, &gLandRightsCost);
+	}
 }
 
 static int window_land_rights_should_close()

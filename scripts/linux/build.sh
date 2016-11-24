@@ -2,6 +2,13 @@
 
 set -e
 
+if [[ $TRAVIS != "true" ]]
+then
+	echo This script is only meant to be run on Travis-CI.
+	echo Please use CMake to build the project.
+	exit 1
+fi
+
 cachedir=.cache
 mkdir -p $cachedir
 
@@ -61,7 +68,21 @@ pushd build
 		chmod a+rwx $(pwd)
 		chmod g+s $(pwd)
 		# CMAKE and MAKE opts from environment
-		docker run -u travis -v $PARENT:/work/openrct2 -w /work/openrct2/build -i -t openrct2/openrct2:32bit-only bash -c "cmake ../ $OPENRCT2_CMAKE_OPTS && make $OPENRCT_MAKE_OPTS"
+		docker run -u travis -v $PARENT:/work/openrct2 -w /work/openrct2/build -i -t openrct2/openrct2:32bit-only bash -c "cmake ../ -DFORCE32=on $OPENRCT2_CMAKE_OPTS && make $OPENRCT_MAKE_OPTS"
+	elif [[ $TARGET == "docker64" ]]
+	then
+		PARENT=$(readlink -f ../)
+		chmod a+rwx $(pwd)
+		chmod g+s $(pwd)
+		# CMAKE and MAKE opts from environment
+		docker run -v $PARENT:/work/openrct2 -w /work/openrct2/build -i -t openrct2/openrct2:64bit-only bash -c "cmake ../ $OPENRCT2_CMAKE_OPTS && make $OPENRCT_MAKE_OPTS"
+	elif [[ $TARGET == "linux" ]]
+	then
+		cmake $OPENRCT2_CMAKE_OPTS .. -DCMAKE_BUILD_TYPE=debug
+		# NOT the same variable as above
+		# this target also includes building & running of testpaint
+		make $OPENRCT2_MAKE_OPTS testpaint
+		./testpaint --quiet || if [[ $? -eq 1 ]] ; then echo Allowing failed tests to pass ; else false; fi
 	else
 		cmake $OPENRCT2_CMAKE_OPTS ..
 		# NOT the same variable as above

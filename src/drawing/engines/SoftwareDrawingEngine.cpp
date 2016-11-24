@@ -14,6 +14,7 @@
  *****************************************************************************/
 #pragma endregion
 
+#include "../../core/Guard.hpp"
 #include "../../core/Math.hpp"
 #include "../../core/Memory.hpp"
 #include "../IDrawingContext.h"
@@ -25,9 +26,11 @@ extern "C"
     #include "../../config.h"
     #include "../../game.h"
     #include "../../interface/screenshot.h"
+    #include "../../interface/viewport.h"
     #include "../../interface/window.h"
     #include "../../intro.h"
     #include "../drawing.h"
+    #include "../lightfx.h"
 }
 
 class SoftwareDrawingEngine;
@@ -43,7 +46,7 @@ struct DirtyGrid
     uint8 * Blocks;
 };
 
-class RainDrawer : public IRainDrawer
+class RainDrawer final : public IRainDrawer
 {
 private:
     struct RainPixel
@@ -90,15 +93,15 @@ public:
         const uint8 * pattern = RainPattern;
         uint8 patternXSpace = *pattern++;
         uint8 patternYSpace = *pattern++;
-    
+
         uint8 patternStartXOffset = xStart % patternXSpace;
         uint8 patternStartYOffset = yStart % patternYSpace;
-    
+
         uint32 pixelOffset = (_screenDPI->pitch + _screenDPI->width) * y + x;
         uint8 patternYPos = patternStartYOffset % patternYSpace;
 
         uint8 * screenBits = _screenDPI->bits;
-    
+
         //Stores the colours of changed pixels
         RainPixel * newPixels = &_rainPixels[_rainPixelsCount];
         for (; height != 0; height--)
@@ -146,7 +149,7 @@ public:
                     // Pixel out of bounds, bail
                     break;
                 }
-                
+
                 bits[rainPixel.Position] = rainPixel.Colour;
             }
             _rainPixelsCount = 0;
@@ -154,7 +157,7 @@ public:
     }
 };
 
-class SoftwareDrawingContext : public IDrawingContext
+class SoftwareDrawingContext final : public IDrawingContext
 {
 private:
     SoftwareDrawingEngine * _engine;
@@ -166,8 +169,9 @@ public:
 
     IDrawingEngine * GetEngine() override;
 
-    void Clear(uint32 colour) override;
+    void Clear(uint8 paletteIndex) override;
     void FillRect(uint32 colour, sint32 x, sint32 y, sint32 w, sint32 h) override;
+    void FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32 top, sint32 right, sint32 bottom) override;
     void DrawLine(uint32 colour, sint32 x1, sint32 y1, sint32 x2, sint32 y2) override;
     void DrawSprite(uint32 image, sint32 x, sint32 y, uint32 tertiaryColour) override;
     void DrawSpriteRawMasked(sint32 x, sint32 y, uint32 maskImage, uint32 colourImage) override;
@@ -177,7 +181,7 @@ public:
     void SetDPI(rct_drawpixelinfo * dpi);
 };
 
-class SoftwareDrawingEngine : public IDrawingEngine
+class SoftwareDrawingEngine final : public IDrawingEngine
 {
 private:
     bool _hardwareDisplay;
@@ -192,6 +196,9 @@ private:
     SDL_Texture *       _screenTexture          = nullptr;
     SDL_PixelFormat *   _screenTextureFormat    = nullptr;
     uint32              _paletteHWMapped[256] = { 0 };
+#ifdef __ENABLE_LIGHTFX__
+    uint32              _lightPaletteHWMapped[256] = { 0 };
+#endif
 
     // Steam overlay checking
     uint32  _pixelBeforeOverlay     = 0;
@@ -266,7 +273,7 @@ public:
             }
 
             _screenTexture = SDL_CreateTexture(_sdlRenderer, pixelFormat, SDL_TEXTUREACCESS_STREAMING, width, height);
-            
+
             uint32 format;
             SDL_QueryTexture(_screenTexture, &format, 0, 0, 0);
             _screenTextureFormat = SDL_AllocFormat(format);
@@ -304,9 +311,15 @@ public:
         {
             if (_screenTextureFormat != nullptr)
             {
+#ifdef __ENABLE_LIGHTFX__
+                const SDL_Color * lightPalette = lightfx_get_palette();
+#endif
                 for (int i = 0; i < 256; i++)
                 {
                     _paletteHWMapped[i] = SDL_MapRGB(_screenTextureFormat, palette[i].r, palette[i].g, palette[i].b);
+#ifdef __ENABLE_LIGHTFX__
+                    _lightPaletteHWMapped[i] = SDL_MapRGBA(_screenTextureFormat, lightPalette[i].r, lightPalette[i].g, lightPalette[i].b, lightPalette[i].a);
+#endif
                 }
             }
         }
@@ -404,7 +417,7 @@ public:
 
         // Originally 0x00683359
         // Adjust for move off screen
-        // NOTE: when zooming, there can be x, y, dx, dy combinations that go off the 
+        // NOTE: when zooming, there can be x, y, dx, dy combinations that go off the
         // screen; hence the checks. This code should ultimately not be called when
         // zooming because this function is specific to updating the screen on move
         int lmargin = Math::Min(x - dx, 0);
@@ -520,6 +533,10 @@ private:
         dpi->pitch = _pitch - width;
 
         ConfigureDirtyGrid();
+
+#ifdef __ENABLE_LIGHTFX__
+        lightfx_update_buffers(dpi);
+#endif
     }
 
     void ConfigureDirtyGrid()
@@ -679,52 +696,12 @@ private:
 
     void DisplayViaTexture()
     {
-        void *  pixels;
-        int     pitch;
-        if (SDL_LockTexture(_screenTexture, nullptr, &pixels, &pitch) == 0)
-        {
-            uint8 * src = _bits;
-            int padding = pitch - (_width * 4);
-            if ((uint32)pitch == _width * 4) {
-                uint32 * dst = (uint32 *)pixels;
-                for (int i = _width * _height; i > 0; i--)
-                {
-                    *dst++ = *(uint32 *)(&_paletteHWMapped[*src++]);
-                }
-            }
-            else
-            {
-                if ((uint32)pitch == (_width * 2) + padding)
-                {
-                    uint16 * dst = (uint16 *)pixels;
-                    for (sint32 y = (sint32)_height; y > 0; y--) {
-                        for (sint32 x = (sint32)_width; x > 0; x--) {
-                            const uint8 lower = *(uint8 *)(&_paletteHWMapped[*src++]);
-                            const uint8 upper = *(uint8 *)(&_paletteHWMapped[*src++]);
-                            *dst++ = (lower << 8) | upper;
-                        }
-                        dst = (uint16*)(((uint8 *)dst) + padding);
-                    }
-                }
-                else
-                {
-                    if ((uint32)pitch == _width + padding)
-                    {
-                        uint8 * dst = (uint8 *)pixels;
-                        for (sint32 y = (sint32)_height; y > 0; y--) {
-                            for (sint32 x = (sint32)_width; x > 0; x--)
-                            {
-                                *dst++ = *(uint8 *)(&_paletteHWMapped[*src++]);
-                            }
-                            dst += padding;
-                        }
-                    }
-                }
-            }
-            SDL_UnlockTexture(_screenTexture);
-        }
-
-        SDL_RenderCopy(_sdlRenderer, _screenTexture, NULL, NULL);
+#ifdef __ENABLE_LIGHTFX__
+        lightfx_render_to_texture(_screenTexture, _bits, _width, _height, _paletteHWMapped, _lightPaletteHWMapped);
+#else
+        CopyBitsToTexture(_screenTexture, _bits, (sint32)_width, (sint32)_height, _paletteHWMapped);
+#endif
+        SDL_RenderCopy(_sdlRenderer, _screenTexture, nullptr, nullptr);
 
         if (gSteamOverlayActive && gConfigGeneral.steam_overlay_pause)
         {
@@ -736,6 +713,54 @@ private:
         if (gSteamOverlayActive && gConfigGeneral.steam_overlay_pause)
         {
             OverlayPostRenderCheck();
+        }
+    }
+
+    void CopyBitsToTexture(SDL_Texture * texture, uint8 * src, sint32 width, sint32 height, uint32 * palette)
+    {
+        void *  pixels;
+        int     pitch;
+        if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) == 0)
+        {
+            sint32 padding = pitch - (width * 4);
+            if (pitch == width * 4)
+            {
+                uint32 * dst = (uint32 *)pixels;
+                for (sint32 i = width * height; i > 0; i--)
+                {
+                    *dst++ = palette[*src++];
+                }
+            }
+            else
+            {
+                if (pitch == (width * 2) + padding)
+                {
+                    uint16 * dst = (uint16 *)pixels;
+                    for (sint32 y = height; y > 0; y--)
+                    {
+                        for (sint32 x = width; x > 0; x--)
+                        {
+                            const uint8 lower = *(uint8 *)(&palette[*src++]);
+                            const uint8 upper = *(uint8 *)(&palette[*src++]);
+                            *dst++ = (lower << 8) | upper;
+                        }
+                        dst = (uint16*)(((uint8 *)dst) + padding);
+                    }
+                }
+                else if (pitch == width + padding)
+                {
+                    uint8 * dst = (uint8 *)pixels;
+                    for (sint32 y = height; y > 0; y--)
+                    {
+                        for (sint32 x = width; x > 0; x--)
+                        {
+                            *dst++ = *(uint8 *)(&palette[*src++]);
+                        }
+                        dst += padding;
+                    }
+                }
+            }
+            SDL_UnlockTexture(texture);
         }
     }
 
@@ -803,7 +828,7 @@ IDrawingEngine * SoftwareDrawingContext::GetEngine()
     return _engine;
 }
 
-void SoftwareDrawingContext::Clear(uint32 colour)
+void SoftwareDrawingContext::Clear(uint8 paletteIndex)
 {
     rct_drawpixelinfo * dpi = _dpi;
 
@@ -813,7 +838,7 @@ void SoftwareDrawingContext::Clear(uint32 colour)
 
     for (int y = 0; y < h; y++)
     {
-        Memory::Set(ptr, colour, w);
+        Memory::Set(ptr, paletteIndex, w);
         ptr += w + dpi->pitch;
     }
 }
@@ -875,8 +900,6 @@ void SoftwareDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, si
     if (bottom < dpi->y) return;
     if (top >= dpi->y + dpi->height) return;
 
-    colour |= RCT2_GLOBAL(0x009ABD9C, uint32);
-
     uint16 crossPattern = 0;
 
     int startX = left - dpi->x;
@@ -934,54 +957,34 @@ void SoftwareDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, si
     }
     else if (colour & 0x2000000)
     {
-        //0x2000000
-        // 00678B7E   00678C83
-        // Location in screen buffer?
-        uint8 * dst = dpi->bits + (uint32)((startY >> (dpi->zoom_level)) * ((dpi->width >> dpi->zoom_level) + dpi->pitch) + (startX >> dpi->zoom_level));
-    
-        // Find colour in colour table?
-        uint16           g1Index = palette_to_g1_offset[colour & 0xFF];
-        rct_g1_element * g1Element = &g1Elements[g1Index];
-        uint8 *          g1Bits = g1Element->offset;
-    
-        // Fill the rectangle with the colours from the colour table
-        for (int i = 0; i < height >> dpi->zoom_level; i++)
-        {
-            uint8 * nextdst = dst + (dpi->width >> dpi->zoom_level) + dpi->pitch;
-            for (int j = 0; j < (width >> dpi->zoom_level); j++)
-            {
-                *dst = g1Bits[*dst];
-                dst++;
-            }
-            dst = nextdst;
-        }
+        assert(false);
     }
     else if (colour & 0x4000000)
     {
         uint8 * dst = startY * (dpi->width + dpi->pitch) + startX + dpi->bits;
-    
+
         // The pattern loops every 15 lines this is which
         // part the pattern is on.
         int patternY = (startY + dpi->y) % 16;
-    
+
         // The pattern loops every 15 pixels this is which
         // part the pattern is on.
         int startPatternX = (startX + dpi->x) % 16;
         int patternX = startPatternX;
-    
+
         const uint16 * patternsrc = Patterns[colour >> 28]; // or possibly uint8)[esi*4] ?
-    
+
         for (int numLines = height; numLines > 0; numLines--)
         {
             uint8 * nextdst = dst + dpi->width + dpi->pitch;
             uint16  pattern = patternsrc[patternY];
-    
+
             for (int numPixels = width; numPixels > 0; numPixels--)
             {
                 if (pattern & (1 << patternX))
                 {
                     *dst = colour & 0xFF;
-                }    
+                }
                 patternX = (patternX + 1) % 16;
                 dst++;
             }
@@ -989,65 +992,6 @@ void SoftwareDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, si
             patternY = (patternY + 1) % 16;
             dst = nextdst;
         }
-    }
-    else if (colour & 0x8000000)
-    {
-        uintptr_t esi = left - RCT2_GLOBAL(0x1420070, sint16);
-        RCT2_GLOBAL(0xEDF824, uint32) = esi;
-        esi = top - RCT2_GLOBAL(0x1420072, sint16);
-        RCT2_GLOBAL(0xEDF828, uint32) = esi;
-        left -= dpi->x;
-        if (left < 0)
-        {
-            RCT2_GLOBAL(0xEDF824, sint32) -= left;
-            left = 0;
-        }
-        right -= dpi->x;
-        right++;
-        if (right > dpi->width)
-        {
-            right = dpi->width;
-        }
-        right -= left;
-        top -= dpi->y;
-        if (top < 0)
-        {
-            RCT2_GLOBAL(0xEDF828, sint32) -= top;
-            top = 0;
-        }
-        bottom -= dpi->y;
-        bottom++;
-        if (bottom > dpi->height)
-        {
-            bottom = dpi->height;
-        }
-        bottom -= top;
-        RCT2_GLOBAL(0xEDF824, sint32) &= 0x3F;
-        RCT2_GLOBAL(0xEDF828, sint32) &= 0x3F;
-        esi = dpi->width;
-        esi += dpi->pitch;
-        esi *= top;
-        esi += left;
-        esi += (uintptr_t)dpi->bits;
-        RCT2_GLOBAL(0xEDF82C, sint32) = right;
-        RCT2_GLOBAL(0xEDF830, sint32) = bottom;
-        left = dpi->width;
-        left += dpi->pitch;
-        left -= right;
-        RCT2_GLOBAL(0xEDF834, sint32) = left;
-        colour &= 0xFF;
-        colour--;
-        right = colour;
-        colour <<= 8;
-        right |= colour;
-        RCT2_GLOBAL(0xEDF838, sint32) = right;
-        //right <<= 4;
-        esi = RCT2_GLOBAL(0xEDF828, sint32);
-        esi *= 0x40;
-        left = 0;
-        esi += (uintptr_t)g1Elements[right].offset;//???
-        //Not finished
-        //Start of loop
     }
     else
     {
@@ -1057,6 +1001,68 @@ void SoftwareDrawingContext::FillRect(uint32 colour, sint32 left, sint32 top, si
             Memory::Set(dst, colour & 0xFF, width);
             dst += dpi->width + dpi->pitch;
         }
+    }
+}
+
+void SoftwareDrawingContext::FilterRect(FILTER_PALETTE_ID palette, sint32 left, sint32 top, sint32 right, sint32 bottom)
+{
+    rct_drawpixelinfo * dpi = _dpi;
+
+    if (left > right) return;
+    if (top > bottom) return;
+    if (dpi->x > right) return;
+    if (left >= dpi->x + dpi->width) return;
+    if (bottom < dpi->y) return;
+    if (top >= dpi->y + dpi->height) return;
+
+    int startX = left - dpi->x;
+    if (startX < 0)
+    {
+        startX = 0;
+    }
+
+    int endX = right - dpi->x + 1;
+    if (endX > dpi->width)
+    {
+        endX = dpi->width;
+    }
+
+    int startY = top - dpi->y;
+    if (startY < 0)
+    {
+        startY = 0;
+    }
+
+    int endY = bottom - dpi->y + 1;
+    if (endY > dpi->height)
+    {
+        endY = dpi->height;
+    }
+
+    int width = endX - startX;
+    int height = endY - startY;
+
+
+    //0x2000000
+    // 00678B7E   00678C83
+    // Location in screen buffer?
+    uint8 * dst = dpi->bits + (uint32)((startY >> (dpi->zoom_level)) * ((dpi->width >> dpi->zoom_level) + dpi->pitch) + (startX >> dpi->zoom_level));
+
+    // Find colour in colour table?
+    uint16           g1Index = palette_to_g1_offset[palette];
+    rct_g1_element * g1Element = &g1Elements[g1Index];
+    uint8 *          g1Bits = g1Element->offset;
+
+    // Fill the rectangle with the colours from the colour table
+    for (int i = 0; i < height >> dpi->zoom_level; i++)
+    {
+        uint8 * nextdst = dst + (dpi->width >> dpi->zoom_level) + dpi->pitch;
+        for (int j = 0; j < (width >> dpi->zoom_level); j++)
+        {
+            *dst = g1Bits[*dst];
+            dst++;
+        }
+        dst = nextdst;
     }
 }
 
@@ -1081,7 +1087,6 @@ void SoftwareDrawingContext::DrawSpriteSolid(uint32 image, sint32 x, sint32 y, u
     memset(palette, colour, 256);
     palette[0] = 0;
 
-    RCT2_GLOBAL(0x00EDF81C, uint32) = 0x20000000;
     image &= 0x7FFFF;
     gfx_draw_sprite_palette_set_software(_dpi, image | 0x20000000, x, y, palette, nullptr);
 }

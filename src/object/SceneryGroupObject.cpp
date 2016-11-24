@@ -26,11 +26,6 @@ extern "C"
     #include "../localisation/localisation.h"
 }
 
-enum OBJ_STRING_ID
-{
-    OBJ_STRING_ID_NAME,
-};
-
 SceneryGroupObject::~SceneryGroupObject()
 {
     Memory::Free(_items);
@@ -44,7 +39,7 @@ void SceneryGroupObject::ReadLegacy(IReadObjectContext * context, IStream * stre
     _legacyType.var_107 = stream->ReadValue<uint8>();
     _legacyType.var_108 = stream->ReadValue<uint8>();
     _legacyType.pad_109 = stream->ReadValue<uint8>();
-    _legacyType.var_10A = stream->ReadValue<uint32>();
+    _legacyType.entertainer_costumes = stream->ReadValue<uint32>();
 
     GetStringTable()->Read(context, stream, OBJ_STRING_ID_NAME);
     ReadItems(stream);
@@ -134,6 +129,6 @@ void SceneryGroupObject::ReadItems(IStream * stream)
         items.push_back(entry);
     }
 
-    _numItems = items.size();
+    _numItems = (uint32)items.size();
     _items = Memory::DuplicateArray(items.data(), items.size());
 }

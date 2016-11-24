@@ -200,6 +200,8 @@ typedef struct general_configuration {
 	utf8string last_save_track_directory;
 	uint8 window_limit;
 	uint8 zoom_to_cursor;
+	uint8 render_weather_effects;
+	uint8 render_weather_gloom;
 } general_configuration;
 
 typedef struct interface_configuration {
@@ -343,7 +345,7 @@ extern title_sequences_configuration gConfigTitleSequences;
 
 extern uint16 gShortcutKeys[SHORTCUT_COUNT];
 
-void config_get_default_path(utf8 *outPath);
+void config_get_default_path(utf8 *outPath, size_t size);
 void config_set_defaults();
 void config_release();
 bool config_open_default();

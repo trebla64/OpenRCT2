@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../cheats.h"
 #include "../config.h"
@@ -247,10 +246,10 @@ static rct_widget window_ride_vehicle_widgets[] = {
 	{ WWT_DROPDOWN,			1,	7,		308,	50,		61,		0xFFFFFFFF,									STR_NONE										},
 	{ WWT_DROPDOWN_BUTTON,	1,	297,	307,	51,		60,		STR_DROPDOWN_GLYPH,							STR_NONE										},
 	{ WWT_SCROLL,			1,	7,		308,	141,	183,	0,											STR_NONE										},
-	{ WWT_SPINNER,			1,	7,		151,	190,	201,	STR_RIDE_VEHICLE_COUNT,						STR_NONE										},
+	{ WWT_SPINNER,			1,	7,		151,	190,	201,	STR_RIDE_VEHICLE_COUNT,						STR_MAX_VEHICLES_TIP							},
 	{ WWT_DROPDOWN_BUTTON,	1,	140,	150,	191,	195,	STR_NUMERIC_UP,								STR_NONE										},
 	{ WWT_DROPDOWN_BUTTON,	1,	140,	150,	196,	200,	STR_NUMERIC_DOWN,							STR_NONE										},
-	{ WWT_SPINNER,			1,	164,	308,	190,	201,	STR_1_CAR_PER_TRAIN,						STR_NONE										},
+	{ WWT_SPINNER,			1,	164,	308,	190,	201,	STR_1_CAR_PER_TRAIN,						STR_MAX_CARS_PER_TRAIN_TIP										},
 	{ WWT_DROPDOWN_BUTTON,	1,	297,	307,	191,	195,	STR_NUMERIC_UP,								STR_NONE										},
 	{ WWT_DROPDOWN_BUTTON,	1,	297,	307,	196,	200,	STR_NUMERIC_DOWN,							STR_NONE										},
 
@@ -630,6 +629,7 @@ static void window_ride_customer_invalidate(rct_window *w);
 static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi);
 
 static void window_ride_set_colours();
+static void window_ride_set_page(rct_window *w, int page);
 
 // 0x0098DFD4
 static rct_window_event_list window_ride_main_events = {
@@ -1596,20 +1596,12 @@ rct_window *window_ride_main_open(int rideIndex)
 		}
 	}
 
-	w->page = WINDOW_RIDE_PAGE_MAIN;
-	w->width = 316;
-	w->height = 180;
-	window_invalidate(w);
-	w->widgets = window_ride_page_widgets[WINDOW_RIDE_PAGE_MAIN];
-	w->enabled_widgets = window_ride_page_enabled_widgets[WINDOW_RIDE_PAGE_MAIN];
-	w->hold_down_widgets = window_ride_page_hold_down_widgets[WINDOW_RIDE_PAGE_MAIN];
-	w->event_handlers = window_ride_page_events[WINDOW_RIDE_PAGE_MAIN];
-	w->pressed_widgets = 0;
-	window_ride_disable_tabs(w);
-	window_init_scroll_widgets(w);
+	if (w->page != WINDOW_RIDE_PAGE_MAIN) {
+		window_ride_set_page(w, WINDOW_RIDE_PAGE_MAIN);
+	}
+
 	w->ride.view = 0;
 	window_ride_init_viewport(w);
-
 	return w;
 }
 
@@ -1864,13 +1856,14 @@ static void window_ride_init_viewport(rct_window *w)
 	focus.sprite.sprite_id = -1;
 	focus.coordinate.zoom = 0;
 	focus.coordinate.rotation = get_current_rotation();
-
+	focus.coordinate.width = 0;
+	focus.coordinate.height = 0;
 
 	if (eax >= 0 && eax < ride->num_vehicles && ride->lifecycle_flags & RIDE_LIFECYCLE_ON_TRACK){
 		focus.sprite.sprite_id = ride->vehicles[eax];
 
 		rct_ride_entry* ride_entry = get_ride_entry_by_ride(ride);
-		if (ride_entry->tab_vehicle != 0){
+		if (ride_entry && ride_entry->tab_vehicle != 0){
 			rct_vehicle* vehicle = GET_VEHICLE(focus.sprite.sprite_id);
 			focus.sprite.sprite_id = vehicle->next_vehicle_on_train;
 		}
@@ -1910,22 +1903,24 @@ static void window_ride_init_viewport(rct_window *w)
 
 	uint16 viewport_flags = 0;
 
-	if (w->viewport != 0){
+	if (w->viewport != NULL) {
 		if (focus.coordinate.x == w->viewport_focus_coordinates.x &&
 			focus.coordinate.y == w->viewport_focus_coordinates.y &&
 			focus.coordinate.z == w->viewport_focus_coordinates.z &&
 			focus.coordinate.rotation == w->viewport_focus_coordinates.rotation &&
-			focus.coordinate.zoom == w->viewport_focus_coordinates.zoom )
+			focus.coordinate.zoom == w->viewport_focus_coordinates.zoom &&
+			focus.coordinate.width == w->width &&
+			focus.coordinate.height == w->height
+		) {
 			return;
+		}
 		viewport_flags = w->viewport->flags;
 		w->viewport->width = 0;
-		w->viewport = 0;
+		w->viewport = NULL;
 
 		viewport_update_pointers();
-	}
-	else{
-		if (RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_FLAGS, uint8) & 0x1)
-			viewport_flags |= VIEWPORT_FLAG_GRIDLINES;
+	} else if (gConfigGeneral.always_show_gridlines) {
+		viewport_flags |= VIEWPORT_FLAG_GRIDLINES;
 	}
 
 	window_event_invalidate_call(w);
@@ -1935,6 +1930,8 @@ static void window_ride_init_viewport(rct_window *w)
 	w->viewport_focus_coordinates.z = focus.coordinate.z;
 	w->viewport_focus_coordinates.rotation = focus.coordinate.rotation;
 	w->viewport_focus_coordinates.zoom = focus.coordinate.zoom;
+	w->viewport_focus_coordinates.width = w->width;
+	w->viewport_focus_coordinates.height = w->height;
 
 	//rct2: 0x006aec9c only used here so brought it into the function
 	if (!w->viewport && ride->overall_view != 0xFFFF){
@@ -2042,7 +2039,7 @@ static void window_ride_main_mouseup(rct_window *w, int widgetIndex)
 			break;
 		}
 
-		set_format_arg(6, uint16, ride->name);
+		set_format_arg(6, rct_string_id, ride->name);
 		set_format_arg(8, uint32, ride->name_arguments);
 		ride_set_status(w->number, status);
 		break;
@@ -2055,28 +2052,12 @@ static void window_ride_main_mouseup(rct_window *w, int widgetIndex)
  */
 static void window_ride_main_resize(rct_window *w)
 {
-	rct_viewport *viewport;
-	int width, height;
-
 	const int offset = gCheatsAllowArbitraryRideTypeChanges ? 15 : 0;
 	w->flags |= WF_RESIZABLE;
 	int minHeight = 180 + offset;
 	if (theme_get_flags() & UITHEME_FLAG_USE_LIGHTS_RIDE)
 		minHeight = 200 + offset + RCT1_LIGHT_OFFSET - (ride_type_has_flag(get_ride(w->number)->type, RIDE_TYPE_FLAG_NO_TEST_MODE) ? 14 : 0);
 	window_set_resize(w, 316, minHeight, 500, 450);
-
-	viewport = w->viewport;
-	if (viewport != NULL) {
-		width = w->width - 30;
-		height = w->height - (75 + offset);
-		if (viewport->width != width || viewport->height != height) {
-			viewport->width = width;
-			viewport->height = height;
-			viewport->view_width = width << viewport->zoom;
-			viewport->view_height = height << viewport->zoom;
-		}
-	}
-
 	window_ride_init_viewport(w);
 }
 
@@ -2225,7 +2206,6 @@ static void window_ride_show_open_dropdown(rct_window *w, rct_widget *widget)
  */
 static void window_ride_main_mousedown(int widgetIndex, rct_window *w, rct_widget *widget)
 {
-	rct_ride *ride = get_ride(w->number);
 	switch (widgetIndex) {
 	case WIDX_VIEW_DROPDOWN:
 		window_ride_show_view_dropdown(w, widget);
@@ -2307,7 +2287,7 @@ static void window_ride_main_dropdown(rct_window *w, int widgetIndex, int dropdo
 			break;
 		}
 
-		set_format_arg(6, uint16, ride->name);
+		set_format_arg(6, rct_string_id, ride->name);
 		set_format_arg(8, uint32, ride->name_arguments);
 		ride_set_status(w->number, status);
 		break;
@@ -2403,9 +2383,9 @@ static void window_ride_main_invalidate(rct_window *w)
 	if (ride->lifecycle_flags & (RIDE_LIFECYCLE_INDESTRUCTIBLE | RIDE_LIFECYCLE_INDESTRUCTIBLE_TRACK))
 		w->disabled_widgets |= (1 << 22);
 
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
-	set_format_arg(6, uint16, _rideType + STR_RIDE_NAME_SPIRAL_ROLLER_COASTER);
+	set_format_arg(6, uint16, RideNaming[_rideType].name);
 	uint32 spriteIds[] = {
 		SPR_CLOSED,
 		SPR_OPEN,
@@ -2504,8 +2484,8 @@ static void window_ride_main_invalidate(rct_window *w)
  */
 static rct_string_id window_ride_get_status_overall_view(rct_window *w, void *arguments)
 {
-	int formatSecondary, argument;
-	rct_string_id stringId;
+	int argument;
+	rct_string_id formatSecondary, stringId;
 
 	ride_get_status(w->number, &formatSecondary, &argument);
 	*(uint16*)((uintptr_t)arguments + 0) = formatSecondary;
@@ -2546,7 +2526,7 @@ static rct_string_id window_ride_get_status_vehicle(rct_window *w, void *argumen
 			trackType == TRACK_ELEM_DIAG_25_DEG_UP_TO_FLAT ||
 			trackType == TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT) {
 			if (track_type_is_invented(ride->type, TRACK_BLOCK_BRAKES) && vehicle->velocity == 0) {
-				RCT2_GLOBAL((uintptr_t)arguments + 0, rct_string_id) = STR_STOPPED_BY_BLOCK_BRAKES;
+				*(rct_string_id*)(uintptr_t)arguments = STR_STOPPED_BY_BLOCK_BRAKES;
 				return STR_BLACK_STRING;
 			}
 		}
@@ -2607,15 +2587,15 @@ static rct_string_id window_ride_get_status_station(rct_window *w, void *argumen
 	// Queue length
 	if (stringId == 0) {
 		queueLength = ride->queue_length[stationIndex];
-		RCT2_GLOBAL((uintptr_t)arguments + 2, uint16) = queueLength;
+		set_format_arg_body(arguments, 2, (uintptr_t)queueLength, sizeof(uint16));
 		stringId = STR_QUEUE_EMPTY;
 		if (queueLength == 1)
-			stringId++; // TODO: String calculation
+			stringId = STR_QUEUE_ONE_PERSON;
 		else if (queueLength > 1)
-			stringId += 2;// TODO: String calculation
+			stringId = STR_QUEUE_PEOPLE;
 	}
 
-	RCT2_GLOBAL((uintptr_t)arguments + 0, rct_string_id) = stringId;
+	set_format_arg_body(arguments, 0, (uintptr_t)stringId, sizeof(rct_string_id));
 	return STR_BLACK_STRING;
 }
 
@@ -2676,7 +2656,7 @@ static void window_ride_main_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		STR_WINDOW_COLOUR_2_STRINGID,
 		w->x + (widget->left + widget->right - 11) / 2,
 		w->y + widget->top,
-		0,
+		COLOUR_BLACK,
 		gCommonFormatArgs
 	);
 
@@ -2686,7 +2666,7 @@ static void window_ride_main_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		dpi,
 		window_ride_get_status(w, gCommonFormatArgs),
 		gCommonFormatArgs,
-		0,
+		COLOUR_BLACK,
 		w->x + (widget->left + widget->right) / 2,
 		w->y + widget->top,
 		widget->right - widget->left
@@ -2703,10 +2683,6 @@ static void window_ride_main_paint(rct_window *w, rct_drawpixelinfo *dpi)
  */
 static void window_ride_vehicle_mouseup(rct_window *w, int widgetIndex)
 {
-	rct_ride *ride;
-
-	ride = get_ride(w->number);
-
 	switch (widgetIndex) {
 	case WIDX_CLOSE:
 		window_close(w);
@@ -2835,14 +2811,8 @@ static void window_ride_vehicle_mousedown(int widgetIndex, rct_window *w, rct_wi
  */
 static void window_ride_vehicle_dropdown(rct_window *w, int widgetIndex, int dropdownIndex)
 {
-	rct_ride *ride;
-	rct_ride_entry *rideEntry;
-
 	if (dropdownIndex == -1)
 		return;
-
-	ride = get_ride(w->number);
-	rideEntry = get_ride_entry_by_ride(ride);
 
 	switch (widgetIndex) {
 	case WIDX_VEHICLE_TYPE_DROPDOWN:
@@ -2888,7 +2858,7 @@ static void window_ride_vehicle_invalidate(rct_window *w)
 	ride = get_ride(w->number);
 	rideEntry = get_ride_entry_by_ride(ride);
 
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	// Widget setup
@@ -2908,7 +2878,7 @@ static void window_ride_vehicle_invalidate(rct_window *w)
 	}
 
 	// Trains
-	if (rideEntry->cars_per_flat_ride > 1) {
+	if (rideEntry->cars_per_flat_ride > 1 || gCheatsDisableTrainLengthLimit) {
 		window_ride_vehicle_widgets[WIDX_VEHICLE_TRAINS].type = WWT_SPINNER;
 		window_ride_vehicle_widgets[WIDX_VEHICLE_TRAINS_INCREASE].type = WWT_DROPDOWN_BUTTON;
 		window_ride_vehicle_widgets[WIDX_VEHICLE_TRAINS_DECREASE].type = WWT_DROPDOWN_BUTTON;
@@ -2937,8 +2907,24 @@ static void window_ride_vehicle_invalidate(rct_window *w)
 	if (ride->num_vehicles > 1) {
 		stringId = RideComponentNames[vehicleType].count_plural;
 	}
-	set_format_arg(8, uint16, stringId);
+	set_format_arg(8, rct_string_id, stringId);
 	set_format_arg(10, uint16, ride->num_vehicles);
+
+	stringId = RideComponentNames[vehicleType].count;
+	if (ride->max_trains > 1) {
+		stringId = RideComponentNames[vehicleType].count_plural;
+	}
+	set_format_arg(12, rct_string_id, stringId);
+	set_format_arg(14, uint16, ride->max_trains);
+
+	set_format_arg(16, uint16, max(1, ride->min_max_cars_per_train & 0xF) - rideEntry->zero_cars);
+
+	stringId = RideComponentNames[RIDE_COMPONENT_TYPE_CAR].singular;
+	if ((ride->min_max_cars_per_train & 0xF) - rideEntry->zero_cars > 1) {
+		stringId = RideComponentNames[RIDE_COMPONENT_TYPE_CAR].plural;
+	}
+
+	set_format_arg(18, rct_string_id, stringId);
 
 	window_ride_anchor_border_widgets(w);
 	window_align_tabs(w, WIDX_TAB_1, WIDX_TAB_10);
@@ -2971,7 +2957,7 @@ static void window_ride_vehicle_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	y = w->y + 64;
 
 	// Description
-	y += gfx_draw_string_left_wrapped(dpi, &rideEntry->description, x, y, 300, STR_BLACK_STRING, 0);
+	y += gfx_draw_string_left_wrapped(dpi, &rideEntry->description, x, y, 300, STR_BLACK_STRING, COLOUR_BLACK);
 	y += 5;
 
 	// Capacity
@@ -2981,7 +2967,7 @@ static void window_ride_vehicle_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		const utf8 * capacity = object_get_capacity(loadedObject);
 		set_format_arg(0, rct_string_id, STR_STRING);
 		set_format_arg(2, utf8 *, capacity);
-		gfx_draw_string_left(dpi, STR_CAPACITY, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_CAPACITY, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	y += 15;
 
@@ -2989,21 +2975,21 @@ static void window_ride_vehicle_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		// Excitement Factor
 		factor = rideEntry->excitement_multipler;
 		if (factor > 0) {
-			gfx_draw_string_left(dpi, STR_EXCITEMENT_FACTOR, &factor, 0, x, y);
+			gfx_draw_string_left(dpi, STR_EXCITEMENT_FACTOR, &factor, COLOUR_BLACK, x, y);
 			y += 10;
 		}
 
 		// Intensity Factor
 		factor = rideEntry->intensity_multipler;
 		if (factor > 0) {
-			gfx_draw_string_left(dpi, STR_INTENSITY_FACTOR, &factor, 0, x, y);
+			gfx_draw_string_left(dpi, STR_INTENSITY_FACTOR, &factor, COLOUR_BLACK, x, y);
 			y += 10;
 		}
 
 		// Nausea Factor
 		factor = rideEntry->nausea_multipler;
 		if (factor > 0) {
-			gfx_draw_string_left(dpi, STR_NAUSEA_FACTOR, &factor, 0, x, y);
+			gfx_draw_string_left(dpi, STR_NAUSEA_FACTOR, &factor, COLOUR_BLACK, x, y);
 			y += 10;
 		}
 	}
@@ -3455,7 +3441,7 @@ static void window_ride_operating_invalidate(rct_window *w)
 	ride = get_ride(w->number);
 	rideEntry = get_ride_entry_by_ride(ride);
 
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	// Widget setup
@@ -3534,9 +3520,9 @@ static void window_ride_operating_invalidate(rct_window *w)
 		window_ride_operating_widgets[WIDX_MAXIMUM_LENGTH_INCREASE].type = WWT_DROPDOWN_BUTTON;
 		window_ride_operating_widgets[WIDX_MAXIMUM_LENGTH_DECREASE].type = WWT_DROPDOWN_BUTTON;
 
-		set_format_arg(10, uint16, STR_FORMAT_SECONDS);
+		set_format_arg(10, rct_string_id, STR_FORMAT_SECONDS);
 		set_format_arg(12, uint16, ride->min_waiting_time);
-		set_format_arg(14, uint16, STR_FORMAT_SECONDS);
+		set_format_arg(14, rct_string_id, STR_FORMAT_SECONDS);
 		set_format_arg(16, uint16, ride->max_waiting_time);
 
 		if (ride->depart_flags & RIDE_DEPART_WAIT_FOR_LOAD)
@@ -3586,7 +3572,7 @@ static void window_ride_operating_invalidate(rct_window *w)
 		break;
 	case RIDE_MODE_RACE:
 		set_format_arg(18, uint16, ride->num_laps);
-		format = STR_RIDE_MODE_COUNT_VALUE;
+		format = STR_NUMBER_OF_LAPS_VALUE;
 		caption = STR_NUMBER_OF_LAPS;
 		tooltip = STR_NUMBER_OF_LAPS_TIP;
 		break;
@@ -3603,13 +3589,12 @@ static void window_ride_operating_invalidate(rct_window *w)
 	case RIDE_MODE_ROTATION:
 	case RIDE_MODE_FORWARD_ROTATION:
 	case RIDE_MODE_BACKWARD_ROTATION:
-		format = STR_ARG18_COMMA16;
+		format = STR_NUMBER_OF_ROTATIONS_VALUE;
 		caption = STR_NUMBER_OF_ROTATIONS;
 		tooltip = STR_NUMBER_OF_ROTATIONS_TIP;
 		break;
 	default:
-		// TODO: should likely be `1744` instead of `1736`,
-		format = STR_RIDE_MODE_COUNT_VALUE;
+		format = STR_MAX_PEOPLE_ON_RIDE_VALUE;
 		caption = STR_MAX_PEOPLE_ON_RIDE;
 		tooltip = STR_MAX_PEOPLE_ON_RIDE_TIP;
 		if (!ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_13))
@@ -3665,13 +3650,13 @@ static void window_ride_operating_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		w->x + window_ride_operating_widgets[WIDX_PAGE_BACKGROUND].right - 5,
 		w->y + 104,
 		w->colours[1],
-		0x20
+		INSET_RECT_FLAG_BORDER_INSET
 	);
 
 	// Number of block sections
 	if (ride->mode == RIDE_MODE_CONTINUOUS_CIRCUIT_BLOCK_SECTIONED || ride->mode == RIDE_MODE_POWERED_LAUNCH_BLOCK_SECTIONED) {
 		blockSections = ride->num_block_brakes + ride->num_stations;
-		gfx_draw_string_left(dpi, STR_BLOCK_SECTIONS, &blockSections, 0, w->x + 21,
+		gfx_draw_string_left(dpi, STR_BLOCK_SECTIONS, &blockSections, COLOUR_BLACK, w->x + 21,
 							 ride->mode == RIDE_MODE_POWERED_LAUNCH_BLOCK_SECTIONED ? w->y + 89 : w->y + 61);
 	}
 }
@@ -3710,7 +3695,7 @@ static void window_ride_locate_mechanic(rct_window *w)
  */
 static void window_ride_maintenance_draw_bar(rct_window *w, rct_drawpixelinfo *dpi, int x, int y, int value, int unk)
 {
-	gfx_fill_rect_inset(dpi, x, y, x + 149, y + 8, w->colours[1], 0x30);
+	gfx_fill_rect_inset(dpi, x, y, x + 149, y + 8, w->colours[1], INSET_RECT_F_30);
 	if (unk & (1u << 31)) {
 		unk &= ~(1u << 31);
 		if (game_is_not_paused() && (gCurrentTicks & 8))
@@ -4031,7 +4016,7 @@ static void window_ride_maintenance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	widget = &window_ride_maintenance_widgets[WIDX_INSPECTION_INTERVAL];
 	x = w->x + 4;
 	y = w->y + widget->top + 1;
-	gfx_draw_string_left(dpi, STR_INSPECTION, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_INSPECTION, NULL, COLOUR_BLACK, x, y);
 
 	// Reliability
 	widget = &window_ride_maintenance_widgets[WIDX_PAGE_BACKGROUND];
@@ -4039,13 +4024,13 @@ static void window_ride_maintenance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	y = w->y + widget->top + 4;
 
 	reliability = ride->reliability >> 8;
-	gfx_draw_string_left(dpi, STR_RELIABILITY_LABEL_1757, &reliability, 0, x, y);
-	window_ride_maintenance_draw_bar(w, dpi, x + 103, y, max(10, reliability), 14);
+	gfx_draw_string_left(dpi, STR_RELIABILITY_LABEL_1757, &reliability, COLOUR_BLACK, x, y);
+	window_ride_maintenance_draw_bar(w, dpi, x + 103, y, max(10, reliability), COLOUR_BRIGHT_GREEN);
 	y += 11;
 
 	downTime = ride->downtime;
-	gfx_draw_string_left(dpi, STR_DOWN_TIME_LABEL_1889, &downTime, 0, x, y);
-	window_ride_maintenance_draw_bar(w, dpi, x + 103, y, downTime, 28);
+	gfx_draw_string_left(dpi, STR_DOWN_TIME_LABEL_1889, &downTime, COLOUR_BLACK, x, y);
+	window_ride_maintenance_draw_bar(w, dpi, x + 103, y, downTime, COLOUR_BRIGHT_RED);
 	y += 26;
 
 	// Last inspection
@@ -4059,7 +4044,7 @@ static void window_ride_maintenance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	else
 		stringId = STR_TIME_SINCE_LAST_INSPECTION_MORE_THAN_4_HOURS;
 
-	gfx_draw_string_left(dpi, stringId, &lastInspection, 0, x, y);
+	gfx_draw_string_left(dpi, stringId, &lastInspection, COLOUR_BLACK, x, y);
 	y += 12;
 
 	// Last / current breakdown
@@ -4070,7 +4055,7 @@ static void window_ride_maintenance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		STR_CURRENT_BREAKDOWN :
 		STR_LAST_BREAKDOWN;
 	breakdownMessage = RideBreakdownReasonNames[ride->breakdown_reason];
-	gfx_draw_string_left(dpi, stringId, &breakdownMessage, 0, x, y);
+	gfx_draw_string_left(dpi, stringId, &breakdownMessage, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Mechanic status
@@ -4093,13 +4078,13 @@ static void window_ride_maintenance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 		if (stringId != 0) {
 			if (stringId == STR_CALLING_MECHANIC) {
-				gfx_draw_string_left_wrapped(dpi, NULL, x + 4, y, 280, stringId, 0);
+				gfx_draw_string_left_wrapped(dpi, NULL, x + 4, y, 280, stringId, COLOUR_BLACK);
 			} else {
 				mechanicSprite = &(get_sprite(ride->mechanic)->peep);
 				if (peep_is_mechanic(mechanicSprite)) {
-					set_format_arg(0, uint16, mechanicSprite->name_string_idx);
+					set_format_arg(0, rct_string_id, mechanicSprite->name_string_idx);
 					set_format_arg(2, uint32, mechanicSprite->id);
-					gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x + 4, y, 280, stringId, 0);
+					gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x + 4, y, 280, stringId, COLOUR_BLACK);
 				}
 			}
 		}
@@ -4475,7 +4460,7 @@ static void window_ride_colour_invalidate(rct_window *w)
 	ride = get_ride(w->number);
 	rideEntry = get_ride_entry_by_ride(ride);
 
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	// Track colours
@@ -4615,7 +4600,7 @@ static void window_ride_colour_invalidate(rct_window *w)
 		window_ride_colour_widgets[WIDX_VEHICLE_ADDITIONAL_COLOUR_2].type = WWT_EMPTY;
 	}
 
-	set_format_arg(14, uint16, ColourSchemeNames[colourScheme]);
+	set_format_arg(14, rct_string_id, ColourSchemeNames[colourScheme]);
 
 	window_ride_anchor_border_widgets(w);
 	window_align_tabs(w, WIDX_TAB_1, WIDX_TAB_10);
@@ -4659,15 +4644,19 @@ static void window_ride_colour_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
 		} else {
 			spriteIndex = TrackColourPreviews[ride->type].track;
-			spriteIndex |= (trackColour.additional << 24) | (trackColour.main << 19);
-			spriteIndex |= 0xA0000000;
-			gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			if (spriteIndex != 0) {
+				spriteIndex |= (trackColour.additional << 24) | (trackColour.main << 19);
+				spriteIndex |= 0xA0000000;
+				gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			}
 
 			// Supports
 			spriteIndex = TrackColourPreviews[ride->type].supports;
-			spriteIndex |= trackColour.supports << 19;
-			spriteIndex |= 0x20000000;
-			gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			if (spriteIndex != 0) {
+				spriteIndex |= trackColour.supports << 19;
+				spriteIndex |= 0x20000000;
+				gfx_draw_sprite(dpi, spriteIndex, x, y, 0);
+			}
 		}
 	} else {
 		x = w->x + (widget->left + widget->right) / 2 - 8;
@@ -4686,21 +4675,21 @@ static void window_ride_colour_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	widget = &w->widgets[WIDX_ENTRANCE_PREVIEW];
 	if (widget->type != WWT_EMPTY) {
 		if (clip_drawpixelinfo(
-			&clippedDpi, 
+			&clippedDpi,
 			dpi,
 			w->x + widget->left + 1,
 			w->y + widget->top + 1,
 			widget->right - widget->left,
 			widget->bottom - widget->top
 		)) {
-			gfx_clear(&clippedDpi, 0x0C0C0C0C);
+			gfx_clear(&clippedDpi, 12);
 
 			if (ride->entrance_style != RIDE_ENTRANCE_STYLE_NONE) {
 				const rct_ride_entrance_definition *entranceStyle = &RideEntranceDefinitions[ride->entrance_style];
 
 				terniaryColour = 0;
 				if (entranceStyle->base_image_id & 0x40000000) {
-					terniaryColour = 0x40000000 | ((trackColour.main + 112) << 19);
+					terniaryColour = 0x40000000 | (GlassPaletteIds[trackColour.main] << 19);
 				}
 
 				spriteIndex = (trackColour.additional << 24) | (trackColour.main << 19);
@@ -4909,13 +4898,11 @@ static void window_ride_music_mousedown(int widgetIndex, rct_window *w, rct_widg
  */
 static void window_ride_music_dropdown(rct_window *w, int widgetIndex, int dropdownIndex)
 {
-	rct_ride *ride;
 	uint8 musicStyle;
 
 	if (widgetIndex != WIDX_MUSIC_DROPDOWN || dropdownIndex == -1)
 		return;
 
-	ride = get_ride(w->number);
 	musicStyle = window_ride_current_music_style_order[dropdownIndex];
 	gGameCommandErrorTitle = STR_CANT_CHANGE_OPERATING_MODE;
 	game_do_command(0, (musicStyle << 8) | 1, 0, (7 << 8) | w->number, GAME_COMMAND_SET_RIDE_SETTING, 0, 0);
@@ -4994,7 +4981,7 @@ static void window_ride_music_paint(rct_window *w, rct_drawpixelinfo *dpi)
   when al == 0*/
 static void cancel_scenery_selection(){
 	gGamePaused &= ~GAME_PAUSED_SAVING_TRACK;
-	RCT2_GLOBAL(0x9DEA6F, uint8) &= ~(1 << 0);
+	gTrackDesignSaveMode = false;
 	audio_unpause_sounds();
 
 	rct_window* main_w = window_get_main();
@@ -5013,17 +5000,17 @@ static void cancel_scenery_selection(){
  */
 static void setup_scenery_selection(rct_window* w)
 {
-	if (RCT2_GLOBAL(0x009DEA6F, uint8) & 1){
+	if (gTrackDesignSaveMode){
 		cancel_scenery_selection();
 	}
 
 	while (tool_set(w, 0, 12));
 
-	RCT2_GLOBAL(0x00F64DE8, uint8) = (uint8)w->number;
+	gTrackDesignSaveRideIndex = (uint8)w->number;
 
 	track_design_save_init();
 	gGamePaused |= GAME_PAUSED_SAVING_TRACK;
-	RCT2_GLOBAL(0x009DEA6F, uint8) |= 1;
+	gTrackDesignSaveMode = true;
 
 	audio_pause_sounds();
 
@@ -5051,7 +5038,7 @@ static void window_ride_measurements_design_reset()
  */
 static void window_ride_measurements_design_select_nearby_scenery()
 {
-	track_design_save_select_nearby_scenery(RCT2_GLOBAL(0x00F64DE8, uint8));
+	track_design_save_select_nearby_scenery(gTrackDesignSaveRideIndex);
 }
 
 /**
@@ -5060,8 +5047,9 @@ static void window_ride_measurements_design_select_nearby_scenery()
  */
 void window_ride_measurements_design_cancel()
 {
-	if (RCT2_GLOBAL(0x009DEA6F, uint8) & 1)
+	if (gTrackDesignSaveMode) {
 		cancel_scenery_selection();
+	}
 }
 
 /**
@@ -5231,12 +5219,12 @@ static void window_ride_measurements_invalidate(rct_window *w)
 	window_ride_set_pressed_tab(w);
 
 	rct_ride *ride = get_ride(w->number);
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	window_ride_measurements_widgets[WIDX_SAVE_TRACK_DESIGN].tooltip = STR_SAVE_TRACK_DESIGN_NOT_POSSIBLE;
 	window_ride_measurements_widgets[WIDX_SAVE_TRACK_DESIGN].type = WWT_EMPTY;
-	if ((RCT2_GLOBAL(0x009DEA6F, uint8) & 1) && RCT2_GLOBAL(0x00F64DE8, uint8) == w->number) {
+	if (gTrackDesignSaveMode && gTrackDesignSaveRideIndex == w->number) {
 		window_ride_measurements_widgets[WIDX_SELECT_NEARBY_SCENERY].type = WWT_DROPDOWN_BUTTON;
 		window_ride_measurements_widgets[WIDX_RESET_SELECTION].type = WWT_DROPDOWN_BUTTON;
 		window_ride_measurements_widgets[WIDX_SAVE_DESIGN].type = WWT_DROPDOWN_BUTTON;
@@ -5284,11 +5272,11 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 
 		x = w->x + (widget->right - widget->left) / 2;
 		y = w->y + widget->top + 40;
-		gfx_draw_string_centred_wrapped(dpi, NULL, x, y, w->width - 8, STR_CLICK_ITEMS_OF_SCENERY_TO_SELECT, 0);
+		gfx_draw_string_centred_wrapped(dpi, NULL, x, y, w->width - 8, STR_CLICK_ITEMS_OF_SCENERY_TO_SELECT, COLOUR_BLACK);
 
 		x = w->x + 4;
 		y = w->y + window_ride_measurements_widgets[WIDX_SELECT_NEARBY_SCENERY].bottom + 17;
-		gfx_fill_rect_inset(dpi, x, y, w->x + 312, y + 1, w->colours[1], 0x20);
+		gfx_fill_rect_inset(dpi, x, y, w->x + 312, y + 1, w->colours[1], INSET_RECT_FLAG_BORDER_INSET);
 	} else {
 		ride = get_ride(w->number);
 
@@ -5300,7 +5288,7 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 			set_format_arg(0, uint32, ride->excitement);
 			set_format_arg(4, rct_string_id, RatingNames[min(ride->excitement >> 8, 5)]);
 			stringId = ride->excitement == -1 ? STR_EXCITEMENT_RATING_NOT_YET_AVAILABLE : STR_EXCITEMENT_RATING;
-			gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, 0, x, y);
+			gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, COLOUR_BLACK, x, y);
 			y += 10;
 
 			// Intensity
@@ -5313,34 +5301,34 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 			else if (ride->intensity >= RIDE_RATING(10,00))
 				stringId = STR_INTENSITY_RATING_RED;
 
-			gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, 0, x, y);
+			gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, COLOUR_BLACK, x, y);
 			y += 10;
 
 			// Nausea
 			set_format_arg(0, uint32, ride->nausea);
 			set_format_arg(4, rct_string_id, RatingNames[min(ride->nausea >> 8, 5)]);
 			stringId = ride->excitement == -1 ? STR_NAUSEA_RATING_NOT_YET_AVAILABLE : STR_NAUSEA_RATING;
-			gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, 0, x, y);
+			gfx_draw_string_left(dpi, stringId, gCommonFormatArgs, COLOUR_BLACK, x, y);
 			y += 20;
 
 			// Horizontal rule
-			gfx_fill_rect_inset(dpi, x, y - 6, x + 303, y - 5, w->colours[1], 0x20);
+			gfx_fill_rect_inset(dpi, x, y - 6, x + 303, y - 5, w->colours[1], INSET_RECT_FLAG_BORDER_INSET);
 
 			if (!(ride->lifecycle_flags & RIDE_LIFECYCLE_NO_RAW_STATS)) {
 				if (ride->type == RIDE_TYPE_MINI_GOLF) {
 					// Holes
 					holes = ride->holes & 0x1F;
-					gfx_draw_string_left(dpi, STR_HOLES, &holes, 0, x, y);
+					gfx_draw_string_left(dpi, STR_HOLES, &holes, COLOUR_BLACK, x, y);
 					y += 10;
 				} else {
 					// Max speed
 					maxSpeed = (ride->max_speed * 9) >> 18;
-					gfx_draw_string_left(dpi, STR_MAX_SPEED, &maxSpeed, 0, x, y);
+					gfx_draw_string_left(dpi, STR_MAX_SPEED, &maxSpeed, COLOUR_BLACK, x, y);
 					y += 10;
 
 					// Average speed
 					averageSpeed = (ride->average_speed * 9) >> 18;
-					gfx_draw_string_left(dpi, STR_AVERAGE_SPEED, &averageSpeed, 0, x, y);
+					gfx_draw_string_left(dpi, STR_AVERAGE_SPEED, &averageSpeed, COLOUR_BLACK, x, y);
 					y += 10;
 
 					// Ride time
@@ -5354,7 +5342,7 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 						}
 					}
 					if (numTimes == 0) {
-						set_format_arg(0, uint16, STR_RIDE_TIME_ENTRY);
+						set_format_arg(0, rct_string_id, STR_RIDE_TIME_ENTRY);
 						set_format_arg(2, uint16, 0);
 						numTimes++;
 					} else {
@@ -5362,12 +5350,11 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 						//therefore we set the last entry to use the no-separator format now, post-format
 						set_format_arg(0 + ((numTimes - 1) * 4), uint16, STR_RIDE_TIME_ENTRY);
 					}
-					RCT2_GLOBAL(0x013CE94E + (numTimes * 4), uint16) = STR_RIDE_TIME_ENTRY;
 					set_format_arg(0 + (numTimes * 4), uint16, 0);
 					set_format_arg(2 + (numTimes * 4), uint16, 0);
 					set_format_arg(4 + (numTimes * 4), uint16, 0);
 					set_format_arg(6 + (numTimes * 4), uint16, 0);
-					gfx_draw_string_left_clipped(dpi, STR_RIDE_TIME, gCommonFormatArgs, 0, x, y, 308);
+					gfx_draw_string_left_clipped(dpi, STR_RIDE_TIME, gCommonFormatArgs, COLOUR_BLACK, x, y, 308);
 					y += 10;
 				}
 
@@ -5383,20 +5370,19 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 					}
 				}
 				if (numLengths == 0) {
-					set_format_arg(0, uint16, STR_RIDE_LENGTH_ENTRY);
+					set_format_arg(0, rct_string_id, STR_RIDE_LENGTH_ENTRY);
 					set_format_arg(2, uint16, 0);
 					numLengths++;
 				} else {
 					//sadly, STR_RIDE_LENGTH_ENTRY_WITH_SEPARATOR are defined with the separator AFTER an entry
 					//therefore we set the last entry to use the no-separator format now, post-format
-					set_format_arg(0 + ((numLengths - 1) * 4), uint16, STR_RIDE_LENGTH_ENTRY);
+					set_format_arg(0 + ((numLengths - 1) * 4), rct_string_id, STR_RIDE_LENGTH_ENTRY);
 				}
-				RCT2_GLOBAL(0x013CE94E + (numLengths * 4), uint16) = STR_RIDE_LENGTH_ENTRY;
 				set_format_arg(0 + (numLengths * 4), uint16, 0);
 				set_format_arg(2 + (numLengths * 4), uint16, 0);
 				set_format_arg(4 + (numLengths * 4), uint16, 0);
 				set_format_arg(6 + (numLengths * 4), uint16, 0);
-				gfx_draw_string_left_clipped(dpi, STR_RIDE_LENGTH, gCommonFormatArgs, 0, x, y, 308);
+				gfx_draw_string_left_clipped(dpi, STR_RIDE_LENGTH, gCommonFormatArgs, COLOUR_BLACK, x, y, 308);
 				y += 10;
 
 				if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_HAS_G_FORCES)) {
@@ -5404,38 +5390,38 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 					maxPositiveVerticalGs = ride->max_positive_vertical_g;
 					stringId = maxPositiveVerticalGs >= FIXED_2DP(5,00) ?
 						STR_MAX_POSITIVE_VERTICAL_G_RED : STR_MAX_POSITIVE_VERTICAL_G;
-					gfx_draw_string_left(dpi, stringId, &maxPositiveVerticalGs, 0, x, y);
+					gfx_draw_string_left(dpi, stringId, &maxPositiveVerticalGs, COLOUR_BLACK, x, y);
 					y += 10;
 
 					// Max. negative vertical G's
 					maxNegativeVerticalGs = ride->max_negative_vertical_g;
 					stringId = maxNegativeVerticalGs <= -FIXED_2DP(2,00) ?
 						STR_MAX_NEGATIVE_VERTICAL_G_RED : STR_MAX_NEGATIVE_VERTICAL_G;
-					gfx_draw_string_left(dpi, stringId, &maxNegativeVerticalGs, 0, x, y);
+					gfx_draw_string_left(dpi, stringId, &maxNegativeVerticalGs, COLOUR_BLACK, x, y);
 					y += 10;
 
 					// Max lateral G's
 					maxLateralGs = ride->max_lateral_g;
 					stringId = maxLateralGs >= FIXED_2DP(2,80) ?
 						STR_MAX_LATERAL_G_RED : STR_MAX_LATERAL_G;
-					gfx_draw_string_left(dpi, stringId, &maxLateralGs, 0, x, y);
+					gfx_draw_string_left(dpi, stringId, &maxLateralGs, COLOUR_BLACK, x, y);
 					y += 10;
 
 					// Total 'air' time
 					totalAirTime = ride->total_air_time * 3;
-					gfx_draw_string_left(dpi, STR_TOTAL_AIR_TIME, &totalAirTime, 0, x, y);
+					gfx_draw_string_left(dpi, STR_TOTAL_AIR_TIME, &totalAirTime, COLOUR_BLACK, x, y);
 					y += 10;
 				}
 
 				if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_HAS_DROPS)) {
 					// Drops
 					drops = ride->drops & 0x3F;
-					gfx_draw_string_left(dpi, STR_DROPS, &drops, 0, x, y);
+					gfx_draw_string_left(dpi, STR_DROPS, &drops, COLOUR_BLACK, x, y);
 					y += 10;
 
 					// Highest drop height
 					highestDropHeight = (ride->highest_drop_height * 3) / 4;
-					gfx_draw_string_left(dpi, STR_HIGHEST_DROP_HEIGHT, &highestDropHeight, 0, x, y);
+					gfx_draw_string_left(dpi, STR_HIGHEST_DROP_HEIGHT, &highestDropHeight, COLOUR_BLACK, x, y);
 					y += 10;
 				}
 
@@ -5443,13 +5429,13 @@ static void window_ride_measurements_paint(rct_window *w, rct_drawpixelinfo *dpi
 					// Inversions
 					inversions = ride->inversions & 0x1F;
 					if (inversions != 0) {
-						gfx_draw_string_left(dpi, STR_INVERSIONS, &inversions, 0, x, y);
+						gfx_draw_string_left(dpi, STR_INVERSIONS, &inversions, COLOUR_BLACK, x, y);
 						y += 10;
 					}
 				}
 			}
 		} else {
-			gfx_draw_string_left(dpi, STR_NO_TEST_RESULTS_YET, NULL, 0, x, y);
+			gfx_draw_string_left(dpi, STR_NO_TEST_RESULTS_YET, NULL, COLOUR_BLACK, x, y);
 		}
 	}
 }
@@ -5604,7 +5590,7 @@ static void window_ride_graphs_tooltip(rct_window* w, int widgetIndex, rct_strin
 	rct_string_id message;
 
 	if (widgetIndex == WIDX_GRAPH) {
-		set_format_arg(0, uint16, STR_GRAPH);
+		set_format_arg(0, rct_string_id, STR_GRAPH);
 		measurement = ride_get_measurement(w->number, &message);
 		if (measurement != NULL && (measurement->flags & RIDE_MEASUREMENT_FLAG_RUNNING)) {
 			set_format_arg(4, uint16, measurement->vehicle_index + 1);
@@ -5640,7 +5626,7 @@ static void window_ride_graphs_invalidate(rct_window *w)
 
 	ride = get_ride(w->number);
 
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	// Set pressed graph button type
@@ -5701,7 +5687,7 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 	int x, y, width, time, listType, colour, top, bottom, tmp;
 	rct_string_id stringId;
 
-	gfx_clear(dpi, RCT2_GLOBAL(0x0141FC9D, uint8) * 0x01010101);
+	gfx_clear(dpi, ColourMapA[COLOUR_SATURATED_GREEN].darker);
 
 	widget = &window_ride_graphs_widgets[WIDX_GRAPH];
 	listType = w->list_information_type & 0xFF;
@@ -5711,19 +5697,22 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 		x = (widget->right - widget->left) / 2;
 		y = (widget->bottom - widget->top) / 2 - 5;
 		width = widget->right - widget->left - 2;
-		gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, width, stringId, 0);
+		gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, width, stringId, COLOUR_BLACK);
 		return;
 	}
 
 	// Vertical grid lines
+	const uint8 lightColour = ColourMapA[COLOUR_SATURATED_GREEN].mid_light;
+	const uint8 darkColour = ColourMapA[COLOUR_SATURATED_GREEN].mid_dark;
+
 	time = 0;
 	for (x = 0; x < dpi->x + dpi->width; x += 80) {
 		if (x + 80 >= dpi->x) {
-			gfx_fill_rect(dpi, x +  0, dpi->y, x +  0, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FCA0, uint8));
-			gfx_fill_rect(dpi, x + 16, dpi->y, x + 16, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
-			gfx_fill_rect(dpi, x + 32, dpi->y, x + 32, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
-			gfx_fill_rect(dpi, x + 48, dpi->y, x + 48, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
-			gfx_fill_rect(dpi, x + 64, dpi->y, x + 64, dpi->y + dpi->height - 1, RCT2_GLOBAL(0x0141FC9F, uint8));
+			gfx_fill_rect(dpi, x +  0, dpi->y, x +  0, dpi->y + dpi->height - 1, lightColour);
+			gfx_fill_rect(dpi, x + 16, dpi->y, x + 16, dpi->y + dpi->height - 1, darkColour);
+			gfx_fill_rect(dpi, x + 32, dpi->y, x + 32, dpi->y + dpi->height - 1, darkColour);
+			gfx_fill_rect(dpi, x + 48, dpi->y, x + 48, dpi->y + dpi->height - 1, darkColour);
+			gfx_fill_rect(dpi, x + 64, dpi->y, x + 64, dpi->y + dpi->height - 1, darkColour);
 		}
 		time += 5;
 	}
@@ -5737,18 +5726,12 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 
 	// Scale modifier
 	if (listType == GRAPH_ALTITUDE) {
-		short unk = RCT2_GLOBAL(0x01359208, uint16);
-		yUnit -= RCT2_GLOBAL(0x01359208, uint16);
-		unk *= 2;
-		yUnit -= unk;
+		yUnit -= gMapBaseZ * 3;
 	}
 
 	for (y = widget->bottom - widget->top - 13; y >= 8; y -= yInterval, yUnit += yUnitInterval) {
 		// Minor / major line
-		colour = yUnit == 0 ?
-			RCT2_GLOBAL(0x0141FCA0, uint8) :
-			RCT2_GLOBAL(0x0141FC9F, uint8);
-
+		colour = yUnit == 0 ? lightColour : darkColour;
 		gfx_fill_rect(dpi, dpi->x, y, dpi->x + dpi->width - 1, y, colour);
 
 		sint16 scaled_yUnit = yUnit;
@@ -5756,7 +5739,7 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 		if (listType == GRAPH_ALTITUDE)
 			scaled_yUnit /= 2;
 
-		gfx_draw_string_left(dpi, stringID, &scaled_yUnit, 0, w->scrolls[0].h_left + 1, y - 4);
+		gfx_draw_string_left(dpi, stringID, &scaled_yUnit, COLOUR_BLACK, w->scrolls[0].h_left + 1, y - 4);
 	}
 
 	// Time marks
@@ -5764,7 +5747,7 @@ static void window_ride_graphs_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi
 	time = 0;
 	for (x = 0; x < dpi->x + dpi->width; x += 80) {
 		if (x + 80 >= dpi->x)
-			gfx_draw_string_left(dpi, STR_RIDE_STATS_TIME, &time, 0, x + 2, 1);
+			gfx_draw_string_left(dpi, STR_RIDE_STATS_TIME, &time, COLOUR_BLACK, x + 2, 1);
 		time += 5;
 	}
 
@@ -5950,10 +5933,8 @@ static void window_ride_income_decrease_primary_price(rct_window *w)
 static void window_ride_income_increase_secondary_price(rct_window *w)
 {
 	rct_ride *ride;
-	rct_ride_entry *ride_type;
 
 	ride = get_ride(w->number);
-	ride_type = get_ride_entry(ride->subtype);
 
 	money16 price = ride->price_secondary;
 	if (price < MONEY(20, 00))
@@ -5969,10 +5950,8 @@ static void window_ride_income_increase_secondary_price(rct_window *w)
 static void window_ride_income_decrease_secondary_price(rct_window *w)
 {
 	rct_ride *ride;
-	rct_ride_entry *ride_type;
 
 	ride = get_ride(w->number);
-	ride_type = get_ride_entry(ride->subtype);
 
 	money16 price = ride->price_secondary;
 	if (price > MONEY(0, 00))
@@ -6083,7 +6062,7 @@ static void window_ride_income_invalidate(rct_window *w)
 	window_ride_set_pressed_tab(w);
 
 	rct_ride *ride = get_ride(w->number);
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	rideEntry = get_ride_entry_by_ride(ride);
@@ -6191,7 +6170,7 @@ static void window_ride_income_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			stringId = STR_LOSS_PER_ITEM_SOLD;
 		}
 
-		gfx_draw_string_left(dpi, stringId, &profit, 0, x, y);
+		gfx_draw_string_left(dpi, stringId, &profit, COLOUR_BLACK, x, y);
 	}
 	y += 39;
 
@@ -6210,31 +6189,31 @@ static void window_ride_income_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			stringId = STR_LOSS_PER_ITEM_SOLD;
 		}
 
-		gfx_draw_string_left(dpi, stringId, &profit, 0, x, y);
+		gfx_draw_string_left(dpi, stringId, &profit, COLOUR_BLACK, x, y);
 	}
 	y += 15;
 
 	// Income per hour
 	if (ride->income_per_hour != MONEY32_UNDEFINED) {
-		gfx_draw_string_left(dpi, STR_INCOME_PER_HOUR, &ride->income_per_hour, 0, x, y);
+		gfx_draw_string_left(dpi, STR_INCOME_PER_HOUR, &ride->income_per_hour, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 
 	// Running cost per hour
 	costPerHour = ride->upkeep_cost * 16;
 	stringId = ride->upkeep_cost == (money16)0xFFFF ? STR_RUNNING_COST_UNKNOWN : STR_RUNNING_COST_PER_HOUR;
-	gfx_draw_string_left(dpi, stringId, &costPerHour, 0, x, y);
+	gfx_draw_string_left(dpi, stringId, &costPerHour, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Profit per hour
 	if (ride->profit != MONEY32_UNDEFINED) {
-		gfx_draw_string_left(dpi, STR_PROFIT_PER_HOUR, &ride->profit, 0, x, y);
+		gfx_draw_string_left(dpi, STR_PROFIT_PER_HOUR, &ride->profit, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 	y += 5;
 
 	// Total profit
-	gfx_draw_string_left(dpi, STR_TOTAL_PROFIT, &ride->total_profit, 0, x, y);
+	gfx_draw_string_left(dpi, STR_TOTAL_PROFIT, &ride->total_profit, COLOUR_BLACK, x, y);
 }
 
 #pragma endregion
@@ -6264,13 +6243,13 @@ static void window_ride_customer_mouseup(rct_window *w, int widgetIndex)
 		window_ride_set_page(w, widgetIndex - WIDX_TAB_1);
 		break;
 	case WIDX_SHOW_GUESTS_THOUGHTS:
-		window_guest_list_open_with_filter(2, w->number);
+		window_guest_list_open_with_filter(GLFT_GUESTS_THINKING_ABOUT_RIDE, w->number);
 		break;
 	case WIDX_SHOW_GUESTS_ON_RIDE:
-		window_guest_list_open_with_filter(0, w->number);
+		window_guest_list_open_with_filter(GLFT_GUESTS_ON_RIDE, w->number);
 		break;
 	case WIDX_SHOW_GUESTS_QUEUING:
-		window_guest_list_open_with_filter(1, w->number);
+		window_guest_list_open_with_filter(GLFT_GUESTS_IN_QUEUE, w->number);
 		break;
 	}
 }
@@ -6326,7 +6305,7 @@ static void window_ride_customer_invalidate(rct_window *w)
 	window_ride_set_pressed_tab(w);
 
 	rct_ride *ride = get_ride(w->number);
-	set_format_arg(0, uint16, ride->name);
+	set_format_arg(0, rct_string_id, ride->name);
 	set_format_arg(2, uint32, ride->name_arguments);
 
 	window_ride_customer_widgets[WIDX_SHOW_GUESTS_THOUGHTS].type = WWT_FLATBTN;
@@ -6365,13 +6344,13 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	// Customers currently on ride
 	if (gRideClassifications[ride->type] == RIDE_CLASS_RIDE) {
 		sint16 customersOnRide = ride->num_riders;
-		gfx_draw_string_left(dpi, STR_CUSTOMERS_ON_RIDE, &customersOnRide, 0, x, y);
+		gfx_draw_string_left(dpi, STR_CUSTOMERS_ON_RIDE, &customersOnRide, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 
 	// Customers per hour
 	customersPerHour = ride_customers_per_hour(ride);
-	gfx_draw_string_left(dpi, STR_CUSTOMERS_PER_HOUR, &customersPerHour, 0, x, y);
+	gfx_draw_string_left(dpi, STR_CUSTOMERS_PER_HOUR, &customersPerHour, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Popularity
@@ -6382,7 +6361,7 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		stringId = STR_POPULARITY_PERCENT;
 		popularity *= 4;
 	}
-	gfx_draw_string_left(dpi, stringId, &popularity, 0, x, y);
+	gfx_draw_string_left(dpi, stringId, &popularity, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Satisfaction
@@ -6393,23 +6372,23 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		stringId = STR_SATISFACTION_PERCENT;
 		satisfaction *= 5;
 	}
-	gfx_draw_string_left(dpi, stringId, &satisfaction, 0, x, y);
+	gfx_draw_string_left(dpi, stringId, &satisfaction, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Queue time
 	if (gRideClassifications[ride->type] == RIDE_CLASS_RIDE) {
 		queueTime = ride_get_max_queue_time(ride);
 		stringId = queueTime == 1 ? STR_QUEUE_TIME_MINUTE : STR_QUEUE_TIME_MINUTES;
-		y += gfx_draw_string_left_wrapped(dpi, &queueTime, x, y, 308, stringId, 0);
+		y += gfx_draw_string_left_wrapped(dpi, &queueTime, x, y, 308, stringId, COLOUR_BLACK);
 		y += 5;
 	}
 
 	// Primary shop items sold
 	shopItem = get_ride_entry_by_ride(ride)->shop_item;
 	if (shopItem != SHOP_ITEM_NONE) {
-		set_format_arg(0, uint16, ShopItemStringIds[shopItem].plural);
+		set_format_arg(0, rct_string_id, ShopItemStringIds[shopItem].plural);
 		set_format_arg(2, uint32, ride->no_primary_items_sold);
-		gfx_draw_string_left(dpi, STR_ITEMS_SOLD, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_ITEMS_SOLD, gCommonFormatArgs, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 
@@ -6418,14 +6397,14 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		RidePhotoItems[ride->type] :
 		get_ride_entry_by_ride(ride)->shop_item_secondary;
 	if (shopItem != SHOP_ITEM_NONE) {
-		set_format_arg(0, uint16, ShopItemStringIds[shopItem].plural);
+		set_format_arg(0, rct_string_id, ShopItemStringIds[shopItem].plural);
 		set_format_arg(2, uint32, ride->no_secondary_items_sold);
-		gfx_draw_string_left(dpi, STR_ITEMS_SOLD, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_ITEMS_SOLD, gCommonFormatArgs, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 
 	// Total customers
-	gfx_draw_string_left(dpi, STR_TOTAL_CUSTOMERS, &ride->total_customers, 0, x, y);
+	gfx_draw_string_left(dpi, STR_TOTAL_CUSTOMERS, &ride->total_customers, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Guests favourite
@@ -6433,7 +6412,7 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		stringId = ride->guests_favourite == 1 ?
 			STR_FAVOURITE_RIDE_OF_GUEST :
 			STR_FAVOURITE_RIDE_OF_GUESTS;
-		gfx_draw_string_left(dpi, stringId, &ride->guests_favourite, 0, x, y);
+		gfx_draw_string_left(dpi, stringId, &ride->guests_favourite, COLOUR_BLACK, x, y);
 		y += 10;
 	}
 	y += 2;
@@ -6446,7 +6425,7 @@ static void window_ride_customer_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		age == 1 ?
 			STR_BUILT_LAST_YEAR :
 			STR_BUILT_YEARS_AGO;
-	gfx_draw_string_left(dpi, stringId, &age, 0, x, y);
+	gfx_draw_string_left(dpi, stringId, &age, COLOUR_BLACK, x, y);
 }
 
 #pragma endregion

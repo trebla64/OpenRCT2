@@ -17,6 +17,7 @@
 #include "../common.h"
 #include "../core/Console.hpp"
 #include "../core/Exception.hpp"
+#include "../core/Guard.hpp"
 #include "../core/Path.hpp"
 #include "../rct1/S4Importer.h"
 #include "CommandLine.hpp"
@@ -108,7 +109,7 @@ exitcode_t CommandLine::HandleCommandConvert(CommandLineArgEnumerator * enumerat
     if (sourceFileType == FILE_EXTENSION_SV4 ||
         sourceFileType == FILE_EXTENSION_SC4)
     {
-        auto s4Importer = new S4Importer();
+        auto s4Importer = CreateS4Importer();
         try
         {
             if (sourceFileType == FILE_EXTENSION_SC4)
@@ -130,7 +131,7 @@ exitcode_t CommandLine::HandleCommandConvert(CommandLineArgEnumerator * enumerat
         }
         catch (Exception ex)
         {
-            Console::Error::WriteLine(ex.GetMsg());
+            Console::Error::WriteLine(ex.GetMessage());
             return EXITCODE_FAIL;
         }
     }

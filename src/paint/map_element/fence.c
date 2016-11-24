@@ -15,7 +15,6 @@
 #pragma endregion
 
 #include "../../common.h"
-#include "../../addresses.h"
 #include "../../world/map.h"
 #include "../../drawing/drawing.h"
 #include "../../world/scenery.h"
@@ -63,7 +62,7 @@ static void fence_paint_door(uint32 imageId,
         imageId = (imageId & 0x7FFFF) | dword_141F710;
     }
 
-    if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG4) {
+    if (sceneryEntry->wall.flags & WALL_SCENERY_IS_BANNER) {
         paint_struct * ps;
 
         ps = sub_98197C(imageId, (sint8) offset.x, (sint8) offset.y, boundsR1.x, boundsR1.y, (sint8) boundsR1.z, offset.z, boundsR1_.x, boundsR1_.y, boundsR1_.z, get_current_rotation());
@@ -138,7 +137,7 @@ void fence_paint(uint8 direction, int height, rct_map_element * map_element)
 	rct_scenery_entry * sceneryEntry = get_wall_entry(map_element->properties.fence.type);
     uint32 frameNum = 0;
 
-    if (sceneryEntry->wall.flags2 & WALL_SCENERY_2_FLAG_5) {
+    if (sceneryEntry->wall.flags2 & WALL_SCENERY_2_FLAG5) {
         frameNum = (gCurrentTicks & 7) * 2;
     }
 
@@ -161,7 +160,7 @@ void fence_paint(uint8 direction, int height, rct_map_element * map_element)
     paint_util_set_general_support_height(height, 0x20);
 
     uint32 dword_141F710 = 0;
-    if (RCT2_GLOBAL(0x9DEA6F, uint8) & 1) {
+    if (gTrackDesignSaveMode) {
         if (!track_design_save_contains_map_element(map_element)) {
             dword_141F710 = 0x21700000;
         }
@@ -252,8 +251,8 @@ void fence_paint(uint8 direction, int height, rct_map_element * map_element)
     }
 
 
-    uint32 imageOffset;
-    rct_xyz16 offset, bounds, boundsOffset;
+    uint32 imageOffset = 0;
+    rct_xyz16 offset = { 0, 0, 0 }, bounds = { 0, 0, 0 }, boundsOffset;
 
     switch (direction) {
         case 0:
@@ -280,11 +279,11 @@ void fence_paint(uint8 direction, int height, rct_map_element * map_element)
             }
 
             if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG2) {
-                if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG4) {
+                if (sceneryEntry->wall.flags & WALL_SCENERY_IS_BANNER) {
                     imageOffset += 12;
                 }
             } else {
-                if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG4) {
+                if (sceneryEntry->wall.flags & WALL_SCENERY_IS_BANNER) {
                     imageOffset += 6;
                 }
             }
@@ -303,7 +302,7 @@ void fence_paint(uint8 direction, int height, rct_map_element * map_element)
                 imageOffset = 1;
             }
 
-            if (sceneryEntry->wall.flags & WALL_SCENERY_FLAG4) {
+            if (sceneryEntry->wall.flags & WALL_SCENERY_IS_BANNER) {
                 imageOffset += 6;
             }
 
@@ -368,9 +367,9 @@ void fence_paint(uint8 direction, int height, rct_map_element * map_element)
     utf8 signString[MAX_PATH];
     rct_string_id stringId = STR_SCROLLING_SIGN_TEXT;
     if (gConfigGeneral.upper_case_banners) {
-        format_string_to_upper(signString, stringId, gCommonFormatArgs);
+        format_string_to_upper(signString, MAX_PATH, stringId, gCommonFormatArgs);
     } else {
-        format_string(signString, stringId, gCommonFormatArgs);
+        format_string(signString, MAX_PATH, stringId, gCommonFormatArgs);
     }
 
     gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;

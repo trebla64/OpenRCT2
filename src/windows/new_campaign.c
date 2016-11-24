@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../localisation/localisation.h"
@@ -115,8 +114,8 @@ static int ride_name_compare(const void *a, const void *b)
 	rideA = get_ride(*((uint8*)a));
 	rideB = get_ride(*((uint8*)b));
 
-	format_string(rideAName, rideA->name, &rideA->name_arguments);
-	format_string(rideBName, rideB->name, &rideB->name_arguments);
+	format_string(rideAName, 256, rideA->name, &rideA->name_arguments);
+	format_string(rideBName, 256, rideB->name, &rideB->name_arguments);
 
 	return _strcmpi(rideAName, rideBName);
 }
@@ -394,10 +393,10 @@ static void window_new_campaign_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Price per week
 	money32 pricePerWeek = AdvertisingCampaignPricePerWeek[w->campaign.campaign_type];
-	gfx_draw_string_left(dpi, STR_MARKETING_COST_PER_WEEK, &pricePerWeek, 0, x, y);
+	gfx_draw_string_left(dpi, STR_MARKETING_COST_PER_WEEK, &pricePerWeek, COLOUR_BLACK, x, y);
 	y += 13;
 
 	// Total price
 	money32 totalPrice = AdvertisingCampaignPricePerWeek[w->campaign.campaign_type] * w->campaign.no_weeks;
-	gfx_draw_string_left(dpi, STR_MARKETING_TOTAL_COST, &totalPrice, 0, x, y);
+	gfx_draw_string_left(dpi, STR_MARKETING_TOTAL_COST, &totalPrice, COLOUR_BLACK, x, y);
 }

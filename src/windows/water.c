@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../input.h"
 #include "../interface/widget.h"
 #include "../interface/window.h"
@@ -179,7 +178,7 @@ static void window_water_inputsize(rct_window *w)
 {
 	TextInputDescriptionArgs[0] = MINIMUM_TOOL_SIZE;
 	TextInputDescriptionArgs[1] = MAXIMUM_TOOL_SIZE;
-	window_text_input_open(w, WIDX_PREVIEW, 5128, 5129, STR_NONE, STR_NONE, 3);
+	window_text_input_open(w, WIDX_PREVIEW, STR_SELECTION_SIZE, STR_ENTER_SELECTION_SIZE, STR_NONE, STR_NONE, 3);
 }
 
 /**
@@ -227,7 +226,7 @@ static void window_water_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	window_draw_widgets(w, dpi);
 	// Draw number for tool sizes bigger than 7
 	if (gLandToolSize > 7) {
-		gfx_draw_string_centred(dpi, STR_LAND_TOOL_SIZE_VALUE, x, y - 2, 0, &gLandToolSize);
+		gfx_draw_string_centred(dpi, STR_LAND_TOOL_SIZE_VALUE, x, y - 2, COLOUR_BLACK, &gLandToolSize);
 	}
 	y = w->y + window_water_widgets[WIDX_PREVIEW].bottom + 5;
 
@@ -236,12 +235,12 @@ static void window_water_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	x = (window_water_widgets[WIDX_PREVIEW].left + window_water_widgets[WIDX_PREVIEW].right) / 2 + w->x;
 	y = window_water_widgets[WIDX_PREVIEW].bottom + w->y + 5;
 	if (gWaterToolRaiseCost != MONEY32_UNDEFINED && gWaterToolRaiseCost != 0)
-		gfx_draw_string_centred(dpi, STR_RAISE_COST_AMOUNT, x, y, 0, &gWaterToolRaiseCost);
+		gfx_draw_string_centred(dpi, STR_RAISE_COST_AMOUNT, x, y, COLOUR_BLACK, &gWaterToolRaiseCost);
 	y += 10;
 
 	// Draw lower cost amount
 	if (gWaterToolLowerCost != MONEY32_UNDEFINED && gWaterToolLowerCost != 0)
-		gfx_draw_string_centred(dpi, STR_LOWER_COST_AMOUNT, x, y, 0, &gWaterToolLowerCost);
+		gfx_draw_string_centred(dpi, STR_LOWER_COST_AMOUNT, x, y, COLOUR_BLACK, &gWaterToolLowerCost);
 
 
 }

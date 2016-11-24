@@ -259,6 +259,12 @@ static void cheat_set_guest_parameter(int parameter, int value)
 		switch(parameter) {
 			case GUEST_PARAMETER_HAPPINESS:
 				peep->happiness = value;
+				// Clear the 'red-faced with anger' status if we're making the guest happy
+				if (value > 0)
+				{
+					peep->peep_flags &= ~PEEP_FLAGS_ANGRY;
+					peep->angriness = 0;
+				}
 				break;
 			case GUEST_PARAMETER_ENERGY:
 				peep->energy = value;
@@ -352,6 +358,16 @@ static void cheat_explode_guests()
 	rct_peep *peep;
 
 	FOR_ALL_GUESTS(sprite_index, peep) {
+		// To prevent blowing up peeps that will break
+		// ride vehicle logic.
+		if (peep->state == PEEP_STATE_ENTERING_RIDE ||
+			peep->state == PEEP_STATE_QUEUING_FRONT ||
+			peep->state == PEEP_STATE_LEAVING_RIDE ||
+			peep->state == PEEP_STATE_ON_RIDE ||
+			peep->state == PEEP_STATE_QUEUING) {
+			continue;
+		}
+
 		if (scenario_rand_max(6) == 0) {
 			peep->peep_flags |= PEEP_FLAGS_EXPLODE;
 		}
@@ -376,9 +392,9 @@ void game_command_cheat(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* e
 	int cheat = *ecx;
 	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
 		switch (cheat) {
-			case CHEAT_SANDBOXMODE: gCheatsSandboxMode = !gCheatsSandboxMode; window_invalidate_by_class(WC_MAP); window_invalidate_by_class(WC_FOOTPATH); break;
-			case CHEAT_DISABLECLEARANCECHECKS: gCheatsDisableClearanceChecks = !gCheatsDisableClearanceChecks; break;
-			case CHEAT_DISABLESUPPORTLIMITS: gCheatsDisableSupportLimits = !gCheatsDisableSupportLimits; break;
+			case CHEAT_SANDBOXMODE: gCheatsSandboxMode = *edx != 0; window_invalidate_by_class(WC_MAP); window_invalidate_by_class(WC_FOOTPATH); break;
+			case CHEAT_DISABLECLEARANCECHECKS: gCheatsDisableClearanceChecks = *edx != 0; break;
+			case CHEAT_DISABLESUPPORTLIMITS: gCheatsDisableSupportLimits = *edx != 0; break;
 			case CHEAT_SHOWALLOPERATINGMODES: gCheatsShowAllOperatingModes = !gCheatsShowAllOperatingModes; break;
 			case CHEAT_SHOWVEHICLESFROMOTHERTRACKTYPES: gCheatsShowVehiclesFromOtherTrackTypes = !gCheatsShowVehiclesFromOtherTrackTypes; break;
 			case CHEAT_FASTLIFTHILL: gCheatsFastLiftHill = !gCheatsFastLiftHill; break;

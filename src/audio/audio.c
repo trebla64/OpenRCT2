@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../interface/viewport.h"
 #include "../interface/window.h"
@@ -28,6 +27,7 @@
 #include "../openrct2.h"
 #include "../util/util.h"
 #include "../localisation/string_ids.h"
+#include "../intro.h"
 
 typedef struct rct_audio_params {
 	bool in_range;
@@ -87,7 +87,7 @@ int _volumeAdjust[SOUND_MAXID] = {
 	0,		// SOUND_BALLOON_POP
 	-700,	// SOUND_MECHANIC_FIX
 	0,		// SOUND_SCREAM_7
-	-1000,	// SOUND_TOILET_FLUSH
+	-2500,	// SOUND_TOILET_FLUSH original value: -1000
 	0,		// SOUND_CLICK_3
 	0,		// SOUND_QUACK
 	0,		// SOUND_NEWS_ITEM
@@ -122,11 +122,22 @@ void audio_stop_channel(void **channel);
 void audio_init()
 {
 	int result = SDL_Init(SDL_INIT_AUDIO);
-	if (result >= 0)
+	if (result < 0) {
+		log_error("SDL_Init %s", SDL_GetError());
 		return;
+	}
 
-	log_fatal("SDL_Init %s", SDL_GetError());
-	exit(-1);
+	if (str_is_null_or_empty(gConfigSound.device)) {
+		Mixer_Init(NULL);
+		gAudioCurrentDevice = 0;
+	} else {
+		Mixer_Init(gConfigSound.device);
+		for (int i = 0; i < gAudioDeviceCount; i++) {
+			if (strcmp(gAudioDevices[i].name, gConfigSound.device) == 0) {
+				gAudioCurrentDevice = i;
+			}
+		}
+	}
 }
 
 void audio_quit()
@@ -251,7 +262,7 @@ int audio_play_sound(int soundId, int volume, int pan)
 
 void audio_start_title_music()
 {
-	if (gGameSoundsOff || !(gScreenFlags & SCREEN_FLAGS_TITLE_DEMO)) {
+	if (gGameSoundsOff || !(gScreenFlags & SCREEN_FLAGS_TITLE_DEMO) || gIntroState != INTRO_STATE_NONE) {
 		audio_stop_title_music();
 		return;
 	}
@@ -295,6 +306,15 @@ void audio_stop_ride_music()
 
 		rideMusic->ride_id = -1;
 	}
+}
+
+void audio_stop_all_music_and_sounds()
+{
+	audio_stop_title_music();
+	audio_stop_vehicle_sounds();
+	audio_stop_ride_music();
+	audio_stop_crowd_sound();
+	audio_stop_rain_sound();
 }
 
 void audio_stop_crowd_sound()

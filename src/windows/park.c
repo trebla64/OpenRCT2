@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../localisation/date.h"
@@ -597,7 +596,7 @@ static void window_park_set_disabled_tabs(rct_window *w)
 
 static void window_park_prepare_window_title_text()
 {
-	set_format_arg(0, uint16, gParkName);
+	set_format_arg(0, rct_string_id, gParkName);
 	set_format_arg(2, uint32, gParkNameArgs);
 }
 
@@ -760,8 +759,8 @@ static void window_park_entrance_tool_update_land_rights(sint16 x, sint16 y)
 	screen_get_map_xy(x, y, &mapTile.x, &mapTile.y, NULL);
 
 	if (mapTile.x == (sint16)0x8000){
-		if (RCT2_GLOBAL(0x00F1AD62, money32) != MONEY32_UNDEFINED){
-			RCT2_GLOBAL(0x00F1AD62, money32) = MONEY32_UNDEFINED;
+		if (gLandRightsCost != MONEY32_UNDEFINED) {
+			gLandRightsCost = MONEY32_UNDEFINED;
 			window_invalidate_by_class(WC_CLEAR_SCENERY);
 		}
 		return;
@@ -818,7 +817,7 @@ static void window_park_entrance_tool_update_land_rights(sint16 x, sint16 y)
 	if (!state_changed)
 		return;
 
-	RCT2_GLOBAL(0x00F1AD62, uint32) = game_do_command(
+	gLandRightsCost = game_do_command(
 		gMapSelectPositionA.x,
 		0x4,
 		gMapSelectPositionA.y,
@@ -826,7 +825,7 @@ static void window_park_entrance_tool_update_land_rights(sint16 x, sint16 y)
 		GAME_COMMAND_BUY_LAND_RIGHTS,
 		gMapSelectPositionB.x,
 		gMapSelectPositionB.y
-		);
+	);
 }
 
 /**
@@ -971,7 +970,7 @@ static void window_park_entrance_invalidate(rct_window *w)
 	window_park_set_pressed_tab(w);
 
 	// Set open / close park button state
-	set_format_arg(0, uint16, gParkName);
+	set_format_arg(0, rct_string_id, gParkName);
 	set_format_arg(2, uint32, gParkNameArgs);
 	window_park_entrance_widgets[WIDX_OPEN_OR_CLOSE].image = park_is_open() ? SPR_OPEN : SPR_CLOSED;
 	window_park_entrance_widgets[WIDX_CLOSE_LIGHT].image = SPR_G2_RCT1_CLOSE_BUTTON_0 + !park_is_open() * 2 + widget_is_pressed(w, WIDX_CLOSE_LIGHT);
@@ -1034,6 +1033,15 @@ static void window_park_entrance_invalidate(rct_window *w)
 		window_park_entrance_widgets[i].bottom = height + 23;
 		height += 24;
 	}
+
+	// Disable land rights button if there's no more construction/ownership for sale
+	if (gLandRemainingOwnershipSales == 0 && gLandRemainingConstructionSales == 0) {
+		w->disabled_widgets |= (1 << WIDX_BUY_LAND_RIGHTS);
+		window_park_entrance_widgets[WIDX_BUY_LAND_RIGHTS].tooltip = STR_NO_LAND_OR_CONSTRUCTION_RIGHTS_FOR_SALE_TIP;
+	} else {
+		w->disabled_widgets &= ~(1 << WIDX_BUY_LAND_RIGHTS);
+		window_park_entrance_widgets[WIDX_BUY_LAND_RIGHTS].tooltip = STR_BUY_LAND_AND_CONSTRUCTION_RIGHTS_TIP;
+	}
 }
 
 /**
@@ -1055,14 +1063,14 @@ static void window_park_entrance_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	}
 
 	// Draw park closed / open label
-	set_format_arg(0, uint16, park_is_open() ? STR_PARK_OPEN : STR_PARK_CLOSED);
+	set_format_arg(0, rct_string_id, park_is_open() ? STR_PARK_OPEN : STR_PARK_CLOSED);
 
 	labelWidget = &window_park_entrance_widgets[WIDX_STATUS];
 	gfx_draw_string_centred_clipped(
 		dpi,
 		STR_BLACK_STRING,
 		gCommonFormatArgs,
-		0,
+		COLOUR_BLACK,
 		w->x + (labelWidget->left + labelWidget->right) / 2,
 		w->y + labelWidget->top,
 		labelWidget->right - labelWidget->left
@@ -1264,10 +1272,10 @@ static void window_park_rating_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	widget = &window_park_rating_widgets[WIDX_PAGE_BACKGROUND];
 
 	// Current value
-	gfx_draw_string_left(dpi, STR_PARK_RATING_LABEL, &gParkRating, 0, x + widget->left + 3, y + widget->top + 2);
+	gfx_draw_string_left(dpi, STR_PARK_RATING_LABEL, &gParkRating, COLOUR_BLACK, x + widget->left + 3, y + widget->top + 2);
 
 	// Graph border
-	gfx_fill_rect_inset(dpi, x + widget->left + 4, y + widget->top + 15, x + widget->right - 4, y + widget->bottom - 4, w->colours[1], 0x30);
+	gfx_fill_rect_inset(dpi, x + widget->left + 4, y + widget->top + 15, x + widget->right - 4, y + widget->bottom - 4, w->colours[1], INSET_RECT_F_30);
 
 	// Graph
 	x += widget->left + 22;
@@ -1381,10 +1389,10 @@ static void window_park_guests_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	widget = &window_park_guests_widgets[WIDX_PAGE_BACKGROUND];
 
 	// Current value
-	gfx_draw_string_left(dpi, STR_GUESTS_IN_PARK_LABEL, &gNumGuestsInPark, 0, x + widget->left + 3, y + widget->top + 2);
+	gfx_draw_string_left(dpi, STR_GUESTS_IN_PARK_LABEL, &gNumGuestsInPark, COLOUR_BLACK, x + widget->left + 3, y + widget->top + 2);
 
 	// Graph border
-	gfx_fill_rect_inset(dpi, x + widget->left + 4, y + widget->top + 15, x + widget->right - 4, y + widget->bottom - 4, w->colours[1], 0x30);
+	gfx_fill_rect_inset(dpi, x + widget->left + 4, y + widget->top + 15, x + widget->right - 4, y + widget->bottom - 4, w->colours[1], INSET_RECT_F_30);
 
 	// Graph
 	x += widget->left + 22;
@@ -1514,7 +1522,7 @@ static void window_park_price_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	x = w->x + window_park_price_widgets[WIDX_PAGE_BACKGROUND].left + 4;
 	y = w->y + window_park_price_widgets[WIDX_PAGE_BACKGROUND].top + 30;
 
-	gfx_draw_string_left(dpi, STR_INCOME_FROM_ADMISSIONS, &gTotalIncomeFromAdmissions, 0, x, y);
+	gfx_draw_string_left(dpi, STR_INCOME_FROM_ADMISSIONS, &gTotalIncomeFromAdmissions, COLOUR_BLACK, x, y);
 }
 
 #pragma endregion
@@ -1613,27 +1621,27 @@ static void window_park_stats_paint(rct_window *w, rct_drawpixelinfo *dpi)
 		parkSize = squaredmetres_to_squaredfeet(parkSize);
 	}
 	set_format_arg(0, uint32, parkSize);
-	gfx_draw_string_left(dpi, stringIndex, gCommonFormatArgs, 0, x, y);
+	gfx_draw_string_left(dpi, stringIndex, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Draw number of rides / attractions
 	if (w->list_information_type != (uint16)-1) {
 		set_format_arg(0, uint32, w->list_information_type);
-		gfx_draw_string_left(dpi, STR_NUMBER_OF_RIDES_LABEL, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_NUMBER_OF_RIDES_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	y += 10;
 
 	// Draw number of staff
 	if (w->var_48C != -1) {
 		set_format_arg(0, uint32, w->var_48C);
-		gfx_draw_string_left(dpi, STR_STAFF_LABEL, gCommonFormatArgs, 0, x, y);
+		gfx_draw_string_left(dpi, STR_STAFF_LABEL, gCommonFormatArgs, COLOUR_BLACK, x, y);
 	}
 	y += 10;
 
 	// Draw number of guests in park
-	gfx_draw_string_left(dpi, STR_GUESTS_IN_PARK_LABEL, &gNumGuestsInPark, 0, x, y);
+	gfx_draw_string_left(dpi, STR_GUESTS_IN_PARK_LABEL, &gNumGuestsInPark, COLOUR_BLACK, x, y);
 	y += 10;
-	gfx_draw_string_left(dpi, STR_TOTAL_ADMISSIONS, &gTotalAdmissions, 0, x, y);
+	gfx_draw_string_left(dpi, STR_TOTAL_ADMISSIONS, &gTotalAdmissions, COLOUR_BLACK, x, y);
 }
 
 #pragma endregion
@@ -1771,32 +1779,32 @@ static void window_park_objective_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	// Scenario description
 	x = w->x + window_park_objective_widgets[WIDX_PAGE_BACKGROUND].left + 4;
 	y = w->y + window_park_objective_widgets[WIDX_PAGE_BACKGROUND].top + 7;
-	safe_strcpy(RCT2_ADDRESS(0x009BC677, char), gScenarioDetails, 256);
-	set_format_arg(0, short, STR_PLACEHOLDER);
-	y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, 222, STR_BLACK_STRING, 0);
+	set_format_arg(0, rct_string_id, STR_STRING);
+	set_format_arg(2, const char *, gScenarioDetails);
+	y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, 222, STR_BLACK_STRING, COLOUR_BLACK);
 	y += 5;
 
 	// Your objective:
-	gfx_draw_string_left(dpi, STR_OBJECTIVE_LABEL, NULL, 0, x, y);
+	gfx_draw_string_left(dpi, STR_OBJECTIVE_LABEL, NULL, COLOUR_BLACK, x, y);
 	y += 10;
 
 	// Objective
-	set_format_arg(0, short, gScenarioObjectiveNumGuests);
+	set_format_arg(0, uint16, gScenarioObjectiveNumGuests);
 	set_format_arg(2, short, date_get_total_months(MONTH_OCTOBER, gScenarioObjectiveYear));
-	set_format_arg(4, int, gScenarioObjectiveCurrency);
+	set_format_arg(4, money32, gScenarioObjectiveCurrency);
 
-	y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, 221, ObjectiveNames[gScenarioObjectiveType], 0);
+	y += gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, 221, ObjectiveNames[gScenarioObjectiveType], COLOUR_BLACK);
 	y += 5;
 
 	// Objective outcome
 	if (gScenarioCompletedCompanyValue != MONEY32_UNDEFINED) {
 		if (gScenarioCompletedCompanyValue == 0x80000001) {
 			// Objective failed
-			gfx_draw_string_left_wrapped(dpi, NULL, x, y, 222, STR_OBJECTIVE_FAILED, 0);
+			gfx_draw_string_left_wrapped(dpi, NULL, x, y, 222, STR_OBJECTIVE_FAILED, COLOUR_BLACK);
 		} else {
 			// Objective completed
-			set_format_arg(0, int, gScenarioCompletedCompanyValue);
-			gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, 222, STR_OBJECTIVE_ACHIEVED, 0);
+			set_format_arg(0, money32, gScenarioCompletedCompanyValue);
+			gfx_draw_string_left_wrapped(dpi, gCommonFormatArgs, x, y, 222, STR_OBJECTIVE_ACHIEVED, COLOUR_BLACK);
 		}
 	}
 }
@@ -1910,14 +1918,14 @@ static void window_park_awards_paint(rct_window *w, rct_drawpixelinfo *dpi)
 			continue;
 
 		gfx_draw_sprite(dpi, ParkAwards[award->type].sprite, x, y, 0);
-		gfx_draw_string_left_wrapped(dpi, NULL, x + 34, y + 6, 180, ParkAwards[award->type].text, 0);
+		gfx_draw_string_left_wrapped(dpi, NULL, x + 34, y + 6, 180, ParkAwards[award->type].text, COLOUR_BLACK);
 
 		y += 32;
 		count++;
 	}
 
 	if (count == 0)
-		gfx_draw_string_left(dpi, STR_NO_RECENT_AWARDS, 0, 0, x + 6, y + 6);
+		gfx_draw_string_left(dpi, STR_NO_RECENT_AWARDS, NULL, COLOUR_BLACK, x + 6, y + 6);
 }
 
 #pragma endregion

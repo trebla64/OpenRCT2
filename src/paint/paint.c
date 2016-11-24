@@ -21,23 +21,39 @@
 #include "../interface/viewport.h"
 #include "map_element/map_element.h"
 #include "sprite/sprite.h"
-#include "../addresses.h"
+#include "supports.h"
 
 const uint32 construction_markers[] = {
-	COLOUR_DARK_GREEN << 19 | COLOUR_GREY << 24 | IMAGE_TYPE_USE_PALETTE << 28, // White
-	2 << 19 | 0b110000 << 19 | IMAGE_TYPE_MIX_BACKGROUND << 28, // Translucent
+	COLOUR_DARK_GREEN << 19 | COLOUR_GREY << 24 | IMAGE_TYPE_REMAP, // White
+	PALETTE_DARKEN_2 << 19 | IMAGE_TYPE_TRANSPARENT, // Translucent
 };
 
 paint_struct * g_ps_F1AD28;
 attached_paint_struct * g_aps_F1AD2C;
-paint_string_struct *pss1;
-paint_string_struct *pss2;
+
+paint_string_struct * gPaintPSStringHead;
+static paint_string_struct * _paintLastPSString;
+
+#define MAX_PAINT_QUADRANTS (512)
 
 #ifdef NO_RCT2
-paint_struct *g_paint_structs[512];
+paint_entry gPaintStructs[4000];
+static uint32 _paintQuadrantBackIndex;
+static uint32 _paintQuadrantFrontIndex;
+static paint_struct *_paintQuadrants[MAX_PAINT_QUADRANTS];
 void *g_currently_drawn_item;
+paint_entry * gEndOfPaintStructArray;
+sint16 gUnk9DE568;
+sint16 gUnk9DE56C;
+paint_struct gUnkF1A4CC;
+uint8 gPaintInteractionType;
+support_height gSupportSegments[9] = { 0 };
+support_height gSupport;
+
 #else
-#define g_paint_structs (RCT2_ADDRESS(0x00F1A50C, paint_struct*))
+#define _paintQuadrants (RCT2_ADDRESS(0x00F1A50C, paint_struct*))
+#define _paintQuadrantBackIndex RCT2_GLOBAL(0xF1AD0C, uint32)
+#define _paintQuadrantFrontIndex RCT2_GLOBAL(0xF1AD10, uint32)
 #endif
 
 static const uint8 BoundBoxDebugColours[] = {
@@ -58,21 +74,42 @@ static const uint8 BoundBoxDebugColours[] = {
 
 bool gPaintBoundingBoxes;
 
+static void paint_attached_ps(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 viewFlags);
+static void paint_ps_image_with_bounding_boxes(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 imageId, sint16 x, sint16 y);
+static void paint_ps_image(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 imageId, sint16 x, sint16 y);
+static uint32 paint_ps_colourify_image(uint32 imageId, uint8 spriteType, uint32 viewFlags);
+
 /**
  *
  *  rct2: 0x0068615B
  */
-void painter_setup() {
-	unk_EE7888 = RCT2_ADDRESS(0x00EE788C, paint_struct);
+void paint_init(rct_drawpixelinfo * dpi)
+{
+	unk_140E9A8 = dpi;
+	gEndOfPaintStructArray = &gPaintStructs[4000 - 1];
+	gNextFreePaintStruct = gPaintStructs;
 	g_ps_F1AD28 = NULL;
 	g_aps_F1AD2C = NULL;
 	for (int i = 0; i < 512; i++) {
-		g_paint_structs[i] = NULL;
+		_paintQuadrants[i] = NULL;
 	}
-	RCT2_GLOBAL(0xF1AD0C, sint32) = -1;
-	RCT2_GLOBAL(0xF1AD10, uint32) = 0;
-	pss1 = NULL;
-	pss2 = NULL;
+	_paintQuadrantBackIndex = -1;
+	_paintQuadrantFrontIndex = 0;
+	gPaintPSStringHead = NULL;
+	_paintLastPSString = NULL;
+	gWoodenSupportsPrependTo = NULL;
+}
+
+static void paint_add_ps_to_quadrant(paint_struct * ps, sint32 positionHash)
+{
+	uint32 paintQuadrantIndex = clamp(0, positionHash / 32, MAX_PAINT_QUADRANTS - 1);
+
+	ps->var_18 = paintQuadrantIndex;
+	ps->next_quadrant_ps = _paintQuadrants[paintQuadrantIndex];
+	_paintQuadrants[paintQuadrantIndex] = ps;
+
+	_paintQuadrantBackIndex = min(_paintQuadrantBackIndex, paintQuadrantIndex);
+	_paintQuadrantFrontIndex = max(_paintQuadrantFrontIndex, paintQuadrantIndex);
 }
 
 /**
@@ -80,9 +117,8 @@ void painter_setup() {
  */
 static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 boundBoxSize, rct_xyz16 boundBoxOffset, uint8 rotation)
 {
-	paint_struct * ps = unk_EE7888;
-
-	if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32))return NULL;
+	if (gNextFreePaintStruct >= gEndOfPaintStructArray) return NULL;
+	paint_struct * ps = &gNextFreePaintStruct->basic;
 
 	ps->image_id = image_id;
 
@@ -103,8 +139,8 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 			rotate_map_coordinates(&offset.x, &offset.y, 1);
 			break;
 	}
-	offset.x += RCT2_GLOBAL(0x9DE568, sint16);
-	offset.y += RCT2_GLOBAL(0x9DE56C, sint16);
+	offset.x += gUnk9DE568;
+	offset.y += gUnk9DE56C;
 
 	rct_xy16 map = coordinate_3d_to_2d(&offset, rotation);
 
@@ -116,9 +152,6 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 
 	int right = left + g1Element->width;
 	int top = bottom + g1Element->height;
-
-	RCT2_GLOBAL(0xF1AD1C, uint16) = left;
-	RCT2_GLOBAL(0xF1AD1E, uint16) = bottom;
 
 	rct_drawpixelinfo * dpi = unk_140E9A8;
 
@@ -152,21 +185,20 @@ static paint_struct * sub_9819_c(uint32 image_id, rct_xyz16 offset, rct_xyz16 bo
 			break;
 	}
 
-	ps->bound_box_x_end = boundBoxSize.x + boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
+	ps->bound_box_x_end = boundBoxSize.x + boundBoxOffset.x + gUnk9DE568;
 	ps->bound_box_z = boundBoxOffset.z;
 	ps->bound_box_z_end = boundBoxOffset.z + boundBoxSize.z;
-	ps->bound_box_y_end = boundBoxSize.y + boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
+	ps->bound_box_y_end = boundBoxSize.y + boundBoxOffset.y + gUnk9DE56C;
 	ps->flags = 0;
-	ps->bound_box_x = boundBoxOffset.x + RCT2_GLOBAL(0x9DE568, sint16);
-	ps->bound_box_y = boundBoxOffset.y + RCT2_GLOBAL(0x009DE56C, sint16);
+	ps->bound_box_x = boundBoxOffset.x + gUnk9DE568;
+	ps->bound_box_y = boundBoxOffset.y + gUnk9DE56C;
 	ps->attached_ps = NULL;
 	ps->var_20 = NULL;
 	ps->sprite_type = gPaintInteractionType;
-	ps->var_29 = RCT2_GLOBAL(0x9DE571, uint8);
-	ps->map_x = RCT2_GLOBAL(0x9DE574, uint16);
-	ps->map_y = RCT2_GLOBAL(0x9DE576, uint16);
+	ps->var_29 = 0;
+	ps->map_x = gPaintMapPosition.x;
+	ps->map_y = gPaintMapPosition.y;
 	ps->mapElement = g_currently_drawn_item;
-
 	return ps;
 }
 
@@ -196,13 +228,11 @@ paint_struct * sub_98196C(
 	g_ps_F1AD28 = 0;
 	g_aps_F1AD2C = NULL;
 
-	//Not a paint struct but something similar
-	paint_struct *ps = unk_EE7888;
-
-	if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
+	if (gNextFreePaintStruct >= gEndOfPaintStructArray) {
 		return NULL;
 	}
 
+	paint_struct *ps = &gNextFreePaintStruct->basic;
 	ps->image_id = image_id;
 
 	uint32 image_element = image_id & 0x7FFFF;
@@ -249,8 +279,8 @@ paint_struct * sub_98196C(
 			break;
 	}
 
-	coord_3d.x += RCT2_GLOBAL(0x9DE568, sint16);
-	coord_3d.y += RCT2_GLOBAL(0x9DE56C, sint16);
+	coord_3d.x += gUnk9DE568;
+	coord_3d.y += gUnk9DE56C;
 
 	ps->bound_box_x_end = coord_3d.x + boundBox.x;
 	ps->bound_box_y_end = coord_3d.y + boundBox.y;
@@ -270,9 +300,6 @@ paint_struct * sub_98196C(
 	sint16 right = left + g1Element->width;
 	sint16 top = bottom + g1Element->height;
 
-	RCT2_GLOBAL(0xF1AD1C, sint16) = left;
-	RCT2_GLOBAL(0xF1AD1E, sint16) = bottom;
-
 	rct_drawpixelinfo *dpi = unk_140E9A8;
 
 	if (right <= dpi->x) return NULL;
@@ -286,54 +313,31 @@ paint_struct * sub_98196C(
 	ps->attached_ps = NULL;
 	ps->var_20 = NULL;
 	ps->sprite_type = gPaintInteractionType;
-	ps->var_29 = RCT2_GLOBAL(0x9DE571, uint8);
-	ps->map_x = RCT2_GLOBAL(0x9DE574, uint16);
-	ps->map_y = RCT2_GLOBAL(0x9DE576, uint16);
+	ps->var_29 = 0;
+	ps->map_x = gPaintMapPosition.x;
+	ps->map_y = gPaintMapPosition.y;
 	ps->mapElement = g_currently_drawn_item;
 
 	g_ps_F1AD28 = ps;
 
-	sint32 edi;
+	sint32 positionHash = 0;
 	switch (rotation) {
-		case 0:
-			edi = coord_3d.y + coord_3d.x;
-			break;
-
-		case 1:
-			edi = coord_3d.y - coord_3d.x + 0x2000;
-			break;
-
-		case 2:
-			edi = -(coord_3d.y + coord_3d.x) + 0x4000;
-			break;
-
-		case 3:
-			edi = coord_3d.x - coord_3d.y + 0x2000;
-			break;
+	case 0:
+		positionHash = coord_3d.y + coord_3d.x;
+		break;
+	case 1:
+		positionHash = coord_3d.y - coord_3d.x + 0x2000;
+		break;
+	case 2:
+		positionHash = -(coord_3d.y + coord_3d.x) + 0x4000;
+		break;
+	case 3:
+		positionHash = coord_3d.x - coord_3d.y + 0x2000;
+		break;
 	}
+	paint_add_ps_to_quadrant(ps, positionHash);
 
-	if (edi < 0) {
-		edi = 0;
-	}
-
-	edi /= 32;
-	edi = min(edi, 0x1FF); // 511
-
-	ps->var_18 = edi;
-
-	paint_struct *old_ps = g_paint_structs[edi];
-	g_paint_structs[edi] = ps;
-	ps->next_quadrant_ps = old_ps;
-
-	if ((uint16)edi < RCT2_GLOBAL(0x00F1AD0C, uint32)) {
-		RCT2_GLOBAL(0x00F1AD0C, uint32) = edi;
-	}
-
-	if ((uint16)edi > RCT2_GLOBAL(0x00F1AD10, uint32)) {
-		RCT2_GLOBAL(0x00F1AD10, uint32) = edi;
-	}
-
-	unk_EE7888 ++;
+	gNextFreePaintStruct++;
 
 	return ps;
 }
@@ -395,29 +399,10 @@ paint_struct * sub_98197C(
 		break;
 	}
 
-	sint16 di = attach.x + attach.y;
+	sint32 positionHash = attach.x + attach.y;
+	paint_add_ps_to_quadrant(ps, positionHash);
 
-	if (di < 0)
-		di = 0;
-
-	di /= 32;
-	if (di > 511)
-		di = 511;
-
-	ps->var_18 = di;
-	paint_struct* old_ps = g_paint_structs[di];
-	g_paint_structs[di] = ps;
-	ps->next_quadrant_ps = old_ps;
-
-	if ((uint16)di < RCT2_GLOBAL(0x00F1AD0C, uint32)) {
-		RCT2_GLOBAL(0x00F1AD0C, uint32) = di;
-	}
-
-	if ((uint16)di > RCT2_GLOBAL(0x00F1AD10, uint32)) {
-		RCT2_GLOBAL(0x00F1AD10, uint32) = di;
-	}
-
-	unk_EE7888++;
+	gNextFreePaintStruct++;
 	return ps;
 }
 
@@ -462,7 +447,7 @@ paint_struct * sub_98198C(
 	}
 
 	g_ps_F1AD28 = ps;
-	unk_EE7888++;
+	gNextFreePaintStruct++;
 	return ps;
 }
 
@@ -518,7 +503,7 @@ paint_struct * sub_98199C(
 	old_ps->var_20 = ps;
 
 	g_ps_F1AD28 = ps;
-	unk_EE7888++;
+	gNextFreePaintStruct++;
 	return ps;
 }
 
@@ -532,31 +517,29 @@ paint_struct * sub_98199C(
  */
 bool paint_attach_to_previous_attach(uint32 image_id, uint16 x, uint16 y)
 {
-    if (g_aps_F1AD2C == NULL) {
-        return paint_attach_to_previous_ps(image_id, x, y);
-    }
+	if (g_aps_F1AD2C == NULL) {
+		return paint_attach_to_previous_ps(image_id, x, y);
+	}
 
-	attached_paint_struct * ps = (attached_paint_struct *)unk_EE7888;
+	if (gNextFreePaintStruct >= gEndOfPaintStructArray) {
+		return false;
+	}
+	attached_paint_struct * ps = &gNextFreePaintStruct->attached;
+	ps->image_id = image_id;
+	ps->x = x;
+	ps->y = y;
+	ps->flags = 0;
 
-    if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
-        return false;
-    }
+	attached_paint_struct * ebx = g_aps_F1AD2C;
 
-    ps->image_id = image_id;
-    ps->x = x;
-    ps->y = y;
-    ps->flags = 0;
-
-    attached_paint_struct * ebx = g_aps_F1AD2C;
-
-    ps->next = NULL;
-    ebx->next = ps;
+	ps->next = NULL;
+	ebx->next = ps;
 
 	g_aps_F1AD2C = ps;
 
-	unk_EE7888++;
+	gNextFreePaintStruct++;
 
-    return true;
+	return true;
 }
 
 /**
@@ -569,32 +552,31 @@ bool paint_attach_to_previous_attach(uint32 image_id, uint16 x, uint16 y)
  */
 bool paint_attach_to_previous_ps(uint32 image_id, uint16 x, uint16 y)
 {
-	attached_paint_struct * ps = (attached_paint_struct *)unk_EE7888;
+	if (gNextFreePaintStruct >= gEndOfPaintStructArray) {
+		return false;
+	}
+	attached_paint_struct * ps = &gNextFreePaintStruct->attached;
 
-    if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
-        return false;
-    }
-
-    ps->image_id = image_id;
-    ps->x = x;
-    ps->y = y;
-    ps->flags = 0;
+	ps->image_id = image_id;
+	ps->x = x;
+	ps->y = y;
+	ps->flags = 0;
 
 	paint_struct * masterPs = g_ps_F1AD28;
-    if (masterPs == NULL) {
-        return false;
-    }
+	if (masterPs == NULL) {
+		return false;
+	}
 
-	unk_EE7888++;
+	gNextFreePaintStruct++;
 
-    attached_paint_struct * oldFirstAttached = masterPs->attached_ps;
+	attached_paint_struct * oldFirstAttached = masterPs->attached_ps;
 	masterPs->attached_ps = ps;
 
-    ps->next = oldFirstAttached;
+	ps->next = oldFirstAttached;
 
 	g_aps_F1AD2C = ps;
 
-    return true;
+	return true;
 }
 
 /**
@@ -607,49 +589,43 @@ bool paint_attach_to_previous_ps(uint32 image_id, uint16 x, uint16 y)
  * @param y_offsets (di)
  * @param rotation (ebp)
  */
-void sub_685EBC(money32 amount, uint16 string_id, sint16 y, sint16 z, sint8 y_offsets[], sint16 offset_x, uint32 rotation)
+void sub_685EBC(money32 amount, rct_string_id string_id, sint16 y, sint16 z, sint8 y_offsets[], sint16 offset_x, uint32 rotation)
 {
-	paint_string_struct * ps = (paint_string_struct *)unk_EE7888;
-
-	if ((uint32) ps >= RCT2_GLOBAL(0xEE7880, uint32)) {
+	if (gNextFreePaintStruct >= gEndOfPaintStructArray) {
 		return;
 	}
+	paint_string_struct * ps = &gNextFreePaintStruct->string;
 
 	ps->string_id = string_id;
 	ps->next = 0;
 	ps->args[0] = amount;
 	ps->args[1] = y;
-	ps->args[2] = (int) y_offsets;
+	ps->args[2] = 0;
 	ps->args[3] = 0;
 	ps->y_offsets = (uint8 *) y_offsets;
 
-	rct_xyz16 position = {.x = RCT2_GLOBAL(0x9DE568, sint16), .y = RCT2_GLOBAL(0x9DE56C, sint16), .z = z};
+	rct_xyz16 position = {.x = gUnk9DE568, .y = gUnk9DE56C, .z = z};
 	rct_xy16 coord = coordinate_3d_to_2d(&position, rotation);
 
 	ps->x = coord.x + offset_x;
 	ps->y = coord.y;
 
-	unk_EE7888++;
+	gNextFreePaintStruct++;
 
-	paint_string_struct * oldPs = pss2;
-
-	pss2 = ps;
-
-	if (oldPs == 0) { // 0 or NULL?
-		pss1 = ps;
+	if (_paintLastPSString == NULL) {
+		gPaintPSStringHead = ps;
 	} else {
-		oldPs->next = ps;
+		_paintLastPSString->next = ps;
 	}
+	_paintLastPSString = ps;
 }
 
 /**
  *
  *  rct2: 0x0068B6C2
  */
-void viewport_paint_setup()
+void paint_generate_structs(rct_drawpixelinfo * dpi)
 {
-	rct_drawpixelinfo* dpi = unk_140E9A8;
-
 	rct_xy16 mapTile = {
 		.x = dpi->x & 0xFFE0,
 		.y = (dpi->y - 16) & 0xFFE0
@@ -753,11 +729,10 @@ void viewport_paint_setup()
 	}
 }
 
-static void sub_688217_helper(uint16 ax, uint8 flag)
+static void paint_arrange_structs_helper(paint_struct * ps_next, uint16 ax, uint8 flag)
 {
-	paint_struct *ps, *ps_temp;
-	paint_struct *ps_next = unk_EE7884;
-
+	paint_struct * ps;
+	paint_struct * ps_temp;
 	do {
 		ps = ps_next;
 		ps_next = ps_next->next_quadrant_ps;
@@ -765,7 +740,6 @@ static void sub_688217_helper(uint16 ax, uint8 flag)
 	} while (ax > ps_next->var_18);
 
 	ps_temp = ps;
-
 	do {
 		ps = ps->next_quadrant_ps;
 		if (ps == NULL) break;
@@ -780,7 +754,6 @@ static void sub_688217_helper(uint16 ax, uint8 flag)
 			ps->var_1B = flag | (1 << 0);
 		}
 	} while (ps->var_18 <= ax + 1);
-
 	ps = ps_temp;
 
 	uint8 rotation = get_current_rotation();
@@ -863,36 +836,70 @@ static void sub_688217_helper(uint16 ax, uint8 flag)
  *
  *  rct2: 0x00688217
  */
-void sub_688217()
+paint_struct paint_arrange_structs()
 {
-	paint_struct *ps = unk_EE7888;
-	paint_struct *ps_next;
-	unk_EE7888++;
-	unk_EE7884 = ps;
+	paint_struct psHead = { 0 };
+	paint_struct * ps = &psHead;
 	ps->next_quadrant_ps = NULL;
-	uint32 edi = RCT2_GLOBAL(0x00F1AD0C, uint32);
-	if (edi == -1)
-		return;
+	uint32 quadrantIndex = _paintQuadrantBackIndex;
+	if (quadrantIndex != UINT32_MAX) {
+		do {
+			paint_struct * ps_next = _paintQuadrants[quadrantIndex];
+			if (ps_next != NULL) {
+				ps->next_quadrant_ps = ps_next;
+				do {
+					ps = ps_next;
+					ps_next = ps_next->next_quadrant_ps;
+				} while (ps_next != NULL);
+			}
+		} while (++quadrantIndex <= _paintQuadrantFrontIndex);
 
-	do {
-		ps_next = g_paint_structs[edi];
-		if (ps_next != NULL) {
-			ps->next_quadrant_ps = ps_next;
-			do {
-				ps = ps_next;
-				ps_next = ps_next->next_quadrant_ps;
-			} while (ps_next != NULL);
+		paint_arrange_structs_helper(&psHead, _paintQuadrantBackIndex & 0xFFFF, 1 << 1);
+
+		quadrantIndex = _paintQuadrantBackIndex;
+		while (++quadrantIndex < _paintQuadrantFrontIndex) {
+			paint_arrange_structs_helper(&psHead, quadrantIndex & 0xFFFF, 0);
 		}
-	} while (++edi <= RCT2_GLOBAL(0x00F1AD10, uint32));
+	}
+	return psHead;
+}
 
-	uint32 eax = RCT2_GLOBAL(0x00F1AD0C, uint32);
+/**
+ *
+ *  rct2: 0x00688485
+ */
+void paint_draw_structs(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 viewFlags)
+{
+	paint_struct* previous_ps = ps->next_quadrant_ps;
+	for (ps = ps->next_quadrant_ps; ps;) {
+		sint16 x = ps->x;
+		sint16 y = ps->y;
+		if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_SPRITE) {
+			if (dpi->zoom_level >= 1) {
+				x = floor2(x, 2);
+				y = floor2(y, 2);
+				if (dpi->zoom_level >= 2) {
+					x = floor2(x, 4);
+					y = floor2(y, 4);
+				}
+			}
+		}
 
-	sub_688217_helper(eax & 0xFFFF, 1 << 1);
+		uint32 imageId = paint_ps_colourify_image(ps->image_id, ps->sprite_type, viewFlags);
+		if (gPaintBoundingBoxes && dpi->zoom_level == 0) {
+			paint_ps_image_with_bounding_boxes(dpi, ps, imageId, x, y);
+		} else {
+			paint_ps_image(dpi, ps, imageId, x, y);
+		}
 
-	eax = RCT2_GLOBAL(0x00F1AD0C, uint32);
-
-	while (++eax < RCT2_GLOBAL(0x00F1AD10, uint32))
-		sub_688217_helper(eax & 0xFFFF, 0);
+		if (ps->var_20 != 0) {
+			ps = ps->var_20;
+		} else {
+			paint_attached_ps(dpi, ps, viewFlags);
+			ps = previous_ps->next_quadrant_ps;
+			previous_ps = ps;
+		}
+	}
 }
 
 /**
@@ -900,174 +907,123 @@ void sub_688217()
  *  rct2: 0x00688596
  *  Part of 0x688485
  */
-static void paint_attached_ps(paint_struct* ps, attached_paint_struct* attached_ps, rct_drawpixelinfo* dpi) {
+static void paint_attached_ps(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 viewFlags)
+{
+	attached_paint_struct * attached_ps = ps->attached_ps;
 	for (; attached_ps; attached_ps = attached_ps->next) {
 		sint16 x = attached_ps->x + ps->x;
 		sint16 y = attached_ps->y + ps->y;
 
-		int image_id = attached_ps->image_id;
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_RIDES) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_RIDE) {
-				if (image_id & 0x40000000) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
-
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_SCENERY) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_SCENERY) {
-				if (image_id & 0x40000000) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
-		
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_PATHS) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_FOOTPATH) {
-				if (!(image_id & 0x40000000)) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
-
+		uint32 imageId = paint_ps_colourify_image(attached_ps->image_id, ps->sprite_type, viewFlags);
 		if (attached_ps->flags & PAINT_STRUCT_FLAG_IS_MASKED) {
-			gfx_draw_sprite_raw_masked(dpi, x, y, image_id, attached_ps->colour_image_id);
-		}
-		else {
-			gfx_draw_sprite(dpi, image_id, x, y, ps->tertiary_colour);
+			gfx_draw_sprite_raw_masked(dpi, x, y, imageId, attached_ps->colour_image_id);
+		} else {
+			gfx_draw_sprite(dpi, imageId, x, y, ps->tertiary_colour);
 		}
 	}
 }
 
-/* rct2: 0x00688485 */
-void paint_quadrant_ps() {
-	rct_drawpixelinfo* dpi = unk_140E9A8;
-	paint_struct* ps = unk_EE7884;
-	paint_struct* previous_ps = ps->next_quadrant_ps;
+static void paint_ps_image_with_bounding_boxes(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 imageId, sint16 x, sint16 y)
+{
+	uint8 colour = BoundBoxDebugColours[ps->sprite_type];
 
-	for (ps = ps->next_quadrant_ps; ps;) {
-		sint16 x = ps->x;
-		sint16 y = ps->y;
-		if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_SPRITE) {
-			if (dpi->zoom_level >= 1) {
-				x &= 0xFFFE;
-				y &= 0xFFFE;
-				if (dpi->zoom_level >= 2) {
-					x &= 0xFFFC;
-					y &= 0xFFFC;
-				}
-			}
-		}
-		int image_id = ps->image_id;
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_RIDES) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_RIDE) {
-				if (!(image_id & 0x40000000)) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_UNDERGROUND_INSIDE) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_WALL) {
-				if (!(image_id & 0x40000000)) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_PATHS) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_FOOTPATH || 
-				ps->sprite_type == VIEWPORT_INTERACTION_ITEM_FOOTPATH_ITEM ||
-				ps->sprite_type == VIEWPORT_INTERACTION_ITEM_BANNER) {
-				if (!(image_id & 0x40000000)) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
-		if (gCurrentViewportFlags & VIEWPORT_FLAG_SEETHROUGH_SCENERY) {
-			if (ps->sprite_type == VIEWPORT_INTERACTION_ITEM_LARGE_SCENERY || 
-				ps->sprite_type == VIEWPORT_INTERACTION_ITEM_WALL || 
-				ps->sprite_type == VIEWPORT_INTERACTION_ITEM_SCENERY) {
-				if (!(image_id & 0x40000000)) {
-					image_id &= 0x7FFFF;
-					image_id |= 0x41880000;
-				}
-			}
-		}
+	rct_xyz16 frontTop = {.x = ps->bound_box_x_end, .y = ps->bound_box_y_end, .z = ps->bound_box_z_end};
+	rct_xy16 screenCoordFrontTop = coordinate_3d_to_2d(&frontTop, get_current_rotation());
+	rct_xyz16 frontBottom = {.x = ps->bound_box_x_end, .y = ps->bound_box_y_end, .z = ps->bound_box_z};
+	rct_xy16 screenCoordFrontBottom = coordinate_3d_to_2d(&frontBottom, get_current_rotation());
 
-		if (gPaintBoundingBoxes && dpi->zoom_level == 0) {
-			uint8 colour = BoundBoxDebugColours[ps->sprite_type];
+	rct_xyz16 leftTop = {.x = ps->bound_box_x, .y = ps->bound_box_y_end, .z = ps->bound_box_z_end};
+	rct_xy16 screenCoordLeftTop = coordinate_3d_to_2d(&leftTop, get_current_rotation());
+	rct_xyz16 leftBottom = {.x = ps->bound_box_x, .y = ps->bound_box_y_end, .z = ps->bound_box_z};
+	rct_xy16 screenCoordLeftBottom = coordinate_3d_to_2d(&leftBottom, get_current_rotation());
 
-			rct_xyz16 frontTop = {.x = ps->bound_box_x_end, .y = ps->bound_box_y_end, .z = ps->bound_box_z_end};
-			rct_xy16 screenCoordFrontTop = coordinate_3d_to_2d(&frontTop, get_current_rotation());
-			rct_xyz16 frontBottom = {.x = ps->bound_box_x_end, .y = ps->bound_box_y_end, .z = ps->bound_box_z};
-			rct_xy16 screenCoordFrontBottom = coordinate_3d_to_2d(&frontBottom, get_current_rotation());
+	rct_xyz16 rightTop = {.x = ps->bound_box_x_end, .y = ps->bound_box_y, .z = ps->bound_box_z_end};
+	rct_xy16 screenCoordRightTop = coordinate_3d_to_2d(&rightTop, get_current_rotation());
+	rct_xyz16 rightBottom = {.x = ps->bound_box_x_end, .y = ps->bound_box_y, .z = ps->bound_box_z};
+	rct_xy16 screenCoordRightBottom = coordinate_3d_to_2d(&rightBottom, get_current_rotation());
 
-			rct_xyz16 leftTop = {.x = ps->bound_box_x, .y = ps->bound_box_y_end, .z = ps->bound_box_z_end};
-			rct_xy16 screenCoordLeftTop = coordinate_3d_to_2d(&leftTop, get_current_rotation());
-			rct_xyz16 leftBottom = {.x = ps->bound_box_x, .y = ps->bound_box_y_end, .z = ps->bound_box_z};
-			rct_xy16 screenCoordLeftBottom = coordinate_3d_to_2d(&leftBottom, get_current_rotation());
+	rct_xyz16 backTop = {.x = ps->bound_box_x, .y = ps->bound_box_y, .z = ps->bound_box_z_end};
+	rct_xy16 screenCoordBackTop = coordinate_3d_to_2d(&backTop, get_current_rotation());
+	rct_xyz16 backBottom = {.x = ps->bound_box_x, .y = ps->bound_box_y, .z = ps->bound_box_z};
+	rct_xy16 screenCoordBackBottom = coordinate_3d_to_2d(&backBottom, get_current_rotation());
 
-			rct_xyz16 rightTop = {.x = ps->bound_box_x_end, .y = ps->bound_box_y, .z = ps->bound_box_z_end};
-			rct_xy16 screenCoordRightTop = coordinate_3d_to_2d(&rightTop, get_current_rotation());
-			rct_xyz16 rightBottom = {.x = ps->bound_box_x_end, .y = ps->bound_box_y, .z = ps->bound_box_z};
-			rct_xy16 screenCoordRightBottom = coordinate_3d_to_2d(&rightBottom, get_current_rotation());
+	// bottom square
+	gfx_draw_line(dpi, screenCoordFrontBottom.x, screenCoordFrontBottom.y, screenCoordLeftBottom.x, screenCoordLeftBottom.y, colour);
+	gfx_draw_line(dpi, screenCoordBackBottom.x, screenCoordBackBottom.y, screenCoordLeftBottom.x, screenCoordLeftBottom.y, colour);
+	gfx_draw_line(dpi, screenCoordBackBottom.x, screenCoordBackBottom.y, screenCoordRightBottom.x, screenCoordRightBottom.y, colour);
+	gfx_draw_line(dpi, screenCoordFrontBottom.x, screenCoordFrontBottom.y, screenCoordRightBottom.x, screenCoordRightBottom.y, colour);
 
-			rct_xyz16 backTop = {.x = ps->bound_box_x, .y = ps->bound_box_y, .z = ps->bound_box_z_end};
-			rct_xy16 screenCoordBackTop = coordinate_3d_to_2d(&backTop, get_current_rotation());
-			rct_xyz16 backBottom = {.x = ps->bound_box_x, .y = ps->bound_box_y, .z = ps->bound_box_z};
-			rct_xy16 screenCoordBackBottom = coordinate_3d_to_2d(&backBottom, get_current_rotation());
+	//vertical back + sides
+	gfx_draw_line(dpi, screenCoordBackTop.x, screenCoordBackTop.y, screenCoordBackBottom.x, screenCoordBackBottom.y, colour);
+	gfx_draw_line(dpi, screenCoordLeftTop.x, screenCoordLeftTop.y, screenCoordLeftBottom.x, screenCoordLeftBottom.y, colour);
+	gfx_draw_line(dpi, screenCoordRightTop.x, screenCoordRightTop.y, screenCoordRightBottom.x, screenCoordRightBottom.y, colour);
 
-			// bottom square
-			gfx_draw_line(dpi, screenCoordFrontBottom.x, screenCoordFrontBottom.y, screenCoordLeftBottom.x, screenCoordLeftBottom.y, colour);
-			gfx_draw_line(dpi, screenCoordBackBottom.x, screenCoordBackBottom.y, screenCoordLeftBottom.x, screenCoordLeftBottom.y, colour);
-			gfx_draw_line(dpi, screenCoordBackBottom.x, screenCoordBackBottom.y, screenCoordRightBottom.x, screenCoordRightBottom.y, colour);
-			gfx_draw_line(dpi, screenCoordFrontBottom.x, screenCoordFrontBottom.y, screenCoordRightBottom.x, screenCoordRightBottom.y, colour);
+	// top square back
+	gfx_draw_line(dpi, screenCoordBackTop.x, screenCoordBackTop.y, screenCoordLeftTop.x, screenCoordLeftTop.y, colour);
+	gfx_draw_line(dpi, screenCoordBackTop.x, screenCoordBackTop.y, screenCoordRightTop.x, screenCoordRightTop.y, colour);
 
-			//vertical back + sides
-			gfx_draw_line(dpi, screenCoordBackTop.x, screenCoordBackTop.y, screenCoordBackBottom.x, screenCoordBackBottom.y, colour);
-			gfx_draw_line(dpi, screenCoordLeftTop.x, screenCoordLeftTop.y, screenCoordLeftBottom.x, screenCoordLeftBottom.y, colour);
-			gfx_draw_line(dpi, screenCoordRightTop.x, screenCoordRightTop.y, screenCoordRightBottom.x, screenCoordRightBottom.y, colour);
+	paint_ps_image(dpi, ps, imageId, x, y);
 
-			// top square back
-			gfx_draw_line(dpi, screenCoordBackTop.x, screenCoordBackTop.y, screenCoordLeftTop.x, screenCoordLeftTop.y, colour);
-			gfx_draw_line(dpi, screenCoordBackTop.x, screenCoordBackTop.y, screenCoordRightTop.x, screenCoordRightTop.y, colour);
+	// vertical front
+	gfx_draw_line(dpi, screenCoordFrontTop.x, screenCoordFrontTop.y, screenCoordFrontBottom.x, screenCoordFrontBottom.y, colour);
 
-			if (ps->flags & PAINT_STRUCT_FLAG_IS_MASKED) {
-				gfx_draw_sprite_raw_masked(dpi, x, y, image_id, ps->colour_image_id);
-			} else {
-				gfx_draw_sprite(dpi, image_id, x, y, ps->tertiary_colour);
-			}
+	// top square
+	gfx_draw_line(dpi, screenCoordFrontTop.x, screenCoordFrontTop.y, screenCoordLeftTop.x, screenCoordLeftTop.y, colour);
+	gfx_draw_line(dpi, screenCoordFrontTop.x, screenCoordFrontTop.y, screenCoordRightTop.x, screenCoordRightTop.y, colour);
+}
 
-			// vertical front
-			gfx_draw_line(dpi, screenCoordFrontTop.x, screenCoordFrontTop.y, screenCoordFrontBottom.x, screenCoordFrontBottom.y, colour);
-
-			// top square
-			gfx_draw_line(dpi, screenCoordFrontTop.x, screenCoordFrontTop.y, screenCoordLeftTop.x, screenCoordLeftTop.y, colour);
-			gfx_draw_line(dpi, screenCoordFrontTop.x, screenCoordFrontTop.y, screenCoordRightTop.x, screenCoordRightTop.y, colour);
-		} else {
-			if (ps->flags & PAINT_STRUCT_FLAG_IS_MASKED) {
-				gfx_draw_sprite_raw_masked(dpi, x, y, image_id, ps->colour_image_id);
-			} else {
-				gfx_draw_sprite(dpi, image_id, x, y, ps->tertiary_colour);
-			}
-		}
-
-
-		if (ps->var_20 != 0) {
-			ps = ps->var_20;
-			continue;
-		}
-
-		paint_attached_ps(ps, ps->attached_ps, dpi);
-		ps = previous_ps->next_quadrant_ps;
-		previous_ps = ps;
+static void paint_ps_image(rct_drawpixelinfo * dpi, paint_struct * ps, uint32 imageId, sint16 x, sint16 y)
+{
+	if (ps->flags & PAINT_STRUCT_FLAG_IS_MASKED) {
+		gfx_draw_sprite_raw_masked(dpi, x, y, imageId, ps->colour_image_id);
+	} else {
+		gfx_draw_sprite(dpi, imageId, x, y, ps->tertiary_colour);
 	}
+}
 
+static uint32 paint_ps_colourify_image(uint32 imageId, uint8 spriteType, uint32 viewFlags)
+{
+	if (viewFlags & VIEWPORT_FLAG_SEETHROUGH_RIDES) {
+		if (spriteType == VIEWPORT_INTERACTION_ITEM_RIDE) {
+			if (!(imageId & 0x40000000)) {
+				imageId &= 0x7FFFF;
+				imageId |= 0x41880000;
+			}
+		}
+	}
+	if (viewFlags & VIEWPORT_FLAG_UNDERGROUND_INSIDE) {
+		if (spriteType == VIEWPORT_INTERACTION_ITEM_WALL) {
+			if (!(imageId & 0x40000000)) {
+				imageId &= 0x7FFFF;
+				imageId |= 0x41880000;
+			}
+		}
+	}
+	if (viewFlags & VIEWPORT_FLAG_SEETHROUGH_PATHS) {
+		switch (spriteType) {
+		case VIEWPORT_INTERACTION_ITEM_FOOTPATH:
+		case VIEWPORT_INTERACTION_ITEM_FOOTPATH_ITEM:
+		case VIEWPORT_INTERACTION_ITEM_BANNER:
+			if (!(imageId & 0x40000000)) {
+				imageId &= 0x7FFFF;
+				imageId |= 0x41880000;
+			}
+			break;
+		}
+	}
+	if (viewFlags & VIEWPORT_FLAG_SEETHROUGH_SCENERY) {
+		switch (spriteType) {
+		case VIEWPORT_INTERACTION_ITEM_SCENERY:
+		case VIEWPORT_INTERACTION_ITEM_LARGE_SCENERY:
+		case VIEWPORT_INTERACTION_ITEM_WALL:
+			if (!(imageId & 0x40000000)) {
+				imageId &= 0x7FFFF;
+				imageId |= 0x41880000;
+			}
+			break;
+		}
+	}
+	return imageId;
 }
 
 static void draw_pixel_info_crop_by_zoom(rct_drawpixelinfo *dpi)
@@ -1084,27 +1040,23 @@ static void draw_pixel_info_crop_by_zoom(rct_drawpixelinfo *dpi)
  *
  *  rct2: 0x006860C3
  */
-void viewport_draw_money_effects()
+void paint_draw_money_structs(rct_drawpixelinfo * dpi, paint_string_struct * ps)
 {
-	utf8 buffer[256];
-
-	paint_string_struct *ps = pss1;
-	if (ps == NULL)
-		return;
-
-	rct_drawpixelinfo dpi = *(unk_140E9A8);
-	draw_pixel_info_crop_by_zoom(&dpi);
+	rct_drawpixelinfo dpi2 = *dpi;
+	draw_pixel_info_crop_by_zoom(&dpi2);
 
 	do {
-		format_string(buffer, ps->string_id, &ps->args);
+		utf8 buffer[256];
+		format_string(buffer, 256, ps->string_id, &ps->args);
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_MEDIUM;
 
+		// Use sprite font unless the currency contains characters unsupported by the sprite font
 		bool forceSpriteFont = false;
 		const currency_descriptor *currencyDesc = &CurrencyDescriptors[gConfigGeneral.currency_format];
 		if (gUseTrueTypeFont && font_supports_string_sprite(currencyDesc->symbol_unicode)) {
 			forceSpriteFont = true;
 		}
 
-		gfx_draw_string_with_y_offsets(&dpi, buffer, 0, ps->x, ps->y, (sint8 *)ps->y_offsets, forceSpriteFont);
+		gfx_draw_string_with_y_offsets(&dpi2, buffer, COLOUR_BLACK, ps->x, ps->y, (sint8 *)ps->y_offsets, forceSpriteFont);
 	} while ((ps = ps->next) != NULL);
 }

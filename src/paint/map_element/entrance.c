@@ -14,17 +14,19 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../paint.h"
-#include "../../addresses.h"
 #include "../../config.h"
 #include "../../game.h"
 #include "../../interface/viewport.h"
 #include "../../localisation/localisation.h"
-#include "../supports.h"
 #include "../../ride/ride_data.h"
 #include "../../world/entrance.h"
 #include "../../world/footpath.h"
+#include "../paint.h"
+#include "../supports.h"
 #include "map_element.h"
+#include "../../drawing/lightfx.h"
+
+static uint32 _unk9E32BC;
 
 /**
  *
@@ -32,12 +34,36 @@
  */
 static void ride_entrance_exit_paint(uint8 direction, int height, rct_map_element* map_element)
 {
+
 	uint8 is_exit = map_element->properties.entrance.type == ENTRANCE_TYPE_RIDE_EXIT;
 
-	if (RCT2_GLOBAL(0x9DEA6F, uint8_t) & 1){
-		if (map_element->properties.entrance.ride_index != RCT2_GLOBAL(0x00F64DE8, uint8))
+	if (gTrackDesignSaveMode) {
+		if (map_element->properties.entrance.ride_index != gTrackDesignSaveRideIndex)
 			return;
 	}
+
+#ifdef __ENABLE_LIGHTFX__
+
+	if (!is_exit) {
+		lightfx_add_3d_light_magic_from_drawing_tile(0, 0, height + 45, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+	}
+
+	switch (map_element->type & MAP_ELEMENT_DIRECTION_MASK) {
+		case 0:
+			lightfx_add_3d_light_magic_from_drawing_tile(16, 0, height + 16, LIGHTFX_LIGHT_TYPE_LANTERN_2);
+			break;
+		case 1:
+			lightfx_add_3d_light_magic_from_drawing_tile(0, -16, height + 16, LIGHTFX_LIGHT_TYPE_LANTERN_2);
+			break;
+		case 2:
+			lightfx_add_3d_light_magic_from_drawing_tile(-16, 0, height + 16, LIGHTFX_LIGHT_TYPE_LANTERN_2);
+			break;
+		case 3:
+			lightfx_add_3d_light_magic_from_drawing_tile(0, 16, height + 16, LIGHTFX_LIGHT_TYPE_LANTERN_2);
+			break;
+	};
+
+#endif
 
 	rct_ride* ride = get_ride(map_element->properties.entrance.ride_index);
 	if (ride->entrance_style == RIDE_ENTRANCE_STYLE_NONE) return;
@@ -47,7 +73,7 @@ static void ride_entrance_exit_paint(uint8 direction, int height, rct_map_elemen
 	uint8 colour_1, colour_2;
 	uint32 transparant_image_id = 0, image_id = 0;
 	if (style->base_image_id & 0x40000000) {
-		colour_1 = ride->track_colour_main[0] + 0x70;
+		colour_1 = GlassPaletteIds[ride->track_colour_main[0]];
 		transparant_image_id = (colour_1 << 19) | 0x40000000;
 	}
 
@@ -56,12 +82,12 @@ static void ride_entrance_exit_paint(uint8 direction, int height, rct_map_elemen
 	image_id = (colour_1 << 19) | (colour_2 << 24) | 0xA0000000;
 
 	gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_RIDE;
-	RCT2_GLOBAL(0x009E32BC, uint32) = 0;
+	_unk9E32BC = 0;
 
 	if (map_element->flags & MAP_ELEMENT_FLAG_GHOST){
 		gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_NONE;
 		image_id = construction_markers[gConfigGeneral.construction_marker_colour];
-		RCT2_GLOBAL(0x009E32BC, uint32) = image_id;
+		_unk9E32BC = image_id;
 		if (transparant_image_id)
 			transparant_image_id = image_id;
 	}
@@ -130,9 +156,9 @@ static void ride_entrance_exit_paint(uint8 direction, int height, rct_map_elemen
 
 		utf8 entrance_string[MAX_PATH];
 		if (gConfigGeneral.upper_case_banners) {
-			format_string_to_upper(entrance_string, string_id, gCommonFormatArgs);
+			format_string_to_upper(entrance_string, MAX_PATH, string_id, gCommonFormatArgs);
 		} else {
-			format_string(entrance_string, string_id, gCommonFormatArgs);
+			format_string(entrance_string, MAX_PATH, string_id, gCommonFormatArgs);
 		}
 
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
@@ -143,7 +169,7 @@ static void ride_entrance_exit_paint(uint8 direction, int height, rct_map_elemen
 		sub_98199C(scrolling_text_setup(string_id, scroll, style->scrolling_mode), 0, 0, 0x1C, 0x1C, 0x33, height + style->height, 2, 2, height + style->height, get_current_rotation());
 	}
 
-	image_id = RCT2_GLOBAL(0x009E32BC, uint32);
+	image_id = _unk9E32BC;
 	if (image_id == 0) {
 		image_id = SPRITE_ID_PALETTE_COLOUR_1(COLOUR_SATURATED_BROWN);
 	}
@@ -160,16 +186,22 @@ static void ride_entrance_exit_paint(uint8 direction, int height, rct_map_elemen
  *  rct2: 0x006658ED
  */
 static void park_entrance_paint(uint8 direction, int height, rct_map_element* map_element){
-	if (RCT2_GLOBAL(0x9DEA6F, uint8_t) & 1)
+	if (gTrackDesignSaveMode)
 		return;
 
+#ifdef __ENABLE_LIGHTFX__
+
+	lightfx_add_3d_light_magic_from_drawing_tile(0, 0, 155, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+
+#endif
+
 	gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_PARK;
-	RCT2_GLOBAL(0x009E32BC, uint32) = 0;
+	_unk9E32BC = 0;
 	uint32 image_id, ghost_id = 0;
 	if (map_element->flags & MAP_ELEMENT_FLAG_GHOST){
 		gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_NONE;
 		ghost_id = construction_markers[gConfigGeneral.construction_marker_colour];
-		RCT2_GLOBAL(0x009E32BC, uint32) = ghost_id;
+		_unk9E32BC = ghost_id;
 	}
 
 	rct_footpath_entry* path_entry = get_footpath_entry(map_element->properties.entrance.path_type);
@@ -207,9 +239,9 @@ static void park_entrance_paint(uint8 direction, int height, rct_map_element* ma
 
 		utf8 park_name[MAX_PATH];
 		if (gConfigGeneral.upper_case_banners) {
-			format_string_to_upper(park_name, park_text_id, gCommonFormatArgs);
+			format_string_to_upper(park_name, MAX_PATH, park_text_id, gCommonFormatArgs);
 		} else {
-			format_string(park_name, park_text_id, gCommonFormatArgs);
+			format_string(park_name, MAX_PATH, park_text_id, gCommonFormatArgs);
 		}
 
 		gCurrentFontSpriteBase = FONT_SPRITE_BASE_TINY;
@@ -250,19 +282,12 @@ void entrance_paint(uint8 direction, int height, rct_map_element* map_element){
 
 	if (gCurrentViewportFlags & VIEWPORT_FLAG_PATH_HEIGHTS &&
 		dpi->zoom_level == 0){
-		uint32 ebx =
-			(map_element->properties.entrance.type << 4) |
-			(map_element->properties.entrance.index & 0xF);
 
-		if (RCT2_ADDRESS(0x0097B974, uint8)[ebx] & 0xF){
+		if (entrance_get_directions(map_element) & 0xF){
 
 			int z = map_element->base_height * 8 + 3;
-			uint32 image_id =
-				z / 16 +
-				RCT2_GLOBAL(RCT2_ADDRESS_CONFIG_HEIGHT_MARKERS,sint16) +
-				0x20101689;
-
-			image_id -= RCT2_GLOBAL(0x01359208, sint16);
+			uint32 image_id = 0x20101689 + get_height_marker_offset() + (z / 16);
+			image_id -= gMapBaseZ;
 
 			sub_98197C(image_id, 16, 16, 1, 1, 0, height, 31, 31, z + 64, get_current_rotation());
 		}

@@ -16,6 +16,8 @@
 
 #include "common.h"
 
+#ifndef NO_RCT2
+
 #ifdef __WINDOWS__
 	#include <windows.h>
 #else
@@ -243,9 +245,9 @@ void addhook(int address, int newaddress, int stacksize, int registerargs[], int
 	{
 		perror("mprotect");
 	}
-	
+
 	memcpy((void *)address, data, i);
-	
+
 	err = mprotect((void *)0x401000, 0x8a4000 - 0x401000, PROT_READ | PROT_EXEC);
 	if (err != 0)
 	{
@@ -255,3 +257,5 @@ void addhook(int address, int newaddress, int stacksize, int registerargs[], int
 	hookfunc(hookaddress, newaddress, stacksize, registerargs, registersreturned, eaxDestinationRegister);
 	g_hooktableoffset++;
 }
+
+#endif

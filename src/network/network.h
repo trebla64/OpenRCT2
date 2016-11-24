@@ -55,7 +55,7 @@ extern "C" {
 // This define specifies which version of network stream current build uses.
 // It is used for making sure only compatible builds get connected, even within
 // single OpenRCT2 version.
-#define NETWORK_STREAM_VERSION "12"
+#define NETWORK_STREAM_VERSION "18"
 #define NETWORK_STREAM_ID OPENRCT2_VERSION "-" NETWORK_STREAM_VERSION
 
 #ifdef __cplusplus
@@ -75,12 +75,15 @@ extern "C" {
 #include "NetworkKey.h"
 #include "NetworkPacket.h"
 #include "NetworkPlayer.h"
+#include "NetworkServerAdvertiser.h"
 #include "NetworkUser.h"
 #include "TcpSocket.h"
 
 enum {
 	NETWORK_TICK_FLAG_CHECKSUMS = 1 << 0,
 };
+
+struct ObjectRepositoryItem;
 
 class Network
 {
@@ -107,8 +110,6 @@ public:
 	void KickPlayer(int playerId);
 	void SetPassword(const char* password);
 	void ShutdownClient();
-	void AdvertiseRegister();
-	void AdvertiseHeartbeat();
 	NetworkGroup* AddGroup();
 	void RemoveGroup(uint8 id);
 	uint8 GetDefaultGroup();
@@ -143,6 +144,8 @@ public:
 	void Server_Send_EVENT_PLAYER_JOINED(const char *playerName);
 	void Server_Send_EVENT_PLAYER_DISCONNECTED(const char *playerName, const char *reason);
 	void Client_Send_GAMEINFO();
+	void Client_Send_OBJECTS(const std::vector<std::string> &objects);
+	void Server_Send_OBJECTS(NetworkConnection& connection, const std::vector<const ObjectRepositoryItem *> &objects) const;
 
 	std::vector<std::unique_ptr<NetworkPlayer>> player_list;
 	std::vector<std::unique_ptr<NetworkGroup>> group_list;
@@ -204,12 +207,8 @@ private:
 	std::vector<uint8> chunk_buffer;
 	std::string password;
 	bool _desynchronised = false;
+	INetworkServerAdvertiser * _advertiser = nullptr;
 	uint32 server_connect_time = 0;
-	uint32 last_advertise_time = 0;
-	std::string advertise_token;
-	std::string advertise_key;
-	int advertise_status = 0;
-	uint32 last_heartbeat_time = 0;
 	uint8 default_group = 0;
 	SDL_RWops *_chatLogStream;
 	std::string _chatLogPath;
@@ -241,6 +240,10 @@ private:
 	void Client_Handle_EVENT(NetworkConnection& connection, NetworkPacket& packet);
 	void Client_Handle_TOKEN(NetworkConnection& connection, NetworkPacket& packet);
 	void Server_Handle_TOKEN(NetworkConnection& connection, NetworkPacket& packet);
+	void Client_Handle_OBJECTS(NetworkConnection& connection, NetworkPacket& packet);
+	void Server_Handle_OBJECTS(NetworkConnection& connection, NetworkPacket& packet);
+
+	unsigned char * save_for_network(SDL_RWops *buffer, size_t &out_size, const std::vector<const ObjectRepositoryItem *> &objects) const;
 };
 
 namespace Convert
@@ -297,6 +300,10 @@ int network_get_num_actions();
 rct_string_id network_get_action_name_string_id(unsigned int index);
 int network_can_perform_action(unsigned int groupindex, unsigned int index);
 int network_can_perform_command(unsigned int groupindex, unsigned int index);
+void network_set_pickup_peep(uint8 playerid, rct_peep* peep);
+rct_peep* network_get_pickup_peep(uint8 playerid);
+void network_set_pickup_peep_old_x(uint8 playerid, int x);
+int network_get_pickup_peep_old_x(uint8 playerid);
 
 void network_send_map();
 void network_send_chat(const char* text);

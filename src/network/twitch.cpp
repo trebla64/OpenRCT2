@@ -29,13 +29,12 @@
     #error HTTP must be enabled to use the TWITCH functionality.
 #endif
 
-#include "../core/List.hpp"
+#include <vector>
 #include "../core/Math.hpp"
 #include "../core/String.hpp"
 
 extern "C"
 {
-    #include "../addresses.h"
     #include "../config.h"
     #include "../drawing/drawing.h"
     #include "../game.h"
@@ -89,9 +88,9 @@ namespace Twitch
             json_t * isMod = json_object_get(json, "isMod");
 
             member.Name = json_string_value(name);
-            member.IsFollower = json_boolean_value(isFollower);
-            member.IsInChat = json_boolean_value(isInChat);
-            member.IsMod = json_boolean_value(isMod);
+            member.IsFollower = json_is_true(isFollower);
+            member.IsInChat = json_is_true(isInChat);
+            member.IsMod = json_is_true(isMod);
             member.Exists = false;
             member.ShouldTrack = false;
             return member;
@@ -120,7 +119,7 @@ namespace Twitch
     static void ParseMessages();
     static bool ShouldTrackMember(const AudienceMember * member);
     static bool ShouldMemberBeGuest(const AudienceMember * member);
-    static void ManageGuestNames(List<AudienceMember> &members);
+    static void ManageGuestNames(std::vector<AudienceMember> &members);
     static void ParseChatMessage(const char * message);
     static void DoChatMessageNews(const char * message);
 
@@ -329,7 +328,7 @@ namespace Twitch
         http_json_response *jsonResponse = _twitchJsonResponse;
         if (json_is_array(jsonResponse->root))
         {
-            List<AudienceMember> members;
+            std::vector<AudienceMember> members;
 
             size_t audienceCount = json_array_size(jsonResponse->root);
             for (size_t i = 0; i < audienceCount; i++)
@@ -341,7 +340,7 @@ namespace Twitch
                     member.ShouldTrack = ShouldTrackMember(&member);
                     if (ShouldMemberBeGuest(&member))
                     {
-                        members.Add(member);
+                        members.push_back(member);
                     }
                 }
             }
@@ -406,7 +405,7 @@ namespace Twitch
         return false;
     }
 
-    static void ManageGuestNames(List<AudienceMember> &members)
+    static void ManageGuestNames(std::vector<AudienceMember> &members)
     {
         // Check what followers are already in the park
         uint16 spriteIndex;
@@ -416,7 +415,7 @@ namespace Twitch
             if (is_user_string_id(peep->name_string_idx))
             {
                 utf8 buffer[256];
-                format_string(buffer, peep->name_string_idx, NULL);
+                format_string(buffer, 256, peep->name_string_idx, NULL);
 
                 AudienceMember * member = nullptr;
                 for (AudienceMember &m : members)
@@ -463,13 +462,13 @@ namespace Twitch
         }
 
         // Rename non-named peeps to followers that aren't currently in the park.
-        if (members.GetCount() > 0)
+        if (members.size() > 0)
         {
             size_t memberIndex = SIZE_MAX;
             FOR_ALL_GUESTS(spriteIndex, peep)
             {
                 size_t originalMemberIndex = memberIndex;
-                for (size_t i = memberIndex + 1; i < members.GetCount(); i++)
+                for (size_t i = memberIndex + 1; i < members.size(); i++)
                 {
                     if (!members[i].Exists)
                     {
@@ -506,27 +505,6 @@ namespace Twitch
         }
     }
 
-    /**
-     * Like strchr but allows searching for one of many characters.
-     */
-    static char * strchrm(const char * str, const char * find)
-    {
-        do
-        {
-            const char * fch = find;
-            while (*fch != '\0')
-            {
-                if (*str == *fch)
-                {
-                    return (char *)str;
-                }
-                fch++;
-            }
-        }
-        while (*str++ != '\0');
-        return nullptr;
-    }
-
     static char * strskipwhitespace(const char * str)
     {
         while (*str == ' ' || *str == '\t')
@@ -547,17 +525,16 @@ namespace Twitch
         // Skip '!'
         message++;
 
-        // Set buffer to the next word / token and skip
-        char buffer[32];
-        const char * ch = strchrm(message, " \t");
-        safe_strcpy(buffer, message, Math::Min(sizeof(buffer), (size_t)(ch - message + 1)));
-        ch = strskipwhitespace(ch);
-
-        // Check what the word / token is
-        if (String::Equals(buffer, "news", true))
-        {
-            DoChatMessageNews(ch);
+        // Check that command is "news"
+        const char *ch, *cmd;
+        for (ch = message, cmd = "news"; *cmd != '\0'; ++ch, ++cmd) {
+            if (*ch != *cmd) return;
         }
+
+        if (!isspace(*ch)) return;
+
+        ch = strskipwhitespace(ch);
+        DoChatMessageNews(ch);
     }
 
     static void DoChatMessageNews(const char * message)

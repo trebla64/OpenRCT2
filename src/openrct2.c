@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "addresses.h"
 #include "audio/audio.h"
 #include "audio/mixer.h"
 #include "config.h"
@@ -50,14 +49,20 @@
 #endif // defined(__unix__) || defined(__MACOSX__)
 
 int gExitCode;
-int fdData;
-char *segments = (void *)(GOOD_PLACE_FOR_DATA_SEGMENT);
+
+#if defined(USE_MMAP) && (defined(__unix__) || defined(__MACOSX__)) && !defined(NO_RCT2)
+	static int fdData = -1;
+#endif
+#if defined(__unix__) && !defined(NO_RCT2)
+	static char * segments = (char *)(GOOD_PLACE_FOR_DATA_SEGMENT);
+#endif
 
 int gOpenRCT2StartupAction = STARTUP_ACTION_TITLE;
 utf8 gOpenRCT2StartupActionPath[512] = { 0 };
 utf8 gExePath[MAX_PATH];
 utf8 gCustomUserDataPath[MAX_PATH] = { 0 };
 utf8 gCustomOpenrctDataPath[MAX_PATH] = { 0 };
+utf8 gCustomRCT2DataPath[MAX_PATH] = { 0 };
 utf8 gCustomPassword[MAX_PATH] = { 0 };
 
 // This should probably be changed later and allow a custom selection of things to initialise like SDL_INIT
@@ -75,7 +80,7 @@ EVP_MD_CTX *gHashCTX = NULL;
 int _finished;
 
 // Used for object movement tweening
-static struct { sint16 x, y, z; } _spritelocations1[MAX_SPRITES], _spritelocations2[MAX_SPRITES];
+static rct_xyz16 _spritelocations1[MAX_SPRITES], _spritelocations2[MAX_SPRITES];
 
 static void openrct2_loop();
 static void openrct2_setup_rct2_hooks();
@@ -85,23 +90,25 @@ void openrct2_write_full_version_info(utf8 *buffer, size_t bufferSize)
 	utf8 *ch = buffer;
 
 	// Name and version
-	strcpy(ch, OPENRCT2_NAME);
-	strcat(buffer, ", v");
-	strcat(buffer, OPENRCT2_VERSION);
+	safe_strcpy(ch, OPENRCT2_NAME ", v" OPENRCT2_VERSION, bufferSize - (ch - buffer));
+	ch = strchr(ch, '\0');
 
 	// Build information
 	if (!str_is_null_or_empty(gGitBranch)) {
-		sprintf(strchr(buffer, 0), "-%s", gGitBranch);
+		snprintf(ch, bufferSize - (ch - buffer),  "-%s", gGitBranch);
+		ch = strchr(ch, '\0');
 	}
 	if (!str_is_null_or_empty(gCommitSha1Short)) {
-		sprintf(strchr(buffer, 0), " build %s", gCommitSha1Short);
+		snprintf(ch, bufferSize - (ch - buffer), " build %s", gCommitSha1Short);
+		ch = strchr(ch, '\0');
 	}
 	if (!str_is_null_or_empty(gBuildServer)) {
-		sprintf(strchr(buffer, 0), " provided by %s", gBuildServer);
+		snprintf(ch, bufferSize - (ch - buffer), " provided by %s", gBuildServer);
+		ch = strchr(ch, '\0');
 	}
 
 #if DEBUG
-	sprintf(strchr(buffer, 0), " (DEBUG)");
+	snprintf(ch, bufferSize - (ch - buffer), " (DEBUG)");
 #endif
 }
 
@@ -117,23 +124,23 @@ static void openrct2_copy_files_over(const utf8 *originalDirectory, const utf8 *
 	}
 
 	// Create filter path
-	safe_strcpy(filter, originalDirectory, MAX_PATH);
+	safe_strcpy(filter, originalDirectory, sizeof(filter));
 	ch = strchr(filter, '*');
 	if (ch != NULL)
 		*ch = 0;
-	strcat(filter, "*");
-	strcat(filter, extension);
+	safe_strcat_path(filter, "*", sizeof(filter));
+	path_append_extension(filter, extension, sizeof(filter));
 
 	fileEnumHandle = platform_enumerate_files_begin(filter);
 	while (platform_enumerate_files_next(fileEnumHandle, &fileInfo)) {
-		safe_strcpy(newPath, newDirectory, MAX_PATH);
-		strcat(newPath, fileInfo.path);
+		safe_strcpy(newPath, newDirectory, sizeof(newPath));
+		safe_strcat_path(newPath, fileInfo.path, sizeof(newPath));
 
-		safe_strcpy(oldPath, originalDirectory, MAX_PATH);
+		safe_strcpy(oldPath, originalDirectory, sizeof(oldPath));
 		ch = strchr(oldPath, '*');
 		if (ch != NULL)
 			*ch = 0;
-		strcat(oldPath, fileInfo.path);
+		safe_strcat_path(oldPath, fileInfo.path, sizeof(oldPath));
 
 		if (!platform_file_exists(newPath))
 			platform_file_copy(oldPath, newPath, false);
@@ -142,14 +149,14 @@ static void openrct2_copy_files_over(const utf8 *originalDirectory, const utf8 *
 
 	fileEnumHandle = platform_enumerate_directories_begin(originalDirectory);
 	while (platform_enumerate_directories_next(fileEnumHandle, filter)) {
-		safe_strcpy(newPath, newDirectory, MAX_PATH);
-		strcat(newPath, filter);
+		safe_strcpy(newPath, newDirectory, sizeof(newPath));
+		safe_strcat_path(newPath, filter, sizeof(newPath));
 
 		safe_strcpy(oldPath, originalDirectory, MAX_PATH);
 		ch = strchr(oldPath, '*');
 		if (ch != NULL)
 			*ch = 0;
-		strcat(oldPath, filter);
+		safe_strcat_path(oldPath, filter, sizeof(oldPath));
 
 		if (!platform_ensure_directory_exists(newPath)) {
 			log_error("Could not create directory %s.", newPath);
@@ -162,7 +169,7 @@ static void openrct2_copy_files_over(const utf8 *originalDirectory, const utf8 *
 
 static void openrct2_set_exe_path()
 {
-	platform_get_exe_path(gExePath);
+	platform_get_exe_path(gExePath, sizeof(gExePath));
 	log_verbose("Setting exe path to %s", gExePath);
 }
 
@@ -173,10 +180,10 @@ static void openrct2_copy_original_user_files_over()
 {
 	utf8 path[MAX_PATH];
 
-	platform_get_user_directory(path, "save");
+	platform_get_user_directory(path, "save", sizeof(path));
 	openrct2_copy_files_over((utf8*)gRCT2AddressSavedGamesPath, path, ".sv6");
 
-	platform_get_user_directory(path, "landscape");
+	platform_get_user_directory(path, "landscape", sizeof(path));
 	openrct2_copy_files_over((utf8*)gRCT2AddressLandscapesPath, path, ".sc6");
 }
 
@@ -191,7 +198,7 @@ bool openrct2_initialise()
 
 	platform_resolve_openrct_data_path();
 	platform_resolve_user_data_path();
-	platform_get_user_directory(userPath, NULL);
+	platform_get_user_directory(userPath, NULL, sizeof(userPath));
 	if (!platform_ensure_directory_exists(userPath)) {
 		log_fatal("Could not create user directory (do you have write access to your documents folder?)");
 		return false;
@@ -212,7 +219,7 @@ bool openrct2_initialise()
 			gConfigGeneral.last_run_version = strndup(OPENRCT2_VERSION, strlen(OPENRCT2_VERSION));
 			config_save_default();
 			utf8 path[MAX_PATH];
-			config_get_default_path(path);
+			config_get_default_path(path, sizeof(path));
 			log_fatal("An RCT2 install directory must be specified! Please edit \"game_path\" in %s.", path);
 			return false;
 		}
@@ -229,6 +236,13 @@ bool openrct2_initialise()
 	// 	log_fatal("OpenRCT2 is already running.");
 	// 	return false;
 	// }
+
+	if (!rct2_init_directories()) {
+		return false;
+	}
+	if (!rct2_startup_checks()) {
+		return false;
+	}
 
 	if (!gOpenRCT2Headless) {
 		audio_init();
@@ -257,20 +271,6 @@ bool openrct2_initialise()
 	chat_init();
 
 	openrct2_copy_original_user_files_over();
-
-	// TODO move to audio initialise function
-	if (str_is_null_or_empty(gConfigSound.device)) {
-		Mixer_Init(NULL);
-		gAudioCurrentDevice = 0;
-	} else {
-		Mixer_Init(gConfigSound.device);
-		for (int i = 0; i < gAudioDeviceCount; i++) {
-			if (strcmp(gAudioDevices[i].name, gConfigSound.device) == 0) {
-				gAudioCurrentDevice = i;
-			}
-		}
-	}
-
 	return true;
 }
 
@@ -287,13 +287,16 @@ void openrct2_launch()
 		switch (gOpenRCT2StartupAction) {
 		case STARTUP_ACTION_INTRO:
 			gIntroState = INTRO_STATE_PUBLISHER_BEGIN;
+			title_load();
 			break;
 		case STARTUP_ACTION_TITLE:
-			gScreenFlags = SCREEN_FLAGS_TITLE_DEMO;
+			title_load();
 			break;
 		case STARTUP_ACTION_OPEN:
 			assert(gOpenRCT2StartupActionPath != NULL);
 			if (!rct2_open_file(gOpenRCT2StartupActionPath)) {
+				fprintf(stderr, "Failed to load '%s'", gOpenRCT2StartupActionPath);
+				title_load();
 				break;
 			}
 
@@ -319,7 +322,9 @@ void openrct2_launch()
 			if (strlen(gOpenRCT2StartupActionPath) == 0) {
 				editor_load();
 			} else {
-				editor_load_landscape(gOpenRCT2StartupActionPath);
+				if (!editor_load_landscape(gOpenRCT2StartupActionPath)) {
+					title_load();
+				}
 			}
 			break;
 		}
@@ -352,7 +357,7 @@ void openrct2_dispose()
 #ifndef DISABLE_NETWORK
 	EVP_MD_CTX_destroy(gHashCTX);
 #endif // DISABLE_NETWORK
-#if defined(USE_MMAP) && (defined(__unix__) || defined(__MACOSX__))
+#if defined(USE_MMAP) && (defined(__unix__) || defined(__MACOSX__)) && !defined(NO_RCT2)
 	munmap(segments, 12079104);
 	close(fdData);
 #endif
@@ -405,21 +410,13 @@ static void openrct2_loop()
 
 			while (uncapTick <= currentTick && currentTick - uncapTick > 25) {
 				// Get the original position of each sprite
-				for (uint16 i = 0; i < MAX_SPRITES; i++) {
-					_spritelocations1[i].x = get_sprite(i)->unknown.x;
-					_spritelocations1[i].y = get_sprite(i)->unknown.y;
-					_spritelocations1[i].z = get_sprite(i)->unknown.z;
-				}
+				store_sprite_locations(_spritelocations1);
 
 				// Update the game so the sprite positions update
 				rct2_update();
 
 				// Get the next position of each sprite
-				for (uint16 i = 0; i < MAX_SPRITES; i++) {
-					_spritelocations2[i].x = get_sprite(i)->unknown.x;
-					_spritelocations2[i].y = get_sprite(i)->unknown.y;
-					_spritelocations2[i].z = get_sprite(i)->unknown.z;
-				}
+				store_sprite_locations(_spritelocations2);
 
 				uncapTick += 25;
 			}
@@ -461,12 +458,11 @@ static void openrct2_loop()
 			currentTick = SDL_GetTicks();
 			ticksElapsed = currentTick - lastTick;
 			if (ticksElapsed < 25) {
-				if (ticksElapsed < 15)
-					SDL_Delay(15 - ticksElapsed);
-				continue;
+				SDL_Delay(25 - ticksElapsed);
+				lastTick += 25;
+			} else {
+				lastTick = currentTick;
 			}
-
-			lastTick = currentTick;
 
 			platform_process_messages();
 
@@ -496,6 +492,12 @@ void openrct2_reset_object_tween_locations()
 	}
 }
 
+static void openrct2_get_segment_data_path(char * buffer, size_t bufferSize)
+{
+	platform_get_exe_path(buffer, bufferSize);
+	safe_strcat_path(buffer, "openrct2_data", bufferSize);
+}
+
 /**
  * Loads RCT2's data model and remaps the addresses.
  * @returns true if the data integrity check succeeded, otherwise false.
@@ -506,7 +508,10 @@ bool openrct2_setup_rct2_segment()
 	// necessary. Windows does not need to do this as OpenRCT2 runs as a DLL loaded from the Windows PE.
 	int len = 0x01429000 - 0x8a4000; // 0xB85000, 12079104 bytes or around 11.5MB
 	int err = 0;
-#if defined(USE_MMAP) && (defined(__unix__) || defined(__MACOSX__))
+	// in some configurations err and len may be unused
+	UNUSED(err);
+	UNUSED(len);
+#if defined(USE_MMAP) && (defined(__unix__) || defined(__MACOSX__)) && !defined(NO_RCT2)
 	#define RDATA_OFFSET 0x004A4000
 	#define DATASEG_OFFSET 0x005E2000
 
@@ -539,7 +544,9 @@ bool openrct2_setup_rct2_segment()
 	// TODO: UGLY, UGLY HACK!
 	//off_t file_size = 6750208;
 
-	fdData = open("openrct2_data", O_RDONLY);
+	utf8 segmentDataPath[MAX_PATH];
+	openrct2_get_segment_data_path(segmentDataPath, sizeof(segmentDataPath));
+	fdData = open(segmentDataPath, O_RDONLY);
 	if (fdData < 0)
 	{
 		log_fatal("failed to load openrct2_data");
@@ -554,7 +561,7 @@ bool openrct2_setup_rct2_segment()
 	}
 #endif // defined(USE_MMAP) && (defined(__unix__) || defined(__MACOSX__))
 
-#if defined(__unix__)
+#if defined(__unix__) && !defined(NO_RCT2)
 	int pageSize = getpagesize();
 	int numPages = (len + pageSize - 1) / pageSize;
 	unsigned char *dummy = malloc(numPages);
@@ -594,7 +601,7 @@ bool openrct2_setup_rct2_segment()
 	}
 #if !defined(USE_MMAP)
 	// section: text
-	err = mprotect((void *)0x401000, 0x8a4000 - 0x401000, PROT_READ | PROT_EXEC);
+	err = mprotect((void *)0x401000, 0x8a4000 - 0x401000, PROT_READ | PROT_EXEC | PROT_WRITE);
 	if (err != 0)
 	{
 		perror("mprotect");
@@ -614,7 +621,10 @@ bool openrct2_setup_rct2_segment()
 		log_error("VirtualAlloc, segments = %p, GetLastError = 0x%x", segments, GetLastError());
 		return false;
 	}
-	SDL_RWops * rw = SDL_RWFromFile("openrct2_data", "rb");
+
+	utf8 segmentDataPath[MAX_PATH];
+	openrct2_get_segment_data_path(segmentDataPath, sizeof(segmentDataPath));
+	SDL_RWops * rw = SDL_RWFromFile(segmentDataPath, "rb");
 	if (rw == NULL)
 	{
 		log_error("failed to load file");
@@ -627,6 +637,7 @@ bool openrct2_setup_rct2_segment()
 	SDL_RWclose(rw);
 #endif // defined(USE_MMAP) && defined(__WINDOWS__)
 
+#if !defined(NO_RCT2) && defined(USE_MMAP)
 	// Check that the expected data is at various addresses.
 	// Start at 0x9a6000, which is start of .data, to skip the region containing addresses to DLL
 	// calls, which can be changed by windows/wine loader.
@@ -639,7 +650,7 @@ bool openrct2_setup_rct2_segment()
 		log_warning("c2 = %u, expected %u, match %d", c2, exp_c2, c2 == exp_c2);
 		return false;
 	}
-
+#endif
 	return true;
 }
 
@@ -650,17 +661,3 @@ static void openrct2_setup_rct2_hooks()
 {
 	// None for now
 }
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1900)
-/**
- * Temporary fix for libraries not compiled with VS2015
- */
-FILE **__iob_func()
-{
-	static FILE* streams[3];
-	streams[0] = stdin;
-	streams[1] = stdout;
-	streams[2] = stderr;
-	return streams;
-}
-#endif

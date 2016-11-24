@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../config.h"
 #include "../game.h"
 #include "../drawing/drawing.h"
@@ -296,7 +295,6 @@ void window_title_editor_close(rct_window *w)
 static void window_title_editor_mouseup(rct_window *w, int widgetIndex)
 {
 	char path[MAX_PATH];
-	char separator = platform_get_path_separator();
 	int defaultPreset, playing, inTitle, i, commandEditorOpen;
 
 	defaultPreset = (gCurrentTitleSequence < TITLE_SEQUENCE_DEFAULT_PRESETS);
@@ -361,12 +359,11 @@ static void window_title_editor_mouseup(rct_window *w, int widgetIndex)
 			}
 			else {
 				// TODO: This should probably use a constant
-				platform_get_user_directory(path, "title sequences");
-				strcat(path, gConfigTitleSequences.presets[gCurrentTitleSequence].name);
-				strncat(path, &separator, 1);
+				platform_get_user_directory(path, "title sequences", sizeof(path));
+				safe_strcat_path(path, gConfigTitleSequences.presets[gCurrentTitleSequence].name, sizeof(path));
 			}
 
-			strcat(path, gConfigTitleSequences.presets[gCurrentTitleSequence].saves[w->selected_list_item]);
+			safe_strcat_path(path, gConfigTitleSequences.presets[gCurrentTitleSequence].saves[w->selected_list_item], sizeof(path));
 			game_load_save(path);
 			window_title_editor_open(1);
 		}
@@ -666,12 +663,9 @@ void window_title_editor_scrollmousedown(rct_window *w, int scrollIndex, int x, 
 void window_title_editor_scrollmouseover(rct_window *w, int scrollIndex, int x, int y)
 {
 	int index;
-	sint16 oldHighlightedIndex;
 
 	index = y / ROW_HEIGHT;
 	switch (w->selected_tab) {
-	oldHighlightedIndex = _window_title_editor_highlighted_index;
-	_window_title_editor_highlighted_index = -1;
 	case WINDOW_TITLE_EDITOR_TAB_SAVES:
 		if (index < gConfigTitleSequences.presets[gCurrentTitleSequence].num_saves)
 			_window_title_editor_highlighted_index = (sint16)index;
@@ -738,7 +732,7 @@ static void window_title_editor_textinput(rct_window *w, int widgetIndex, char *
 
 void window_title_editor_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	set_format_arg(0, uint16, STR_LIST);
+	set_format_arg(0, rct_string_id, STR_LIST);
 }
 
 void window_title_editor_invalidate(rct_window *w)
@@ -831,9 +825,8 @@ void window_title_editor_invalidate(rct_window *w)
 	window_title_editor_widgets[WIDX_TITLE_EDITOR_SKIP].top = w->height - 32;
 	window_title_editor_widgets[WIDX_TITLE_EDITOR_SKIP].bottom = w->height - 16;
 
-	int defaultPreset, playing, inTitle;
+	int playing, inTitle;
 
-	defaultPreset = (gCurrentTitleSequence < TITLE_SEQUENCE_DEFAULT_PRESETS);
 	playing = (gCurrentTitleSequence == gCurrentPreviewTitleSequence) && ((gScreenFlags & SCREEN_FLAGS_TITLE_DEMO) == SCREEN_FLAGS_TITLE_DEMO);
 	inTitle = ((gScreenFlags & SCREEN_FLAGS_TITLE_DEMO) == SCREEN_FLAGS_TITLE_DEMO);
 
@@ -883,15 +876,14 @@ void window_title_editor_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int 
 {
 	char buffer[256];
 	bool selected, hover, error, inTitle;
-	int y, x, x2, width;
+	int y, x;
 
 	gfx_fill_rect(dpi, dpi->x, dpi->y, dpi->x + dpi->width - 1, dpi->y + dpi->height - 1, ColourMapA[w->colours[1]].mid_light);
 
 	title_sequence *title = &gConfigTitleSequences.presets[gCurrentTitleSequence];
 
 	inTitle = ((gScreenFlags & SCREEN_FLAGS_TITLE_DEMO) == SCREEN_FLAGS_TITLE_DEMO);
-	y = 0; x = 0; x2 = 0; width = 0;
-	width = w->widgets[WIDX_TITLE_EDITOR_LIST].right - w->widgets[WIDX_TITLE_EDITOR_LIST].left;
+	y = 0; x = 0;
 	if (w->selected_tab == WINDOW_TITLE_EDITOR_TAB_SAVES) {
 
 		for (int i = 0; i < title->num_saves; i++, y += ROW_HEIGHT) {
@@ -911,19 +903,17 @@ void window_title_editor_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int 
 
 			set_format_arg(0, uintptr_t, &title->saves[i]);
 			if (selected || hover) {
-				format_string(buffer, STR_STRING, gCommonFormatArgs);
+				format_string(buffer, 256, STR_STRING, gCommonFormatArgs);
 			}
 			else {
-				format_string(buffer + 1, STR_STRING, gCommonFormatArgs);
-				buffer[0] = FORMAT_BLACK;
+				format_string(buffer + 1, 255, STR_STRING, gCommonFormatArgs);
+				buffer[0] = (utf8)FORMAT_BLACK;
 			}
 			set_format_arg(0, uintptr_t, &buffer);
 			gfx_draw_string_left(dpi, STR_STRING, gCommonFormatArgs, w->colours[1], x + 5, y);
 		}
 	}
 	else if (w->selected_tab == WINDOW_TITLE_EDITOR_TAB_SCRIPT) {
-
-		x2 = 92;
 		for (int i = 0; i < title->num_commands; i++, y += ROW_HEIGHT) {
 			title_command *command = &title->commands[i];
 			selected = false;
@@ -988,11 +978,11 @@ void window_title_editor_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int 
 			}
 
 			if ((selected || hover) && !error) {
-				format_string(buffer, commandName, gCommonFormatArgs);
+				format_string(buffer, 256, commandName, gCommonFormatArgs);
 			}
 			else {
-				format_string(buffer + 1, commandName, gCommonFormatArgs);
-				buffer[0] = (error ? ((selected || hover) ? FORMAT_LIGHTPINK : FORMAT_RED) : FORMAT_BLACK);
+				format_string(buffer + 1, 255, commandName, gCommonFormatArgs);
+				buffer[0] = (utf8)(error ? ((selected || hover) ? FORMAT_LIGHTPINK : FORMAT_RED) : FORMAT_BLACK);
 			}
 			set_format_arg(0, uintptr_t, &buffer);
 			gfx_draw_string_left(dpi, STR_STRING, gCommonFormatArgs, w->colours[1], x + 5, y);

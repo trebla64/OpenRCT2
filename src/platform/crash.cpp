@@ -24,9 +24,6 @@
     #include <breakpad/client/windows/handler/exception_handler.h>
     #include <string>
     #include <ShlObj.h>
-#elif defined(__LINUX__)
-    #include <breakpad/client/linux/handler/exception_handler.h>
-    #define BREAKPAD_PATH "/tmp"
 #else
     #error Breakpad support not implemented yet for this platform
 #endif
@@ -40,6 +37,15 @@ extern "C" {
 #include "../core/Console.hpp"
 
 #define WSZ(x) L"" x
+
+#ifdef OPENRCT2_COMMIT_SHA1_SHORT
+    const wchar_t *_wszCommitSha1Short = WSZ(OPENRCT2_COMMIT_SHA1_SHORT);
+#else
+    const wchar_t *_wszCommitSha1Short = WSZ("");
+#endif
+
+// OPENRCT2_ARCHITECTURE is required to be defined in version.h
+const wchar_t *_wszArchitecture = WSZ(OPENRCT2_ARCHITECTURE);
 
 static bool OnCrash(const wchar_t * dumpPath,
                     const wchar_t * miniDumpId,
@@ -62,12 +68,12 @@ static bool OnCrash(const wchar_t * dumpPath,
     // Get filenames
     wchar_t dumpFilePath[MAX_PATH];
     wchar_t saveFilePath[MAX_PATH];
-    wsprintfW(dumpFilePath, L"%s%s.dmp", dumpPath, miniDumpId);
-    wsprintfW(saveFilePath, L"%s%s.sv6", dumpPath, miniDumpId);
+    swprintf_s(dumpFilePath, sizeof(dumpFilePath), L"%s%s.dmp", dumpPath, miniDumpId);
+    swprintf_s(saveFilePath, sizeof(saveFilePath), L"%s%s.sv6", dumpPath, miniDumpId);
 
     // Try to rename the files
     wchar_t dumpFilePathNew[MAX_PATH];
-    wsprintfW(dumpFilePathNew, L"%s%s(%s).dmp", dumpPath, miniDumpId, WSZ(OPENRCT2_COMMIT_SHA1_SHORT));
+    swprintf_s(dumpFilePathNew, sizeof(dumpFilePathNew), L"%s%s(%s_%s).dmp", dumpPath, miniDumpId, _wszCommitSha1Short, _wszArchitecture);
     if (_wrename(dumpFilePath, dumpFilePathNew) == 0)
     {
         std::wcscpy(dumpFilePath, dumpFilePathNew);
@@ -78,7 +84,7 @@ static bool OnCrash(const wchar_t * dumpPath,
     wprintf(L"Dump File Path: %s\n", dumpFilePath);
     wprintf(L"Dump Id: %s\n", miniDumpId);
     wprintf(L"Version: %s\n", WSZ(OPENRCT2_VERSION));
-    wprintf(L"Commit: %s\n", WSZ(OPENRCT2_COMMIT_SHA1_SHORT));
+    wprintf(L"Commit: %s\n", _wszCommitSha1Short);
 
     utf8 * saveFilePathUTF8 = widechar_to_utf8(saveFilePath);
     SDL_RWops * rw = SDL_RWFromFile(saveFilePathUTF8, "wb+");
@@ -101,15 +107,15 @@ static bool OnCrash(const wchar_t * dumpPath,
                MessageFormat,
                dumpFilePath,
                WSZ(OPENRCT2_VERSION),
-               WSZ(OPENRCT2_COMMIT_SHA1_SHORT));
+               _wszCommitSha1Short);
 
     // Cannot use platform_show_messagebox here, it tries to set parent window already dead.
     MessageBoxW(NULL, message, WSZ(OPENRCT2_NAME), MB_OK | MB_ICONERROR);
     HRESULT coInitializeResult = CoInitialize(NULL);
     if (SUCCEEDED(coInitializeResult))
     {
-        ITEMIDLIST * pidl = ILCreateFromPathW(dumpPath);
-        ITEMIDLIST * files[2];
+        LPITEMIDLIST pidl = ILCreateFromPathW(dumpPath);
+        LPITEMIDLIST files[2];
         uint32 numFiles = 0;
 
         files[numFiles++] = ILCreateFromPathW(dumpFilePath);
@@ -135,7 +141,7 @@ static bool OnCrash(const wchar_t * dumpPath,
 static std::wstring GetDumpDirectory()
 {
     char userDirectory[MAX_PATH];
-    platform_get_user_directory(userDirectory, NULL);
+    platform_get_user_directory(userDirectory, NULL, sizeof(userDirectory));
 
     wchar_t * userDirectoryW = utf8_to_widechar(userDirectory);
     auto result = std::wstring(userDirectoryW);
@@ -144,10 +150,10 @@ static std::wstring GetDumpDirectory()
     return result;
 }
 
-#endif // USE_BREAKPAD
-
 // Using non-null pipe name here lets breakpad try setting OOP crash handling
 constexpr const wchar_t * PipeName = L"openrct2-bpad";
+
+#endif // USE_BREAKPAD
 
 extern "C" CExceptionHandler crash_init()
 {

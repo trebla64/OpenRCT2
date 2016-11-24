@@ -22,6 +22,7 @@
 #include "../localisation/localisation.h"
 #include "../interface/widget.h"
 #include "../interface/window.h"
+#include "../util/util.h"
 #include "dropdown.h"
 
 enum WINDOW_CUSTOM_CURRENCY_WIDGET_IDX {
@@ -198,7 +199,7 @@ static void custom_currency_window_mouseup(rct_window *w, int widgetIndex)
 			WIDX_RATE,
 			STR_RATE_INPUT_TITLE,
 			STR_RATE_INPUT_DESC,
-			5182,
+			STR_FORMAT_INTEGER,
 			(uint32)CurrencyDescriptors[CURRENCY_CUSTOM].rate,
 			CURRENCY_RATE_MAX_NUM_DIGITS
 		);
@@ -238,13 +239,13 @@ static void custom_currency_window_text_input(struct rct_window *w, int widgetIn
 	char* end;
 	switch(widgetIndex){
 	case WIDX_SYMBOL_TEXT:
-		strncpy(
+		safe_strcpy(
 			CurrencyDescriptors[CURRENCY_CUSTOM].symbol_unicode,
 			text,
 			CURRENCY_SYMBOL_MAX_SIZE
 		);
 
-		strncpy(
+		safe_strcpy(
 			gConfigGeneral.custom_currency_symbol,
 			CurrencyDescriptors[CURRENCY_CUSTOM].symbol_unicode,
 			CURRENCY_SYMBOL_MAX_SIZE

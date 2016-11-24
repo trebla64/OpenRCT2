@@ -17,7 +17,6 @@
 #include <stdarg.h>
 #include <SDL_scancode.h>
 
-#include "../addresses.h"
 #include "../drawing/drawing.h"
 #include "../localisation/localisation.h"
 #include "../localisation/user.h"
@@ -25,10 +24,10 @@
 #include "../world/park.h"
 #include "../util/sawyercoding.h"
 #include "../config.h"
-#include "../cursors.h"
 #include "../game.h"
 #include "../input.h"
 #include "../network/twitch.h"
+#include "../network/network.h"
 #include "../object.h"
 #include "../object/ObjectManager.h"
 #include "../object/ObjectRepository.h"
@@ -169,7 +168,7 @@ void console_draw(rct_drawpixelinfo *dpi)
 
 	// Background
 	console_invalidate();
-	gfx_fill_rect(dpi, _consoleLeft, _consoleTop, _consoleRight, _consoleBottom, 0x2000000 | 56);
+	gfx_filter_rect(dpi, _consoleLeft, _consoleTop, _consoleRight, _consoleBottom, PALETTE_TRANSLUCENT_LIGHT_BLUE_HIGHLIGHT);
 
 	int x = _consoleLeft + 4;
 	int y = _consoleTop + 4;
@@ -203,13 +202,13 @@ void console_draw(rct_drawpixelinfo *dpi)
 			break;
 		drawLines++;
 
-		int lineLength = min(sizeof(lineBuffer) - (size_t)utf8_get_codepoint_length(FORMAT_WHITE), (size_t)(nextLine - ch));
+		size_t lineLength = min(sizeof(lineBuffer) - (size_t)utf8_get_codepoint_length(FORMAT_WHITE), (size_t)(nextLine - ch));
 		lineCh = lineBuffer;
 		lineCh = utf8_write_codepoint(lineCh, FORMAT_WHITE);
-		strncpy(lineCh, ch, lineLength);
+		memcpy(lineCh, ch, lineLength);
 		lineCh[lineLength] = 0;
 
-		gfx_draw_string(dpi, lineBuffer, 100, x, y);	  //Value 100 outlines the letters
+		gfx_draw_string(dpi, lineBuffer, COLOUR_LIGHT_PURPLE | COLOUR_FLAG_OUTLINE | COLOUR_FLAG_INSET, x, y);
 
 		x = gLastDrawStringX;
 
@@ -227,8 +226,8 @@ void console_draw(rct_drawpixelinfo *dpi)
 	// Draw current line
 	lineCh = lineBuffer;
 	lineCh = utf8_write_codepoint(lineCh, FORMAT_WHITE);
-	strcpy(lineCh, _consoleCurrentLine);
-	gfx_draw_string(dpi, lineBuffer, 255, x, y);
+	safe_strcpy(lineCh, _consoleCurrentLine, sizeof(lineBuffer) - (lineCh - lineBuffer));
+	gfx_draw_string(dpi, lineBuffer, TEXT_COLOUR_255, x, y);
 
 	// Draw caret
 	if (_consoleCaretTicks < 15) {
@@ -296,14 +295,15 @@ static void console_write_prompt()
 
 void console_write(const utf8 *src)
 {
-	int charactersRemainingInBuffer = CONSOLE_BUFFER_SIZE - (_consoleBufferPointer - _consoleBuffer) - 1;
-	int charactersToWrite = strlen(src);
-	int bufferShift = charactersToWrite - charactersRemainingInBuffer;
+	size_t charactersRemainingInBuffer = CONSOLE_BUFFER_SIZE - (_consoleBufferPointer - _consoleBuffer) - 1;
+	size_t charactersToWrite = strlen(src);
+	size_t bufferShift = charactersToWrite - charactersRemainingInBuffer;
 	if (charactersToWrite > charactersRemainingInBuffer) {
 		memmove(_consoleBuffer, _consoleBuffer + bufferShift, CONSOLE_BUFFER_SIZE - bufferShift);
 		_consoleBufferPointer -= bufferShift;
+		charactersRemainingInBuffer = CONSOLE_BUFFER_SIZE - (_consoleBufferPointer - _consoleBuffer) - 1;
 	}
-	strcpy(_consoleBufferPointer, src);
+	safe_strcpy(_consoleBufferPointer, src, charactersRemainingInBuffer);
 	_consoleBufferPointer += charactersToWrite;
 	console_update_scroll();
 }
@@ -316,15 +316,15 @@ void console_writeline(const utf8 *src)
 
 void console_writeline_error(const utf8 *src)
 {
-	strcpy(_consoleErrorBuffer + 1, src);
-	_consoleErrorBuffer[0] = FORMAT_RED;
+	safe_strcpy(_consoleErrorBuffer + 1, src, CONSOLE_BUFFER_2_SIZE - 1);
+	_consoleErrorBuffer[0] = (utf8)FORMAT_RED;
 	console_writeline(_consoleErrorBuffer);
 }
 
 void console_writeline_warning(const utf8 *src)
 {
-	strcpy(_consoleErrorBuffer + 1, src);
-	_consoleErrorBuffer[0] = FORMAT_YELLOW;
+	safe_strcpy(_consoleErrorBuffer + 1, src, CONSOLE_BUFFER_2_SIZE - 1);
+	_consoleErrorBuffer[0] = (utf8)FORMAT_YELLOW;
 	console_writeline(_consoleErrorBuffer);
 }
 
@@ -332,7 +332,7 @@ void console_printf(const utf8 *format, ...)
 {
 	va_list list;
 	va_start(list, format);
-	vsprintf(_consolePrintfBuffer, format, list);
+	vsnprintf(_consolePrintfBuffer, sizeof(_consolePrintfBuffer), format, list);
 	va_end(list);
 	console_writeline(_consolePrintfBuffer);
 }
@@ -450,22 +450,19 @@ static int cc_rides(const utf8 **argv, int argc)
 			int i;
 			FOR_ALL_RIDES(i, ride) {
 				char name[128];
-				format_string(name, ride->name, &ride->name_arguments);
+				format_string(name, 128, ride->name, &ride->name_arguments);
 				console_printf("rides %03d type: %02u subtype %03u name %s", i, ride->type, ride->subtype, name);
 			}
 		} else if (strcmp(argv[0], "set") == 0) {
 			if (argc < 4) {
 				console_printf("rides set type <ride id> <ride type>");
+				console_printf("rides set friction <ride id> <friction value>");
 				return 0;
 			}
 			if (strcmp(argv[1], "type") == 0) {
-				int subtype;
 				bool int_valid[3] = { 0 };
 				int ride_index = console_parse_int(argv[2], &int_valid[0]);
 				int type = console_parse_int(argv[3], &int_valid[1]);
-				if (argc > 4) {
-					subtype = console_parse_int(argv[4], &int_valid[2]);
-				}
 				if (!int_valid[0] || !int_valid[1]) {
 					console_printf("This command expects integer arguments");
 				} else if (ride_index < 0) {
@@ -473,7 +470,6 @@ static int cc_rides(const utf8 **argv, int argc)
 				} else {
 					gGameCommandErrorTitle = STR_CANT_CHANGE_OPERATING_MODE;
 					int res = game_do_command(0, (type << 8) | 1, 0, (RIDE_SETTING_RIDE_TYPE << 8) | ride_index, GAME_COMMAND_SET_RIDE_SETTING, 0, 0);
-					rct_ride *ride = get_ride(ride_index);
 					if (res == MONEY32_UNDEFINED) {
 						console_printf("That didn't work");
 					}
@@ -482,7 +478,7 @@ static int cc_rides(const utf8 **argv, int argc)
 				bool int_valid[2] = { 0 };
 				int ride_index = console_parse_int(argv[2], &int_valid[0]);
 				int friction = console_parse_int(argv[3], &int_valid[1]);
-					
+
 				if (ride_index < 0) {
 					console_printf("Ride index must not be negative");
 				} else if (!int_valid[0] || !int_valid[1]) {
@@ -501,7 +497,7 @@ static int cc_rides(const utf8 **argv, int argc)
 								vehicle->friction=friction;
 								vehicle_index=vehicle->next_vehicle_on_train;
 							}
-						}			
+						}
 					}
 				}
 			}
@@ -520,7 +516,7 @@ static int cc_staff(const utf8 **argv, int argc)
 			int i;
 			FOR_ALL_STAFF(i, peep) {
 				char name[128];
-				format_string(name, peep->name_string_idx, &peep->id);
+				format_string(name, 128, peep->name_string_idx, &peep->id);
 				console_printf("staff id %03d type: %02u energy %03u name %s", i, peep->staff_type, peep->energy, name);
 			}
 		} else if (strcmp(argv[0], "set") == 0) {
@@ -533,7 +529,7 @@ static int cc_staff(const utf8 **argv, int argc)
 				bool int_valid[3] = { 0 };
 				int_val[0] = console_parse_int(argv[2], &int_valid[0]);
 				int_val[1] = console_parse_int(argv[3], &int_valid[1]);
-				
+
 				if (int_valid[0] && int_valid[1] && ((GET_PEEP(int_val[0])) != NULL)) {
 					rct_peep *peep = GET_PEEP(int_val[0]);
 
@@ -663,6 +659,21 @@ static int cc_get(const utf8 **argv, int argc)
 		}
 		else if (strcmp(argv[0], "window_limit") == 0) {
 			console_printf("window_limit %d", gConfigGeneral.window_limit);
+		}
+		else if (strcmp(argv[0], "render_weather_effects") == 0) {
+			console_printf("render_weather_effects %d", gConfigGeneral.render_weather_effects);
+		}
+		else if (strcmp(argv[0], "render_weather_gloom") == 0) {
+			console_printf("render_weather_gloom %d", gConfigGeneral.render_weather_gloom);
+		}
+		else if (strcmp(argv[0], "cheat_sandbox_mode") == 0) {
+			console_printf("cheat_sandbox_mode %d", gCheatsSandboxMode);
+		}
+		else if (strcmp(argv[0], "cheat_disable_clearance_checks") == 0) {
+			console_printf("cheat_disable_clearance_checks %d", gCheatsDisableClearanceChecks);
+		}
+		else if (strcmp(argv[0], "cheat_disable_support_limits") == 0) {
+			console_printf("cheat_disable_support_limits %d", gCheatsDisableSupportLimits);
 		}
 		else {
 			console_writeline_warning("Invalid variable.");
@@ -836,6 +847,55 @@ static int cc_set(const utf8 **argv, int argc)
 			window_set_window_limit(int_val[0]);
 			console_execute_silent("get window_limit");
 		}
+		else if (strcmp(argv[0], "render_weather_effects") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			gConfigGeneral.render_weather_effects = (int_val[0] != 0);
+			config_save_default();
+			console_execute_silent("get render_weather_effects");
+		}
+		else if (strcmp(argv[0], "render_weather_gloom") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			gConfigGeneral.render_weather_gloom = (int_val[0] != 0);
+			config_save_default();
+			console_execute_silent("get render_weather_gloom");
+		}
+		else if (strcmp(argv[0], "cheat_sandbox_mode") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			if (gCheatsSandboxMode != (int_val[0] != 0)) {
+				if (game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_SANDBOXMODE, (int_val[0] != 0), GAME_COMMAND_CHEAT, 0, 0) != MONEY32_UNDEFINED) {
+					//Change it locally so it shows the accurate value in the 
+					//"console_execute_silent("get cheat_sandbox_mode")" line when in network client mode
+					gCheatsSandboxMode = (int_val[0] != 0);
+				}
+				else {
+					console_writeline_error("Network error: Permission denied!");
+				}
+			}
+			console_execute_silent("get cheat_sandbox_mode");
+		}
+		else if (strcmp(argv[0], "cheat_disable_clearance_checks") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			if (gCheatsDisableClearanceChecks != (int_val[0] != 0)) {
+				if (game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_DISABLECLEARANCECHECKS, (int_val[0] != 0), GAME_COMMAND_CHEAT, 0, 0) != MONEY32_UNDEFINED) {
+					//Change it locally so it shows the accurate value in the 
+					//"console_execute_silent("get cheat_disable_clearance_checks")" line when in network client mode
+					gCheatsDisableClearanceChecks = (int_val[0] != 0);
+				}
+				else {
+					console_writeline_error("Network error: Permission denied!");
+				}
+			}
+			console_execute_silent("get cheat_disable_clearance_checks");
+		}
+		else if (strcmp(argv[0], "cheat_disable_support_limits") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
+			if (gCheatsDisableSupportLimits != (int_val[0] != 0)) {
+				if (game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_DISABLESUPPORTLIMITS, (int_val[0] != 0), GAME_COMMAND_CHEAT, 0, 0) != MONEY32_UNDEFINED) {
+					//Change it locally so it shows the accurate value in the 
+					//"console_execute_silent("get cheat_disable_support_limits")" line when in network client mode
+					gCheatsDisableSupportLimits = (int_val[0] != 0);
+				}
+				else {
+					console_writeline_error("Network error: Permission denied!");
+				}
+			}
+			console_execute_silent("get cheat_disable_support_limits");
+		}
 		else if (invalidArgs) {
 			console_writeline_error("Invalid arguments.");
 		}
@@ -908,10 +968,6 @@ static int cc_load_object(const utf8 **argv, int argc) {
 			gSilentResearch = false;
 		}
 		else if (objectType == OBJECT_TYPE_SCENERY_SETS) {
-			rct_scenery_set_entry *scenerySetEntry;
-
-			scenerySetEntry = get_scenery_group_entry(groupIndex);
-
 			research_insert(true, groupIndex, RESEARCH_CATEGORY_SCENERYSET);
 
 			gSilentResearch = true;
@@ -1024,6 +1080,11 @@ utf8* console_variable_table[] = {
 	"location",
 	"window_scale",
 	"window_limit",
+	"render_weather_effects",
+	"render_weather_gloom",
+	"cheat_sandbox_mode",
+	"cheat_disable_clearance_checks",
+	"cheat_disable_support_limits",
 };
 utf8* console_window_table[] = {
 	"object_selection",
@@ -1125,7 +1186,7 @@ void console_execute_silent(const utf8 *src)
 				break;
 			end++;
 		}
-		int length = end - start;
+		size_t length = end - start;
 
 		if (length > 0) {
 			utf8 *arg = malloc(length + 1);
@@ -1169,7 +1230,7 @@ void console_execute_silent(const utf8 *src)
 		utf8 output[128];
 		utf8 *dst = output;
 		dst = utf8_write_codepoint(dst, FORMAT_TOPAZ);
-		strcpy(dst, "Unknown command. Type help to list available commands.");
+		safe_strcpy(dst, "Unknown command. Type help to list available commands.", sizeof(output) - (dst - output));
 		console_writeline(output);
 	}
 }

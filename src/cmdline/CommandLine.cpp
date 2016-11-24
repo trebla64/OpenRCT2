@@ -14,6 +14,8 @@
  *****************************************************************************/
 #pragma endregion
 
+#include "../core/Guard.hpp"
+
 extern "C"
 {
     #include "../platform/platform.h"
@@ -73,7 +75,7 @@ bool CommandLineArgEnumerator::TryPopInteger(sint32 * result)
         *result = (sint32)atol(arg);
         return true;
     }
-    
+
     return false;
 }
 
@@ -85,7 +87,7 @@ bool CommandLineArgEnumerator::TryPopReal(float * result)
         *result = (float)atof(arg);
         return true;
     }
-    
+
     return false;
 }
 
@@ -416,7 +418,7 @@ namespace CommandLine
                     Console::Error::WriteLine("Expected value for option: %s", optionName);
                     return false;
                 }
-                
+
                 if (!ParseOptionValue(option, valueString))
                 {
                     return false;
@@ -482,7 +484,7 @@ namespace CommandLine
                 Console::Error::WriteLine("Expected value for option: %c", option->ShortName);
                 return false;
             }
-                
+
             if (!ParseOptionValue(option, valueString))
             {
                 return false;

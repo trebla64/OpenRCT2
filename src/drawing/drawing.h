@@ -18,6 +18,7 @@
 #define _DRAWING_H_
 
 #include "../common.h"
+#include "../interface/colour.h"
 #include "font.h"
 
 // For g1 only enable packing when still relying on vanilla
@@ -79,11 +80,134 @@ enum {
 };
 
 enum {
-	IMAGE_TYPE_NO_BACKGROUND = 0,
-	IMAGE_TYPE_USE_PALETTE= (1 << 1),
-	IMAGE_TYPE_MIX_BACKGROUND = (1<<2),
-	IMAGE_TYPE_UNKNOWN = (1<<3)
+	IMAGE_TYPE_DEFAULT = 0,
+	IMAGE_TYPE_REMAP = (1 << 29),
+	IMAGE_TYPE_TRANSPARENT = (1 << 30),
+	IMAGE_TYPE_REMAP_2_PLUS = (1u << 31)
+	// REMAP_2_PLUS + REMAP = REMAP 2
+	// REMAP_2_PLUS = REMAP 3
 };
+
+enum {
+	INSET_RECT_FLAG_FILL_GREY = (1 << 2), // 0x04
+	INSET_RECT_FLAG_BORDER_NONE = (1 << 3), // 0x08
+	INSET_RECT_FLAG_FILL_NONE = (1 << 4), // 0x10
+	INSET_RECT_FLAG_BORDER_INSET = (1 << 5), // 0x20
+	INSET_RECT_FLAG_FILL_DONT_LIGHTEN = (1 << 6), // 0x40
+	INSET_RECT_FLAG_FILL_MID_LIGHT = (1 << 7), // 0x80
+};
+
+typedef enum {
+	PALETTE_WATER = 32,
+
+	PALETTE_34 = 34,
+
+	PALETTE_45 = 45, // Decolorize + lighten
+
+	PALETTE_DARKEN_3 = 47,
+
+	PALETTE_DARKEN_1 = 49,
+	PALETTE_DARKEN_2 = 50,
+	PALETTE_51 = 51, // Decolorize + darken
+	PALETTE_TRANSLUCENT_GREY = 52,
+	PALETTE_TRANSLUCENT_GREY_HIGHLIGHT = 53,
+	PALETTE_TRANSLUCENT_GREY_SHADOW = 54,
+	PALETTE_TRANSLUCENT_LIGHT_BLUE = 55,
+	PALETTE_TRANSLUCENT_LIGHT_BLUE_HIGHLIGHT = 56,
+	PALETTE_TRANSLUCENT_LIGHT_BLUE_SHADOW = 57,
+	PALETTE_TRANSLUCENT_BORDEAUX_RED = 58,
+	PALETTE_TRANSLUCENT_BORDEAUX_RED_HIGHLIGHT = 59,
+	PALETTE_TRANSLUCENT_BORDEAUX_RED_SHADOW = 60,
+	PALETTE_TRANSLUCENT_DARK_GREEN = 61,
+	PALETTE_TRANSLUCENT_DARK_GREEN_HIGHLIGHT = 62,
+	PALETTE_TRANSLUCENT_DARK_GREEN_SHADOW = 63,
+	PALETTE_TRANSLUCENT_LIGHT_PURPLE = 64,
+	PALETTE_TRANSLUCENT_LIGHT_PURPLE_HIGHLIGHT = 65,
+	PALETTE_TRANSLUCENT_LIGHT_PURPLE_SHADOW = 66,
+	PALETTE_TRANSLUCENT_DARK_OLIVE_GREEN = 67,
+	PALETTE_TRANSLUCENT_DARK_OLIVE_GREEN_HIGHLIGHT = 68,
+	PALETTE_TRANSLUCENT_DARK_OLIVE_GREEN_SHADOW = 69,
+	PALETTE_TRANSLUCENT_LIGHT_BROWN = 70,
+	PALETTE_TRANSLUCENT_LIGHT_BROWN_HIGHLIGHT = 71,
+	PALETTE_TRANSLUCENT_LIGHT_BROWN_SHADOW = 72,
+	PALETTE_TRANSLUCENT_YELLOW = 73,
+	PALETTE_TRANSLUCENT_YELLOW_HIGHLIGHT = 74,
+	PALETTE_TRANSLUCENT_YELLOW_SHADOW = 75,
+	PALETTE_TRANSLUCENT_MOSS_GREEN = 76,
+	PALETTE_TRANSLUCENT_MOSS_GREEN_HIGHLIGHT = 77,
+	PALETTE_TRANSLUCENT_MOSS_GREEN_SHADOW = 78,
+	PALETTE_TRANSLUCENT_OLIVE_GREEN = 79,
+	PALETTE_TRANSLUCENT_OLIVE_GREEN_HIGHLIGHT = 80,
+	PALETTE_TRANSLUCENT_OLIVE_GREEN_SHADOW = 81,
+	PALETTE_TRANSLUCENT_BRIGHT_GREEN = 82,
+	PALETTE_TRANSLUCENT_BRIGHT_GREEN_HIGHLIGHT = 83,
+	PALETTE_TRANSLUCENT_BRIGHT_GREEN_SHADOW = 84,
+	PALETTE_TRANSLUCENT_SALMON_PINK = 85,
+	PALETTE_TRANSLUCENT_SALMON_PINK_HIGHLIGHT = 86,
+	PALETTE_TRANSLUCENT_SALMON_PINK_SHADOW = 87,
+	PALETTE_TRANSLUCENT_BRIGHT_PURPLE = 88,
+	PALETTE_TRANSLUCENT_BRIGHT_PURPLE_HIGHLIGHT = 89,
+	PALETTE_TRANSLUCENT_BRIGHT_PURPLE_SHADOW = 90,
+	PALETTE_TRANSLUCENT_BRIGHT_RED = 91,
+	PALETTE_TRANSLUCENT_BRIGHT_RED_HIGHLIGHT = 92,
+	PALETTE_TRANSLUCENT_BRIGHT_RED_SHADOW = 93,
+	PALETTE_TRANSLUCENT_LIGHT_ORANGE = 94,
+	PALETTE_TRANSLUCENT_LIGHT_ORANGE_HIGHLIGHT = 95,
+	PALETTE_TRANSLUCENT_LIGHT_ORANGE_SHADOW = 96,
+	PALETTE_TRANSLUCENT_TEAL = 97,
+	PALETTE_TRANSLUCENT_TEAL_HIGHLIGHT = 98,
+	PALETTE_TRANSLUCENT_TEAL_SHADOW = 99,
+	PALETTE_TRANSLUCENT_BRIGHT_PINK = 100,
+	PALETTE_TRANSLUCENT_BRIGHT_PINK_HIGHLIGHT = 101,
+	PALETTE_TRANSLUCENT_BRIGHT_PINK_SHADOW = 102,
+	PALETTE_TRANSLUCENT_DARK_BROWN = 103,
+	PALETTE_TRANSLUCENT_DARK_BROWN_HIGHLIGHT = 104,
+	PALETTE_TRANSLUCENT_DARK_BROWN_SHADOW = 105,
+	PALETTE_TRANSLUCENT_LIGHT_PINK = 106,
+	PALETTE_TRANSLUCENT_LIGHT_PINK_HIGHLIGHT = 107,
+	PALETTE_TRANSLUCENT_LIGHT_PINK_SHADOW = 108,
+	PALETTE_TRANSLUCENT_WHITE = 109,
+	PALETTE_TRANSLUCENT_WHITE_HIGHLIGHT = 110,
+	PALETTE_TRANSLUCENT_WHITE_SHADOW = 111,
+	PALETTE_GLASS_BLACK				= 112 + COLOUR_BLACK,
+	PALETTE_GLASS_GREY				= 112 + COLOUR_GREY,
+	PALETTE_GLASS_WHITE				= 112 + COLOUR_WHITE,
+	PALETTE_GLASS_DARK_PURPLE		= 112 + COLOUR_DARK_PURPLE,
+	PALETTE_GLASS_LIGHT_PURPLE		= 112 + COLOUR_LIGHT_PURPLE,
+	PALETTE_GLASS_BRIGHT_PURPLE		= 112 + COLOUR_BRIGHT_PURPLE,
+	PALETTE_GLASS_DARK_BLUE			= 112 + COLOUR_DARK_BLUE,
+	PALETTE_GLASS_LIGHT_BLUE		= 112 + COLOUR_LIGHT_BLUE,
+	PALETTE_GLASS_ICY_BLUE			= 112 + COLOUR_ICY_BLUE,
+	PALETTE_GLASS_TEAL				= 112 + COLOUR_TEAL,
+	PALETTE_GLASS_AQUAMARINE		= 112 + COLOUR_AQUAMARINE,
+	PALETTE_GLASS_SATURATED_GREEN	= 112 + COLOUR_SATURATED_GREEN,
+	PALETTE_GLASS_DARK_GREEN		= 112 + COLOUR_DARK_GREEN,
+	PALETTE_GLASS_MOSS_GREEN		= 112 + COLOUR_MOSS_GREEN,
+	PALETTE_GLASS_BRIGHT_GREEN		= 112 + COLOUR_BRIGHT_GREEN,
+	PALETTE_GLASS_OLIVE_GREEN		= 112 + COLOUR_OLIVE_GREEN,
+	PALETTE_GLASS_DARK_OLIVE_GREEN	= 112 + COLOUR_DARK_OLIVE_GREEN,
+	PALETTE_GLASS_BRIGHT_YELLOW		= 112 + COLOUR_BRIGHT_YELLOW,
+	PALETTE_GLASS_YELLOW			= 112 + COLOUR_YELLOW,
+	PALETTE_GLASS_DARK_YELLOW		= 112 + COLOUR_DARK_YELLOW,
+	PALETTE_GLASS_LIGHT_ORANGE		= 112 + COLOUR_LIGHT_ORANGE,
+	PALETTE_GLASS_DARK_ORANGE		= 112 + COLOUR_DARK_ORANGE,
+	PALETTE_GLASS_LIGHT_BROWN		= 112 + COLOUR_LIGHT_BROWN,
+	PALETTE_GLASS_SATURATED_BROWN	= 112 + COLOUR_SATURATED_BROWN,
+	PALETTE_GLASS_DARK_BROWN		= 112 + COLOUR_DARK_BROWN,
+	PALETTE_GLASS_SALMON_PINK		= 112 + COLOUR_SALMON_PINK,
+	PALETTE_GLASS_BORDEAUX_RED		= 112 + COLOUR_BORDEAUX_RED,
+	PALETTE_GLASS_SATURATED_RED		= 112 + COLOUR_SATURATED_RED,
+	PALETTE_GLASS_BRIGHT_RED		= 112 + COLOUR_BRIGHT_RED,
+	PALETTE_GLASS_DARK_PINK			= 112 + COLOUR_DARK_PINK,
+	PALETTE_GLASS_BRIGHT_PINK		= 112 + COLOUR_BRIGHT_PINK,
+	PALETTE_GLASS_LIGHT_PINK		= 112 + COLOUR_LIGHT_PINK,
+} FILTER_PALETTE_ID;
+
+typedef struct translucent_window_palette {
+	FILTER_PALETTE_ID base;
+	FILTER_PALETTE_ID highlight;
+	FILTER_PALETTE_ID shadow;
+} translucent_window_palette;
 
 typedef struct rct_g1_header {
 	uint32 num_entries;
@@ -114,20 +238,29 @@ typedef struct rct_palette {
 	rct_palette_entry entries[256];
 } rct_palette;
 
-#define SPRITE_ID_PALETTE_COLOUR_1(colourId) ((IMAGE_TYPE_USE_PALETTE << 28) | ((colourId) << 19))
+#define SPRITE_ID_PALETTE_COLOUR_1(colourId) (IMAGE_TYPE_REMAP | ((colourId) << 19))
+#define SPRITE_ID_PALETTE_COLOUR_2(primaryId, secondaryId) (IMAGE_TYPE_REMAP_2_PLUS | IMAGE_TYPE_REMAP | ((primaryId << 19) | (scondaryId << 24)))
+#define SPRITE_ID_PALETTE_COLOUR_3(primaryId, secondaryId) (IMAGE_TYPE_REMAP_2_PLUS | ((primaryId << 19) | (scondaryId << 24)))
 
 #define PALETTE_TO_G1_OFFSET_COUNT 144
 
-#define gCurrentFontSpriteBase		RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_SPRITE_BASE, sint16)
-#define gCurrentFontFlags			RCT2_GLOBAL(RCT2_ADDRESS_CURRENT_FONT_FLAGS, uint16)
+#define INSET_RECT_F_30 (INSET_RECT_FLAG_BORDER_INSET | INSET_RECT_FLAG_FILL_NONE)
+#define INSET_RECT_F_60 (INSET_RECT_FLAG_BORDER_INSET | INSET_RECT_FLAG_FILL_DONT_LIGHTEN)
+#define INSET_RECT_F_E0 (INSET_RECT_FLAG_BORDER_INSET | INSET_RECT_FLAG_FILL_DONT_LIGHTEN | INSET_RECT_FLAG_FILL_MID_LIGHT)
+
+#define MAX_SCROLLING_TEXT_MODES 38
+
+extern sint16 gCurrentFontSpriteBase;
+extern uint16 gCurrentFontFlags;
 
 extern uint8 gGamePalette[256 * 4];
 extern uint32 gPaletteEffectFrame;
+extern const FILTER_PALETTE_ID GlassPaletteIds[COLOUR_COUNT];
 extern const uint16 palette_to_g1_offset[];
 extern uint8 gPeepPalette[256];
 extern uint8 gOtherPalette[256];
 extern uint8 text_palette[];
-extern const uint8 _9DEDF4[];
+extern const translucent_window_palette TranslucentWindowPalettes[COLOUR_COUNT];
 
 extern int gLastDrawStringX;
 extern int gLastDrawStringY;
@@ -162,8 +295,9 @@ void gfx_transpose_palette(int pal, unsigned char product);
 void load_palette();
 
 // other
-void gfx_clear(rct_drawpixelinfo *dpi, uint32 colour);
+void gfx_clear(rct_drawpixelinfo *dpi, uint8 paletteIndex);
 void gfx_draw_pixel(rct_drawpixelinfo *dpi, int x, int y, int colour);
+void gfx_filter_pixel(rct_drawpixelinfo *dpi, int x, int y, FILTER_PALETTE_ID palette);
 void gfx_invalidate_pickedup_peep();
 void gfx_draw_pickedup_peep(rct_drawpixelinfo *dpi);
 
@@ -173,16 +307,18 @@ void gfx_draw_line_software(rct_drawpixelinfo *dpi, int x1, int y1, int x2, int 
 
 // rect
 void gfx_fill_rect(rct_drawpixelinfo *dpi, int left, int top, int right, int bottom, int colour);
-void gfx_fill_rect_inset(rct_drawpixelinfo* dpi, short left, short top, short right, short bottom, int colour, short _si);
+void gfx_fill_rect_inset(rct_drawpixelinfo* dpi, short left, short top, short right, short bottom, int colour, uint8 flags);
+void gfx_filter_rect(rct_drawpixelinfo *dpi, int left, int top, int right, int bottom, FILTER_PALETTE_ID palette);
 
 // sprite
-int gfx_load_g1();
-int gfx_load_g2();
+bool gfx_load_g1();
+bool gfx_load_g2();
 void gfx_unload_g1();
 void gfx_unload_g2();
 rct_g1_element* gfx_get_g1_element(int image_id);
 uint32 gfx_object_allocate_images(const rct_g1_element * images, uint32 count);
 void gfx_object_free_images(uint32 baseImageId, uint32 count);
+void gfx_object_check_all_images_freed();
 void sub_68371D();
 void FASTCALL gfx_rle_sprite_to_buffer(const uint8* RESTRICT source_bits_pointer, uint8* RESTRICT dest_bits_pointer, const uint8* RESTRICT palette_pointer, const rct_drawpixelinfo * RESTRICT dpi, int image_type, int source_y_start, int height, int source_x_start, int width);
 void FASTCALL gfx_draw_sprite(rct_drawpixelinfo *dpi, int image_id, int x, int y, uint32 tertiary_colour);
@@ -191,6 +327,7 @@ void FASTCALL gfx_draw_sprite_raw_masked(rct_drawpixelinfo *dpi, int x, int y, i
 void FASTCALL gfx_draw_sprite_solid(rct_drawpixelinfo * dpi, int image, int x, int y, uint8 colour);
 
 void FASTCALL gfx_draw_sprite_software(rct_drawpixelinfo *dpi, int image_id, int x, int y, uint32 tertiary_colour);
+uint8* FASTCALL gfx_draw_sprite_get_palette(int image_id, uint32 tertiary_colour);
 void FASTCALL gfx_draw_sprite_palette_set_software(rct_drawpixelinfo *dpi, int image_id, int x, int y, uint8* palette_pointer, uint8* unknown_pointer);
 void FASTCALL gfx_draw_sprite_raw_masked_software(rct_drawpixelinfo *dpi, int x, int y, int maskImage, int colourImage);
 

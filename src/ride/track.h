@@ -28,7 +28,7 @@ typedef struct rct_trackdefinition {
 	uint8 vangle_start;
 	uint8 bank_end;
 	uint8 bank_start;
-	uint8 special;
+	sint8 preview_z_offset;
 	uint8 pad[2];
 } rct_trackdefinition;
 assert_struct_size(rct_trackdefinition, 8);
@@ -66,6 +66,11 @@ enum {
 enum {
 	// Not anything to do with colour but uses
 	// that field in the map element
+
+	// Used for multi-dimension coaster
+	TRACK_ELEMENT_COLOUR_FLAG_INVERTED = (1 << 2),
+
+	// Used for giga coaster
 	TRACK_ELEMENT_COLOUR_FLAG_CABLE_LIFT = (1 << 3),
 };
 
@@ -184,7 +189,7 @@ enum {
 };
 
 enum {
-	TRACK_ELEM_FLAG_0001 = (1 << 0),
+	TRACK_ELEM_FLAG_ONLY_UNDERWATER = (1 << 0),
 	TRACK_ELEM_FLAG_TURN_LEFT = (1 << 1),
 	TRACK_ELEM_FLAG_TURN_RIGHT = (1 << 2),
 	TRACK_ELEM_FLAG_TURN_BANKED = (1 << 3),
@@ -193,7 +198,7 @@ enum {
 	TRACK_ELEM_FLAG_UP = (1 << 6),
 	TRACK_ELEM_FLAG_INVERSION = (1 << 7),
 	TRACK_ELEM_FLAG_0100 = (1 << 8),
-	TRACK_ELEM_FLAG_0200 = (1 << 9),
+	TRACK_ELEM_FLAG_ONLY_ABOVE_GROUND = (1 << 9),
 	TRACK_ELEM_FLAG_0400 = (1 << 10),
 	TRACK_ELEM_FLAG_HELIX = (1 << 11),
 	TRACK_ELEM_FLAG_1000 = (1 << 12),
@@ -459,6 +464,7 @@ enum {
 	TRACK_ELEM_RIGHT_QUARTER_TURN_1_TILE_90_DEG_DOWN,
 	TRACK_ELEM_MULTIDIM_90_DEG_UP_TO_INVERTED_FLAT_QUARTER_LOOP,
 	TRACK_ELEM_MULTIDIM_FLAT_TO_90_DEG_DOWN_QUARTER_LOOP,
+	TRACK_ELEM_255,
 };
 
 enum {
@@ -518,6 +524,7 @@ bool track_element_is_lift_hill(rct_map_element *trackElement);
 bool track_element_is_cable_lift(rct_map_element *trackElement);
 void track_element_set_cable_lift(rct_map_element *trackElement);
 void track_element_clear_cable_lift(rct_map_element *trackElement);
+bool track_element_is_inverted(rct_map_element *trackElement);
 
 int track_get_actual_bank(rct_map_element *mapElement, int bank);
 int track_get_actual_bank_2(int rideType, int trackColour, int bank);

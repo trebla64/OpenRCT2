@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../game.h"
 #include "../interface/widget.h"
 #include "../interface/window.h"
@@ -134,11 +133,11 @@ static void window_staff_fire_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	rct_peep* peep = &get_sprite(w->number)->peep;
 
-	set_format_arg(0, uint16, peep->name_string_idx);
+	set_format_arg(0, rct_string_id, peep->name_string_idx);
 	set_format_arg(2, uint32, peep->id);
 
 	int x = w->x + WW / 2;
 	int y = w->y + (WH / 2) - 3;
 
-	gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, WW - 4, STR_FIRE_STAFF_ID, 0);
+	gfx_draw_string_centred_wrapped(dpi, gCommonFormatArgs, x, y, WW - 4, STR_FIRE_STAFF_ID, COLOUR_BLACK);
 }

@@ -28,8 +28,12 @@
 #include "track.h"
 #include "track_data.h"
 #include "track_design.h"
+#include "TrackDesignRepository.h"
 
 #define TRACK_MAX_SAVED_MAP_ELEMENTS 1500
+
+bool gTrackDesignSaveMode = false;
+uint8 gTrackDesignSaveRideIndex = 255;
 
 static size_t _trackSavedMapElementsCount;
 #ifdef NO_RCT2
@@ -123,9 +127,9 @@ static void track_design_save_callback(int result) {
 	free(_trackDesign->entrance_elements);
 	free(_trackDesign->scenery_elements);
 	free(_trackDesign);
-	
+
 	if (result == MODAL_RESULT_OK) {
-		track_design_index_create();
+		track_repository_scan();
 	}
 	gfx_invalidate_screen();
 }
@@ -159,7 +163,7 @@ bool track_design_save(uint8 rideIndex)
 		return false;
 	}
 
-	if (RCT2_GLOBAL(0x009DEA6F, uint8) & 1) {
+	if (gTrackDesignSaveMode) {
 		if (!track_design_save_copy_scenery_to_td6(_trackDesign)) {
 			free(_trackDesign->track_elements);
 			free(_trackDesign->entrance_elements);
@@ -169,8 +173,8 @@ bool track_design_save(uint8 rideIndex)
 	}
 
 	utf8 track_name[MAX_PATH];
-	format_string(track_name, ride->name, &ride->name_arguments);
-	
+	format_string(track_name, MAX_PATH, ride->name, &ride->name_arguments);
+
 	window_loadsave_open(LOADSAVETYPE_TRACK | LOADSAVETYPE_SAVE, track_name);
 	gLoadSaveCallback = track_design_save_callback;
 
@@ -220,13 +224,13 @@ static int map_element_get_total_element_count(rct_map_element *mapElement)
  */
 static bool track_design_save_can_add_map_element(rct_map_element *mapElement)
 {
-	int newElementCount = map_element_get_total_element_count(mapElement);
+	size_t newElementCount = map_element_get_total_element_count(mapElement);
 	if (newElementCount == 0) {
 		return false;
 	}
 
 	// Get number of spare elements left
-	int spareSavedElements = TRACK_MAX_SAVED_MAP_ELEMENTS - _trackSavedMapElementsCount;
+	size_t spareSavedElements = TRACK_MAX_SAVED_MAP_ELEMENTS - _trackSavedMapElementsCount;
 	if (newElementCount > spareSavedElements) {
 		// No more spare saved elements left
 		return false;
@@ -741,7 +745,7 @@ static rct_track_td6 *track_design_save_to_td6(uint8 rideIndex)
 	td6->number_of_cars_per_train = ride->num_cars_per_train;
 	td6->min_waiting_time = ride->min_waiting_time;
 	td6->max_waiting_time = ride->max_waiting_time;
-	td6->var_50 = ride->operation_option;
+	td6->operation_setting = ride->operation_option;
 	td6->lift_hill_speed_num_circuits =
 		ride->lift_hill_speed |
 		(ride->num_circuits << 5);
@@ -1042,7 +1046,7 @@ static bool track_design_save_to_td6_for_tracked_ride(uint8 rideIndex, rct_track
 			track->type == TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_DOWN ||
 			track->type == TRACK_ELEM_LEFT_LARGE_HALF_LOOP_DOWN
 		) {
-			td6->flags |= (1 << 31);
+			td6->flags |= (1u << 31);
 		}
 
 		if (track->type == TRACK_ELEM_LOG_FLUME_REVERSER) {
@@ -1122,7 +1126,8 @@ static bool track_design_save_to_td6_for_tracked_ride(uint8 rideIndex, rct_track
 			x -= gTrackPreviewOrigin.x;
 			y -= gTrackPreviewOrigin.y;
 
-			rotate_map_coordinates(&x, &y, _trackSaveDirection);
+			// Rotate entrance coordinates backwards to the correct direction
+			rotate_map_coordinates(&x, &y, (0 - _trackSaveDirection) & 3);
 			entrance->x = x;
 			entrance->y = y;
 
@@ -1226,7 +1231,7 @@ static void auto_buffer_write(auto_buffer *buffer, const void *src, size_t len)
 			buffer->capacity = max(8, buffer->capacity * 2);
 			remainingSpace = buffer->capacity - buffer->length;
 		} while (remainingSpace < len);
-		
+
 		buffer->ptr = realloc(buffer->ptr, buffer->capacity);
 	}
 	memcpy((void*)((uintptr_t)buffer->ptr + buffer->length), src, len);
@@ -1264,7 +1269,7 @@ bool track_design_save_to_file(const utf8 *path)
 	// Encode TD6 data
 	uint8 *encodedData = malloc(0x8000);
 	assert(td6Buffer.ptr != NULL);
-	int encodedDataLength = sawyercoding_encode_td6((uint8*)td6Buffer.ptr, encodedData, td6Buffer.length);
+	size_t encodedDataLength = sawyercoding_encode_td6((uint8*)td6Buffer.ptr, encodedData, td6Buffer.length);
 
 	// Save encoded TD6 data to file
 	bool result;

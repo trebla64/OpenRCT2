@@ -17,6 +17,7 @@
 #ifndef _TRACK_PAINT_H
 #define _TRACK_PAINT_H
 
+#include "../addresses.h"
 #include "ride_data.h"
 #include "../common.h"
 #include "../paint/map_element/map_element.h"
@@ -37,7 +38,14 @@ extern const uint8 track_map_1x4[][4];
 enum {
 	SPR_FLOOR_PLANKS = 3395,
 	SPR_FLOOR_PLANKS_90_DEG = 3396,
-
+	SPR_FLOOR_PLANKS_SLOPE_NE_SW = 3397,
+	SPR_FLOOR_PLANKS_SLOPE_SE_NW = 3398,
+	SPR_FLOOR_PLANKS_SLOPE_SW_NE = 3399,
+	SPR_FLOOR_PLANKS_SLOPE_NW_SE = 3400,
+	SPR_FLOOR_PLANKS_N_SEGMENT = 3401,
+	SPR_FLOOR_PLANKS_E_SEGMENT = 3402,
+	SPR_FLOOR_PLANKS_S_SEGMENT = 3403,
+	SPR_FLOOR_PLANKS_W_SEGMENT = 3404,
 	SPR_FLOOR_METAL = 14567,
 	SPR_FENCE_METAL_NE = 14568,
 	SPR_FENCE_METAL_SE = 14569,
@@ -117,7 +125,18 @@ enum {
 	SPR_STATION_PLATFORM_END_RED_LIGHT_NW_SE = 22389,
 	SPR_STATION_PLATFORM_END_GREEN_LIGHT_SW_NE = 22390,
 	SPR_STATION_PLATFORM_END_GREEN_LIGHT_NW_SE = 22391,
-
+	SPR_STATION_INVERTED_FENCE_SW_NE = 22392,
+	SPR_STATION_INVERTED_FENCE_NW_SE = 22393,
+	SPR_STATION_INVERTED_BEGIN_ANGLE_FENCE_SW_NE = 22394,
+	SPR_STATION_INVERTED_BEGIN_ANGLE_FENCE_NW_SE = 22395,
+	SPR_STATION_INVERTED_LIGHT_BACK_ANGLE_FENCED_NE_SW = 22396,
+	SPR_STATION_INVERTED_LIGHT_BACK_ANGLE_FENCED_NW_SE = 22397,
+	SPR_STATION_INVERTED_BAR_C_SW_NE = 22398,
+	SPR_STATION_INVERTED_BAR_C_NW_SE = 22399,
+	SPR_STATION_INVERTED_BAR_D_SW_NE = 22400,
+	SPR_STATION_INVERTED_BAR_D_NW_SE = 22401,
+	SPR_STATION_INVERTED_BAR_E_SW_NE = 22402,
+	SPR_STATION_INVERTED_BAR_E_NW_SE = 22403,
     SPR_STATION_PIER_EDGE_SE = 22404,
     SPR_STATION_PIER_EDGE_SW = 22405,
     SPR_STATION_PIER_EDGE_NW = 22406,
@@ -132,13 +151,34 @@ enum {
 	SPR_STATION_NARROW_EDGE_FENCED_NE = 22415,
 	SPR_STATION_NARROW_EDGE_NW = 22416,
 	SPR_STATION_NARROW_EDGE_NE = 22417,
-
+	SPR_STATION_INVERTED_BAR_F_SW_NE = 22418,
+	SPR_STATION_INVERTED_BAR_F_NW_SE = 22419,
+	SPR_STATION_INVERTED_BAR_0_SW_NE = 22420,
+	SPR_STATION_INVERTED_BAR_0_NW_SE = 22421,
+	SPR_STATION_INVERTED_BAR_A_SW_NE = 22422,
+	SPR_STATION_INVERTED_BAR_A_NW_SE = 22423,
+	SPR_STATION_INVERTED_BAR_B_SW_NE = 22424,
+	SPR_STATION_INVERTED_BAR_B_NW_SE = 22425,
 	SPR_STATION_BASE_A_SW_NE = 22426,
 	SPR_STATION_BASE_A_NW_SE = 22427,
 	SPR_STATION_BASE_B_SW_NE = 22428,
 	SPR_STATION_BASE_B_NW_SE = 22429,
-
+	SPR_STATION_BASE_C_SW_NE = 22430,
+	SPR_STATION_BASE_C_NW_SE = 22431,
 	SPR_STATION_BASE_D = 22432,
+
+	SPR_ON_RIDE_PHOTO_CAMERA_SMALL_N = 23485,
+	SPR_ON_RIDE_PHOTO_CAMERA_SMALL_E = 23486,
+	SPR_ON_RIDE_PHOTO_CAMERA_SMALL_S = 23487,
+	SPR_ON_RIDE_PHOTO_CAMERA_SMALL_W = 23488,
+	SPR_ON_RIDE_PHOTO_CAMERA_FLASH_SMALL_N = 23489,
+	SPR_ON_RIDE_PHOTO_CAMERA_FLASH_SMALL_E = 23490,
+	SPR_ON_RIDE_PHOTO_CAMERA_FLASH_SMALL_S = 23491,
+	SPR_ON_RIDE_PHOTO_CAMERA_FLASH_SMALL_W = 23492,
+	SPR_ON_RIDE_PHOTO_SIGN_SMALL_SW_NE = 23493,
+	SPR_ON_RIDE_PHOTO_SIGN_SMALL_NW_SE = 23494,
+	SPR_ON_RIDE_PHOTO_SIGN_SMALL_NE_SW = 23495,
+	SPR_ON_RIDE_PHOTO_SIGN_SMALL_SE_NW = 23496,
 
 	SPR_ON_RIDE_PHOTO_CAMERA_N = 25615,
 	SPR_ON_RIDE_PHOTO_CAMERA_E = 25616,
@@ -171,6 +211,25 @@ enum {
 	SPR_GHOST_TRAIN_SPINNING_TUNNEL_FRONT_NW_SE_FRAME_3 = 28880,
 };
 
+enum {
+	SCHEME_TRACK = 0,
+	SCHEME_SUPPORTS = 1,
+	SCHEME_MISC = 2,
+	SCHEME_3 = 3,
+};
+
+enum {
+    STATION_VARIANT_BASIC,
+    STATION_VARIANT_1,
+    STATION_VARIANT_TALL,
+};
+
+#ifdef NO_RCT2
+extern uint32 gTrackColours[4];
+#else
+#define gTrackColours	RCT2_ADDRESS(0x00F44198, uint32)
+#endif
+
 extern const uint32 floorSpritesCork[];
 
 extern const uint32 fenceSpritesRope[];
@@ -181,10 +240,12 @@ extern const uint32 trackSpritesSubmarineRideMiniHelicoptersQuarterTurn1Tile[4];
 
 extern const uint8 mapLeftQuarterTurn5TilesToRightQuarterTurn5Tiles[];
 extern const rct_xy16 defaultRightQuarterTurn5TilesOffsets[4][5];
+extern const rct_xyz16 defaultRightQuarterTurn5TilesBoundOffsets[4][5];
 extern const rct_xy16 defaultRightQuarterTurn5TilesBoundLengths[4][5];
 
 extern const uint8 mapLeftQuarterTurn3TilesToRightQuarterTurn3Tiles[];
 extern const rct_xy16 defaultRightQuarterTurn3TilesOffsets[4][3];
+extern const rct_xyz16 defaultRightQuarterTurn3TilesBoundOffsets[4][3];
 extern const rct_xy16 defaultRightQuarterTurn3TilesBoundLengths[4][3];
 
 extern const rct_xy16 defaultRightHelixUpSmallQuarterBoundLengths[4][3][2];
@@ -202,43 +263,84 @@ extern const sint8 defaultEighthToDiagThickness[4][4];
 extern const rct_xy16 defaultDiagBoundLengths[4];
 extern const rct_xy16 defaultDiagTileOffsets[4];
 
+extern const uint8 mapLeftEighthTurnToOrthogonal[5];
+
 extern bool gUseOriginalRidePaint;
 
 bool track_paint_util_has_fence(enum edge edge, rct_xy16 position, rct_map_element * mapElement, rct_ride * ride, uint8 rotation);
 void track_paint_util_paint_floor(uint8 edges, uint32 colourFlags, uint16 height, const uint32 floorSprites[4], uint8 rotation);
 void track_paint_util_paint_fences(uint8 edges, rct_xy16 position, rct_map_element * mapElement, rct_ride * ride, uint32 colourFlags, uint16 height, const uint32 fenceSprites[4], uint8 rotation);
 bool track_paint_util_draw_station_covers(enum edge edge, bool hasFence, const rct_ride_entrance_definition * entranceStyle, uint8 direction, uint16 height);
+bool track_paint_util_draw_station_covers_2(enum edge edge, bool hasFence, const rct_ride_entrance_definition * entranceStyle, uint8 direction, uint16 height, uint8 stationVariant);
 void track_paint_util_draw_station_platform(rct_ride *ride, uint8 direction, int height, int zOffset, rct_map_element * mapElement);
-void track_paint_util_draw_station(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement);
+void track_paint_util_draw_station(uint8 rideIndex, uint8 trackSequence, uint8 direction, uint16 height, rct_map_element * mapElement);
+void track_paint_util_draw_station_2(uint8 rideIndex, uint8 trackSequence, uint8 direction, uint16 height, rct_map_element * mapElement, int fenceOffsetA, int fenceOffsetB);
+void track_paint_util_draw_station_3(uint8 rideIndex, uint8 trackSequence, uint8 direction, uint16 height, uint16 coverHeight, rct_map_element * mapElement);
+void track_paint_util_draw_station_inverted(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement, uint8 stationVariant);
 bool track_paint_util_should_paint_supports(rct_xy16 position);
 void track_paint_util_draw_pier(rct_ride * ride, const rct_ride_entrance_definition * entranceStyle, rct_xy16 position, uint8 direction, int height, rct_map_element * mapElement, uint8 rotation);
+void track_paint_util_draw_station_metal_supports(uint8 direction, uint16 height, uint32 colour);
+void track_paint_util_draw_station_metal_supports_2(uint8 direction, uint16 height, uint32 colour, uint8 type);
 
-void track_paint_util_right_quarter_turn_5_tiles_paint(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][5], const rct_xy16 offsets[4][5], const rct_xy16 boundsLengths[4][5], const rct_xy16 boundsOffsets[4][5], uint8 rotation);
+void track_paint_util_right_quarter_turn_5_tiles_paint(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][5], const rct_xy16 offsets[4][5], const rct_xy16 boundsLengths[4][5], const rct_xyz16 boundsOffsets[4][5], uint8 rotation);
 void track_paint_util_right_quarter_turn_5_tiles_paint_2(sint16 height, int direction, uint8 rotation, uint8 trackSequence, uint32 colourFlags, const sprite_bb sprites[][5]);
-void track_paint_util_right_quarter_turn_3_tiles_paint(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3], const rct_xy16 offsets[4][3], const rct_xy16 boundsLengths[4][3], const rct_xy16 boundsOffsets[4][3], uint8 rotation);
+void track_paint_util_right_quarter_turn_5_tiles_paint_3(sint16 height, int direction, uint8 rotation, uint8 trackSequence, uint32 colourFlags, const sprite_bb sprites[][5]);
+void track_paint_util_right_quarter_turn_5_tiles_tunnel(sint16 height, uint8 direction, uint8 trackSequence, uint8 tunnelType);
+void track_paint_util_right_quarter_turn_5_tiles_wooden_supports(sint16 height, uint8 direction, uint8 trackSequence);
+void track_paint_util_right_quarter_turn_3_tiles_25_deg_up_tunnel(sint16 height, uint8 direction, uint8 trackSequence, uint8 tunnelType0, uint8 tunnelType3);
+void track_paint_util_right_quarter_turn_3_tiles_25_deg_down_tunnel(sint16 height, uint8 direction, uint8 trackSequence, uint8 tunnelType0, uint8 tunnelType3);
+void track_paint_util_right_quarter_turn_3_tiles_paint(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3], const rct_xy16 offsets[4][3], const rct_xy16 boundsLengths[4][3], const rct_xyz16 boundsOffsets[4][3], uint8 rotation);
+void track_paint_util_right_quarter_turn_3_tiles_paint_2(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3], uint8 rotation);
+void track_paint_util_right_quarter_turn_3_tiles_paint_2_with_height_offset(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3], uint8 rotation, sint32 heightOffset);
+void track_paint_util_right_quarter_turn_3_tiles_paint_3(sint16 height, int direction, uint8 rotation, uint8 trackSequence, uint32 colourFlags, const sprite_bb sprites[4][3]);
+void track_paint_util_right_quarter_turn_3_tiles_paint_4(sint16 height, int direction, uint8 rotation, uint8 trackSequence, uint32 colourFlags, const sprite_bb sprites[4][3]);
 void track_paint_util_right_quarter_turn_3_tiles_tunnel(sint16 height, uint8 direction, uint8 trackSequence, uint8 tunnelType);
 void track_paint_util_left_quarter_turn_3_tiles_paint(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3], uint8 rotation);
-void track_paint_util_left_quarter_turn_3_tiles_tunnel(sint16 height, uint8 direction, uint8 trackSequence);
+void track_paint_util_left_quarter_turn_3_tiles_paint_with_height_offset(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3], uint8 rotation, sint32 heightOffset);
+void track_paint_util_left_quarter_turn_3_tiles_tunnel(sint16 height, uint8 tunnelType, uint8 direction, uint8 trackSequence);
 void track_paint_util_left_quarter_turn_1_tile_paint(sint8 thickness, sint16 height, sint16 boundBoxZOffset, int direction, uint32 colourFlags, const uint32 * sprites, uint8 rotation);
-void track_paint_util_left_quarter_turn_1_tile_tunnel(sint16 height, uint8 direction, uint8 trackSequence);
 void track_paint_util_spinning_tunnel_paint(sint8 thickness, sint16 height, uint8 direction, uint8 rotation);
+void track_paint_util_onride_photo_small_paint(uint8 direction, sint32 height, rct_map_element *mapElement);
+void track_paint_util_onride_photo_paint(uint8 direction, sint32 height, rct_map_element *mapElement);
 void track_paint_util_right_helix_up_small_quarter_tiles_paint(const sint8 thickness[2], sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][3][2], const rct_xy16 offsets[4][3][2], const rct_xy16 boundsLengths[4][3][2], const rct_xyz16 boundsOffsets[4][3][2], uint8 rotation);
 void track_paint_util_right_helix_up_large_quarter_tiles_paint(const sint8 thickness[2], sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][5][2], const rct_xy16 offsets[4][5][2], const rct_xy16 boundsLengths[4][5][2], const rct_xyz16 boundsOffsets[4][5][2], uint8 rotation);
 void track_paint_util_eighth_to_diag_tiles_paint(const sint8 thickness[4][4], sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4][4], const rct_xy16 offsets[4][4], const rct_xy16 boundsLengths[4][4], const rct_xyz16 boundsOffsets[4][4], uint8 rotation);
 void track_paint_util_diag_tiles_paint(sint8 thickness, sint16 height, int direction, uint8 trackSequence, uint32 colourFlags, const uint32 sprites[4], const rct_xy16 offsets[4], const rct_xy16 boundsLengths[4], const rct_xyz16 boundsOffsets[4], uint8 rotation);
 
+void track_paint_util_left_quarter_turn_1_tile_tunnel(uint8 direction, uint16 baseHeight, sint8 startOffset, uint8 startTunnel, sint8 endOffset, uint8 endTunnel);
+void track_paint_util_right_quarter_turn_1_tile_tunnel(uint8 direction, uint16 baseHeight, sint8 startOffset, uint8 startTunnel, sint8 endOffset, uint8 endTunnel);
+
+void track_paint_util_right_vertical_loop_segments(uint8 direction, uint8 trackSequence);
+
+void track_paint_util_left_corkscrew_up_supports(uint8 direction, uint16 height);
+
 typedef void (*TRACK_PAINT_FUNCTION)(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element* mapElement);
 typedef TRACK_PAINT_FUNCTION (*TRACK_PAINT_FUNCTION_GETTER)(int trackType, int direction);
 
+TRACK_PAINT_FUNCTION get_track_paint_function_spiral_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_stand_up_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_suspended_swinging_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_inverted_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_junior_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_monorail(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_mini_suspended_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_miniature_railway(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_boat_ride(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_wooden_wild_mouse(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_steeplechase(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_car_ride(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_launched_freefall(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_bobsleigh_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_observation_tower(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_looping_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_dinghy_slide(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_mine_train_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_chairlift(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_corkscrew_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_maze(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_spiral_slide(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_go_karts(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_log_flume(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_river_rapids(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_dodgems(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_pirate_ship(int trackType, int direction);
@@ -248,7 +350,9 @@ TRACK_PAINT_FUNCTION get_track_paint_function_motionsimulator(int trackType, int
 TRACK_PAINT_FUNCTION get_track_paint_function_3d_cinema(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_topspin(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_space_rings(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_reverse_freefall_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_lift(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_vertical_drop_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_shop(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_merry_go_round(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_facility(int trackType, int direction);
@@ -256,17 +360,36 @@ TRACK_PAINT_FUNCTION get_track_paint_function_twist(int trackType, int direction
 TRACK_PAINT_FUNCTION get_track_paint_function_haunted_house(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_circus_show(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_ghost_train(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_twister_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_side_friction_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_wooden_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_wild_mouse(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_multi_dimension_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_flying_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_virginia_reel(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_splash_boats(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_mini_helicopters(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_lay_down_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_suspended_monorail(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_reverser_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_heartline_twister_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_mini_golf(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_giga_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_roto_drop(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_flying_saucers(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_crooked_house(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_monorail_cycles(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_compact_inverted_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_water_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_air_powered_vertical_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_inverted_hairpin_rc(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_magic_carpet(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_submarine_ride(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_river_rafts(int trackType, int direction);
 TRACK_PAINT_FUNCTION get_track_paint_function_enterprise(int trackType, int direction);
-TRACK_PAINT_FUNCTION get_track_paint_function_junior_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_inverted_impulse_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_mini_rc(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_mine_ride(int trackType, int direction);
+TRACK_PAINT_FUNCTION get_track_paint_function_lim_launched_rc(int trackType, int direction);
 
 #endif

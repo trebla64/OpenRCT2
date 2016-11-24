@@ -14,7 +14,6 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
 #include "../audio/audio.h"
 #include "../management/news_item.h"
 #include "../localisation/localisation.h"
@@ -250,7 +249,7 @@ static void window_news_scrollmousedown(rct_window *w, int scrollIndex, int x, i
  */
 static void window_news_tooltip(rct_window* w, int widgetIndex, rct_string_id *stringId)
 {
-	set_format_arg(0, uint16, STR_LIST);
+	set_format_arg(0, rct_string_id, STR_LIST);
 }
 
 /**
@@ -288,12 +287,12 @@ static void window_news_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int s
 		}
 
 		// Background
-		gfx_fill_rect_inset(dpi, -1, y, 383, y + 41, w->colours[1], 0x24);
+		gfx_fill_rect_inset(dpi, -1, y, 383, y + 41, w->colours[1], (INSET_RECT_FLAG_BORDER_INSET | INSET_RECT_FLAG_FILL_GREY));
 
 		// Date text
-		set_format_arg(0, uint16, DateDayNames[newsItem->day - 1]);
-		set_format_arg(2, uint16, DateGameMonthNames[(newsItem->month_year % 8)]);
-		gfx_draw_string_left(dpi, STR_NEWS_DATE_FORMAT, gCommonFormatArgs, 2, 4, y);
+		set_format_arg(0, rct_string_id, DateDayNames[newsItem->day - 1]);
+		set_format_arg(2, rct_string_id, DateGameMonthNames[(newsItem->month_year % 8)]);
+		gfx_draw_string_left(dpi, STR_NEWS_DATE_FORMAT, gCommonFormatArgs, COLOUR_WHITE, 4, y);
 
 		// Item text
 		utf8 buffer[400];
@@ -301,7 +300,7 @@ static void window_news_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int s
 		ch = utf8_write_codepoint(ch, FORMAT_SMALLFONT);
 		memcpy(ch, newsItem->text, 256);
 		ch = buffer;
-		gfx_draw_string_left_wrapped(dpi, &ch, 2, y + 10, 325, STR_STRING, 14);
+		gfx_draw_string_left_wrapped(dpi, &ch, 2, y + 10, 325, STR_STRING, COLOUR_BRIGHT_GREEN);
 
 		// Subject button
 		if ((news_type_properties[newsItem->type] & NEWS_TYPE_HAS_SUBJECT) && !(newsItem->flags & 1)) {
@@ -313,7 +312,7 @@ static void window_news_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, int s
 				const uint8 idx = 11 + w->news.var_480;
 				news_item_is_valid_idx(idx);
 				if (i == idx && w->news.var_482 == 1)
-					press = 0x20;
+					press = INSET_RECT_FLAG_BORDER_INSET;
 			}
 			gfx_fill_rect_inset(dpi, x, yy, x + 23, yy + 23, w->colours[2], press);
 
