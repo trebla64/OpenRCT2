@@ -1978,7 +1978,7 @@ bool peep_pickup_place(rct_peep* peep, int x, int y, int z, bool apply)
 		peep->action_sprite_image_offset = 0;
 		peep->action_sprite_type = 0;
 		peep->var_C4 = 0;
-		openrct2_reset_object_tween_locations();
+		sprite_position_tween_reset();
 
 		if (peep->type == PEEP_TYPE_GUEST) {
 			peep->action_sprite_type = 0xFF;
@@ -4889,7 +4889,20 @@ static void peep_update_queuing(rct_peep* peep){
 	}
 
 	if (peep->sub_state != 10){
-		if (peep->next_in_queue == 0xFFFF){
+		bool is_front = true;
+		if (peep->next_in_queue != 0xFFFF) {
+			// Fix #4819: Occasionally the peep->next_in_queue is incorrectly set
+			// to prevent this from causing the peeps to enter a loop
+			// first check if the next in queue is actually nearby
+			// if they are not then its safe to assume that this is
+			// the front of the queue.
+			rct_peep* next_peep = GET_PEEP(peep->next_in_queue);
+			if (abs(next_peep->x - peep->x) < 32 &&
+				abs(next_peep->y - peep->y) < 32) {
+				is_front = false;
+			}
+		}
+		if (is_front){
 			//Happens every time peep goes onto ride.
 			peep->destination_tolerence = 0;
 			peep_decrement_num_riders(peep);
@@ -12245,7 +12258,7 @@ void peep_update_name_sort(rct_peep *peep)
 
 finish_peep_sort:
 	// This is required at the moment because this function reorders peeps in the sprite list
-	openrct2_reset_object_tween_locations();
+	sprite_position_tween_reset();
 }
 
 void peep_sort()
