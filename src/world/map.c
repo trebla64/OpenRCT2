@@ -14,7 +14,7 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../addresses.h"
+#include "../rct2/addresses.h"
 #include "../audio/audio.h"
 #include "../cheats.h"
 #include "../config.h"
@@ -25,12 +25,12 @@
 #include "../localisation/localisation.h"
 #include "../management/finance.h"
 #include "../network/network.h"
-#include "../openrct2.h"
+#include "../OpenRCT2.h"
 #include "../rct2.h"
 #include "../ride/ride_data.h"
 #include "../ride/track.h"
 #include "../ride/track_data.h"
-#include "../scenario.h"
+#include "../scenario/scenario.h"
 #include "../util/util.h"
 #include "banner.h"
 #include "climate.h"
@@ -416,7 +416,11 @@ void map_count_remaining_land_rights()
 	for (int x = 0; x <= 255; x++) {
 		for (int y = 0; y <= 255; y++) {
 			rct_map_element *element = map_get_surface_element_at(x, y);
-
+			// Surface elements are sometimes hacked out to save some space for other map elements
+			if (element == NULL) {
+				continue;	
+			}
+			
 			uint8 flags = element->properties.surface.ownership;
 
 			if ((flags & OWNERSHIP_AVAILABLE) && (flags & OWNERSHIP_OWNED) == 0) {

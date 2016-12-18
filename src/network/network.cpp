@@ -26,7 +26,7 @@
 #include "../core/Guard.hpp"
 
 extern "C" {
-#include "../openrct2.h"
+#include "../OpenRCT2.h"
 #include "../platform/platform.h"
 #include "../util/sawyercoding.h"
 }
@@ -66,7 +66,7 @@ extern "C" {
 #include "../localisation/localisation.h"
 #include "../management/finance.h"
 #include "../network/http.h"
-#include "../scenario.h"
+#include "../scenario/scenario.h"
 #include "../windows/error.h"
 #include "../util/util.h"
 #include "../cheats.h"

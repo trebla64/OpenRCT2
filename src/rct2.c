@@ -35,7 +35,7 @@
 #include "network/twitch.h"
 #include "object.h"
 #include "object/ObjectManager.h"
-#include "openrct2.h"
+#include "OpenRCT2.h"
 #include "peep/staff.h"
 #include "platform/platform.h"
 #include "rct1.h"
@@ -43,12 +43,12 @@
 #include "ride/track.h"
 #include "ride/track_design.h"
 #include "ride/TrackDesignRepository.h"
-#include "ScenarioRepository.h"
-#include "title.h"
+#include "scenario/ScenarioRepository.h"
+#include "title/TitleScreen.h"
 #include "util/util.h"
+#include "world/climate.h"
 #include "world/map.h"
 #include "world/park.h"
-#include "world/climate.h"
 #include "world/scenery.h"
 #include "world/sprite.h"
 
@@ -171,10 +171,6 @@ bool rct2_init()
 		return false;
 	}
 
-	object_list_load();
-	scenario_repository_scan();
-	track_repository_scan();
-
 	font_sprite_initialise_characters();
 	if (!gOpenRCT2Headless) {
 		platform_init();
@@ -198,6 +194,7 @@ bool rct2_init()
 	window_new_ride_init_vars();
 	window_guest_list_init_vars_b();
 	window_staff_list_init_vars();
+	load_palette();
 
 
 #ifdef __ENABLE_LIGHTFX__
