@@ -182,7 +182,8 @@ config_property_definition _generalDefinitions[] = {
 	{ offsetof(general_configuration, fullscreen_mode),					"fullscreen_mode",				CONFIG_VALUE_TYPE_UINT8,		0,								NULL					},
 	{ offsetof(general_configuration, fullscreen_height),				"fullscreen_height",			CONFIG_VALUE_TYPE_SINT32,		-1,								NULL					},
 	{ offsetof(general_configuration, fullscreen_width),				"fullscreen_width",				CONFIG_VALUE_TYPE_SINT32,		-1,								NULL					},
-	{ offsetof(general_configuration, game_path),						"game_path",					CONFIG_VALUE_TYPE_STRING,		{ .value_string = NULL },		NULL					},
+	{ offsetof(general_configuration, rct1_path),						"rct1_path",					CONFIG_VALUE_TYPE_STRING,		{ .value_string = NULL },		NULL					},
+	{ offsetof(general_configuration, rct2_path),						"game_path",					CONFIG_VALUE_TYPE_STRING,		{ .value_string = NULL },		NULL					},
 	{ offsetof(general_configuration, landscape_smoothing),				"landscape_smoothing",			CONFIG_VALUE_TYPE_BOOLEAN,		true,							NULL					},
 	{ offsetof(general_configuration, language),						"language",						CONFIG_VALUE_TYPE_UINT16,		LANGUAGE_ENGLISH_UK,			_languageEnum			},
 	{ offsetof(general_configuration, measurement_format),				"measurement_format",			CONFIG_VALUE_TYPE_UINT8,		MEASUREMENT_FORMAT_METRIC,	_measurementFormatEnum	},
@@ -522,7 +523,7 @@ bool config_open(const utf8string path)
 
 	while ((c = rwopsreadc(file)) != EOF) {
 		if (c == '\n' || c == '\r') {
-			lineBuffer[lineLength++] = 0;
+			lineBuffer[lineLength] = 0;
 			config_read_properties(&currentSection, (const_utf8string)lineBuffer);
 			lineLength = 0;
 		} else {
@@ -932,18 +933,21 @@ bool config_find_or_browse_install_directory()
 	utf8 *installPath;
 
 	if (config_find_rct2_path(path)) {
-		SafeFree(gConfigGeneral.game_path);
-		gConfigGeneral.game_path = malloc(strlen(path) + 1);
-		safe_strcpy(gConfigGeneral.game_path, path, MAX_PATH);
+		SafeFree(gConfigGeneral.rct2_path);
+		gConfigGeneral.rct2_path = malloc(strlen(path) + 1);
+		safe_strcpy(gConfigGeneral.rct2_path, path, MAX_PATH);
 	} else {
+		if (gOpenRCT2Headless) {
+			return false;
+		}
 		while (1) {
 			platform_show_messagebox("OpenRCT2 needs files from the original RollerCoaster Tycoon 2 in order to work. Please select the directory where you installed RollerCoaster Tycoon 2.");
 			installPath = platform_open_directory_browser("Please select your RCT2 directory");
 			if (installPath == NULL)
 				return false;
 
-			SafeFree(gConfigGeneral.game_path);
-			gConfigGeneral.game_path = installPath;
+			SafeFree(gConfigGeneral.rct2_path);
+			gConfigGeneral.rct2_path = installPath;
 
 			if (platform_original_game_data_exists(installPath))
 				return true;

@@ -23,6 +23,7 @@
 #include "../core/Math.hpp"
 #include "../core/Path.hpp"
 #include "../core/String.hpp"
+#include "../core/Util.hpp"
 #include "../PlatformEnvironment.h"
 #include "ScenarioRepository.h"
 #include "ScenarioSources.h"
@@ -198,13 +199,17 @@ public:
 
     bool TryRecordHighscore(const utf8 * scenarioFileName, money32 companyValue, const utf8 * name) override
     {
+        // Scan the scenarios so we have a fresh list to query. This is to prevent the issue of scenario completions
+        // not getting recorded, see #4951.
+        Scan();
+
         scenario_index_entry * scenario = GetByFilename(scenarioFileName);
         if (scenario != nullptr)
         {
             // Check if record company value has been broken or the highscore is the same but no name is registered
             scenario_highscore_entry * highscore = scenario->highscore;
             if (highscore == nullptr || companyValue > highscore->company_value ||
-                (highscore->name == nullptr && companyValue == highscore->company_value))
+                (String::IsNullOrEmpty(highscore->name) && companyValue == highscore->company_value))
             {
                 if (highscore == nullptr)
                 {
@@ -214,7 +219,7 @@ public:
                 }
                 else
                 {
-                    if (highscore->name != nullptr)
+                    if (!String::IsNullOrEmpty(highscore->name))
                     {
                         highscore->timestamp = platform_get_datetime_now_utc();
                     }
@@ -393,7 +398,7 @@ private:
                 highscore->timestamp = fs.ReadValue<datetime64>();
             }
         }
-        catch (Exception ex)
+        catch (const Exception &)
         {
             Console::Error::WriteLine("Error reading highscores.");
         }
@@ -450,7 +455,7 @@ private:
                             if (scBasic.company_value > highscore->company_value)
                             {
                                 SafeFree(highscore->name);
-                                highscore->name = win1252_to_utf8_alloc(scBasic.completed_by);
+                                highscore->name = win1252_to_utf8_alloc(scBasic.completed_by, Util::CountOf(scBasic.completed_by));
                                 highscore->company_value = scBasic.company_value;
                                 highscore->timestamp = DATETIME64_MIN;
                                 break;
@@ -461,14 +466,14 @@ private:
                     {
                         scenario_highscore_entry * highscore = InsertHighscore();
                         highscore->fileName = String::Duplicate(scBasic.path);
-                        highscore->name = win1252_to_utf8_alloc(scBasic.completed_by);
+                        highscore->name = win1252_to_utf8_alloc(scBasic.completed_by, Util::CountOf(scBasic.completed_by));
                         highscore->company_value = scBasic.company_value;
                         highscore->timestamp = DATETIME64_MIN;
                     }
                 }
             }
         }
-        catch (Exception ex)
+        catch (const Exception &)
         {
             Console::Error::WriteLine("Error reading legacy scenario scores file: '%s'", path.c_str());
         }
@@ -526,7 +531,7 @@ private:
                 fs.WriteValue(highscore->timestamp);
             }
         }
-        catch (Exception ex)
+        catch (const Exception &)
         {
             Console::Error::WriteLine("Unable to save highscores to '%s'", path.c_str());
         }

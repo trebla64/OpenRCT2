@@ -1735,40 +1735,6 @@ void track_paint_util_left_corkscrew_up_supports(uint8 direction, uint16 height)
 
 static int pick_ride_type_for_drawing(int rideType, int trackType)
 {
-	if (rideType == RIDE_TYPE_VERTICAL_DROP_ROLLER_COASTER) {
-		switch(trackType) {
-			case TRACK_ELEM_HALF_LOOP_UP:
-			case TRACK_ELEM_HALF_LOOP_DOWN:
-			case TRACK_ELEM_LEFT_CORKSCREW_UP:
-			case TRACK_ELEM_RIGHT_CORKSCREW_UP:
-			case TRACK_ELEM_LEFT_CORKSCREW_DOWN:
-			case TRACK_ELEM_RIGHT_CORKSCREW_DOWN:
-			case TRACK_ELEM_LEFT_LARGE_HALF_LOOP_UP:
-			case TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_UP:
-			case TRACK_ELEM_RIGHT_LARGE_HALF_LOOP_DOWN:
-			case TRACK_ELEM_LEFT_LARGE_HALF_LOOP_DOWN:
-			case TRACK_ELEM_LEFT_BARREL_ROLL_UP_TO_DOWN:
-			case TRACK_ELEM_RIGHT_BARREL_ROLL_UP_TO_DOWN:
-			case TRACK_ELEM_LEFT_BARREL_ROLL_DOWN_TO_UP:
-			case TRACK_ELEM_RIGHT_BARREL_ROLL_DOWN_TO_UP:
-			case TRACK_ELEM_90_DEG_TO_INVERTED_FLAT_QUARTER_LOOP_UP:
-			case TRACK_ELEM_INVERTED_FLAT_TO_90_DEG_QUARTER_LOOP_DOWN:
-			case TRACK_ELEM_FLAT_TO_60_DEG_UP_LONG_BASE:
-			case TRACK_ELEM_60_DEG_UP_TO_FLAT_LONG_BASE:
-				rideType = RIDE_TYPE_TWISTER_ROLLER_COASTER;
-		}
-	}
-	if (rideType == RIDE_TYPE_TWISTER_ROLLER_COASTER) {
-		switch(trackType) {
-			case TRACK_ELEM_FLAT_TO_60_DEG_UP:
-			case TRACK_ELEM_60_DEG_UP_TO_FLAT:
-			case TRACK_ELEM_DIAG_FLAT_TO_60_DEG_UP:
-			case TRACK_ELEM_DIAG_60_DEG_UP_TO_FLAT:
-			case TRACK_ELEM_BRAKE_FOR_DROP:
-				rideType = RIDE_TYPE_VERTICAL_DROP_ROLLER_COASTER;
-		}
-	}
-
 	if (rideType == RIDE_TYPE_MINI_ROLLER_COASTER) {
 		switch(trackType) {
 			case TRACK_ELEM_LEFT_CURVED_LIFT_HILL:
@@ -1786,12 +1752,8 @@ static int pick_ride_type_for_drawing(int rideType, int trackType)
  */
 void track_paint(uint8 direction, int height, rct_map_element *mapElement)
 {
-	rct_drawpixelinfo *dpi = unk_140E9A8;
-	rct_ride *ride;
-	int rideIndex, trackType, trackColourScheme, trackSequence;
-
-	rideIndex = mapElement->properties.track.ride_index;
-	ride = get_ride(rideIndex);
+	int rideIndex = mapElement->properties.track.ride_index;
+	rct_ride *ride = get_ride(rideIndex);
 	if (ride->type == RIDE_TYPE_NULL) {
 		log_error("Attempted to paint invalid ride: %d", rideIndex);
 		return;
@@ -1804,10 +1766,12 @@ void track_paint(uint8 direction, int height, rct_map_element *mapElement)
 		ride->entrance_style = RIDE_ENTRANCE_STYLE_PLAIN;
 	}
 
+	rct_drawpixelinfo *dpi = unk_140E9A8;
+
 	if (!gTrackDesignSaveMode || rideIndex == gTrackDesignSaveRideIndex) {
-		trackType = mapElement->properties.track.type;
-		trackSequence = mapElement->properties.track.sequence & 0x0F;
-		trackColourScheme = mapElement->properties.track.colour & 3;
+		int trackType = mapElement->properties.track.type;
+		int trackSequence = mapElement->properties.track.sequence & 0x0F;
+		int trackColourScheme = mapElement->properties.track.colour & 3;
 
 		if ((gCurrentViewportFlags & VIEWPORT_FLAG_TRACK_HEIGHTS) && dpi->zoom_level == 0) {
 			gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_NONE;

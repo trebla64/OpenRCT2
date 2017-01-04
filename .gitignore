@@ -14,10 +14,15 @@ distribution/windows/*.exe
 # Build artifacts
 artifacts
 .cache
+.dependencies
 
 #lib
 lib
 libversion
+
+#sequences
+data/title
+sequencesversion
 
 #################
 ## Eclipse

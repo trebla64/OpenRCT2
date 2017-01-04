@@ -4295,6 +4295,8 @@ STR_5991    :Kan element niet plakken
 STR_5992    :De limiet voor kaartelementen is bereikt
 STR_5993    :{SMALLFONT}{BLACK}Geselecteerd element kopiëren
 STR_5994    :{SMALLFONT}{BLACK}Gekopieerd element plakken
+STR_5995    :Turbo
+STR_5996    :Turbosnelheid
 
 #############
 # Scenarios #
@@ -4657,7 +4659,7 @@ STR_DTLS    :Het fundament van dit themapark wordt gevormd door twee enorme rots
 <Octagon Park>
 STR_SCNR    :Octagon Park
 STR_PARK    :Octagon Park
-STR_DTLS    :In dit grote moet je tien grote achtbanen ontwerpen en bouwen.
+STR_DTLS    :In dit grote park moet je tien grote achtbanen ontwerpen en bouwen.
 
 <Pleasure Island>
 STR_SCNR    :Pleasure Island

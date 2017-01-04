@@ -4,8 +4,8 @@ An open-source re-implementation of RollerCoaster Tycoon 2. A construction and m
 ### Build Status
 |             | Windows | Linux / Mac | Download |
 |-------------|---------|-------------|----------|
-| **master**  | [![AppVeyor](https://ci.appveyor.com/api/projects/status/7efnemxhon6i5n34/branch/master?svg=true)](https://ci.appveyor.com/project/IntelOrca/openrct2-ject9) | [![Travis CI](https://travis-ci.org/OpenRCT2/OpenRCT2.svg?branch=master)](https://travis-ci.org/OpenRCT2/OpenRCT2) | [![OpenRCT2.org](https://img.shields.io/badge/stable-v0.0.4-green.svg)](https://openrct2.org/downloads/master/latest) |
-| **develop** | [![AppVeyor](https://ci.appveyor.com/api/projects/status/7efnemxhon6i5n34/branch/develop?svg=true)](https://ci.appveyor.com/project/IntelOrca/openrct2-ject9) | [![Travis CI](https://travis-ci.org/OpenRCT2/OpenRCT2.svg?branch=develop)](https://travis-ci.org/OpenRCT2/OpenRCT2) | [![OpenRCT2.org](https://img.shields.io/badge/develop-v0.0.5-blue.svg)](https://openrct2.org/downloads/develop/latest) |
+| **master**  | [![AppVeyor](https://ci.appveyor.com/api/projects/status/7efnemxhon6i5n34/branch/master?svg=true)](https://ci.appveyor.com/project/IntelOrca/openrct2-ject9) | [![Travis CI](https://travis-ci.org/OpenRCT2/OpenRCT2.svg?branch=master)](https://travis-ci.org/OpenRCT2/OpenRCT2) | [![OpenRCT2.org](https://img.shields.io/badge/stable-v0.0.5-green.svg)](https://openrct2.org/downloads/master/latest) |
+| **develop** | [![AppVeyor](https://ci.appveyor.com/api/projects/status/7efnemxhon6i5n34/branch/develop?svg=true)](https://ci.appveyor.com/project/IntelOrca/openrct2-ject9) | [![Travis CI](https://travis-ci.org/OpenRCT2/OpenRCT2.svg?branch=develop)](https://travis-ci.org/OpenRCT2/OpenRCT2) | [![OpenRCT2.org](https://img.shields.io/badge/develop-v0.0.6-blue.svg)](https://openrct2.org/downloads/develop/latest) |
 
 ### Chat
 English:<br />
@@ -51,8 +51,8 @@ Some Linux distributions offer native packages already. These packages are usual
 OpenRCT2 requires original files of RollerCoaster Tycoon 2 to play. It can be bought at either [Steam](http://store.steampowered.com/app/285330/) or [GOG.com](http://www.gog.com/game/rollercoaster_tycoon_2).
 
 ### Windows:
-- Vista / 7 / 8 / 10
-- Visual Studio 2015 Update 2+ (Enterprise / Professional / [Community (Free)](https://www.visualstudio.com/products/visual-studio-community-vs))
+- 7 / 8 / 10
+- Visual Studio 2015 Update 3 or 2017 RC (Enterprise / Professional / [Community (Free)](https://www.visualstudio.com/products/visual-studio-community-vs))
 - [7-Zip](http://www.7-zip.org/) (for deployment only)
 - [NSIS](http://nsis.sourceforge.net/) (for deployment only)
 
@@ -100,7 +100,7 @@ The recommended way of building OpenRCT2 for macOS is with Xcode. The Xcode buil
 #### CMake:
 A command line version of OpenRCT2 can be built using CMake. This type of build requires you to provide the dependencies yourself. The supported method of doing this is with [Homebrew](http://brew.sh). Once you have Homebrew installed, you can download all the required libraries with this command:
 ```
-brew install cmake openssl jansson libpng sdl2 sdl2_ttf speex
+brew install cmake openssl jansson libpng sdl2 sdl2_ttf speex libzip
 ```
 
 Once you have the dependencies installed, you can build the project using CMake using the following commands:

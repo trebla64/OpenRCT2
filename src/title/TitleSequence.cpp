@@ -58,6 +58,8 @@ extern "C"
         std::vector<utf8 *> saves;
         bool isZip;
 
+        log_verbose("Loading title sequence: %s", path);
+
         const utf8 * ext = Path::GetExtension(path);
         if (String::Equals(ext, TITLE_SEQUENCE_EXTENSION))
         {
@@ -122,6 +124,7 @@ extern "C"
                 Memory::Free(seq->Saves[i]);
             }
             Memory::Free(seq->Saves);
+            Memory::Free(seq);
         }
     }
 
@@ -593,6 +596,7 @@ static utf8 * LegacyScriptWrite(TitleSequence * seq)
         case TITLE_SCRIPT_WAIT:
             String::Format(buffer, sizeof(buffer), "WAIT %u", command->Seconds);
             sb.Append(buffer);
+            break;
         case TITLE_SCRIPT_RESTART:
             sb.Append("RESTART");
             break;

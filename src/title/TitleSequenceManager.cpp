@@ -170,7 +170,7 @@ namespace TitleSequenceManager
         return std::string(path);
     }
 
-    static const uint16 GetPredefinedIndex(const std::string &path)
+    static uint16 GetPredefinedIndex(const std::string &path)
     {
         const utf8 * filename = Path::GetFileName(path.c_str());
         for (uint16 i = 0; i < Util::CountOf(PredefinedSequences); i++)
@@ -235,30 +235,31 @@ namespace TitleSequenceManager
 
     static void AddSequence(const utf8 * scanPath)
     {
+        TitleSequenceManagerItem item;
+
         std::string path;
         bool isZip = true;
         if (String::Equals(Path::GetExtension(scanPath), ".txt", true))
         {
             // If we are given a .txt file, set the path to the containing directory
-            path = std::string(Path::GetDirectory(scanPath));
+            utf8 * utf8Path = Path::GetDirectory(scanPath);
+            path = std::string(utf8Path);
+            Memory::Free(utf8Path);
             isZip = false;
+            item.Name = Path::GetFileName(path.c_str());
         }
         else
         {
             path = std::string(scanPath);
+            item.Name = GetNameFromSequencePath(path);
         }
 
-        TitleSequenceManagerItem item;
         item.PredefinedIndex = GetPredefinedIndex(path);
         item.Path = path;
         if (item.PredefinedIndex != PREDEFINED_INDEX_CUSTOM)
         {
             rct_string_id stringId = PredefinedSequences[item.PredefinedIndex].StringId;
             item.Name = String::Duplicate(language_get_string(stringId));
-        }
-        else
-        {
-            item.Name = GetNameFromSequencePath(path);
         }
         item.IsZip = isZip;
         _items.push_back(item);

@@ -2941,7 +2941,7 @@ static void vehicle_check_if_missing(rct_vehicle* vehicle) {
 		return;
 
 	vehicle->lost_time_out++;
-	if (ride->lifecycle_flags & RIDE_LIFECYCLE_11)
+	if (ride->lifecycle_flags & RIDE_LIFECYCLE_HAS_STALLED_VEHICLE)
 		return;
 
 	uint16 limit = ride->type == RIDE_TYPE_BOAT_RIDE ? 15360 : 9600;
@@ -2949,7 +2949,7 @@ static void vehicle_check_if_missing(rct_vehicle* vehicle) {
 	if (vehicle->lost_time_out <= limit)
 		return;
 
-	ride->lifecycle_flags |= RIDE_LIFECYCLE_11;
+	ride->lifecycle_flags |= RIDE_LIFECYCLE_HAS_STALLED_VEHICLE;
 
 	set_format_arg(0, rct_string_id, RideComponentNames[RideNameConvention[ride->type].vehicle].number);
 
@@ -5647,7 +5647,7 @@ static int vehicle_update_motion_bumper_car(rct_vehicle* vehicle) {
 			uint8 direction = vehicle->sprite_direction | 1;
 
 			if (collideSprite != 0xFFFF) {
-				vehicle->var_34 = scenario_rand() & 1 ? 1 : -1;
+				vehicle->var_34 = (scenario_rand() & 1) ? 1 : -1;
 
 				if (oldVelocity >= 131072) {
 					rct_vehicle* collideVehicle = GET_VEHICLE(collideSprite);
@@ -5656,7 +5656,7 @@ static int vehicle_update_motion_bumper_car(rct_vehicle* vehicle) {
 				}
 			}
 			else {
-				vehicle->var_34 = scenario_rand() & 1 ? 6 : -6;
+				vehicle->var_34 = (scenario_rand() & 1) ? 6 : -6;
 
 				if (oldVelocity >= 131072) {
 					vehicle->var_C4 = direction ^ (1 << 4);
@@ -7425,7 +7425,7 @@ loc_6DB41D:
 	}
 	vehicle->track_direction = regs.bl & 3;
 	vehicle->track_type |= trackType << 2;
-	vehicle->break_speed = (mapElement->properties.track.sequence >> 4) << 1;
+	vehicle->brake_speed = (mapElement->properties.track.sequence >> 4) << 1;
 	if (trackType == TRACK_ELEM_ON_RIDE_PHOTO) {
 		vehicle_trigger_on_ride_photo(vehicle, mapElement);
 	}
@@ -7466,7 +7466,7 @@ loc_6DAEB9:
 			ride->breakdown_reason_pending == BREAKDOWN_BRAKES_FAILURE &&
 			ride->mechanic_status == RIDE_MECHANIC_STATUS_4
 			)) {
-			regs.eax = vehicle->break_speed << 16;
+			regs.eax = vehicle->brake_speed << 16;
 			if (regs.eax < _vehicleVelocityF64E08) {
 				vehicle->acceleration = -_vehicleVelocityF64E08 * 16;
 			}
@@ -7475,6 +7475,18 @@ loc_6DAEB9:
 					_vehicleF64E2C++;
 					audio_play_sound_at_location(SOUND_51, vehicle->x, vehicle->y, vehicle->z);
 				}
+			}
+		}
+	}
+	else if (trackType == TRACK_ELEM_BOOSTER && ride->type != RIDE_TYPE_WILD_MOUSE) {
+		if (!(
+				ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN &&
+				ride->breakdown_reason_pending == BREAKDOWN_BRAKES_FAILURE &&
+				ride->mechanic_status == RIDE_MECHANIC_STATUS_4
+		)) {
+			regs.eax = (vehicle->brake_speed << 16);
+			if (regs.eax > _vehicleVelocityF64E08) {
+				vehicle->acceleration = RideProperties[ride->type].acceleration << 16; //_vehicleVelocityF64E08 * 1.2;
 			}
 		}
 	}
@@ -7790,7 +7802,7 @@ static bool vehicle_update_track_motion_backwards_get_new_track(rct_vehicle *veh
 	direction &= 3;
 	vehicle->track_type = trackType << 2;
 	vehicle->track_direction |= direction;
-	vehicle->break_speed = (mapElement->properties.track.sequence >> 4) << 1;
+	vehicle->brake_speed = (mapElement->properties.track.sequence >> 4) << 1;
 
 	// There are two bytes before the move info list
 	uint16 trackTotalProgress = vehicle_get_move_info_size(vehicle->var_CD, vehicle->track_type);
@@ -7816,9 +7828,18 @@ loc_6DBA33:;
 	}
 
 	if (trackType == TRACK_ELEM_BRAKES) {
-		regs.eax = -(vehicle->break_speed << 16);
+		regs.eax = -(vehicle->brake_speed << 16);
 		if (regs.eax > _vehicleVelocityF64E08) {
 			regs.eax = _vehicleVelocityF64E08 * -16;
+			vehicle->acceleration = regs.eax;
+		}
+	}
+
+	// Boosters share their ID with the Spinning Control track.
+	if (trackType == TRACK_ELEM_BOOSTER && ride->type != RIDE_TYPE_WILD_MOUSE) {
+		regs.eax = (vehicle->brake_speed << 16);
+		if (regs.eax < _vehicleVelocityF64E08) {
+			regs.eax = RideProperties[ride->type].acceleration << 16;
 			vehicle->acceleration = regs.eax;
 		}
 	}
@@ -8307,8 +8328,6 @@ loc_6DCA9A:
 
 	vehicle->track_type = (mapElement->properties.track.type << 2) | (direction & 3);
 	vehicle->var_CF = (mapElement->properties.track.colour >> 4) << 1;
-
-	moveInfo = vehicle_get_move_info(vehicle->var_CD, vehicle->track_type, 0);
 
 	// There are two bytes before the move info list
 	regs.ax = vehicle_get_move_info_size(vehicle->var_CD, vehicle->track_type);

@@ -122,6 +122,7 @@
 		C650B21A1CCABBDD00B4D91C /* tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C650B2171CCABBDD00B4D91C /* tables.cpp */; };
 		C650B21C1CCABC4400B4D91C /* ConvertCommand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C650B21B1CCABC4400B4D91C /* ConvertCommand.cpp */; };
 		C6575A371D46AFBA00C3E79F /* debug_paint.c in Sources */ = {isa = PBXBuildFile; fileRef = C6575A361D46AFBA00C3E79F /* debug_paint.c */; };
+		C65A888A1E16859D000368D7 /* bolliger_mabillard_track.c in Sources */ = {isa = PBXBuildFile; fileRef = C65A88881E16859D000368D7 /* bolliger_mabillard_track.c */; };
 		C6834A111DFDE8E300CE933A /* interop.c in Sources */ = {isa = PBXBuildFile; fileRef = C6834A0F1DFDE8E300CE933A /* interop.c */; };
 		C686F8AC1CDBC37E009F9BFC /* banner.c in Sources */ = {isa = PBXBuildFile; fileRef = C686F8981CDBC37E009F9BFC /* banner.c */; };
 		C686F8AD1CDBC37E009F9BFC /* entrance.c in Sources */ = {isa = PBXBuildFile; fileRef = C686F8991CDBC37E009F9BFC /* entrance.c */; };
@@ -215,6 +216,7 @@
 		C686F9581CDBC4C7009F9BFC /* vehicle_paint.c in Sources */ = {isa = PBXBuildFile; fileRef = C686F9561CDBC4C7009F9BFC /* vehicle_paint.c */; };
 		C6B5A7D41CDFE4CB00C9C006 /* S6Exporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6B5A7D01CDFE4CB00C9C006 /* S6Exporter.cpp */; };
 		C6B5A7D51CDFE4CB00C9C006 /* S6Importer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6B5A7D21CDFE4CB00C9C006 /* S6Importer.cpp */; };
+		C6CABA821E1466D600D33A6B /* FileClassifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6CABA801E1466D600D33A6B /* FileClassifier.cpp */; };
 		C6E96E121E04067A0076A04F /* File.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6E96E101E04067A0076A04F /* File.cpp */; };
 		C6E96E151E04069A0076A04F /* Zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C6E96E131E04069A0076A04F /* Zip.cpp */; };
 		C6E96E1A1E0406F00076A04F /* addresses.c in Sources */ = {isa = PBXBuildFile; fileRef = C6E96E161E0406F00076A04F /* addresses.c */; };
@@ -551,6 +553,8 @@
 		C650B2181CCABBDD00B4D91C /* Tables.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = Tables.h; sourceTree = "<group>"; usesTabs = 0; };
 		C650B21B1CCABC4400B4D91C /* ConvertCommand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertCommand.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		C6575A361D46AFBA00C3E79F /* debug_paint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = debug_paint.c; sourceTree = "<group>"; };
+		C65A88881E16859D000368D7 /* bolliger_mabillard_track.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bolliger_mabillard_track.c; sourceTree = "<group>"; };
+		C65A88891E16859D000368D7 /* bolliger_mabillard_track.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bolliger_mabillard_track.h; sourceTree = "<group>"; };
 		C6834A0F1DFDE8E300CE933A /* interop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interop.c; sourceTree = "<group>"; usesTabs = 1; };
 		C6834A101DFDE8E300CE933A /* interop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interop.h; sourceTree = "<group>"; };
 		C686F8981CDBC37E009F9BFC /* banner.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = banner.c; sourceTree = "<group>"; };
@@ -653,6 +657,8 @@
 		C6B5A7D11CDFE4CB00C9C006 /* S6Exporter.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = S6Exporter.h; sourceTree = "<group>"; };
 		C6B5A7D21CDFE4CB00C9C006 /* S6Importer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = S6Importer.cpp; sourceTree = "<group>"; };
 		C6B5A7D31CDFE4CB00C9C006 /* S6Importer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = S6Importer.h; sourceTree = "<group>"; };
+		C6CABA801E1466D600D33A6B /* FileClassifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileClassifier.cpp; sourceTree = "<group>"; };
+		C6CABA811E1466D600D33A6B /* FileClassifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileClassifier.h; sourceTree = "<group>"; };
 		C6E96E101E04067A0076A04F /* File.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = File.cpp; sourceTree = "<group>"; };
 		C6E96E111E04067A0076A04F /* File.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = File.h; sourceTree = "<group>"; };
 		C6E96E131E04069A0076A04F /* Zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Zip.cpp; sourceTree = "<group>"; usesTabs = 0; };
@@ -1316,6 +1322,8 @@
 			children = (
 				C686F8BB1CDBC3B7009F9BFC /* air_powered_vertical_coaster.c */,
 				C686F8BC1CDBC3B7009F9BFC /* bobsleigh_coaster.c */,
+				C65A88881E16859D000368D7 /* bolliger_mabillard_track.c */,
+				C65A88891E16859D000368D7 /* bolliger_mabillard_track.h */,
 				C686F8BD1CDBC3B7009F9BFC /* compact_inverted_coaster.c */,
 				C686F8BE1CDBC3B7009F9BFC /* corkscrew_roller_coaster.c */,
 				C686F8BF1CDBC3B7009F9BFC /* flying_roller_coaster.c */,
@@ -1499,35 +1507,37 @@
 				D442718E1CC81B3200D84D28 /* windows */,
 				D44271D81CC81B3200D84D28 /* world */,
 				D44270D41CC81B3200D84D28 /* cheats.c */,
-				D44270DC1CC81B3200D84D28 /* cmdline_sprite.c */,
-				D44270DE1CC81B3200D84D28 /* config.c */,
-				D44270FE1CC81B3200D84D28 /* diagnostic.c */,
-				D442710E1CC81B3200D84D28 /* editor.c */,
-				D44271101CC81B3200D84D28 /* game.c */,
-				D44271141CC81B3200D84D28 /* image_io.c */,
-				D44271161CC81B3200D84D28 /* input.c */,
-				D44271301CC81B3200D84D28 /* intro.c */,
-				D44271561CC81B3200D84D28 /* object_list.c */,
-				D460DFD01E01239D007BA2FE /* OpenRCT2.cpp */,
-				D460DFD51E0123DB007BA2FE /* PlatformEnvironment.h */,
-				D44271691CC81B3200D84D28 /* rct1.c */,
-				D442716B1CC81B3200D84D28 /* rct2.c */,
-				D4CA88651D4E64C800060C11 /* version.c */,
 				D44270D51CC81B3200D84D28 /* cheats.h */,
+				D44270DC1CC81B3200D84D28 /* cmdline_sprite.c */,
 				D44270DD1CC81B3200D84D28 /* common.h */,
+				D44270DE1CC81B3200D84D28 /* config.c */,
 				D44270DF1CC81B3200D84D28 /* config.h */,
+				D44270FE1CC81B3200D84D28 /* diagnostic.c */,
 				D44270FF1CC81B3200D84D28 /* diagnostic.h */,
+				D442710E1CC81B3200D84D28 /* editor.c */,
 				D442710F1CC81B3200D84D28 /* editor.h */,
+				C6CABA801E1466D600D33A6B /* FileClassifier.cpp */,
+				C6CABA811E1466D600D33A6B /* FileClassifier.h */,
+				D44271101CC81B3200D84D28 /* game.c */,
 				D44271111CC81B3200D84D28 /* game.h */,
+				D44271141CC81B3200D84D28 /* image_io.c */,
 				D44271151CC81B3200D84D28 /* image_io.h */,
+				D44271161CC81B3200D84D28 /* input.c */,
 				D44271171CC81B3200D84D28 /* input.h */,
+				D44271301CC81B3200D84D28 /* intro.c */,
 				D44271311CC81B3200D84D28 /* intro.h */,
+				D44271561CC81B3200D84D28 /* object_list.c */,
 				D44271581CC81B3200D84D28 /* object.h */,
+				D460DFD01E01239D007BA2FE /* OpenRCT2.cpp */,
 				D460DFD21E0123B5007BA2FE /* OpenRCT2.h */,
 				D460DFD31E0123D1007BA2FE /* PlatformEnvironment.cpp */,
+				D460DFD51E0123DB007BA2FE /* PlatformEnvironment.h */,
+				D44271691CC81B3200D84D28 /* rct1.c */,
 				D442716A1CC81B3200D84D28 /* rct1.h */,
+				D442716B1CC81B3200D84D28 /* rct2.c */,
 				D442716C1CC81B3200D84D28 /* rct2.h */,
 				D44271851CC81B3200D84D28 /* sprites.h */,
+				D4CA88651D4E64C800060C11 /* version.c */,
 				D442718D1CC81B3200D84D28 /* version.h */,
 			);
 			name = Sources;
@@ -2297,6 +2307,7 @@
 			buildConfigurationList = D497D0891C20FD53002BF46A /* Build configuration list for PBXNativeTarget "OpenRCT2" */;
 			buildPhases = (
 				D4EC48E91C264FC20024B507 /* Download Libraries */,
+				D4E09E831E049C0600F53CE3 /* Download Title Sequences */,
 				D4EC012A1C25532B00DAFE69 /* Setup AppIcon */,
 				D4CA88671D4E962100060C11 /* Get Git Variables */,
 				D497D0741C20FD52002BF46A /* Sources */,
@@ -2320,7 +2331,7 @@
 		D497D0701C20FD52002BF46A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = OpenRCT2;
 				TargetAttributes = {
 					C64FDA5C1D6D99F400F259B9 = {
@@ -2414,6 +2425,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "echo \"#define\" OPENRCT2_BRANCH \\\"$(git rev-parse --abbrev-ref HEAD)\\\" > \"${DERIVED_FILE_DIR}/gitversion.h\"\necho \"#define\" OPENRCT2_COMMIT_SHA1 \\\"$(git rev-parse HEAD)\\\" >> \"${DERIVED_FILE_DIR}/gitversion.h\"\necho \"#define\" OPENRCT2_COMMIT_SHA1_SHORT \\\"$(git rev-parse --short HEAD)\\\" >> \"${DERIVED_FILE_DIR}/gitversion.h\"\ncp \"${SRCROOT}/distribution/macos/Info.plist\" \"${DERIVED_FILE_DIR}/Info.plist\"\nplutil -replace CFBundleVersion -string \"$(git rev-parse --short HEAD)\" \"${DERIVED_FILE_DIR}/Info.plist\"";
+		};
+		D4E09E831E049C0600F53CE3 /* Download Title Sequences */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Download Title Sequences";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "version=\"0.0.5\"\nzipname=\"title-sequence-v$version.zip\"\nliburl=\"https://github.com/OpenRCT2/title-sequences/releases/download/v$version/$zipname\"\n\n[[ ! -d \"${SRCROOT}/data/title\" || ! -e \"${SRCROOT}/sequencesversion\" || $(head -n 1 \"${SRCROOT}/sequencesversion\") != $version ]]\noutdated=$?\n\nif [[ $outdated -eq 0 ]]; then\nif [[ -d \"${SRCROOT}/data/title\" ]]; then rm -r \"${SRCROOT}/data/title\"; fi\nmkdir -p \"${SRCROOT}/data/title\"\n\ncurl -L -o \"${SRCROOT}/data/title/$zipname\" \"$liburl\"\nunzip -uaq -d \"${SRCROOT}/data/title\" \"${SRCROOT}/data/title/$zipname\"\nrm \"${SRCROOT}/data/title/$zipname\"\n\necho $version > \"${SRCROOT}/sequencesversion\"\nfi";
 		};
 		D4EC012A1C25532B00DAFE69 /* Setup AppIcon */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2575,6 +2600,7 @@
 				D44272491CC81B3200D84D28 /* track.c in Sources */,
 				C686F9201CDBC3B7009F9BFC /* side_friction_roller_coaster.c in Sources */,
 				D44272561CC81B3200D84D28 /* cheats.c in Sources */,
+				C65A888A1E16859D000368D7 /* bolliger_mabillard_track.c in Sources */,
 				D442722B1CC81B3200D84D28 /* real_names.c in Sources */,
 				D442721C1CC81B3200D84D28 /* keyboard_shortcut.c in Sources */,
 				D442728F1CC81B3200D84D28 /* title_menu.c in Sources */,
@@ -2718,6 +2744,7 @@
 				C650B21A1CCABBDD00B4D91C /* tables.cpp in Sources */,
 				D44272291CC81B3200D84D28 /* LanguagePack.cpp in Sources */,
 				D44272901CC81B3200D84D28 /* title_options.c in Sources */,
+				C6CABA821E1466D600D33A6B /* FileClassifier.cpp in Sources */,
 				C686F94A1CDBC3B7009F9BFC /* lift.c in Sources */,
 				C6E96E321E04072F0076A04F /* TitleSequencePlayer.cpp in Sources */,
 				D46F2A9E1D39A25A00A36AB7 /* peep_data.c in Sources */,

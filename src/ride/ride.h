@@ -138,7 +138,7 @@ typedef struct rct_ride {
 	uint8 mode;						// 0x004
 	uint8 colour_scheme_type;		// 0x005
 	rct_vehicle_colour vehicle_colours[32];		// 0x006
-	uint8 pad_046[0x03];
+	uint8 pad_046[0x03];            // Used to be track colours in RCT1 without expansions
 	// 0 = closed, 1 = open, 2 = test
 	uint8 status;					// 0x049
 	rct_string_id name;				// 0x04A
@@ -160,7 +160,7 @@ typedef struct rct_ride {
 	uint16 entrances[4];			// 0x06A
 	uint16 exits[4];				// 0x072
 	uint16 last_peep_in_queue[4];	// 0x07A
-	uint8 pad_082[4];
+	uint8 pad_082[4];               // Used to be number of peeps in queue in RCT1, but this has moved.
 	uint16 vehicles[32];			// 0x086 Points to the first car in the train
 	uint8 depart_flags;				// 0x0C6
 
@@ -398,7 +398,7 @@ enum {
 	RIDE_LIFECYCLE_DUE_INSPECTION = 1 << 8,
 	RIDE_LIFECYCLE_QUEUE_FULL = 1 << 9,
 	RIDE_LIFECYCLE_CRASHED = 1 << 10,
-	RIDE_LIFECYCLE_11 = 1 << 11,
+	RIDE_LIFECYCLE_HAS_STALLED_VEHICLE = 1 << 11,
 	RIDE_LIFECYCLE_EVER_BEEN_OPENED = 1 << 12,
 	RIDE_LIFECYCLE_MUSIC = 1 << 13,
 	RIDE_LIFECYCLE_INDESTRUCTIBLE = 1 << 14,
@@ -427,7 +427,7 @@ enum {
 	RIDE_ENTRY_FLAG_11 = 1 << 11, // 0x800
 	RIDE_ENTRY_FLAG_SEPARATE_RIDE_NAME = 1 << 12, // 0x1000
 	RIDE_ENTRY_FLAG_SEPARATE_RIDE = 1 << 13, // 0x2000
-	RIDE_ENTRY_FLAG_14 = 1 << 14, // 0x4000
+	RIDE_ENTRY_FLAG_CANNOT_BREAK_DOWN = 1 << 14, // 0x4000
 	RIDE_ENTRY_DISABLE_LAST_OPERATING_MODE = 1 << 15, // 0x8000
 	RIDE_ENTRY_FLAG_16 = 1 << 16, // 0x10000
 	RIDE_ENTRY_DISABLE_FIRST_TWO_OPERATING_MODES = 1 << 17, // 0x20000
@@ -1123,6 +1123,7 @@ void ride_fix_breakdown(int rideIndex, int reliabilityIncreaseFactor);
 void ride_entry_get_train_layout(int rideEntryIndex, int numCarsPerTrain, uint8 *trainLayout);
 uint8 ride_entry_get_vehicle_at_position(int rideEntryIndex, int numCarsPerTrain, int position);
 void ride_update_max_vehicles(int rideIndex);
+uint64 ride_entry_get_supported_track_pieces(rct_ride_entry* rideEntry);
 
 void ride_set_ride_entry(int rideIndex, int rideEntry);
 void ride_set_num_vehicles(int rideIndex, int numVehicles);

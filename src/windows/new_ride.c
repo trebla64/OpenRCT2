@@ -391,6 +391,7 @@ static void window_new_ride_scroll_to_focused_ride(rct_window *w)
 
 	// Find row index of the focused ride type
 	rct_widget *listWidget = &window_new_ride_widgets[WIDX_RIDE_LIST];
+	assert(_windowNewRideCurrentTab < countof(_windowNewRideHighlightedItem));
 	int focusRideType = _windowNewRideHighlightedItem[_windowNewRideCurrentTab].ride_type_and_entry;
 	int count = 0, row = 0;
 	ride_list_item *listItem = _windowNewRideListItems;
@@ -440,24 +441,23 @@ rct_window *window_new_ride_open()
 		(1 << WIDX_TAB_7) |
 		(1 << 14) |
 		(1 << 15);
+	window_new_ride_populate_list();
 	window_init_scroll_widgets(w);
 
 	w->frame_no = 0;
-
 	w->new_ride.selected_ride_id = -1;
-	w->new_ride.highlighted_ride_id = -1;
 	_lastTrackDesignCountRideType.type = 255;
 	_lastTrackDesignCountRideType.entry_index = 255;
-
-	window_new_ride_populate_list();
-
 	w->new_ride.highlighted_ride_id = _windowNewRideHighlightedItem[_windowNewRideCurrentTab].ride_type_and_entry;
 	if (w->new_ride.highlighted_ride_id == -1)
 		w->new_ride.highlighted_ride_id = _windowNewRideListItems[0].ride_type_and_entry;
 
 	w->width = 1;
 	window_new_ride_refresh_widget_sizing(w);
-	window_new_ride_scroll_to_focused_ride(w);
+
+	if (_windowNewRideCurrentTab != WINDOW_NEW_RIDE_PAGE_RESEARCH) {
+		window_new_ride_scroll_to_focused_ride(w);
+	}
 
 	return w;
 }
@@ -517,7 +517,10 @@ static void window_new_ride_set_page(rct_window *w, int page)
 
 	window_new_ride_refresh_widget_sizing(w);
 	window_invalidate(w);
-	window_new_ride_scroll_to_focused_ride(w);
+
+	if (page < WINDOW_NEW_RIDE_PAGE_RESEARCH) {
+		window_new_ride_scroll_to_focused_ride(w);
+	}
 }
 
 /**

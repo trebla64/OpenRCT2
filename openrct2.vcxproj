@@ -88,6 +88,7 @@
     <None Include="openrct2.exe" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\FileClassifier.cpp" />
     <ClCompile Include="src\rct2\addresses.c" />
     <ClCompile Include="src\audio\audio.c" />
     <ClCompile Include="src\audio\mixer.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="src\ride\cable_lift.c" />
     <ClCompile Include="src\ride\coaster\air_powered_vertical_coaster.c" />
     <ClCompile Include="src\ride\coaster\bobsleigh_coaster.c" />
+    <ClCompile Include="src\ride\coaster\bolliger_mabillard_track.c" />
     <ClCompile Include="src\ride\coaster\compact_inverted_coaster.c" />
     <ClCompile Include="src\ride\coaster\corkscrew_roller_coaster.c" />
     <ClCompile Include="src\ride\coaster\flying_roller_coaster.c" />
@@ -422,6 +424,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resources\resource.h" />
+    <ClInclude Include="src\FileClassifier.h" />
     <ClInclude Include="src\rct2\addresses.h" />
     <ClInclude Include="src\audio\audio.h" />
     <ClInclude Include="src\audio\mixer.h" />

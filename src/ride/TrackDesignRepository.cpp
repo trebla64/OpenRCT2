@@ -68,7 +68,7 @@ private:
     IPlatformEnvironment * _env;
 
     std::vector<TrackRepositoryItem> _items;
-    QueryDirectoryResult _directoryQueryResult;
+    QueryDirectoryResult _directoryQueryResult = { 0 };
 
 public:
     TrackDesignRepository(IPlatformEnvironment * env)
@@ -304,7 +304,7 @@ private:
                 result = true;
             }
         }
-        catch (Exception ex)
+        catch (const Exception &)
         {
             Console::Error::WriteLine("Unable to write object repository index.");
         }
@@ -339,7 +339,7 @@ private:
                 fs.WriteValue(item.Flags);
             }
         }
-        catch (Exception ex)
+        catch (const Exception &)
         {
             Console::Error::WriteLine("Unable to write object repository index.");
         }
