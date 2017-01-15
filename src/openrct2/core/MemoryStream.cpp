@@ -18,17 +18,6 @@
 #include "Memory.hpp"
 #include "MemoryStream.h"
 
-MemoryStream::MemoryStream()
-{
-    _access = MEMORY_ACCESS_READ |
-              MEMORY_ACCESS_WRITE |
-              MEMORY_ACCESS_OWNER;
-    _dataCapacity = 0;
-    _dataSize = 0;
-    _data = nullptr;
-    _position = nullptr;
-}
-
 MemoryStream::MemoryStream(const MemoryStream &copy)
 {
     _access = copy._access;
@@ -44,11 +33,7 @@ MemoryStream::MemoryStream(const MemoryStream &copy)
 
 MemoryStream::MemoryStream(size_t capacity)
 {
-    _access = MEMORY_ACCESS_READ |
-              MEMORY_ACCESS_WRITE |
-              MEMORY_ACCESS_OWNER;
     _dataCapacity = capacity;
-    _dataSize = 0;
     _data = Memory::Allocate<void>(capacity);
     _position = _data;
 }
@@ -114,7 +99,7 @@ void MemoryStream::SetPosition(uint64 position)
     Seek(position, STREAM_SEEK_BEGIN);
 }
 
-void MemoryStream::Seek(sint64 offset, int origin)
+void MemoryStream::Seek(sint64 offset, sint32 origin)
 {
     uint64 newPosition;
     switch (origin) {

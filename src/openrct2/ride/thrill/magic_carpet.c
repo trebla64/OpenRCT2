@@ -185,7 +185,7 @@ static void paint_magic_carpet_structure(rct_ride *ride, uint8 direction, sint8 
 }
 
 /** rct2: 0x00898514 */
-static void paint_magic_carpet(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_magic_carpet(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	uint8 relativeTrackSequence = track_map_1x4[direction][trackSequence];
 
@@ -194,11 +194,11 @@ static void paint_magic_carpet(uint8 rideIndex, uint8 trackSequence, uint8 direc
 	case 0:
 	case 2:
 		if (direction & 1) {
-			metal_a_supports_paint_setup(0, 6, 0, height, gTrackColours[SCHEME_SUPPORTS]);
-			metal_a_supports_paint_setup(0, 7, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+			metal_a_supports_paint_setup(METAL_SUPPORTS_TUBES, 6, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+			metal_a_supports_paint_setup(METAL_SUPPORTS_TUBES, 7, 0, height, gTrackColours[SCHEME_SUPPORTS]);
 		} else {
-			metal_a_supports_paint_setup(0, 5, 0, height, gTrackColours[SCHEME_SUPPORTS]);
-			metal_a_supports_paint_setup(0, 8, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+			metal_a_supports_paint_setup(METAL_SUPPORTS_TUBES, 5, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+			metal_a_supports_paint_setup(METAL_SUPPORTS_TUBES, 8, 0, height, gTrackColours[SCHEME_SUPPORTS]);
 		}
 
 		uint32 imageId = SPR_STATION_BASE_D | gTrackColours[SCHEME_SUPPORTS];
@@ -222,7 +222,7 @@ static void paint_magic_carpet(uint8 rideIndex, uint8 trackSequence, uint8 direc
  *
  *  rct2: 0x00898384
  */
-TRACK_PAINT_FUNCTION get_track_paint_function_magic_carpet(int trackType, int direction)
+TRACK_PAINT_FUNCTION get_track_paint_function_magic_carpet(sint32 trackType, sint32 direction)
 {
 	switch (trackType) {
 	case FLAT_TRACK_ELEM_1_X_4_A: return paint_magic_carpet;

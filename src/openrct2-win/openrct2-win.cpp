@@ -14,15 +14,20 @@
  *****************************************************************************/
 #pragma endregion
 
-#ifndef _IMAGE_IO_H_
-#define _IMAGE_IO_H_
+#define WIN32_LEAN_AND_MEAN
 
-#include "common.h"
-#include "drawing/drawing.h"
+#include <windows.h>
 
-bool image_io_png_read(uint8 **pixels, uint32 *width, uint32 *height, const utf8 *path);
+// Enable visual styles
+#pragma comment(linker, "\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-bool image_io_png_write(const rct_drawpixelinfo *dpi, const rct_palette *palette, const utf8 *path);
-bool image_io_png_write_32bpp(sint32 width, sint32 height, const void *pixels, const utf8 *path);
+#define DLLIMPORT extern "C"
+DLLIMPORT int LaunchOpenRCT2(int argc, wchar_t * * argv);
 
-#endif
+/**
+ * Windows entry point to OpenRCT2 with a console window using a traditional C main function.
+ */
+int wmain(int argc, wchar_t * * argvW, wchar_t * envp)
+{
+    return LaunchOpenRCT2(argc, argvW);
+}

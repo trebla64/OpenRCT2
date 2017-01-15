@@ -24,7 +24,7 @@
 #include "../../world/map.h"
 
 /** rct2: 0x */
-static void paint_mini_helicopters_track_station(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_station(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	uint32 imageId;
 
@@ -35,8 +35,8 @@ static void paint_mini_helicopters_track_station(uint8 rideIndex, uint8 trackSeq
 		imageId = SPR_TRACK_SUBMARINE_RIDE_MINI_HELICOPTERS_FLAT_NE_SW | gTrackColours[SCHEME_TRACK];
 		sub_98199C(imageId, 0, 0, 32, 20, 1, height, 0, 0, height, get_current_rotation());
 
-		metal_a_supports_paint_setup(3, 5, 0, height, gTrackColours[SCHEME_SUPPORTS]);
-		metal_a_supports_paint_setup(3, 8, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_BOXED, 5, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_BOXED, 8, 0, height, gTrackColours[SCHEME_SUPPORTS]);
 		paint_util_push_tunnel_left(height, TUNNEL_6);
 	} else if (direction == 1 || direction == 3) {
 		imageId = SPR_STATION_BASE_B_NW_SE | gTrackColours[SCHEME_MISC];
@@ -45,8 +45,8 @@ static void paint_mini_helicopters_track_station(uint8 rideIndex, uint8 trackSeq
 		imageId = SPR_TRACK_SUBMARINE_RIDE_MINI_HELICOPTERS_FLAT_SE_NW | gTrackColours[SCHEME_TRACK];
 		sub_98199C(imageId, 0, 0, 20, 32, 1, height, 0, 0, height, get_current_rotation());
 
-		metal_a_supports_paint_setup(3, 6, 0, height, gTrackColours[SCHEME_SUPPORTS]);
-		metal_a_supports_paint_setup(3, 7, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_BOXED, 6, 0, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_BOXED, 7, 0, height, gTrackColours[SCHEME_SUPPORTS]);
 		paint_util_push_tunnel_right(height, TUNNEL_6);
 	}
 
@@ -57,7 +57,7 @@ static void paint_mini_helicopters_track_station(uint8 rideIndex, uint8 trackSeq
 }
 
 /** rct2: 0x0081F348 */
-static void paint_mini_helicopters_track_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	rct_xy16 position = {gPaintMapPosition.x, gPaintMapPosition.y};
 	uint32 imageId;
@@ -81,7 +81,7 @@ static void paint_mini_helicopters_track_flat(uint8 rideIndex, uint8 trackSequen
 }
 
 /** rct2: 0x0081F368 */
-static void paint_mini_helicopters_track_flat_to_25_deg_up(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_flat_to_25_deg_up(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	rct_xy16 position = {gPaintMapPosition.x, gPaintMapPosition.y};
 	uint32 imageId;
@@ -110,7 +110,7 @@ static void paint_mini_helicopters_track_flat_to_25_deg_up(uint8 rideIndex, uint
 	}
 
 	if (track_paint_util_should_paint_supports(position)) {
-		metal_a_supports_paint_setup(4, 4, -4, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_STICK, 4, -4, height, gTrackColours[SCHEME_SUPPORTS]);
 	}
 
 	paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_D0 | SEGMENT_C4 | SEGMENT_CC, direction), 0xFFFF, 0);
@@ -118,7 +118,7 @@ static void paint_mini_helicopters_track_flat_to_25_deg_up(uint8 rideIndex, uint
 }
 
 /** rct2: 0x0081F358 */
-static void paint_mini_helicopters_track_25_deg_up(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_25_deg_up(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	rct_xy16 position = {gPaintMapPosition.x, gPaintMapPosition.y};
 	uint32 imageId;
@@ -147,7 +147,7 @@ static void paint_mini_helicopters_track_25_deg_up(uint8 rideIndex, uint8 trackS
 	}
 
 	if (track_paint_util_should_paint_supports(position)) {
-		metal_a_supports_paint_setup(4, 4, -9, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_STICK, 4, -9, height, gTrackColours[SCHEME_SUPPORTS]);
 	}
 
 	paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_D0 | SEGMENT_C4 | SEGMENT_CC, direction), 0xFFFF, 0);
@@ -155,7 +155,7 @@ static void paint_mini_helicopters_track_25_deg_up(uint8 rideIndex, uint8 trackS
 }
 
 /** rct2: 0x0081F378 */
-static void paint_mini_helicopters_track_25_deg_up_to_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_25_deg_up_to_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	rct_xy16 position = {gPaintMapPosition.x, gPaintMapPosition.y};
 	uint32 imageId;
@@ -184,7 +184,7 @@ static void paint_mini_helicopters_track_25_deg_up_to_flat(uint8 rideIndex, uint
 	}
 
 	if (track_paint_util_should_paint_supports(position)) {
-		metal_a_supports_paint_setup(4, 4, -7, height, gTrackColours[SCHEME_SUPPORTS]);
+		metal_a_supports_paint_setup(METAL_SUPPORTS_STICK, 4, -7, height, gTrackColours[SCHEME_SUPPORTS]);
 	}
 
 	paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_D0 | SEGMENT_C4 | SEGMENT_CC, direction), 0xFFFF, 0);
@@ -192,39 +192,39 @@ static void paint_mini_helicopters_track_25_deg_up_to_flat(uint8 rideIndex, uint
 }
 
 /** rct2: 0x */
-static void paint_mini_helicopters_track_flat_to_25_deg_down(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_flat_to_25_deg_down(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	paint_mini_helicopters_track_25_deg_up_to_flat(rideIndex, trackSequence, (direction + 2) % 4, height, mapElement);
 }
 
 /** rct2: 0x0081F388 */
-static void paint_mini_helicopters_track_25_deg_down(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_25_deg_down(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	paint_mini_helicopters_track_25_deg_up(rideIndex, trackSequence, (direction + 2) % 4, height, mapElement);
 }
 
 /** rct2: 0x0081F3A8 */
-static void paint_mini_helicopters_track_25_deg_down_to_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_25_deg_down_to_flat(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	paint_mini_helicopters_track_flat_to_25_deg_up(rideIndex, trackSequence, (direction + 2) % 4, height, mapElement);
 }
 
 /** rct2: 0x0081F3E8 */
-static void paint_mini_helicopters_track_left_quarter_turn_3_tiles(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_left_quarter_turn_3_tiles(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	track_paint_util_left_quarter_turn_3_tiles_paint(3, height, direction, trackSequence, gTrackColours[SCHEME_TRACK], trackSpritesSubmarineRideMiniHelicoptersQuarterTurn3Tiles, get_current_rotation());
 	track_paint_util_left_quarter_turn_3_tiles_tunnel(height, TUNNEL_0, direction, trackSequence);
 
 	switch (trackSequence) {
 		case 0:
-			metal_a_supports_paint_setup(4, 4, -1, height, gTrackColours[SCHEME_SUPPORTS]);
+			metal_a_supports_paint_setup(METAL_SUPPORTS_STICK, 4, -1, height, gTrackColours[SCHEME_SUPPORTS]);
 			paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_D0 | SEGMENT_C4 | SEGMENT_CC | SEGMENT_B4, direction), 0xFFFF, 0);
 			break;
 		case 2:
 			paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_C8 | SEGMENT_C4 | SEGMENT_D0 | SEGMENT_B8, direction), 0xFFFF, 0);
 			break;
 		case 3:
-			metal_a_supports_paint_setup(4, 4, -1, height, gTrackColours[SCHEME_SUPPORTS]);
+			metal_a_supports_paint_setup(METAL_SUPPORTS_STICK, 4, -1, height, gTrackColours[SCHEME_SUPPORTS]);
 			paint_util_set_segment_support_height(paint_util_rotate_segments(SEGMENT_C8 | SEGMENT_C4 | SEGMENT_D4 | SEGMENT_C0, direction), 0xFFFF, 0);
 			break;
 	}
@@ -235,14 +235,14 @@ static void paint_mini_helicopters_track_left_quarter_turn_3_tiles(uint8 rideInd
 static const uint8 mini_helicopters_right_quarter_turn_3_tiles_to_left_turn_map[] = {3, 1, 2, 0};
 
 /** rct2: 0x0081F3F8 */
-static void paint_mini_helicopters_track_right_quarter_turn_3_tiles(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_right_quarter_turn_3_tiles(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	trackSequence = mini_helicopters_right_quarter_turn_3_tiles_to_left_turn_map[trackSequence];
 	paint_mini_helicopters_track_left_quarter_turn_3_tiles(rideIndex, trackSequence, (direction + 3) % 4, height, mapElement);
 }
 
 /** rct2: 0x0081F408 */
-static void paint_mini_helicopters_track_left_quarter_turn_1_tile(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_left_quarter_turn_1_tile(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	track_paint_util_left_quarter_turn_1_tile_paint(1, height, 0, direction, gTrackColours[SCHEME_TRACK], trackSpritesSubmarineRideMiniHelicoptersQuarterTurn1Tile, get_current_rotation());
 	track_paint_util_left_quarter_turn_1_tile_tunnel(direction, height, 0, TUNNEL_0, 0, TUNNEL_0);
@@ -252,7 +252,7 @@ static void paint_mini_helicopters_track_left_quarter_turn_1_tile(uint8 rideInde
 }
 
 /** rct2: 0x0081F418 */
-static void paint_mini_helicopters_track_right_quarter_turn_1_tile(uint8 rideIndex, uint8 trackSequence, uint8 direction, int height, rct_map_element * mapElement)
+static void paint_mini_helicopters_track_right_quarter_turn_1_tile(uint8 rideIndex, uint8 trackSequence, uint8 direction, sint32 height, rct_map_element * mapElement)
 {
 	paint_mini_helicopters_track_left_quarter_turn_1_tile(rideIndex, trackSequence, (direction + 3) % 4, height, mapElement);
 }
@@ -260,7 +260,7 @@ static void paint_mini_helicopters_track_right_quarter_turn_1_tile(uint8 rideInd
 /**
  * rct2: 0x0081F268
  */
-TRACK_PAINT_FUNCTION get_track_paint_function_mini_helicopters(int trackType, int direction)
+TRACK_PAINT_FUNCTION get_track_paint_function_mini_helicopters(sint32 trackType, sint32 direction)
 {
 	switch (trackType) {
 		case TRACK_ELEM_FLAT:

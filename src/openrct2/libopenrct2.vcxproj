@@ -12,14 +12,6 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugTests|Win32">
-      <Configuration>DebugTests</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugTests|x64">
-      <Configuration>DebugTests</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -28,35 +20,26 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseTests|Win32">
-      <Configuration>ReleaseTests</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseTests|x64">
-      <Configuration>ReleaseTests</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D24D94F6-2A74-480C-B512-629C306CE92F}</ProjectGuid>
-    <RootNamespace>openrct2</RootNamespace>
-    <ProjectName>openrct2</ProjectName>
+    <RootNamespace>openrct2-lib</RootNamespace>
+    <ProjectName>libopenrct2</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <!-- Debug|Win32 is reserved for RCT2 interop builds, this means it has to be a DLL -->
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='DebugTests' OR '$(Configuration)'=='ReleaseTests'">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-  </PropertyGroup>
   <Import Project="..\..\openrct2.common.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>openrct2</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions Condition="'$(Breakpad)'=='true'">USE_BREAKPAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)'=='DebugTests' OR '$(Configuration)'=='ReleaseTests'">__NOENTRYPOINT__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
@@ -64,10 +47,6 @@
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <AdditionalOptions>$(OPENRCT2_CL_ADDITIONALOPTIONS) %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <Link>
-      <SubSystem Condition="'$(Configuration)'!='Release'">Console</SubSystem>
-      <SubSystem Condition="'$(Configuration)'=='Release'">Windows</SubSystem>
-    </Link>
     <Lib>
       <TargetMachine Condition="'$(Platform)'=='Win32'">MachineX86</TargetMachine>
       <TargetMachine Condition="'$(Platform)'=='x64'">MachineX64</TargetMachine>
@@ -145,7 +124,7 @@
     <ClCompile Include="editor.c" />
     <ClCompile Include="game.c" />
     <ClCompile Include="rct2\hook.c" />
-    <ClCompile Include="image_io.c" />
+    <ClCompile Include="Imaging.cpp" />
     <ClCompile Include="input.c" />
     <ClCompile Include="interface\chat.c" />
     <ClCompile Include="interface\colour.c" />
@@ -261,7 +240,6 @@
     <ClCompile Include="ride\coaster\reverser_roller_coaster.c" />
     <ClCompile Include="ride\coaster\reverse_freefall_coaster.c" />
     <ClCompile Include="ride\coaster\side_friction_roller_coaster.c" />
-    <ClCompile Include="ride\coaster\spiral_roller_coaster.c" />
     <ClCompile Include="ride\coaster\stand_up_roller_coaster.c" />
     <ClCompile Include="ride\coaster\steeplechase.c" />
     <ClCompile Include="ride\coaster\suspended_swinging_coaster.c" />
@@ -487,7 +465,7 @@
     <ClInclude Include="editor.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="rct2\hook.h" />
-    <ClInclude Include="image_io.h" />
+    <ClInclude Include="Imaging.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="interface\chat.h" />
     <ClInclude Include="interface\colour.h" />

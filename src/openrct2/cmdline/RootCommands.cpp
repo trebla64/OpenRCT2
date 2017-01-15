@@ -39,20 +39,12 @@ extern "C"
 #define IMPLIES_SILENT_BREAKPAD
 #endif // USE_BREAKPAD
 
-#if defined(__WINDOWS__) && !defined(DEBUG)
-    #define __PROVIDE_CONSOLE__ 1
-#endif // defined(__WINDOWS__) && !defined(DEBUG)
-
 #ifndef DISABLE_NETWORK
-int  gNetworkStart = NETWORK_MODE_NONE;
+sint32  gNetworkStart = NETWORK_MODE_NONE;
 char gNetworkStartHost[128];
-int  gNetworkStartPort = NETWORK_DEFAULT_PORT;
+sint32  gNetworkStartPort = NETWORK_DEFAULT_PORT;
 
 static uint32 _port            = 0;
-#endif
-
-#ifdef __PROVIDE_CONSOLE__
-    static bool _provideConsole;
 #endif
 
 static bool   _help            = false;
@@ -77,9 +69,6 @@ static const CommandLineOptionDefinition StandardOptions[]
     { CMDLINE_TYPE_SWITCH,  &_about,           NAC, "about",             "show information about " OPENRCT2_NAME                      },
     { CMDLINE_TYPE_SWITCH,  &_verbose,         NAC, "verbose",           "log verbose messages"                                       },
     { CMDLINE_TYPE_SWITCH,  &_headless,        NAC, "headless",          "run " OPENRCT2_NAME " headless" IMPLIES_SILENT_BREAKPAD     },
-#ifdef __PROVIDE_CONSOLE__
-    { CMDLINE_TYPE_SWITCH,  &_provideConsole,  NAC, "console",           "creates a new or attaches to an existing console window for standard output" },
-#endif
 #ifndef DISABLE_NETWORK
     { CMDLINE_TYPE_INTEGER, &_port,            NAC, "port",              "port to use for hosting or joining a server"                },
 #endif
@@ -166,13 +155,6 @@ exitcode_t CommandLine::HandleCommandDefault()
 {
     exitcode_t result = EXITCODE_CONTINUE;
 
-#ifdef __PROVIDE_CONSOLE__
-    if (_provideConsole)
-    {
-        platform_windows_open_console();
-    }
-#endif
-
     if (_about)
     {
         PrintAbout();
@@ -181,7 +163,7 @@ exitcode_t CommandLine::HandleCommandDefault()
     {
         if (_verbose)
         {
-            _log_levels[DIAGNOSTIC_LEVEL_VERBOSE] = 1;
+            _log_levels[DIAGNOSTIC_LEVEL_VERBOSE] = true;
             PrintLaunchInformation();
         }
 

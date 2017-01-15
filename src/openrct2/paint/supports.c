@@ -117,7 +117,7 @@ const uint32 _97B072[][8] = {
 };
 
 /** rct2: 0x0097B142 */
-static const uint8 word_97B142[] = {
+static const uint8 supportTypeToHeight[] = {
 	6,
 	3,
 	3,
@@ -345,7 +345,7 @@ paint_struct * gWoodenSupportsPrependTo;
  * @param[out] underground (Carry flag) true if underground.
  * @returns (al) true if any supports have been drawn, otherwise false.
  */
-bool wooden_a_supports_paint_setup(int supportType, int special, int height, uint32 imageColourFlags, bool* underground)
+bool wooden_a_supports_paint_setup(sint32 supportType, sint32 special, sint32 height, uint32 imageColourFlags, bool* underground)
 {
 	if (underground != NULL){
 		*underground = false;
@@ -359,7 +359,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 		return false;
 	}
 
-	int z = floor2(gSupport.height + 15, 16);
+	sint32 z = floor2(gSupport.height + 15, 16);
 	height -= z;
 	if (height < 0) {
 		if (underground != NULL) {
@@ -371,10 +371,10 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 
 	bool hasSupports = false;
 	bool drawFlatPiece = false;
-	int rotation = get_current_rotation();
+	sint32 rotation = get_current_rotation();
 
 	// Draw base support (usually shaped to the slope)
-	int slope = gSupport.slope;
+	sint32 slope = gSupport.slope;
 	if (slope & (1 << 5)) {
 		// Above scenery (just put a base piece above it)
 		drawFlatPiece = true;
@@ -388,7 +388,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 			return false;
 		}
 
-		int imageId = WoodenSupportImageIds[supportType].slope;
+		sint32 imageId = WoodenSupportImageIds[supportType].slope;
 		if (imageId == 0) {
 			drawFlatPiece = true;
 		} else {
@@ -411,7 +411,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 			return false;
 		}
 
-		int imageId = WoodenSupportImageIds[supportType].slope;
+		sint32 imageId = WoodenSupportImageIds[supportType].slope;
 		if (imageId == 0) {
 			drawFlatPiece = true;
 		} else {
@@ -426,7 +426,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 
 	// Draw flat base support
 	if (drawFlatPiece) {
-		int imageId = WoodenSupportImageIds[supportType].flat | imageColourFlags;
+		sint32 imageId = WoodenSupportImageIds[supportType].flat | imageColourFlags;
 		sub_98196C(imageId, 0, 0, 32, 32, 0, z - 2, rotation);
 		hasSupports = true;
 	}
@@ -435,7 +435,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 	while (height != 0) {
 		if ((z & 16) == 0 && height >= 2 && z + 16 != gUnk141E9DC) {
 			// Full support
-			int imageId = WoodenSupportImageIds[supportType].full | imageColourFlags;
+			sint32 imageId = WoodenSupportImageIds[supportType].full | imageColourFlags;
 			uint8 ah = height == 2 ? 23 : 28;
 			sub_98196C(imageId, 0, 0, 32, 32, ah, z, rotation);
 			hasSupports = true;
@@ -443,7 +443,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 			height -= 2;
 		} else {
 			// Half support
-			int imageId = WoodenSupportImageIds[supportType].half | imageColourFlags;
+			sint32 imageId = WoodenSupportImageIds[supportType].half | imageColourFlags;
 			uint8 ah = height == 1 ? 7 : 12;
 			sub_98196C(imageId, 0, 0, 32, 32, ah, z, rotation);
 			hasSupports = true;
@@ -456,7 +456,7 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
 	if (special != 0) {
 		special = (special - 1) & 0xFFFF;
 
-		int imageId = WoodenCurveSupportImageIds[supportType];
+		sint32 imageId = WoodenCurveSupportImageIds[supportType];
 		if (imageId != 0 && byte_97B23C[special].var_7 != 0) {
 			imageId += special;
 			imageId |= imageColourFlags;
@@ -492,11 +492,11 @@ bool wooden_a_supports_paint_setup(int supportType, int special, int height, uin
  *
  * @return (al) whether supports have been drawn
  */
-bool wooden_b_supports_paint_setup(int supportType, int special, int height, uint32 imageColourFlags, bool * underground)
+bool wooden_b_supports_paint_setup(sint32 supportType, sint32 special, sint32 height, uint32 imageColourFlags, bool * underground)
 {
 #ifndef NO_RCT2
 	if (gUseOriginalRidePaint) {
-		int eax = special, ebx = 0, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
+		sint32 eax = special, ebx = 0, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
 		RCT2_CALLFUNC_X(0x00662D5C, &eax, &ebx, &ecx, &edx, &esi, &_edi, &ebp);
 		return eax & 0xFF;
 	}
@@ -687,7 +687,7 @@ bool wooden_b_supports_paint_setup(int supportType, int special, int height, uin
  * @param imageColourFlags (ebp)
  *  rct2: 0x00663105
  */
-bool metal_a_supports_paint_setup(uint8 supportType, uint8 segment, int special, int height, uint32 imageColourFlags)
+bool metal_a_supports_paint_setup(uint8 supportType, uint8 segment, sint32 special, sint32 height, uint32 imageColourFlags)
 {
 	if (gCurrentViewportFlags & VIEWPORT_FLAG_INVISIBLE_SUPPORTS) {
 		return false;
@@ -698,14 +698,14 @@ bool metal_a_supports_paint_setup(uint8 supportType, uint8 segment, int special,
 	}
 
 	sint16 originalHeight = height;
-	int originalSegment = segment;
+	sint32 originalSegment = segment;
 
 	const uint8 rotation = get_current_rotation();
 	sint16 unk9E3294 = -1;
 	if (height < gSupportSegments[segment].height){
 		unk9E3294 = height;
 
-		height -= word_97B142[supportType];
+		height -= supportTypeToHeight[supportType];
 		if (height < 0)
 			return false;
 
@@ -859,7 +859,7 @@ bool metal_a_supports_paint_setup(uint8 supportType, uint8 segment, int special,
 
 	return true;
 
-	//int eax = special, ebx = 0, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
+	//sint32 eax = special, ebx = 0, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
 	//RCT2_CALLFUNC_X(0x00663105, &eax, &ebx, &ecx, &edx, &esi, &_edi, &ebp);
 	//return eax & 0xFF;
 }
@@ -876,11 +876,11 @@ bool metal_a_supports_paint_setup(uint8 supportType, uint8 segment, int special,
  *
  * @return (Carry Flag)
  */
-bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, int special, int height, uint32 imageColourFlags)
+bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, sint32 special, sint32 height, uint32 imageColourFlags)
 {
 #ifndef NO_RCT2
 	if (gUseOriginalRidePaint) {
-		int eax = special, ebx = segment, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
+		sint32 eax = special, ebx = segment, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
 		RCT2_CALLFUNC_X(0x00663584, &eax, &ebx, &ecx, &edx, &esi, &_edi, &ebp);
 		return eax & 0xFF;
 	}
@@ -901,7 +901,7 @@ bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, int special,
 	if (height < gSupportSegments[segment].height) {
 		_9E3294 = height;
 
-		baseHeight -= word_97B142[supportType];
+		baseHeight -= supportTypeToHeight[supportType];
 		if (baseHeight < 0) {
 			return false; // AND
 		}
@@ -911,14 +911,14 @@ bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, int special,
 		uint8 ebp = _97AF32[baseIndex + segment * 8];
 		if (baseHeight <= gSupportSegments[ebp].height) {
 			baseIndex += 9 * 4 * 2; // 9 segments, 4 directions, 2 values
-			uint8 ebp = _97AF32[baseIndex + segment * 8];
-			if (baseHeight <= gSupportSegments[ebp].height) {
+			uint8 ebp2 = _97AF32[baseIndex + segment * 8];
+			if (baseHeight <= gSupportSegments[ebp2].height) {
 				baseIndex += 9 * 4 * 2;
-				uint8 ebp = _97AF32[baseIndex + segment * 8];
-				if (baseHeight <= gSupportSegments[ebp].height) {
+				uint8 ebp3 = _97AF32[baseIndex + segment * 8];
+				if (baseHeight <= gSupportSegments[ebp3].height) {
 					baseIndex += 9 * 4 * 2;
-					uint8 ebp = _97AF32[baseIndex + segment * 8];
-					if (baseHeight <= gSupportSegments[ebp].height) {
+					uint8 ebp4 = _97AF32[baseIndex + segment * 8];
+					if (baseHeight <= gSupportSegments[ebp4].height) {
 						return true; // STC
 					}
 				}
@@ -945,7 +945,7 @@ bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, int special,
 		);
 	}
 
-	int si = baseHeight;
+	sint32 si = baseHeight;
 
 	if ((gSupportSegments[segment].slope & 0x20)
 		|| (baseHeight - gSupportSegments[segment].height < 6)
@@ -988,7 +988,7 @@ bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, int special,
 	sint16 endHeight;
 
 
-	int i = 1;
+	sint32 i = 1;
 	while (true) {
 		endHeight = baseHeight + 16;
 		if (endHeight > si) {
@@ -1067,13 +1067,13 @@ bool metal_b_supports_paint_setup(uint8 supportType, uint8 segment, int special,
  *
  * @return Whether supports were drawn
  */
-bool path_a_supports_paint_setup(int supportType, int special, int height, uint32 imageColourFlags,
+bool path_a_supports_paint_setup(sint32 supportType, sint32 special, sint32 height, uint32 imageColourFlags,
 								 rct_footpath_entry * pathEntry, bool * underground)
 {
 #ifndef NO_RCT2
 	if (gUseOriginalRidePaint) {
 		RCT2_GLOBAL(0xF3EF6C, rct_footpath_entry *) = pathEntry;
-		int eax = special, ebx = 0, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
+		sint32 eax = special, ebx = 0, ecx = 0, edx = height, esi = 0, _edi = supportType, ebp = imageColourFlags;
 		RCT2_CALLFUNC_X(0x006A2ECC, &eax, &ebx, &ecx, &edx, &esi, &_edi, &ebp);
 		return eax & 0xFF;
 	}
@@ -1247,13 +1247,13 @@ bool path_a_supports_paint_setup(int supportType, int special, int height, uint3
  *
  * @return Whether supports were drawn
  */
-bool path_b_supports_paint_setup(int segment, int special, int height, uint32 imageColourFlags,
+bool path_b_supports_paint_setup(sint32 segment, sint32 special, sint32 height, uint32 imageColourFlags,
 								 rct_footpath_entry * pathEntry)
 {
 #ifndef NO_RCT2
 	if (gUseOriginalRidePaint) {
 		RCT2_GLOBAL(0xF3EF6C, rct_footpath_entry *) = pathEntry;
-		int eax = special, ebx = segment, ecx = 0, edx = height, esi = 0, _edi = 0, ebp = imageColourFlags;
+		sint32 eax = special, ebx = segment, ecx = 0, edx = height, esi = 0, _edi = 0, ebp = imageColourFlags;
 		RCT2_CALLFUNC_X(0x006A326B, &eax, &ebx, &ecx, &edx, &esi, &_edi, &ebp);
 		return eax & 0xFF;
 	}
@@ -1317,7 +1317,7 @@ bool path_b_supports_paint_setup(int segment, int special, int height, uint32 im
 	while (keepGoing) {
 		sint16 z;
 
-		for (int i = 0; i < 4; ++i) {
+		for (sint32 i = 0; i < 4; ++i) {
 			z = baseHeight + 16;
 			if (z > height) {
 				z = height;

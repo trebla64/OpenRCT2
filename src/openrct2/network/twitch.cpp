@@ -106,10 +106,10 @@ namespace Twitch
     constexpr uint32 PulseTime = 10 * 1000;
     constexpr const char * TwitchExtendedBaseUrl = "http://openrct.ursalabs.co/api/1/";
 
-    static int               _twitchState = TWITCH_STATE_LEFT;
+    static sint32               _twitchState = TWITCH_STATE_LEFT;
     static bool              _twitchIdle = true;
     static uint32            _twitchLastPulseTick = 0;
-    static int               _twitchLastPulseOperation = 1;
+    static sint32               _twitchLastPulseOperation = 1;
     static http_response_t * _twitchJsonResponse;
 
     static void Join();
@@ -546,7 +546,7 @@ namespace Twitch
         if (gConfigTwitch.enable_news)
         {
             utf8 buffer[256];
-            buffer[0] = (utf8)FORMAT_TOPAZ;
+            buffer[0] = (utf8)(uint8)FORMAT_TOPAZ;
             safe_strcpy(buffer + 1, message, sizeof(buffer) - 1);
 
             // Remove unsupported characters
@@ -554,7 +554,7 @@ namespace Twitch
             char * ch = buffer + 1;
             while (ch[0] != '\0')
             {
-                if ((unsigned char)ch[0] < 32 || (unsigned char)ch[0] > 122)
+                if ((uint8)ch[0] < 32 || (uint8)ch[0] > 122)
                 {
                     ch[0] = ' ';
                 }

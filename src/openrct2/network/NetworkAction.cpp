@@ -25,13 +25,13 @@ extern "C"
     #include "../localisation/string_ids.h"
 }
 
-int NetworkActions::FindCommand(int command)
+sint32 NetworkActions::FindCommand(sint32 command)
 {
     auto it = std::find_if(Actions.begin(), Actions.end(), [&command](NetworkAction const &action)
     {
-        for (auto it = action.Commands.begin(); it != action.Commands.end(); it++)
+        for (auto it2 = action.Commands.begin(); it2 != action.Commands.end(); it2++)
         {
-            if ((*it) == command)
+            if ((*it2) == command)
             {
                 return true;
             }
@@ -40,12 +40,12 @@ int NetworkActions::FindCommand(int command)
     });
     if (it != Actions.end())
     {
-        return (int)(it - Actions.begin());
+        return (sint32)(it - Actions.begin());
     }
     return -1;
 }
 
-int NetworkActions::FindCommandByPermissionName(const std::string &permission_name)
+sint32 NetworkActions::FindCommandByPermissionName(const std::string &permission_name)
 {
     auto it = std::find_if(Actions.begin(), Actions.end(), [&permission_name](NetworkAction const &action)
     {
@@ -57,7 +57,7 @@ int NetworkActions::FindCommandByPermissionName(const std::string &permission_na
     });
     if (it != Actions.end())
     {
-        return (int)(it - Actions.begin());
+        return (sint32)(it - Actions.begin());
     }
     return -1;
 }

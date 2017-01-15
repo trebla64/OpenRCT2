@@ -18,7 +18,7 @@
 #include "IStream.hpp"
 #include "Zip.h"
 
-class ZipArchive : public IZipArchive
+class ZipArchive final : public IZipArchive
 {
 private:
     zip_t *     _zip;
@@ -27,13 +27,13 @@ private:
 public:
     ZipArchive(const utf8 * path, ZIP_ACCESS access)
     {
-        int zipOpenMode = ZIP_RDONLY;
+        sint32 zipOpenMode = ZIP_RDONLY;
         if (access == ZIP_ACCESS_WRITE)
         {
             zipOpenMode = ZIP_CREATE;
         }
 
-        int error;
+        sint32 error;
         _zip = zip_open(path, zipOpenMode, &error);
         if (_zip == nullptr)
         {

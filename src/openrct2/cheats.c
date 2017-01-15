@@ -45,13 +45,13 @@ bool gCheatsDisablePlantAging = false;
 bool gCheatsEnableChainLiftOnAllTrack = false;
 bool gCheatsAllowArbitraryRideTypeChanges = false;
 
-int park_rating_spinner_value;
+sint32 park_rating_spinner_value;
 
 #pragma region Cheat functions
 
-static void cheat_set_grass_length(int length)
+static void cheat_set_grass_length(sint32 length)
 {
-	int x, y;
+	sint32 x, y;
 	rct_map_element *mapElement;
 
 	for (y = 0; y < 256; y++) {
@@ -138,7 +138,7 @@ static void cheat_remove_litter()
 
 static void cheat_fix_rides()
 {
-	int rideIndex;
+	sint32 rideIndex;
 	rct_ride *ride;
 	rct_peep *mechanic;
 
@@ -160,7 +160,7 @@ static void cheat_fix_rides()
 
 static void cheat_renew_rides()
 {
-	int i;
+	sint32 i;
 	rct_ride *ride;
 
 	FOR_ALL_RIDES(i, ride)
@@ -175,7 +175,7 @@ static void cheat_renew_rides()
 
 static void cheat_make_destructible()
 {
-	int i;
+	sint32 i;
 	rct_ride *ride;
 	FOR_ALL_RIDES(i, ride)
 	{
@@ -189,22 +189,22 @@ static void cheat_make_destructible()
 
 static void cheat_reset_crash_status()
 {
-	int i;
+	sint32 i;
 	rct_ride *ride;
 
 	FOR_ALL_RIDES(i, ride){
 		//reset crash status
 		if (ride->lifecycle_flags & RIDE_LIFECYCLE_CRASHED)
-			ride->lifecycle_flags&=~RIDE_LIFECYCLE_CRASHED;
+			ride->lifecycle_flags &= ~RIDE_LIFECYCLE_CRASHED;
 		//reset crash history
-		ride->last_crash_type=RIDE_CRASH_TYPE_NONE;
+		ride->last_crash_type = RIDE_CRASH_TYPE_NONE;
 	}
 	window_invalidate_by_class(WC_RIDE);
 }
 
 static void cheat_10_minute_inspections()
 {
-	int i;
+	sint32 i;
 	rct_ride *ride;
 
 	FOR_ALL_RIDES(i, ride) {
@@ -214,15 +214,50 @@ static void cheat_10_minute_inspections()
 	window_invalidate_by_class(WC_RIDE);
 }
 
-static void cheat_increase_money(money32 amount)
+static void cheat_no_money(bool enabled)
 {
-	money32 currentMoney;
+	if (enabled) {
+		gParkFlags |= PARK_FLAGS_NO_MONEY;	
+	}
+	else {
+		gParkFlags &= ~PARK_FLAGS_NO_MONEY;
+	}
+	// Invalidate all windows that have anything to do with finance
+	window_invalidate_by_class(WC_RIDE);
+	window_invalidate_by_class(WC_PEEP);
+	window_invalidate_by_class(WC_PARK_INFORMATION);
+	window_invalidate_by_class(WC_FINANCES);
+	window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+	window_invalidate_by_class(WC_TOP_TOOLBAR);
+	window_invalidate_by_class(WC_CHEATS);
+}
 
-	currentMoney = DECRYPT_MONEY(gCashEncrypted);
-	if (currentMoney < INT_MAX - amount)
-		currentMoney += amount;
-	else
-		currentMoney = INT_MAX;
+static void cheat_set_money(money32 amount)
+{
+	money32 money = clamp(INT_MIN, amount, INT_MAX);
+	gCashEncrypted = ENCRYPT_MONEY(money);
+
+	window_invalidate_by_class(WC_FINANCES);
+	window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+}
+
+static void cheat_add_money(money32 amount)
+{
+	money32 currentMoney = DECRYPT_MONEY(gCashEncrypted);
+	if (amount >= 0) {
+		if (currentMoney < INT_MAX - amount)
+			currentMoney += amount;
+		else
+			currentMoney = INT_MAX;
+	}
+	else {
+		money32 absAmount = amount * -1;
+		if (currentMoney > INT_MIN + absAmount)
+			currentMoney -= absAmount;
+		else
+			currentMoney = INT_MIN;
+	}
+
 	gCashEncrypted = ENCRYPT_MONEY(currentMoney);
 
 	window_invalidate_by_class(WC_FINANCES);
@@ -232,7 +267,7 @@ static void cheat_increase_money(money32 amount)
 static void cheat_clear_loan()
 {
 	// First give money
-	game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_INCREASEMONEY, gBankLoan, GAME_COMMAND_CHEAT, 0, 0);
+	cheat_add_money(gBankLoan);
 
 	// Then pay the loan
 	money32 newLoan;
@@ -240,9 +275,9 @@ static void cheat_clear_loan()
 	game_do_command(0, GAME_COMMAND_FLAG_APPLY, 0, newLoan, GAME_COMMAND_SET_CURRENT_LOAN, 0, 0);
 }
 
-static void cheat_generate_guests(int count)
+static void cheat_generate_guests(sint32 count)
 {
-	int i;
+	sint32 i;
 
 	for (i = 0; i < count; i++)
 		generate_new_guest();
@@ -250,9 +285,9 @@ static void cheat_generate_guests(int count)
 	window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
 }
 
-static void cheat_set_guest_parameter(int parameter, int value)
+static void cheat_set_guest_parameter(sint32 parameter, sint32 value)
 {
-	int spriteIndex;
+	sint32 spriteIndex;
 	rct_peep *peep;
 
 	FOR_ALL_GUESTS(spriteIndex, peep) {
@@ -293,9 +328,9 @@ static void cheat_set_guest_parameter(int parameter, int value)
 
 }
 
-static void cheat_give_all_guests(int object)
+static void cheat_give_all_guests(sint32 object)
 {
-	int spriteIndex;
+	sint32 spriteIndex;
 	rct_peep *peep;
 
 	FOR_ALL_GUESTS(spriteIndex, peep) {
@@ -309,12 +344,12 @@ static void cheat_give_all_guests(int object)
 				break;
 			case OBJECT_BALLOON:
 				peep->item_standard_flags |= PEEP_ITEM_BALLOON;
-				peep->balloon_colour=scenario_rand_max(31);
+				peep->balloon_colour = scenario_rand_max(COLOUR_COUNT - 1);
 				peep_update_sprite_type(peep);
 				break;
 			case OBJECT_UMBRELLA:
 				peep->item_standard_flags |= PEEP_ITEM_UMBRELLA;
-				peep->umbrella_colour=scenario_rand_max(31);
+				peep->umbrella_colour = scenario_rand_max(COLOUR_COUNT - 1);
 				peep_update_sprite_type(peep);
 				break;
 		}
@@ -335,7 +370,7 @@ static void cheat_remove_all_guests()
 		}
 	}
 
-	int i;
+	sint32 i;
 	rct_ride *ride;
 
 	FOR_ALL_RIDES(i, ride)
@@ -343,9 +378,9 @@ static void cheat_remove_all_guests()
 		ride_clear_for_construction(i);
 		ride_set_status(i, RIDE_STATUS_CLOSED);
 
-		for(int i=0;i<4;i++) {
-			ride->queue_length[i] = 0;
-			ride->last_peep_in_queue[i] = SPRITE_INDEX_NULL;
+		for (size_t j = 0; j < 4; j++) {
+			ride->queue_length[j] = 0;
+			ride->last_peep_in_queue[j] = SPRITE_INDEX_NULL;
 		}
 	}
 	window_invalidate_by_class(WC_RIDE);
@@ -354,7 +389,7 @@ static void cheat_remove_all_guests()
 
 static void cheat_explode_guests()
 {
-	int sprite_index;
+	sint32 sprite_index;
 	rct_peep *peep;
 
 	FOR_ALL_GUESTS(sprite_index, peep) {
@@ -387,9 +422,9 @@ static void cheat_set_staff_speed(uint8 value)
 
 #pragma endregion
 
-void game_command_cheat(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* edi, int* ebp)
+void game_command_cheat(sint32* eax, sint32* ebx, sint32* ecx, sint32* edx, sint32* esi, sint32* edi, sint32* ebp)
 {
-	int cheat = *ecx;
+	sint32 cheat = *ecx;
 	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
 		switch (cheat) {
 			case CHEAT_SANDBOXMODE: gCheatsSandboxMode = *edx != 0; window_invalidate_by_class(WC_MAP); window_invalidate_by_class(WC_FOOTPATH); break;
@@ -407,7 +442,9 @@ void game_command_cheat(int* eax, int* ebx, int* ecx, int* edx, int* esi, int* e
 			case CHEAT_IGNORERIDEINTENSITY: gCheatsIgnoreRideIntensity = *edx != 0; break;
 			case CHEAT_DISABLEVANDALISM: gCheatsDisableVandalism = *edx != 0; break;
 			case CHEAT_DISABLELITTERING: gCheatsDisableLittering = *edx != 0; break;
-			case CHEAT_INCREASEMONEY: cheat_increase_money(*edx); break;
+			case CHEAT_NOMONEY: cheat_no_money(*edx != 0); break;
+			case CHEAT_ADDMONEY: cheat_add_money(*edx); break;
+			case CHEAT_SETMONEY: cheat_set_money(*edx); break;
 			case CHEAT_CLEARLOAN: cheat_clear_loan(); break;
 			case CHEAT_SETGUESTPARAMETER: cheat_set_guest_parameter(*edx, *edi); break;
 			case CHEAT_GENERATEGUESTS: cheat_generate_guests(*edx); break;

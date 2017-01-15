@@ -50,6 +50,31 @@ namespace String
         return str == nullptr || str[0] == '\0';
     }
 
+    sint32 Compare(const std::string &a, const std::string &b, bool ignoreCase)
+    {
+        return Compare(a.c_str(), b.c_str(), ignoreCase);
+    }
+
+    sint32 Compare(const utf8 * a, const utf8 * b, bool ignoreCase)
+    {
+        if (a == b) return true;
+        if (a == nullptr || b == nullptr) return false;
+
+        if (ignoreCase)
+        {
+            return _stricmp(a, b);
+        }
+        else
+        {
+            return strcmp(a, b);
+        }
+    }
+
+    bool Equals(const std::string &a, const std::string &b, bool ignoreCase)
+    {
+        return Equals(a.c_str(), b.c_str(), ignoreCase);
+    }
+
     bool Equals(const utf8 * a, const utf8 * b, bool ignoreCase)
     {
         if (a == b) return true;
@@ -181,7 +206,7 @@ namespace String
         utf8 * buffer = Memory::Allocate<utf8>(bufferSize);
 
         // Start with initial buffer
-        int len = vsnprintf(buffer, bufferSize, format, args);
+        sint32 len = vsnprintf(buffer, bufferSize, format, args);
         if (len < 0)
         {
             Memory::Free(buffer);
@@ -197,7 +222,7 @@ namespace String
         {
             // Try again with bigger buffer
             buffer = Memory::Reallocate<utf8>(buffer, bufferSize);
-            int len = vsnprintf(buffer, bufferSize, format, args);
+            len = vsnprintf(buffer, bufferSize, format, args);
             if (len < 0)
             {
                 Memory::Free(buffer);
@@ -247,6 +272,11 @@ namespace String
         return buffer;
     }
 
+    utf8 * Duplicate(const std::string &src)
+    {
+        return String::Duplicate(src.c_str());
+    }
+
     utf8 * Duplicate(const utf8 * src)
     {
         utf8 * result = nullptr;
@@ -277,7 +307,7 @@ namespace String
 
     const utf8 * SkipBOM(const utf8 * buffer)
     {
-        if ((unsigned char)buffer[0] == 0xEF && (unsigned char)buffer[1] == 0xBB && (unsigned char)buffer[2] == 0xBF)
+        if ((uint8)buffer[0] == 0xEF && (uint8)buffer[1] == 0xBB && (uint8)buffer[2] == 0xBF)
         {
             return buffer + 3;
         }
