@@ -17,16 +17,16 @@
 #ifndef _SCENARIO_H_
 #define _SCENARIO_H_
 
-#include "../rct2/addresses.h"
 #include "../common.h"
-#include "../management/award.h"
 #include "../management/finance.h"
-#include "../management/news_item.h"
 #include "../management/research.h"
-#include "../ride/ride.h"
-#include "../ride/ride_ratings.h"
 #include "../object.h"
 #include "../platform/platform.h"
+#include "../rct12.h"
+#include "../rct2.h"
+#include "../rct2/addresses.h"
+#include "../ride/ride.h"
+#include "../ride/ride_ratings.h"
 #include "../world/banner.h"
 #include "../world/map.h"
 #include "../world/map_animation.h"
@@ -65,18 +65,6 @@ typedef struct rct_s6_info {
 } rct_s6_info;
 assert_struct_size(rct_s6_info, 0x198);
 
-/**
- * Scenario scores file header.
- * size: 0x10
- */
-typedef struct rct_scenario_scores_header {
-	uint32 var_0;
-	uint32 var_4;
-	uint32 var_8;
-	uint32 scenario_count;		// 0x0C
-} rct_scenario_scores_header;
-assert_struct_size(rct_scenario_scores_header, 16);
-
 typedef enum scenario_source {
 	SCENARIO_SOURCE_RCT1,
 	SCENARIO_SOURCE_RCT1_AA,
@@ -87,28 +75,6 @@ typedef enum scenario_source {
 	SCENARIO_SOURCE_REAL,
 	SCENARIO_SOURCE_OTHER
 } scenario_source;
-
-/**
- * Scenario basic structure, mainly for scenario select
- * size: 0x02B0
- */
-typedef struct rct_scenario_basic {
-	char path[256];				// 0x0000
-	uint8 category;				// 0x0100
-	uint8 pad_0101[0x1F];
-	sint8 objective_type;		// 0x0120
-	sint8 objective_arg_1;		// 0x0121
-	sint32 objective_arg_2;		// 0x0122
-	sint16 objective_arg_3;		// 0x0126
-	char name[64];				// 0x0128
-	char details[256];			// 0x0168
-	sint32 flags;				// 0x0268
-	money32 company_value;		// 0x026C
-	char completed_by[64];		// 0x0270
-	// uint8 source_game;			// new in OpenRCT2
-	// sint16 source_index;		// new in OpenRCT2
-} rct_scenario_basic;
-assert_struct_size(rct_scenario_basic, 0x02B0);
 
 typedef struct rct_stex_entry {
 	rct_string_id scenario_name;	// 0x00
@@ -245,7 +211,7 @@ typedef struct rct_s6_data {
 	money32 income_from_admissions;
 	money32 company_value;
 	uint8 peep_warning_throttle[16];
-	rct_award awards[MAX_AWARDS];
+	rct12_award awards[RCT12_MAX_AWARDS];
 	money16 land_price;
 	money16 construction_rights_price;
 	uint16 word_01358774;
@@ -323,7 +289,7 @@ typedef struct rct_s6_data {
 	uint8 next_weather_gloom;
 	uint8 current_rain_level;
 	uint8 next_rain_level;
-	rct_news_item news_items[MAX_NEWS_ITEMS];
+	rct12_news_item news_items[RCT12_MAX_NEWS_ITEMS];
 	uint8 pad_13CE730[64];
 	uint32 rct1_scenario_flags;
 	uint16 wide_path_tile_loop_x;
@@ -410,7 +376,6 @@ extern uint32 gLastAutoSaveUpdate;
 
 extern const char *_scenarioFileName;
 
-bool scenario_load_basic(const char *path, rct_s6_header *header, rct_s6_info *info);
 bool scenario_load_rw(SDL_RWops * rw);
 sint32 scenario_load(const char *path);
 sint32 scenario_load_and_play_from_path(const char *path);

@@ -238,6 +238,8 @@ enum {
 
 #define MAX_MAP_ELEMENTS 196096
 #define MAX_TILE_MAP_ELEMENT_POINTERS (256 * 256)
+#define MAX_PEEP_SPAWNS 2
+#define PEEP_SPAWN_UNDEFINED 0xFFFF
 
 #define MAP_ELEMENT_LARGE_TYPE_MASK 0x3FF
 
@@ -360,7 +362,7 @@ extern rct_map_element **gMapElementTilePointers;
 #endif
 
 extern rct_xy16 gMapSelectionTiles[300];
-extern rct2_peep_spawn gPeepSpawns[2];
+extern rct2_peep_spawn gPeepSpawns[MAX_PEEP_SPAWNS];
 
 extern rct_map_element *gNextFreeMapElement;
 extern uint32 gNextFreeMapElementPointerIndex;
@@ -394,6 +396,7 @@ extern uint8 gUnk9E2E28;
 
 void map_init(sint32 size);
 void map_count_remaining_land_rights();
+void map_strip_ghost_flag_from_elements();
 void map_update_tile_pointers();
 rct_map_element *map_get_first_element_at(sint32 x, sint32 y);
 void map_set_tile_elements(sint32 x, sint32 y, rct_map_element *elements);

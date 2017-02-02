@@ -58,16 +58,14 @@ private:
 
     static constexpr uint32 MaxRainPixels = 0xFFFE;
 
-    size_t              _rainPixelsCapacity;
-    uint32              _rainPixelsCount;
-    RainPixel *         _rainPixels;
-    rct_drawpixelinfo * _screenDPI;
+    size_t              _rainPixelsCapacity = MaxRainPixels;
+    uint32              _rainPixelsCount    = 0;
+    RainPixel *         _rainPixels         = nullptr;
+    rct_drawpixelinfo * _screenDPI          = nullptr;
 
 public:
     RainDrawer()
     {
-        _rainPixelsCapacity = MaxRainPixels;
-        _rainPixelsCount = 0;
         _rainPixels = new RainPixel[_rainPixelsCapacity];
     }
 
@@ -161,8 +159,8 @@ public:
 class SoftwareDrawingContext final : public IDrawingContext
 {
 private:
-    SoftwareDrawingEngine * _engine;
-    rct_drawpixelinfo *     _dpi;
+    SoftwareDrawingEngine * _engine = nullptr;
+    rct_drawpixelinfo *     _dpi    = nullptr;
 
 public:
     explicit SoftwareDrawingContext(SoftwareDrawingEngine * engine);
@@ -199,6 +197,7 @@ private:
     uint32              _paletteHWMapped[256] = { 0 };
 #ifdef __ENABLE_LIGHTFX__
     uint32              _lightPaletteHWMapped[256] = { 0 };
+    bool                _lastLightFXenabled = false;
 #endif
 
     // Steam overlay checking
@@ -225,6 +224,9 @@ public:
     {
         _hardwareDisplay = hardwareDisplay;
         _drawingContext = new SoftwareDrawingContext(this);
+#ifdef __ENABLE_LIGHTFX__
+        _lastLightFXenabled = (gConfigGeneral.enable_light_fx != 0);
+#endif
     }
 
     ~SoftwareDrawingEngine() override
@@ -312,16 +314,21 @@ public:
         {
             if (_screenTextureFormat != nullptr)
             {
-#ifdef __ENABLE_LIGHTFX__
-                const SDL_Color * lightPalette = lightfx_get_palette();
-#endif
                 for (sint32 i = 0; i < 256; i++)
                 {
                     _paletteHWMapped[i] = SDL_MapRGB(_screenTextureFormat, palette[i].r, palette[i].g, palette[i].b);
-#ifdef __ENABLE_LIGHTFX__
-                    _lightPaletteHWMapped[i] = SDL_MapRGBA(_screenTextureFormat, lightPalette[i].r, lightPalette[i].g, lightPalette[i].b, lightPalette[i].a);
-#endif
                 }
+
+#ifdef __ENABLE_LIGHTFX__
+                if (gConfigGeneral.enable_light_fx)
+                {
+                    const SDL_Color * lightPalette = lightfx_get_palette();
+                    for (sint32 i = 0; i < 256; i++)
+                    {
+                        _lightPaletteHWMapped[i] = SDL_MapRGBA(_screenTextureFormat, lightPalette[i].r, lightPalette[i].g, lightPalette[i].b, lightPalette[i].a);
+                    }
+                }
+#endif
             }
         }
         else
@@ -381,6 +388,13 @@ public:
         if (gIntroState != INTRO_STATE_NONE) {
             intro_draw(&_bitsDPI);
         } else {
+#ifdef __ENABLE_LIGHTFX__
+            // HACK we need to re-configure the bits if light fx has been enabled / disabled
+            if (_lastLightFXenabled != (gConfigGeneral.enable_light_fx != 0)) {
+                Resize(_width, _height);
+            }
+#endif
+
             _rainDrawer.SetDPI(&_bitsDPI);
             _rainDrawer.Restore();
 
@@ -536,7 +550,10 @@ private:
         ConfigureDirtyGrid();
 
 #ifdef __ENABLE_LIGHTFX__
-        lightfx_update_buffers(dpi);
+        if (gConfigGeneral.enable_light_fx)
+        {
+            lightfx_update_buffers(dpi);
+        }
 #endif
     }
 
@@ -698,10 +715,15 @@ private:
     void DisplayViaTexture()
     {
 #ifdef __ENABLE_LIGHTFX__
-        lightfx_render_to_texture(_screenTexture, _bits, _width, _height, _paletteHWMapped, _lightPaletteHWMapped);
-#else
-        CopyBitsToTexture(_screenTexture, _bits, (sint32)_width, (sint32)_height, _paletteHWMapped);
+        if (gConfigGeneral.enable_light_fx)
+        {
+            lightfx_render_to_texture(_screenTexture, _bits, _width, _height, _paletteHWMapped, _lightPaletteHWMapped);
+        }
+        else
 #endif
+        {
+            CopyBitsToTexture(_screenTexture, _bits, (sint32)_width, (sint32)_height, _paletteHWMapped);
+        }
         SDL_RenderCopy(_sdlRenderer, _screenTexture, nullptr, nullptr);
 
         if (gSteamOverlayActive && gConfigGeneral.steam_overlay_pause)

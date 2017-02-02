@@ -14,29 +14,42 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "VerticalTunnelCall.hpp"
+#pragma once
 
-uint16 VerticalTunnelCall::GetTunnelHeight(uint16 baseHeight, uint8 *calls) {
-    if (calls[0] == 0 && calls[1] == 0 && calls[2] == 0) {
-        return 0;
-    }
+// Structures shared between both RCT1 and RCT2.
 
-    for (sint16 offset = 0; offset <= 256; offset += 8) {
-        if (calls[0] != (baseHeight - 8 + offset) / 16) continue;
-        if (calls[1] != (baseHeight + 0 + offset) / 16) continue;
-        if (calls[2] != (baseHeight + 8 + offset) / 16) continue;
+#include "common.h"
 
-        return baseHeight + offset;
-    }
+#define RCT12_MAX_AWARDS            4
+#define RCT12_MAX_NEWS_ITEMS        61
+#define RCT12_MAX_STATIONS_PER_RIDE 4
+#define RCT12_MAX_PEEP_SPAWNS       2
+#define RCT12_MAX_PARK_ENTRANCES    4
 
-    log_error("Unknown tunnel height. (%d, %d, %d)", calls[0], calls[1], calls[2]);
-    return 0;
-}
+#pragma pack(push, 1)
 
-bool VerticalTunnelCall::HeightIsConsistent(uint16 *heights) {
-    for (int i = 1; i < 4; ++i) {
-        if (heights[i] != heights[0]) return false;
-    }
+typedef struct rct12_award
+{
+    uint16 time;
+    uint16 type;
+} rct12_award;
+assert_struct_size(rct12_award, 4);
 
-    return true;
-}
+/**
+ * A single news item / message.
+ * size: 0x10C
+ */
+typedef struct rct12_news_item
+{
+    uint8   Type;
+    uint8   Flags;
+    uint32  Assoc;
+    uint16  Ticks;
+    uint16  MonthYear;
+    uint8   Day;
+    uint8   pad_0B;
+    char    Text[256];
+} rct12_news_item;
+assert_struct_size(rct12_news_item, 0x10C);
+
+#pragma pack(pop)

@@ -45,6 +45,10 @@ uint8 gRightTunnelCount;
 uint8 gVerticalTunnelHeight;
 #endif
 
+#ifdef __TESTPAINT__
+uint16 testPaintVerticalTunnelHeight;
+#endif
+
 static void blank_tiles_paint(sint32 x, sint32 y);
 static void sub_68B3FB(sint32 x, sint32 y);
 
@@ -163,6 +167,13 @@ static void sub_68B3FB(sint32 x, sint32 y)
 	rct_map_element* map_element = map_get_first_element_at(x >> 5, y >> 5);
 	uint8 rotation = get_current_rotation();
 
+	/* Check if the first (lowest) map_element is below the clip
+	 * height. */
+	if ((gCurrentViewportFlags & VIEWPORT_FLAG_PAINT_CLIP_TO_HEIGHT) && (map_element->base_height > gClipHeight)) {
+		blank_tiles_paint(x, y);
+		return;
+	}
+
 	sint32 dx = 0;
 	switch (rotation) {
 	case 0:
@@ -236,6 +247,9 @@ static void sub_68B3FB(sint32 x, sint32 y)
 	gUnk9DE56C = y;
 	gDidPassSurface = false;
 	do {
+		// Only paint map_elements below the clip height.
+		if ((gCurrentViewportFlags & VIEWPORT_FLAG_PAINT_CLIP_TO_HEIGHT) && (map_element->base_height > gClipHeight)) break;
+
 		sint32 direction = (map_element->type + rotation) & MAP_ELEMENT_DIRECTION_MASK;
 		sint32 height = map_element->base_height * 8;
 
@@ -305,6 +319,9 @@ static void sub_68B3FB(sint32 x, sint32 y)
 				imageColourFlats = 0b111011 << 19 | 0x40000000;
 			}
 
+			// Only draw supports below the clipping height.
+			if ((gCurrentViewportFlags & VIEWPORT_FLAG_PAINT_CLIP_TO_HEIGHT) && (segmentHeight > gClipHeight)) continue;
+
 			sint32 xOffset = sy * 10;
 			sint32 yOffset = -22 + sx * 10;
 			paint_struct * ps = sub_98197C(5504 | imageColourFlats, xOffset, yOffset, 10, 10, 1, segmentHeight, xOffset + 1, yOffset + 16, segmentHeight, get_current_rotation());
@@ -333,6 +350,9 @@ void paint_util_push_tunnel_right(uint16 height, uint8 type)
 
 void paint_util_set_vertical_tunnel(uint16 height)
 {
+#ifdef __TESTPAINT__
+	testPaintVerticalTunnelHeight = height;
+#endif
 	gVerticalTunnelHeight = height / 16;
 }
 

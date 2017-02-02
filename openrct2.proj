@@ -19,10 +19,9 @@
     <TestConfig Condition="'$(Configuration)'=='DebugTests' OR '$(Configuration)'=='ReleaseTests'">true</TestConfig>
     <GIT_COMMIT_SHA1_SHORT Condition="'$(GIT_COMMIT_SHA1)'!=''">$(GIT_COMMIT_SHA1.Substring(0, 7))</GIT_COMMIT_SHA1_SHORT>
 
-    <Version>0.0.6.0</Version>
+    <Version>0.0.7</Version>
     <VersionExtra Condition="'$(GIT_BRANCH)'!=''">-$(GIT_BRANCH)-$(GIT_COMMIT_SHA1_SHORT)</VersionExtra>
-    <VersionTag Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(GIT_TAG)', '^v[0-9]'))">$(GIT_TAG)</VersionTag>
-    <VersionExtra Condition="'$(GIT_TAG)'!='' AND '$(VersionTag)'==''">-$(GIT_TAG)</VersionExtra>
+    <VersionExtra Condition="'$(GIT_TAG)'!=''"></VersionExtra>
     <TargetLibsVersion>11</TargetLibsVersion>
 
     <!-- Set dynamic OpenRCT2 #defines -->
@@ -95,7 +94,6 @@
     <PublishItems Include="$(OutputDll)" />
     <PublishItems Include="$(TargetDir)data" />
     <PublishItems Include="$(DistDir)changelog.txt" />
-    <PublishItems Include="$(DistDir)known_issues.txt" />
     <PublishItems Include="$(DistDir)readme.txt" />
     <PublishItems Include="$(RootDir)contributors.md" />
     <PublishItems Include="$(RootDir)licence.txt" />
@@ -201,14 +199,14 @@
   <Target Name="g2" DependsOnTargets="Build" AfterTargets="Build" Inputs="@(g2Inputs)" Outputs="$(g2Output)"
           Condition="'$(TestConfig)'!='true'">
     <Message Text="Building g2.dat..." />
-    <Exec Command="$(OutputExe) sprite build $(g2Output) $(RootDir)resources\g2"
+    <Exec Command="&quot;$(OutputExe)&quot; sprite build &quot;$(g2Output)&quot; &quot;$(RootDir)resources\g2&quot;"
           StandardOutputImportance="low" />
   </Target>
 
   <!-- Target to create openrct2.exe (windows) and openrct2.com (console) -->
   <Target Name="CreateGUI" DependsOnTargets="Build" AfterTargets="Build" Inputs="$(OutputExe)" Outputs="$(OutputCom)">
     <Copy SourceFiles="$(OutputExe)" DestinationFiles="$(OutputCom)" />
-    <Exec Command="editbin /subsystem:windows $(OutputExe)" />
+    <Exec Command="editbin /subsystem:windows &quot;$(OutputExe)&quot;" />
   </Target>
 
   <!-- Target to download the title sequences -->
@@ -266,6 +264,7 @@
     <!-- Create the installer -->
     <Message Text="Building Windows Installer (NSIS script)" Importance="high" />
     <Exec Command="makensis /DOUTFILE=$(PublishInstallerExe) ^
+         /DAPPV_MAIN=$(Version) ^
          /DAPPV_EXTRA=$(VersionExtra) ^
          /DPLATFORM=$(Platform) ^
          $(NsisScript)"
@@ -289,17 +288,18 @@
     <PropertyGroup>
       <UploadLink>https://openrct2.org/altapi/?command=push-build</UploadLink>
       <UploadFileNameShort>%(UploadArtifacts.Filename)%(UploadArtifacts.Extension)</UploadFileNameShort>
+      <UploadGitBranch>master</UploadGitBranch>
+      <UploadGitBranch Condition="'$(GIT_BRANCH)'!=''">$(GIT_BRANCH)</UploadGitBranch>
     </PropertyGroup>
     <Message Text="Uploading $(UploadFileNameShort)" Importance="high" />
     <Error Condition="'$(OPENRCT2_ORG_TOKEN)'==''" Text="OPENRCT2_ORG_TOKEN not set." />
     <Error Condition="'$(GIT_COMMIT_SHA1)'==''" Text="GIT_COMMIT_SHA1 not set." />
-    <Error Condition="'$(GIT_BRANCH)'==''" Text="GIT_BRANCH not set." />
     <Exec EchoOff="true" Command="curl.exe -s -o - ^
          --form &quot;key=$(OPENRCT2_ORG_TOKEN)&quot; ^
          --form &quot;fileName=%(UploadArtifacts.Name)&quot; ^
          --form &quot;version=$(Version)&quot; ^
          --form &quot;gitHash=$(GIT_COMMIT_SHA1)&quot; ^
-         --form &quot;gitBranch=$(GIT_BRANCH)&quot; ^
+         --form &quot;gitBranch=$(UploadGitBranch)&quot; ^
          --form &quot;flavourId=%(UploadArtifacts.FlavourId)&quot; ^
          --form &quot;file=@%(UploadArtifacts.Identity)&quot; ^
          &quot;$(UploadLink)&quot;"

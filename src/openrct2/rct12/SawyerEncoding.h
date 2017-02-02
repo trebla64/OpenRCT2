@@ -14,29 +14,19 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "VerticalTunnelCall.hpp"
+#pragma once
 
-uint16 VerticalTunnelCall::GetTunnelHeight(uint16 baseHeight, uint8 *calls) {
-    if (calls[0] == 0 && calls[1] == 0 && calls[2] == 0) {
-        return 0;
+#include "../common.h"
+
+interface IStream;
+
+namespace SawyerEncoding
+{
+    bool TryReadChunk(void * dst, size_t expectedSize, IStream * stream);
+
+    template<typename T>
+    bool TryReadChunk(T * dst, IStream * stream)
+    {
+        return TryReadChunk(dst, sizeof(T), stream);
     }
-
-    for (sint16 offset = 0; offset <= 256; offset += 8) {
-        if (calls[0] != (baseHeight - 8 + offset) / 16) continue;
-        if (calls[1] != (baseHeight + 0 + offset) / 16) continue;
-        if (calls[2] != (baseHeight + 8 + offset) / 16) continue;
-
-        return baseHeight + offset;
-    }
-
-    log_error("Unknown tunnel height. (%d, %d, %d)", calls[0], calls[1], calls[2]);
-    return 0;
-}
-
-bool VerticalTunnelCall::HeightIsConsistent(uint16 *heights) {
-    for (int i = 1; i < 4; ++i) {
-        if (heights[i] != heights[0]) return false;
-    }
-
-    return true;
 }

@@ -82,38 +82,19 @@ static void editor_clear_map_for_editing(bool fromSave);
  */
 void editor_load()
 {
-	rct_window *mainWindow;
-
 	audio_stop_all_music_and_sounds();
 	object_manager_unload_all_objects();
 	object_list_load();
-	map_init(150);
-	banner_init();
-	reset_park_entrances();
-	user_string_clear_all();
-	reset_sprite_list();
-	ride_init_all();
-	window_guest_list_init_vars_a();
-	staff_reset_modes();
-	park_init();
-	finance_init();
-	date_reset();
-	window_guest_list_init_vars_b();
-	window_staff_list_init_vars();
+	game_init_all(150);
 	gScreenFlags = SCREEN_FLAGS_SCENARIO_EDITOR;
 	gS6Info.editor_step = EDITOR_STEP_OBJECT_SELECTION;
 	gParkFlags |= PARK_FLAGS_SHOW_REAL_GUEST_NAMES;
-	window_new_ride_init_vars();
 	gS6Info.category = SCENARIO_CATEGORY_OTHER;
 	viewport_init_all();
-	news_item_init_queue();
-	window_editor_main_open();
-	mainWindow = window_get_main();
-	window_scroll_to_location(mainWindow, 2400, 2400, 112);
-	mainWindow->flags &= ~WF_SCROLLING_TO_LOCATION;
+	rct_window *mainWindow = window_editor_main_open();
+	window_set_location(mainWindow, 2400, 2400, 112);
 	load_palette();
 	gfx_invalidate_screen();
-	window_tile_inspector_clear_clipboard();
 	gScreenAge = 0;
 
 	safe_strcpy(gScenarioName, language_get_string(STR_MY_NEW_SCENARIO), 64);
@@ -170,39 +151,20 @@ static void editor_convert_save_to_scenario_callback(sint32 result, const utf8 *
  */
 void trackdesigner_load()
 {
-	rct_window *mainWindow;
-
 	audio_stop_all_music_and_sounds();
 	gScreenFlags = SCREEN_FLAGS_TRACK_DESIGNER;
 	gScreenAge = 0;
 
 	object_manager_unload_all_objects();
 	object_list_load();
-	map_init(150);
+	game_init_all(150);
 	set_all_land_owned();
-	banner_init();
-	reset_park_entrances();
-	user_string_clear_all();
-	reset_sprite_list();
-	ride_init_all();
-	window_guest_list_init_vars_a();
-	staff_reset_modes();
-	park_init();
-	finance_init();
-	date_reset();
-	window_guest_list_init_vars_b();
-	window_staff_list_init_vars();
 	gS6Info.editor_step = EDITOR_STEP_OBJECT_SELECTION;
-	window_new_ride_init_vars();
 	viewport_init_all();
-	news_item_init_queue();
-	window_editor_main_open();
-	mainWindow = window_get_main();
-	window_scroll_to_location(mainWindow, 2400, 2400, 112);
-	mainWindow->flags &= ~WF_SCROLLING_TO_LOCATION;
+	rct_window * mainWindow = window_editor_main_open();
+	window_set_location(mainWindow, 2400, 2400, 112);
 	load_palette();
 	gfx_invalidate_screen();
-	window_tile_inspector_clear_clipboard();
 }
 
 /**
@@ -211,39 +173,20 @@ void trackdesigner_load()
  */
 void trackmanager_load()
 {
-	rct_window *mainWindow;
-
 	audio_stop_all_music_and_sounds();
 	gScreenFlags = SCREEN_FLAGS_TRACK_MANAGER;
 	gScreenAge = 0;
 
 	object_manager_unload_all_objects();
 	object_list_load();
-	map_init(150);
+	game_init_all(150);
 	set_all_land_owned();
-	banner_init();
-	reset_park_entrances();
-	user_string_clear_all();
-	reset_sprite_list();
-	ride_init_all();
-	window_guest_list_init_vars_a();
-	staff_reset_modes();
-	park_init();
-	finance_init();
-	date_reset();
-	window_guest_list_init_vars_b();
-	window_staff_list_init_vars();
 	gS6Info.editor_step = EDITOR_STEP_OBJECT_SELECTION;
-	window_new_ride_init_vars();
 	viewport_init_all();
-	news_item_init_queue();
-	window_editor_main_open();
-	mainWindow = window_get_main();
-	window_scroll_to_location(mainWindow, 2400, 2400, 112);
-	mainWindow->flags &= ~WF_SCROLLING_TO_LOCATION;
+	rct_window *mainWindow = window_editor_main_open();
+	window_set_location(mainWindow, 2400, 2400, 112);
 	load_palette();
 	gfx_invalidate_screen();
-	window_tile_inspector_clear_clipboard();
 }
 
 /**
@@ -348,7 +291,7 @@ static void editor_clear_map_for_editing(bool fromSave)
 	//
 	for (sint32 i = 0; i < MAX_BANNERS; i++) {
 		if (gBanners[i].type == 255) {
-			gBanners[i].flags &= ~BANNER_FLAG_2;
+			gBanners[i].flags &= ~BANNER_FLAG_LINKED_TO_RIDE;
 		}
 	}
 
@@ -544,17 +487,17 @@ bool editor_check_park()
 		return false;
 	}
 
-	for (sint32 i = 0; i < 4; i++) {
+	for (sint32 i = 0; i < MAX_PARK_ENTRANCES; i++) {
 		if (gParkEntranceX[i] != MAP_LOCATION_NULL)
 			break;
 
-		if (i == 3) {
+		if (i == MAX_PARK_ENTRANCES - 1) {
 			gGameCommandErrorText = STR_NO_PARK_ENTRANCES;
 			return false;
 		}
 	}
 
-	for (sint32 i = 0; i < 4; i++) {
+	for (sint32 i = 0; i < MAX_PARK_ENTRANCES; i++) {
 		if (gParkEntranceX[i] == MAP_LOCATION_NULL)
 			continue;
 
@@ -578,7 +521,7 @@ bool editor_check_park()
 		}
 	}
 
-	if (gPeepSpawns[0].x == 0xFFFF && gPeepSpawns[1].x == 0xFFFF) {
+	if (gPeepSpawns[0].x == PEEP_SPAWN_UNDEFINED && gPeepSpawns[1].x == PEEP_SPAWN_UNDEFINED) {
 		gGameCommandErrorText = STR_PEEP_SPAWNS_NOT_SET;
 		return false;
 	}

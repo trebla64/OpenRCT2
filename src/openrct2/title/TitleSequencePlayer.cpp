@@ -18,9 +18,11 @@
 #include <SDL.h>
 #include "../core/Console.hpp"
 #include "../core/Exception.hpp"
+#include "../core/Guard.hpp"
 #include "../core/Math.hpp"
 #include "../core/Path.hpp"
 #include "../core/String.hpp"
+#include "../rct1/S4Importer.h"
 #include "../scenario/ScenarioRepository.h"
 #include "../scenario/ScenarioSources.h"
 #include "TitleSequence.h"
@@ -32,12 +34,17 @@ extern "C"
     #include "../game.h"
     #include "../interface/viewport.h"
     #include "../interface/window.h"
+    #include "../management/news_item.h"
     #include "../world/scenery.h"
 }
 
 class TitleSequencePlayer final : public ITitleSequencePlayer
 {
 private:
+    static constexpr const char * SFMM_FILENAME = "Six Flags Magic Mountain.SC6";
+
+    IScenarioRepository * _scenarioRepository = nullptr;
+
     uint32          _sequenceId = 0;
     TitleSequence * _sequence = nullptr;
     sint32          _position = 0;
@@ -48,6 +55,13 @@ private:
     rct_xy32        _viewCentreLocation = { 0 };
 
 public:
+    TitleSequencePlayer(IScenarioRepository * scenarioRepository)
+    {
+        Guard::ArgumentNotNull(scenarioRepository);
+
+        _scenarioRepository = scenarioRepository;
+    }
+
     ~TitleSequencePlayer() override
     {
         Eject();
@@ -230,7 +244,14 @@ private:
             break;
         case TITLE_SCRIPT_LOADMM:
         {
-            const utf8 * path = get_file_path(PATH_ID_SIXFLAGS_MAGICMOUNTAIN);
+            const scenario_index_entry * entry = _scenarioRepository->GetByFilename(SFMM_FILENAME);
+            if (entry == nullptr)
+            {
+                Console::Error::WriteLine("%s not found.", SFMM_FILENAME);
+                return false;
+            }
+
+            const utf8 * path = entry->path;
             if (!LoadParkFromFile(path))
             {
                 Console::Error::WriteLine("Failed to load: \"%s\" for the title sequence.", path);
@@ -288,11 +309,10 @@ private:
             }
 
             const utf8 * path = nullptr;
-            IScenarioRepository * scenarioRepo = GetScenarioRepository();
-            size_t numScenarios =  scenarioRepo->GetCount();
+            size_t numScenarios =  _scenarioRepository->GetCount();
             for (size_t i = 0; i < numScenarios; i++)
             {
-                const scenario_index_entry * scenario = scenarioRepo->GetByIndex(i);
+                const scenario_index_entry * scenario = _scenarioRepository->GetByIndex(i);
                 if (scenario->source_index == sourceDesc.index)
                 {
                     path = scenario->path;
@@ -333,12 +353,40 @@ private:
     bool LoadParkFromFile(const utf8 * path)
     {
         bool success = false;
-        bool isScenario = String::Equals(Path::GetExtension(path), ".sc6", true);
-        SDL_RWops * rw = SDL_RWFromFile(path, "rb");
-        if (rw != nullptr)
+        const utf8 * extension = Path::GetExtension(path);
+        if (String::Equals(extension, ".sc4", true) ||
+            String::Equals(extension, ".sv4", true))
         {
-            success = LoadParkFromRW(rw, isScenario);
-            SDL_RWclose(rw);
+            try
+            {
+                bool isScenario = String::Equals(extension, ".sc4", true);
+                IS4Importer * s4Importer = CreateS4Importer();
+                if (isScenario)
+                {
+                    s4Importer->LoadScenario(path);
+                    s4Importer->Import();
+                }
+                else
+                {
+                    s4Importer->LoadSavedGame(path);
+                    s4Importer->Import();
+                }
+                PrepareParkForPlayback(isScenario);
+                success = true;
+            }
+            catch (Exception)
+            {
+            }
+        }
+        else
+        {
+            bool isScenario = String::Equals(extension, ".sc6", true);
+            SDL_RWops * rw = SDL_RWFromFile(path, "rb");
+            if (rw != nullptr)
+            {
+                success = LoadParkFromRW(rw, isScenario);
+                SDL_RWclose(rw);
+            }
         }
         return success;
     }
@@ -347,11 +395,15 @@ private:
     {
         bool successfulLoad = isScenario ? scenario_load_rw(rw) :
                                            game_load_sv6(rw);
-        if (!successfulLoad)
+        if (successfulLoad)
         {
-            return false;
+            PrepareParkForPlayback(isScenario);
         }
+        return successfulLoad;
+    }
 
+    void PrepareParkForPlayback(bool isScenario)
+    {
         rct_window * w = window_get_main();
         w->viewport_target_sprite = -1;
         w->saved_view_x = gSavedViewX;
@@ -391,7 +443,6 @@ private:
         gfx_invalidate_screen();
         gScreenAge = 0;
         gGameSpeed = 1;
-        return true;
     }
 
     /**
@@ -406,8 +457,7 @@ private:
         if (w != nullptr)
         {
             sint32 z = map_element_height(x, y);
-            window_scroll_to_location(w, x, y, z);
-            w->flags &= ~WF_SCROLLING_TO_LOCATION;
+            window_set_location(w, x, y, z);
             viewport_update_position(w);
         }
 
@@ -431,9 +481,9 @@ private:
     }
 };
 
-ITitleSequencePlayer * CreateTitleSequencePlayer()
+ITitleSequencePlayer * CreateTitleSequencePlayer(IScenarioRepository * scenarioRepository)
 {
-    return new TitleSequencePlayer();
+    return new TitleSequencePlayer(scenarioRepository);
 }
 
 extern "C"

@@ -99,7 +99,7 @@ rct_map_element *gMapElements = RCT2_ADDRESS(RCT2_ADDRESS_MAP_ELEMENTS, rct_map_
 rct_map_element **gMapElementTilePointers = RCT2_ADDRESS(RCT2_ADDRESS_TILE_MAP_ELEMENT_POINTERS, rct_map_element*);
 #endif
 rct_xy16 gMapSelectionTiles[300];
-rct2_peep_spawn gPeepSpawns[2];
+rct2_peep_spawn gPeepSpawns[MAX_PEEP_SPAWNS];
 
 rct_map_element *gNextFreeMapElement;
 uint32 gNextFreeMapElementPointerIndex;
@@ -330,6 +330,8 @@ rct_map_element* map_get_path_element_at(sint32 x, sint32 y, sint32 z){
 
 	// Find the path element at known z
 	do {
+		if (mapElement->flags & MAP_ELEMENT_FLAG_GHOST)
+			continue;
 		if (map_element_get_type(mapElement) != MAP_ELEMENT_TYPE_PATH)
 			continue;
 		if (mapElement->base_height != z)
@@ -368,7 +370,6 @@ rct_map_element* map_get_banner_element_at(sint32 x, sint32 y, sint32 z, uint8 p
  */
 void map_init(sint32 size)
 {
-	date_reset();
 	gNumMapAnimations = 0;
 	gNextFreeMapElementPointerIndex = 0;
 
@@ -397,7 +398,6 @@ void map_init(sint32 size)
 	gMapBaseZ = 7;
 	map_update_tile_pointers();
 	map_remove_out_of_range_elements();
-	climate_reset(CLIMATE_WARM);
 }
 
 /**
@@ -427,6 +427,23 @@ void map_count_remaining_land_rights()
 			}
 		}
 	}
+}
+
+/**
+ * This is meant to strip MAP_ELEMENT_FLAG_GHOST flag from all elements when
+ * importing a park.
+ *
+ * This can only exist in hacked parks, as we remove ghost elements while saving.
+ *
+ * This is less invasive than removing ghost elements themselves, as they can
+ * contain valid data.
+ */
+void map_strip_ghost_flag_from_elements()
+{
+	rct_map_element *mapElement = gMapElements;
+	do {
+		mapElement->flags &= ~MAP_ELEMENT_FLAG_GHOST;
+	} while (++mapElement < gMapElements + 0x30000);
 }
 
 /**
@@ -3618,7 +3635,7 @@ void game_command_place_fence(sint32* eax, sint32* ebx, sint32* ecx, sint32* edx
 			sint32 rideIndex = banner_get_closest_ride_index(position.x, position.y, position.z);
 			if (rideIndex != -1) {
 				banner->colour = rideIndex & 0xFF;
-				banner->flags |= BANNER_FLAG_2;
+				banner->flags |= BANNER_FLAG_LINKED_TO_RIDE;
 			}
 		}
 	}
@@ -3765,7 +3782,7 @@ void game_command_place_large_scenery(sint32* eax, sint32* ebx, sint32* ecx, sin
 
 		if (flags & GAME_COMMAND_FLAG_APPLY) {
 			rct_banner* banner = &gBanners[banner_id];
-			banner->flags |= BANNER_FLAG_1;
+			banner->flags |= BANNER_FLAG_IS_LARGE_SCENERY;
 			banner->type = 0;
 			banner->x = x / 32;
 			banner->y = y / 32;
@@ -3773,7 +3790,7 @@ void game_command_place_large_scenery(sint32* eax, sint32* ebx, sint32* ecx, sin
 			sint32 rideIndex = banner_get_closest_ride_index(x, y, z);
 			if (rideIndex != -1) {
 				banner->colour = rideIndex;
-				banner->flags |= BANNER_FLAG_2;
+				banner->flags |= BANNER_FLAG_LINKED_TO_RIDE;
 			}
 		}
 	}
@@ -4760,10 +4777,10 @@ static void clear_element_at(sint32 x, sint32 y, rct_map_element **elementPtr)
 static void clear_elements_at(sint32 x, sint32 y)
 {
 	// Remove the spawn point (if there is one in the current tile)
-	for (sint32 i = 0; i < 2; i++) {
+	for (sint32 i = 0; i < MAX_PEEP_SPAWNS; i++) {
 		rct2_peep_spawn *peepSpawn = &gPeepSpawns[i];
 		if (floor2(peepSpawn->x, 32) == x && floor2(peepSpawn->y, 32) == y) {
-			peepSpawn->x = UINT16_MAX;
+			peepSpawn->x = PEEP_SPAWN_UNDEFINED;
 		}
 	}
 
@@ -5206,7 +5223,7 @@ static money32 place_park_entrance(sint32 flags, sint16 x, sint16 y, sint16 z, u
 	}
 
 	sint8 entranceNum = -1;
-	for (uint8 i = 0; i < 4; ++i) {
+	for (uint8 i = 0; i < MAX_PARK_ENTRANCES; ++i) {
 		if (gParkEntranceX[i] == MAP_LOCATION_NULL) {
 			entranceNum = i;
 			break;
@@ -5401,7 +5418,7 @@ void game_command_set_sign_name(sint32* eax, sint32* ebx, sint32* ecx, sint32* e
 			banner->string_idx = string_id;
 			user_string_free(prev_string_id);
 
-			banner->flags &= ~(BANNER_FLAG_2);
+			banner->flags &= ~(BANNER_FLAG_LINKED_TO_RIDE);
 			gfx_invalidate_screen();
 		} else {
 			gGameCommandErrorText = STR_ERR_CANT_SET_BANNER_TEXT;
@@ -5417,7 +5434,7 @@ void game_command_set_sign_name(sint32* eax, sint32* ebx, sint32* ecx, sint32* e
 		}
 
 		banner->colour = rideIndex;
-		banner->flags |= BANNER_FLAG_2;
+		banner->flags |= BANNER_FLAG_LINKED_TO_RIDE;
 
 		rct_string_id prev_string_id = banner->string_idx;
 		banner->string_idx = STR_DEFAULT_SIGN;

@@ -21,6 +21,7 @@
 #include "../game.h"
 #include "../interface/viewport.h"
 #include "../localisation/localisation.h"
+#include "../management/news_item.h"
 #include "../OpenRCT2.h"
 #include "../rct2/hook.h"
 #include "../scenario/scenario.h"
@@ -3343,7 +3344,7 @@ static void vehicle_update_arriving(rct_vehicle* vehicle)
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN &&
 		ride->breakdown_reason_pending == BREAKDOWN_BRAKES_FAILURE &&
 		ride->inspection_station == vehicle->current_station &&
-		ride->mechanic_status != RIDE_MECHANIC_STATUS_4
+		ride->mechanic_status != RIDE_MECHANIC_STATUS_HAS_FIXED_STATION_BRAKES
 	) {
 		unkF64E35 = 0;
 	}
@@ -5986,7 +5987,7 @@ static void update_velocity(rct_vehicle *vehicle)
 	_vehicleVelocityF64E0C = (nextVelocity >> 10) * 42;
 }
 
-static void vehicle_update_block_breaks_open_previous_section(rct_vehicle *vehicle, rct_map_element *mapElement)
+static void vehicle_update_block_brakes_open_previous_section(rct_vehicle *vehicle, rct_map_element *mapElement)
 {
 	sint32 x = vehicle->track_x;
 	sint32 y = vehicle->track_y;
@@ -7324,7 +7325,7 @@ static bool vehicle_update_track_motion_forwards_get_new_track(rct_vehicle *vehi
 				}
 			}
 			map_invalidate_element(vehicle->track_x, vehicle->track_z, mapElement);
-			vehicle_update_block_breaks_open_previous_section(vehicle, mapElement);
+			vehicle_update_block_brakes_open_previous_section(vehicle, mapElement);
 		}
 	}
 
@@ -7491,7 +7492,7 @@ loc_6DAEB9:
 		if (!(
 			ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN &&
 			ride->breakdown_reason_pending == BREAKDOWN_BRAKES_FAILURE &&
-			ride->mechanic_status == RIDE_MECHANIC_STATUS_4
+			ride->mechanic_status == RIDE_MECHANIC_STATUS_HAS_FIXED_STATION_BRAKES
 			)) {
 			regs.eax = vehicle->brake_speed << 16;
 			if (regs.eax < _vehicleVelocityF64E08) {
@@ -7506,15 +7507,9 @@ loc_6DAEB9:
 		}
 	}
 	else if (trackType == TRACK_ELEM_BOOSTER && ride->type != RIDE_TYPE_WILD_MOUSE) {
-		if (!(
-				ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN &&
-				ride->breakdown_reason_pending == BREAKDOWN_BRAKES_FAILURE &&
-				ride->mechanic_status == RIDE_MECHANIC_STATUS_4
-		)) {
-			regs.eax = (vehicle->brake_speed << 16);
-			if (regs.eax > _vehicleVelocityF64E08) {
-				vehicle->acceleration = RideProperties[ride->type].acceleration << 16; //_vehicleVelocityF64E08 * 1.2;
-			}
+		regs.eax = (vehicle->brake_speed << 16);
+		if (regs.eax > _vehicleVelocityF64E08) {
+			vehicle->acceleration = RideProperties[ride->type].acceleration << 16; //_vehicleVelocityF64E08 * 1.2;
 		}
 	}
 

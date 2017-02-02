@@ -15,8 +15,8 @@
 #pragma endregion
 
 #include "../config.h"
-#include "../game.h"
 #include "../drawing/drawing.h"
+#include "../game.h"
 #include "../input.h"
 #include "../interface/themes.h"
 #include "../interface/viewport.h"
@@ -27,6 +27,7 @@
 #include "../peep/staff.h"
 #include "../rct2.h"
 #include "../sprites.h"
+#include "../util/util.h"
 #include "../world/footpath.h"
 #include "../world/sprite.h"
 #include "dropdown.h"
@@ -132,6 +133,8 @@ static uint16 _window_staff_list_selected_type_count = 0;
 static sint32 _windowStaffListHighlightedIndex;
 static sint32 _windowStaffListSelectedTab;
 
+static uint8 window_staff_list_get_random_entertainer_costume();
+
 typedef struct staff_naming_convention
 {
 	rct_string_id plural;
@@ -217,8 +220,16 @@ static void window_staff_list_mouseup(rct_window *w, sint32 widgetIndex)
 		window_close(w);
 		break;
 	case WIDX_STAFF_LIST_HIRE_BUTTON:
-		hire_new_staff_member(_windowStaffListSelectedTab);
+	{
+		sint32 staffType = _windowStaffListSelectedTab;
+		if (staffType == STAFF_TYPE_ENTERTAINER)
+		{
+			uint8 costume = window_staff_list_get_random_entertainer_costume();
+			staffType += costume;
+		}
+		hire_new_staff_member(staffType);
 		break;
+	}
 	case WIDX_STAFF_LIST_SHOW_PATROL_AREA_BUTTON:
 		if (!tool_set(w, WIDX_STAFF_LIST_SHOW_PATROL_AREA_BUTTON, 12)) {
 			show_gridlines();
@@ -533,7 +544,7 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Handymen tab image
 	i = (selectedTab == 0 ? (w->list_information_type & ~3) : 0);
-	i += g_sprite_entries[PEEP_SPRITE_TYPE_HANDYMAN].sprite_image->base_image + 1;
+	i += g_peep_animation_entries[PEEP_SPRITE_TYPE_HANDYMAN].sprite_animation->base_image + 1;
 	i |= 0x20000000;
 	i |= gStaffHandymanColour << 19;
 	gfx_draw_sprite(
@@ -545,7 +556,7 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Mechanic tab image
 	i = (selectedTab == 1 ? (w->list_information_type & ~3) : 0);
-	i += g_sprite_entries[PEEP_SPRITE_TYPE_MECHANIC].sprite_image->base_image + 1;
+	i += g_peep_animation_entries[PEEP_SPRITE_TYPE_MECHANIC].sprite_animation->base_image + 1;
 	i |= 0x20000000;
 	i |= gStaffMechanicColour << 19;
 	gfx_draw_sprite(
@@ -557,7 +568,7 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 
 	// Security tab image
 	i = (selectedTab == 2 ? (w->list_information_type & ~3) : 0);
-	i += g_sprite_entries[PEEP_SPRITE_TYPE_SECURITY].sprite_image->base_image + 1;
+	i += g_peep_animation_entries[PEEP_SPRITE_TYPE_SECURITY].sprite_animation->base_image + 1;
 	i |= 0x20000000;
 	i |= gStaffSecurityColour << 19;
 	gfx_draw_sprite(
@@ -578,7 +589,7 @@ void window_staff_list_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	)) {
 		// Entertainers tab image
 		i = (selectedTab == 3 ? (w->list_information_type & ~3) : 0);
-		i += g_sprite_entries[PEEP_SPRITE_TYPE_ENTERTAINER_ELEPHANT].sprite_image->base_image + 1;
+		i += g_peep_animation_entries[PEEP_SPRITE_TYPE_ENTERTAINER_ELEPHANT].sprite_animation->base_image + 1;
 		gfx_draw_sprite(&sprite_dpi, i, 0x0F, 0x17, 0);
 	}
 
@@ -692,4 +703,17 @@ void window_staff_list_scrollpaint(rct_window *w, rct_drawpixelinfo *dpi, sint32
 			i++;
 		}
 	}
+}
+
+static uint8 window_staff_list_get_random_entertainer_costume()
+{
+	uint8 result = ENTERTAINER_COSTUME_PANDA;
+	uint8 costumeList[ENTERTAINER_COSTUME_COUNT];
+	sint32 numCostumes = staff_get_available_entertainer_costume_list(costumeList);
+	if (numCostumes > 0)
+	{
+		sint32 index = util_rand() % numCostumes;
+		result = costumeList[index];
+	}
+	return result;
 }

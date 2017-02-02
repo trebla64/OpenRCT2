@@ -1010,7 +1010,7 @@ void window_staff_overview_tab_paint(rct_window* w, rct_drawpixelinfo* dpi)
 	if (peep->type == PEEP_TYPE_STAFF && peep->staff_type == STAFF_TYPE_ENTERTAINER)
 		y++;
 
-	sint32 ebx = g_sprite_entries[peep->sprite_type].sprite_image->base_image + 1;
+	sint32 ebx = g_peep_animation_entries[peep->sprite_type].sprite_animation->base_image + 1;
 
 	sint32 eax = 0;
 
@@ -1144,7 +1144,7 @@ void window_staff_overview_tool_update(rct_window* w, sint32 widgetIndex, sint32
 	rct_peep* peep;
 	peep = GET_PEEP(w->number);
 
-	uint32 imageId = g_sprite_entries[peep->sprite_type].sprite_image[11].base_image;
+	uint32 imageId = g_peep_animation_entries[peep->sprite_type].sprite_animation[PEEP_ACTION_SPRITE_TYPE_UI].base_image;
 	imageId += w->picked_peep_frame >> 2;
 
 	imageId |= (peep->tshirt_colour << 19) | (peep->trousers_colour << 24) | 0xA0000000;
@@ -1296,32 +1296,13 @@ void window_staff_options_mousedown(sint32 widgetIndex, rct_window* w, rct_widge
 		return;
 	}
 
-	init_scenery();
-
-	uint32 entertainerCostumes = 0;
-	for (sint32 i = 0; i < 19; i++) {
-		if (window_scenery_tab_entries[i][0] != -1) {
-			rct_scenery_set_entry* scenery_entry = get_scenery_group_entry(i);
-			entertainerCostumes |= scenery_entry->entertainer_costumes;
-		}
-	}
-
-	uint8 *costumep = _availableCostumes;
-	uint16 numCostumes = 0;
-	for (uint8 i = 0; i < ENTERTAINER_COSTUME_COUNT; i++) {
-		if (entertainerCostumes & (1 << i)) {
-			// For some reason the flags are +4 from the actual costume IDs
-			*costumep++ = (i - 4);
-			numCostumes++;
-		}
-	}
-
 	rct_peep* peep = GET_PEEP(w->number);
 	sint32 itemsChecked = 0;
 	//This will be moved below where Items Checked is when all
 	//of dropdown related functions are finished. This prevents
 	//the dropdown from not working on first click.
-	for (sint32 i = 0; i < numCostumes; ++i){
+	sint32 numCostumes = staff_get_available_entertainer_costume_list(_availableCostumes);
+	for (sint32 i = 0; i < numCostumes; i++) {
 		uint8 costume = _availableCostumes[i];
 		if (costume == peep->sprite_type) {
 			itemsChecked = 1 << i;

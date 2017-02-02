@@ -1118,7 +1118,7 @@ static money32 track_place(sint32 rideIndex, sint32 type, sint32 originX, sint32
 
 		//6c53dc
 
-		if ((flags & GAME_COMMAND_FLAG_APPLY) && !(flags & GAME_COMMAND_FLAG_GHOST)) {
+		if ((flags & GAME_COMMAND_FLAG_APPLY) && !(flags & GAME_COMMAND_FLAG_GHOST) && !gCheatsDisableClearanceChecks) {
 			footpath_remove_litter(x, y, z);
 			if (rideTypeFlags & RIDE_TYPE_FLAG_TRACK_NO_WALLS) {
 				map_remove_walls_at(x, y, baseZ * 8, clearanceZ * 8);
@@ -1219,7 +1219,7 @@ static money32 track_place(sint32 rideIndex, sint32 type, sint32 originX, sint32
 		if (entranceDirections & TRACK_SEQUENCE_FLAG_CONNECTS_TO_PATH) {
 			entranceDirections &= 0x0F;
 			if (entranceDirections != 0) {
-				if (!(flags & GAME_COMMAND_FLAG_APPLY) && !(flags & GAME_COMMAND_FLAG_GHOST)) {
+				if (!(flags & GAME_COMMAND_FLAG_APPLY) && !(flags & GAME_COMMAND_FLAG_GHOST) && !gCheatsDisableClearanceChecks) {
 					uint8 _bl = entranceDirections;
 					for (sint32 dl = bitscanforward(_bl); dl != -1; dl = bitscanforward(_bl)){
 						_bl &= ~(1 << dl);
@@ -1275,7 +1275,7 @@ static money32 track_place(sint32 rideIndex, sint32 type, sint32 originX, sint32
 			ride->cable_lift_y = y;
 			ride->cable_lift_z = baseZ;
 			break;
-		case 0xD8:
+		case TRACK_ELEM_BLOCK_BRAKES:
 			ride->num_block_brakes++;
 			ride->window_invalidate_flags |= RIDE_INVALIDATE_RIDE_OPERATING;
 			ride->mode = RIDE_MODE_CONTINUOUS_CIRCUIT_BLOCK_SECTIONED;

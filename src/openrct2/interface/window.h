@@ -471,6 +471,7 @@ enum {
 	WC_SERVER_START = 128,
 	WC_CUSTOM_CURRENCY_CONFIG = 129,
 	WC_DEBUG_PAINT = 130,
+	WC_VIEW_CLIPPING = 131,
 
 	// Only used for colour schemes
 	WC_STAFF = 220,
@@ -595,6 +596,7 @@ void window_push_others_below(rct_window *w1);
 
 rct_window *window_get_main();
 
+void window_set_location(rct_window *w, sint32 x, sint32 y, sint32 z);
 void window_scroll_to_viewport(rct_window *w);
 void window_scroll_to_location(rct_window *w, sint32 x, sint32 y, sint32 z);
 void window_rotate_camera(rct_window *w, sint32 direction);
@@ -719,12 +721,15 @@ rct_window *window_loadsave_open(sint32 type, char *defaultName);
 rct_window *window_changelog_open();
 void window_debug_paint_open();
 
-void window_editor_main_open();
+rct_window * window_editor_main_open();
 void window_editor_bottom_toolbar_open();
 void window_editor_object_selection_open();
 void window_editor_inventions_list_open();
 void window_editor_scenario_options_open();
 void window_editor_objective_options_open();
+
+void window_view_clipping_open();
+void window_view_clipping_close();
 
 void window_guest_list_init_vars_a();
 void window_guest_list_init_vars_b();

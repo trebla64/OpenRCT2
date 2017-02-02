@@ -16,6 +16,7 @@
 
 #include "../core/Exception.hpp"
 #include "../core/IStream.hpp"
+#include "../management/award.h"
 #include "../network/network.h"
 #include "S6Importer.h"
 
@@ -160,6 +161,8 @@ void S6Importer::LoadScenario(SDL_RWops *rw)
 
 void S6Importer::Import()
 {
+    Initialise();
+
     // _s6.header
     gS6Info = _s6.info;
 
@@ -264,7 +267,16 @@ void S6Importer::Import()
     gTotalIncomeFromAdmissions = _s6.income_from_admissions;
     gCompanyValue = _s6.company_value;
     memcpy(gPeepWarningThrottle, _s6.peep_warning_throttle, sizeof(_s6.peep_warning_throttle));
-    memcpy(gCurrentAwards, _s6.awards, sizeof(_s6.awards));
+
+    // Awards
+    for (sint32 i = 0; i < RCT12_MAX_AWARDS; i++)
+    {
+        rct12_award * src = &_s6.awards[i];
+        Award * dst = &gCurrentAwards[i];
+        dst->Time = src->time;
+        dst->Type = src->type;
+    }
+
     gLandPrice = _s6.land_price;
     gConstructionRightsPrice = _s6.construction_rights_price;
     // unk_01358774
@@ -341,7 +353,22 @@ void S6Importer::Import()
     gClimateNextWeatherGloom = _s6.next_weather_gloom;
     gClimateCurrentRainLevel = _s6.current_rain_level;
     gClimateNextRainLevel = _s6.next_rain_level;
-    memcpy(gNewsItems, _s6.news_items, sizeof(_s6.news_items));
+
+    // News items
+    for (size_t i = 0; i < RCT12_MAX_NEWS_ITEMS; i++)
+    {
+        const rct12_news_item * src = &_s6.news_items[i];
+        NewsItem * dst = &gNewsItems[i];
+
+        dst->Type = src->Type;
+        dst->Flags = src->Flags;
+        dst->Assoc = src->Assoc;
+        dst->Ticks = src->Ticks;
+        dst->MonthYear = src->MonthYear;
+        dst->Day = src->Day;
+        memcpy(dst->Text, src->Text, sizeof(src->Text));
+    }
+
     // pad_13CE730
     // rct1_scenario_flags
     gWidePathTileLoopX = _s6.wide_path_tile_loop_x;
@@ -353,6 +380,7 @@ void S6Importer::Import()
     {
         throw ObjectLoadException();
     }
+    map_strip_ghost_flag_from_elements();
     map_update_tile_pointers();
     game_convert_strings_to_utf8();
     map_count_remaining_land_rights();
@@ -360,6 +388,11 @@ void S6Importer::Import()
     {
         game_fix_save_vars();
     }
+}
+
+void S6Importer::Initialise()
+{
+    game_init_all(_s6.map_size);
 }
 
 extern "C"

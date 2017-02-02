@@ -58,7 +58,10 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_QUIET
 )
-add_definitions(-DOPENRCT2_COMMIT_SHA1_SHORT="${OPENRCT2_COMMIT_SHA1_SHORT}")
+# Tagged builds are not meant to display commit info
+if (NOT OPENRCT2_COMMIT_SHA1_SHORT STREQUAL "HEAD")
+    add_definitions(-DOPENRCT2_COMMIT_SHA1_SHORT="${OPENRCT2_COMMIT_SHA1_SHORT}")
+endif()
 
 # Convenience functions to set compiler flags only if available
 include(CheckCCompilerFlag)
@@ -113,6 +116,7 @@ option(DISABLE_RCT2 "Build a standalone version, without using code and data seg
 option(USE_MMAP "Use mmap to try loading rct2's data segment into memory.")
 option(WITH_TESTS "Build tests")
 option(DISABLE_TTF "Disable support for TTF provided by SDL2_ttf.")
+option(ENABLE_LIGHTFX "Enable lighting effects." ON)
 
 set(COMMON_COMPILE_OPTIONS "${COMMON_COMPILE_OPTIONS} -fstrict-aliasing -Werror -Wundef -Wmissing-declarations -Winit-self -Wall -Wno-unknown-pragmas -Wno-unused-function -Wno-missing-braces ")
 set(COMMON_COMPILE_OPTIONS "${COMMON_COMPILE_OPTIONS} -Wno-comment -Wshadow  -Wmissing-declarations -Wnonnull")
@@ -134,6 +138,10 @@ endif (DISABLE_HTTP_TWITCH)
 if (DISABLE_TTF)
     add_definitions(-DNO_TTF)
 endif (DISABLE_TTF)
+
+if (ENABLE_LIGHTFX)
+    add_definitions(-D__ENABLE_LIGHTFX__)
+endif (ENABLE_LIGHTFX)
 
 # Launchpad turns on -Wdate-time for compilers that support it, this shouldn't break our build
 ADD_CHECK_C_COMPILER_FLAG(CMAKE_C_FLAGS C_WARN_WRITE_STRINGS -Wno-error=date-time)
@@ -227,7 +235,7 @@ if ((NOT DISABLE_RCT2) AND UNIX)
   add_custom_target(segfiles DEPENDS openrct2_text openrct2_data)
     if (NOT USE_MMAP)
         if (APPLE)
-                set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sectcreate rct2_text __text ${CMAKE_CURRENT_SOURCE_DIR}/build/openrct2_text -sectcreate rct2_data __data ${CMAKE_CURRENT_SOURCE_DIR}/build/openrct2_data -segaddr rct2_data 0x8a4000 -segprot rct2_data rwx rwx -segaddr rct2_text 0x401000 -segprot rct2_text rwx rwx -segaddr __TEXT 0x2000000 -read_only_relocs suppress")
+            set(RCT2_SEGMENT_LINKER_FLAGS "-sectcreate rct2_text __text ${CMAKE_BINARY_DIR}/openrct2_text -sectcreate rct2_data __data ${CMAKE_BINARY_DIR}/openrct2_data -segaddr rct2_data 0x8a4000 -segprot rct2_data rwx rwx -segaddr rct2_text 0x401000 -segprot rct2_text rwx rwx -segaddr __TEXT 0x2000000 -read_only_relocs suppress")
         else (APPLE)
             # For Linux we have to use objcopy to wrap regular binaries into a linkable
             # format. We use specific section names which are then referenced in a
@@ -253,7 +261,7 @@ if ((NOT DISABLE_RCT2) AND UNIX)
             )
             # can't use GLOB here, as the files don't exist yet at cmake-time
             set(RCT2_SECTIONS "${CMAKE_BINARY_DIR}/openrct2_data_section.o" "${CMAKE_BINARY_DIR}/openrct2_text_section.o")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-T,\"${CMAKE_CURRENT_SOURCE_DIR}/distribution/linux/${LINKER_SCRIPT}\"")
+            set(RCT2_SEGMENT_LINKER_FLAGS "-Wl,-T,\"${CMAKE_CURRENT_SOURCE_DIR}/distribution/linux/${LINKER_SCRIPT}\"")
         endif (APPLE)
     endif (NOT USE_MMAP)
 elseif (USE_MMAP)
@@ -387,6 +395,7 @@ else (WIN32)
         if (NOT APPLE AND NOT USE_MMAP)
             add_dependencies(${PROJECT} linkable_sections)
         endif ()
+        set_target_properties(${PROJECT} PROPERTIES LINK_FLAGS ${RCT2_SEGMENT_LINKER_FLAGS})
     endif (NOT DISABLE_RCT2)
     add_custom_command(
         OUTPUT g2.dat
@@ -458,10 +467,11 @@ if (UNIX AND (NOT USE_MMAP) AND (NOT DISABLE_RCT2) AND (FORCE32))
     add_executable(testpaint EXCLUDE_FROM_ALL ${ORCT2_RIDE_SOURCES} ${ORCT2_RIDE_DEP_SOURCES} ${ORCT2_TESTPAINT_SOURCES} ${RCT2_SECTIONS})
     target_include_directories(testpaint PRIVATE "src/")
     set_target_properties(testpaint PROPERTIES COMPILE_FLAGS "-DNO_VEHICLES -D__TESTPAINT__ -Wno-unused")
+    set_target_properties(testpaint PROPERTIES LINK_FLAGS ${RCT2_SEGMENT_LINKER_FLAGS})
     add_dependencies(testpaint segfiles)
 endif ()
 
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
 set(CPACK_PACKAGE_VERSION_MINOR 0)
-set(CPACK_PACKAGE_VERSION_PATCH 5)
+set(CPACK_PACKAGE_VERSION_PATCH 7)
 INCLUDE(CPack)

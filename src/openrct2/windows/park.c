@@ -1091,7 +1091,7 @@ static void window_park_init_viewport(rct_window *w)
 	if (w->page != WINDOW_PARK_PAGE_ENTRANCE)
 		return;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < MAX_PARK_ENTRANCES; i++) {
 		if (gParkEntranceX[i] != SPRITE_LOCATION_NULL) {
 			x = gParkEntranceX[i] + 16;
 			y = gParkEntranceY[i] + 16;
@@ -1909,12 +1909,12 @@ static void window_park_awards_paint(rct_window *w, rct_drawpixelinfo *dpi)
 	sint32 y = w->y + window_park_awards_widgets[WIDX_PAGE_BACKGROUND].top + 4;
 	sint32 count = 0;
 	for (sint32 i = 0; i < MAX_AWARDS; i++) {
-		rct_award *award = &gCurrentAwards[i];
-		if (award->time == 0)
+		Award *award = &gCurrentAwards[i];
+		if (award->Time == 0)
 			continue;
 
-		gfx_draw_sprite(dpi, ParkAwards[award->type].sprite, x, y, 0);
-		gfx_draw_string_left_wrapped(dpi, NULL, x + 34, y + 6, 180, ParkAwards[award->type].text, COLOUR_BLACK);
+		gfx_draw_sprite(dpi, ParkAwards[award->Type].sprite, x, y, 0);
+		gfx_draw_string_left_wrapped(dpi, NULL, x + 34, y + 6, 180, ParkAwards[award->Type].text, COLOUR_BLACK);
 
 		y += 32;
 		count++;
@@ -2011,7 +2011,7 @@ static void window_park_draw_tab_images(rct_drawpixelinfo *dpi, rct_window *w)
 			sprite_idx += (w->frame_no / 8) % 8;
 		gfx_draw_sprite(dpi, sprite_idx, w->x + w->widgets[WIDX_TAB_3].left, w->y + w->widgets[WIDX_TAB_3].top, 0);
 
-		sprite_idx = g_sprite_entries[PEEP_SPRITE_TYPE_NORMAL].sprite_image->base_image + 1;
+		sprite_idx = g_peep_animation_entries[PEEP_SPRITE_TYPE_NORMAL].sprite_animation->base_image + 1;
 		if (w->page == WINDOW_PARK_PAGE_GUESTS)
 			sprite_idx += w->var_492 & 0xFFFFFFFC;
 

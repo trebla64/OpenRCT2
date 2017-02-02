@@ -17,8 +17,9 @@
 #include "../core/Exception.hpp"
 #include "../core/IStream.hpp"
 #include "../core/String.hpp"
-#include "../object/ObjectRepository.h"
+#include "../management/award.h"
 #include "../object/Object.h"
+#include "../object/ObjectRepository.h"
 #include "S6Exporter.h"
 
 extern "C"
@@ -124,7 +125,7 @@ void S6Exporter::Save(SDL_RWops * rw, bool isScenario)
         SDL_RWwrite(rw, buffer, encodedLength, 1);
     }
 
-    log_warning("exporting %u objects", _s6.header.num_packed_objects);
+    log_verbose("exporting %u objects", _s6.header.num_packed_objects);
     // 2: Write packed objects
     if (_s6.header.num_packed_objects > 0)
     {
@@ -348,7 +349,16 @@ void S6Exporter::Export()
     _s6.income_from_admissions = gTotalIncomeFromAdmissions;
     _s6.company_value = gCompanyValue;
     memcpy(_s6.peep_warning_throttle, gPeepWarningThrottle, sizeof(_s6.peep_warning_throttle));
-    memcpy(_s6.awards, gCurrentAwards, sizeof(_s6.awards));
+
+    // Awards
+    for (sint32 i = 0; i < RCT12_MAX_AWARDS; i++)
+    {
+        Award * src = &gCurrentAwards[i];
+        rct12_award * dst = &_s6.awards[i];
+        dst->time = src->Time;
+        dst->type = src->Type;
+    }
+
     _s6.land_price = gLandPrice;
     _s6.construction_rights_price = gConstructionRightsPrice;
     // unk_01358774
@@ -425,7 +435,22 @@ void S6Exporter::Export()
     _s6.next_weather_gloom = gClimateNextWeatherGloom;
     _s6.current_rain_level = gClimateCurrentRainLevel;
     _s6.next_rain_level = gClimateNextRainLevel;
-    memcpy(_s6.news_items, gNewsItems, sizeof(_s6.news_items));
+
+    // News items
+    for (size_t i = 0; i < RCT12_MAX_NEWS_ITEMS; i++)
+    {
+        const NewsItem * src = &gNewsItems[i];
+        rct12_news_item * dst = &_s6.news_items[i];
+
+        dst->Type = src->Type;
+        dst->Flags = src->Flags;
+        dst->Assoc = src->Assoc;
+        dst->Ticks = src->Ticks;
+        dst->MonthYear = src->MonthYear;
+        dst->Day = src->Day;
+        memcpy(dst->Text, src->Text, sizeof(dst->Text));
+    }
+
     // pad_13CE730
     // rct1_scenario_flags
     _s6.wide_path_tile_loop_x = gWidePathTileLoopX;

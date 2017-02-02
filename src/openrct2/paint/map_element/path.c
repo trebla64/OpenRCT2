@@ -82,9 +82,9 @@ const uint8 byte_98D8A4[] = {
 	0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0
 };
 
-void loc_6A37C9(rct_map_element * mapElement, sint32 height, rct_footpath_entry * footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags);
+void path_paint_pole_support(rct_map_element * mapElement, sint32 height, rct_footpath_entry * footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags);
 
-void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags);
+void path_paint_box_support(rct_map_element* mapElement, sint16 height, rct_footpath_entry* footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags);
 
 /* rct2: 0x006A5AE5 */
 static void path_bit_lights_paint(rct_scenery_entry* pathBitEntry, rct_map_element* mapElement, sint32 height, uint8 edges, uint32 pathBitImageFlags) {
@@ -287,7 +287,7 @@ static void path_bit_jumping_fountains_paint(rct_scenery_entry* pathBitEntry, rc
  */
 static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp, bool word_F3F038, rct_footpath_entry * footpathEntry, uint32 base_image_id, uint32 imageFlags)
 {
-	if (map_element->type & 1) {
+	if (footpath_element_is_queue(map_element)) {
 		uint8 local_ebp = ebp & 0x0F;
 		if (footpath_element_is_sloped(map_element)) {
 			switch ((map_element->properties.path.type + get_current_rotation()) & 0x03) {
@@ -429,7 +429,7 @@ static void sub_6A4101(rct_map_element * map_element, uint16 height, uint32 ebp,
 
 	// save ecx, ebp, esi
 	uint32 dword_F3EF80 = ebp;
-	if (!(footpathEntry->flags & 2)) {
+	if (!(footpathEntry->flags & FOOTPATH_ENTRY_FLAG_HAS_PATH_BASE_SPRITE)) {
 		dword_F3EF80 &= 0x0F;
 	}
 
@@ -680,7 +680,7 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 	uint32 imageFlags = 0;
 
 	if (gTrackDesignSaveMode) {
-		if (map_element->type & 1) {
+		if (footpath_element_is_queue(map_element)) {
 			if (map_element->properties.path.ride_index != gTrackDesignSaveRideIndex) {
 				return;
 			}
@@ -767,34 +767,36 @@ void path_paint(uint8 direction, uint16 height, rct_map_element * map_element)
 	uint8 pathType = (map_element->properties.path.type & 0xF0) >> 4;
 	rct_footpath_entry * footpathEntry = gFootpathEntries[pathType];
 
-	if (footpathEntry->var_0A == 0) {
-		loc_6A37C9(map_element, height, footpathEntry, word_F3F038, imageFlags, sceneryImageFlags);
+	if (footpathEntry->support_type == FOOTPATH_ENTRY_SUPPORT_TYPE_POLE) {
+		path_paint_pole_support(map_element, height, footpathEntry, word_F3F038, imageFlags, sceneryImageFlags);
 	} else {
-		loc_6A3B57(map_element, height, footpathEntry, word_F3F038, imageFlags, sceneryImageFlags);
+		path_paint_box_support(map_element, height, footpathEntry, word_F3F038, imageFlags, sceneryImageFlags);
 	}
 
 #ifdef __ENABLE_LIGHTFX__
-	if (footpath_element_has_path_scenery(map_element) && !(map_element->flags & MAP_ELEMENT_FLAG_BROKEN)) {
-		rct_scenery_entry *sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
-		if (sceneryEntry->path_bit.flags & PATH_BIT_FLAG_LAMP) {
-			if (!(map_element->properties.path.edges & (1 << 0))) {
-				lightfx_add_3d_light_magic_from_drawing_tile(-16, 0, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
-			}
-			if (!(map_element->properties.path.edges & (1 << 1))) {
-				lightfx_add_3d_light_magic_from_drawing_tile(0, 16, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
-			}
-			if (!(map_element->properties.path.edges & (1 << 2))) {
-				lightfx_add_3d_light_magic_from_drawing_tile(16, 0, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
-			}
-			if (!(map_element->properties.path.edges & (1 << 3))) {
-				lightfx_add_3d_light_magic_from_drawing_tile(0, -16, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+	if (gConfigGeneral.enable_light_fx) {
+		if (footpath_element_has_path_scenery(map_element) && !(map_element->flags & MAP_ELEMENT_FLAG_BROKEN)) {
+			rct_scenery_entry *sceneryEntry = get_footpath_item_entry(footpath_element_get_path_scenery_index(map_element));
+			if (sceneryEntry->path_bit.flags & PATH_BIT_FLAG_LAMP) {
+				if (!(map_element->properties.path.edges & (1 << 0))) {
+					lightfx_add_3d_light_magic_from_drawing_tile(-16, 0, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+				}
+				if (!(map_element->properties.path.edges & (1 << 1))) {
+					lightfx_add_3d_light_magic_from_drawing_tile(0, 16, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+				}
+				if (!(map_element->properties.path.edges & (1 << 2))) {
+					lightfx_add_3d_light_magic_from_drawing_tile(16, 0, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+				}
+				if (!(map_element->properties.path.edges & (1 << 3))) {
+					lightfx_add_3d_light_magic_from_drawing_tile(0, -16, height + 23, LIGHTFX_LIGHT_TYPE_LANTERN_3);
+				}
 			}
 		}
 	}
 #endif
 }
 
-void loc_6A37C9(rct_map_element * mapElement, sint32 height, rct_footpath_entry * footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags)
+void path_paint_pole_support(rct_map_element * mapElement, sint32 height, rct_footpath_entry * footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags)
 {
 	// Rol edges around rotation
 	uint8 edges = ((mapElement->properties.path.edges << get_current_rotation()) & 0xF) |
@@ -817,7 +819,7 @@ void loc_6A37C9(rct_map_element * mapElement, sint32 height, rct_footpath_entry 
 	}
 
 	imageId += footpathEntry->image;
-	if (mapElement->type & 1) {
+	if (footpath_element_is_queue(mapElement)) {
 		imageId += 51;
 	}
 
@@ -840,7 +842,7 @@ void loc_6A37C9(rct_map_element * mapElement, sint32 height, rct_footpath_entry 
 
 		sub_98197C(image_id | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 
-		if (!(mapElement->type & 1) && !(footpathEntry->flags & 2)) {
+		if (!footpath_element_is_queue(mapElement) && !(footpathEntry->flags & FOOTPATH_ENTRY_FLAG_HAS_PATH_BASE_SPRITE)) {
 			// don't draw
 		} else {
 			sub_98199C(imageId | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
@@ -868,7 +870,7 @@ void loc_6A37C9(rct_map_element * mapElement, sint32 height, rct_footpath_entry 
 
 	paint_util_set_general_support_height(height, 0x20);
 
-	if ((mapElement->type & 1)
+	if (footpath_element_is_queue(mapElement)
 	    || (mapElement->properties.path.edges != 0xFF && hasFences)
 		) {
 		paint_util_set_segment_support_height(SEGMENTS_ALL, 0xFFFF, 0);
@@ -899,7 +901,7 @@ void loc_6A37C9(rct_map_element * mapElement, sint32 height, rct_footpath_entry 
 	}
 }
 
-void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags)
+void path_paint_box_support(rct_map_element* mapElement, sint16 height, rct_footpath_entry* footpathEntry, bool hasFences, uint32 imageFlags, uint32 sceneryImageFlags)
 {
 	// Rol edges around rotation
 	uint8 edges = ((mapElement->properties.path.edges << get_current_rotation()) & 0xF) |
@@ -930,7 +932,7 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 
 
 	imageId += footpathEntry->image;
-	if (mapElement->type & 1) {
+	if (footpath_element_is_queue(mapElement)) {
 		imageId += 51;
 	}
 
@@ -957,7 +959,7 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 
 		sub_98197C(bridgeImage | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 
-		if ((mapElement->type & 1) || (footpathEntry->flags & 2)) {
+		if (footpath_element_is_queue(mapElement) || (footpathEntry->flags & FOOTPATH_ENTRY_FLAG_HAS_PATH_BASE_SPRITE)) {
 			sub_98199C(imageId | imageFlags, 0, 0, boundBoxSize.x, boundBoxSize.y, 0, height, boundBoxOffset.x, boundBoxOffset.y, height + 1, get_current_rotation());
 		}
 	}
@@ -989,7 +991,7 @@ void loc_6A3B57(rct_map_element* mapElement, sint16 height, rct_footpath_entry* 
 
 	paint_util_set_general_support_height(height, 0x20);
 
-	if ((mapElement->type & 1)
+	if (footpath_element_is_queue(mapElement)
 	    || (mapElement->properties.path.edges != 0xFF && hasFences)
 		) {
 

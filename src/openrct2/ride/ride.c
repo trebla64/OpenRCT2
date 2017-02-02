@@ -1489,7 +1489,7 @@ static void ride_construction_reset_current_piece()
 		_currentTrackBankEnd = 0;
 		_currentTrackLiftHill = 0;
 		_currentTrackCovered = 0;
-		if (RideData4[ride->type].flags & RIDE_TYPE_FLAG4_15) {
+		if (RideData4[ride->type].flags & RIDE_TYPE_FLAG4_FLYING_RC) {
 			_currentTrackCovered |= 2;
 		}
 		_previousTrackSlopeEnd = 0;
@@ -1946,7 +1946,7 @@ sint32 sub_6CC3FB(sint32 rideIndex)
 	_currentTrackLiftHill = 0;
 	_currentTrackCovered = 0;
 
-	if (RideData4[ride->type].flags & RIDE_TYPE_FLAG4_15)
+	if (RideData4[ride->type].flags & RIDE_TYPE_FLAG4_FLYING_RC)
 		_currentTrackCovered |= 2;
 
 	_previousTrackBankEnd = 0;
@@ -2498,7 +2498,7 @@ static void ride_breakdown_status_update(sint32 rideIndex)
 		if (
 			!(ride->not_fixed_timeout & 15) &&
 			ride->mechanic_status != RIDE_MECHANIC_STATUS_FIXING &&
-			ride->mechanic_status != RIDE_MECHANIC_STATUS_4
+			ride->mechanic_status != RIDE_MECHANIC_STATUS_HAS_FIXED_STATION_BRAKES
 		) {
 			set_format_arg(0, rct_string_id, ride->name);
 			set_format_arg(2, uint32, ride->name_arguments);
@@ -2546,8 +2546,11 @@ static void ride_mechanic_status_update(sint32 rideIndex, sint32 mechanicStatus)
 		ride_call_closest_mechanic(rideIndex);
 		break;
 	case RIDE_MECHANIC_STATUS_HEADING:
-		mechanic = &(get_sprite(ride->mechanic)->peep);
-		if (
+		mechanic = NULL;
+		if (ride->mechanic != SPRITE_INDEX_NULL) {
+			mechanic = &(get_sprite(ride->mechanic)->peep);
+		}
+		if (mechanic == NULL ||
 			!peep_is_mechanic(mechanic) ||
 			(mechanic->state != PEEP_STATE_HEADING_TO_INSPECTION && mechanic->state != PEEP_STATE_ANSWERING) ||
 			mechanic->current_ride != rideIndex
@@ -2558,8 +2561,11 @@ static void ride_mechanic_status_update(sint32 rideIndex, sint32 mechanicStatus)
 		}
 		break;
 	case RIDE_MECHANIC_STATUS_FIXING:
-		mechanic = &(get_sprite(ride->mechanic)->peep);
-		if (
+		mechanic = NULL;
+		if (ride->mechanic != SPRITE_INDEX_NULL) {
+			mechanic = &(get_sprite(ride->mechanic)->peep);
+		}
+		if (mechanic == NULL ||
 			!peep_is_mechanic(mechanic) ||
 			(
 				mechanic->state != PEEP_STATE_HEADING_TO_INSPECTION &&
@@ -2702,8 +2708,8 @@ rct_peep *ride_get_assigned_mechanic(rct_ride *ride)
 	if (ride->lifecycle_flags & RIDE_LIFECYCLE_BROKEN_DOWN) {
 		if (
 			ride->mechanic_status == RIDE_MECHANIC_STATUS_HEADING ||
-			ride->mechanic_status == 3 ||
-			ride->mechanic_status == 4
+			ride->mechanic_status == RIDE_MECHANIC_STATUS_FIXING ||
+			ride->mechanic_status == RIDE_MECHANIC_STATUS_HAS_FIXED_STATION_BRAKES
 		) {
 			rct_peep *peep = &(get_sprite(ride->mechanic)->peep);
 			if (peep_is_mechanic(peep))
@@ -6362,7 +6368,7 @@ void game_command_demolish_ride(sint32 *eax, sint32 *ebx, sint32 *ecx, sint32 *e
 
 			for(sint32 i = 0; i < MAX_BANNERS; i++){
 				rct_banner *banner = &gBanners[i];
-				if(banner->type != BANNER_NULL && banner->flags & BANNER_FLAG_2 && banner->colour == ride_id){
+				if(banner->type != BANNER_NULL && banner->flags & BANNER_FLAG_LINKED_TO_RIDE && banner->colour == ride_id){
 					banner->flags &= 0xFB;
 					banner->string_idx = STR_DEFAULT_SIGN;
 				}
@@ -8368,6 +8374,11 @@ static money32 remove_ride_entrance_or_exit(sint16 x, sint16 y, uint8 rideIndex,
 
 	if (ride->status != RIDE_STATUS_CLOSED){
 		gGameCommandErrorText = STR_MUST_BE_CLOSED_FIRST;
+		return MONEY32_UNDEFINED;
+	}
+
+	if (ride->lifecycle_flags & RIDE_LIFECYCLE_INDESTRUCTIBLE_TRACK) {
+		gGameCommandErrorText = STR_NOT_ALLOWED_TO_MODIFY_STATION;
 		return MONEY32_UNDEFINED;
 	}
 

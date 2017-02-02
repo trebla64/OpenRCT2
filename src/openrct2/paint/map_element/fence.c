@@ -134,7 +134,10 @@ void fence_paint(uint8 direction, sint32 height, rct_map_element * map_element)
 {
     gPaintInteractionType = VIEWPORT_INTERACTION_ITEM_WALL;
 
-	rct_scenery_entry * sceneryEntry = get_wall_entry(map_element->properties.fence.type);
+    rct_scenery_entry * sceneryEntry = get_wall_entry(map_element->properties.fence.type);
+    if (sceneryEntry == NULL || sceneryEntry == (rct_scenery_entry *)-1) {
+        return;
+    }
     uint32 frameNum = 0;
 
     if (sceneryEntry->wall.flags2 & WALL_SCENERY_2_FLAG5) {
@@ -358,7 +361,7 @@ void fence_paint(uint8 direction, sint32 height, rct_map_element * map_element)
     rct_banner * banner = &gBanners[bannerIndex];
 
     set_format_arg(0, rct_string_id, banner->string_idx);
-    if (banner->flags & BANNER_FLAG_2) {
+    if (banner->flags & BANNER_FLAG_LINKED_TO_RIDE) {
         rct_ride * ride = get_ride(banner->colour);
         set_format_arg(0, rct_string_id, ride->name);
         set_format_arg(2, uint32, ride->name_arguments);

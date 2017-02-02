@@ -729,14 +729,20 @@ void game_convert_strings_to_utf8()
 		}
 	}
 
-	// News items
-	for (sint32 i = 0; i < MAX_NEWS_ITEMS; i++) {
-		rct_news_item *newsItem = news_item_get(i);
+    // News items
+    game_convert_news_items_to_utf8();
 
-		if (!str_is_null_or_empty(newsItem->text)) {
-			rct2_to_utf8_self(newsItem->text, 256);
-		}
-	}
+}
+
+void game_convert_news_items_to_utf8()
+{
+    for (sint32 i = 0; i < MAX_NEWS_ITEMS; i++) {
+        NewsItem *newsItem = news_item_get(i);
+
+        if (!str_is_null_or_empty(newsItem->Text)) {
+            rct2_to_utf8_self(newsItem->Text, sizeof(newsItem->Text));
+        }
+    }
 }
 
 /**
@@ -760,10 +766,10 @@ void game_convert_strings_to_rct2(rct_s6_data *s6)
 
 	// News items
 	for (sint32 i = 0; i < MAX_NEWS_ITEMS; i++) {
-		rct_news_item *newsItem = &s6->news_items[i];
+		rct12_news_item *newsItem = &s6->news_items[i];
 
-		if (!str_is_null_or_empty(newsItem->text)) {
-			utf8_to_rct2_self(newsItem->text, 256);
+		if (!str_is_null_or_empty(newsItem->Text)) {
+			utf8_to_rct2_self(newsItem->Text, sizeof(newsItem->Text));
 		}
 	}
 }
@@ -1159,6 +1165,32 @@ void game_load_or_quit_no_save_prompt()
 		rct2_exit();
 		break;
 	}
+}
+
+/**
+ * Initialises the map, park etc. basically all S6 data.
+ */
+void game_init_all(sint32 mapSize)
+{
+	map_init(mapSize);
+	park_init();
+	finance_init();
+	reset_park_entrances();
+	banner_init();
+	ride_init_all();
+	reset_sprite_list();
+	staff_reset_modes();
+	date_reset();
+	climate_reset(CLIMATE_COOL_AND_WET);
+	news_item_init_queue();
+	user_string_clear_all();
+
+	window_new_ride_init_vars();
+	window_guest_list_init_vars_a();
+	window_guest_list_init_vars_b();
+	window_staff_list_init_vars();
+	scenery_set_default_placement_configuration();
+	window_tile_inspector_clear_clipboard();
 }
 
 GAME_COMMAND_POINTER* new_game_command_table[GAME_COMMAND_COUNT] = {

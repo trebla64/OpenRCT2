@@ -257,15 +257,20 @@ void platform_update_palette(const uint8* colours, sint32 start_index, sint32 nu
 		uint8 b = colours[0];
 
 #ifdef __ENABLE_LIGHTFX__
-		lightfx_apply_palette_filter(i, &r, &g, &b);
-#else
-		float night = gDayNightCycle;
-		if (night >= 0 && gClimateLightningFlash == 0) {
-			r = lerp(r, soft_light(r, 8), night);
-			g = lerp(g, soft_light(g, 8), night);
-			b = lerp(b, soft_light(b, 128), night);
+		if (gConfigGeneral.enable_light_fx)
+		{
+			lightfx_apply_palette_filter(i, &r, &g, &b);
 		}
+		else
 #endif
+		{
+			float night = gDayNightCycle;
+			if (night >= 0 && gClimateLightningFlash == 0) {
+				r = lerp(r, soft_light(r, 8), night);
+				g = lerp(g, soft_light(g, 8), night);
+				b = lerp(b, soft_light(b, 128), night);
+			}
+		}
 
 		gPalette[i].r = r;
 		gPalette[i].g = g;
@@ -576,8 +581,6 @@ void platform_init()
 
 static void platform_create_window()
 {
-	sint32 width, height;
-
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		log_fatal("SDL_Init %s", SDL_GetError());
 		exit(-1);
@@ -592,16 +595,18 @@ static void platform_create_window()
 	sub_68371D();
 
 	// Get window size
-	width = gConfigGeneral.window_width;
-	height = gConfigGeneral.window_height;
+	sint32 width = gConfigGeneral.window_width;
+	sint32 height = gConfigGeneral.window_height;
 	if (width == -1) width = 640;
 	if (height == -1) height = 480;
 
 	// Create window in window first rather than fullscreen so we have the display the window is on first
-	gWindow = SDL_CreateWindow(
-		"OpenRCT2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
-	);
+	uint32 flags = SDL_WINDOW_RESIZABLE;
+	if (gConfigGeneral.drawing_engine == DRAWING_ENGINE_OPENGL) {
+		flags |= SDL_WINDOW_OPENGL;
+	}
 
+	gWindow = SDL_CreateWindow(OPENRCT2_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
 	if (!gWindow) {
 		log_fatal("SDL_CreateWindow failed %s", SDL_GetError());
 		exit(-1);

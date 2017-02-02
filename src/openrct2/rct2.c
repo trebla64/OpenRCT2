@@ -21,6 +21,7 @@
 #include "audio/AudioMixer.h"
 #include "config.h"
 #include "drawing/drawing.h"
+#include "drawing/lightfx.h"
 #include "editor.h"
 #include "game.h"
 #include "input.h"
@@ -51,12 +52,6 @@
 #include "world/park.h"
 #include "world/scenery.h"
 #include "world/sprite.h"
-
-#ifdef __ENABLE_LIGHTFX__
-
-#include "drawing/lightfx.h"
-
-#endif
 
 // rct2: 0x0097F67C
 const char * const RCT2FilePaths[PATH_ID_END] = {
@@ -167,6 +162,7 @@ bool rct2_init()
 	if (!gfx_load_g2()) {
 		return false;
 	}
+	gfx_load_csg();
 
 	font_sprite_initialise_characters();
 	if (!gOpenRCT2Headless) {
@@ -174,32 +170,15 @@ bool rct2_init()
 		audio_init_ride_sounds_and_info();
 	}
 	viewport_init_all();
-	news_item_init_queue();
-	reset_park_entrances();
-	user_string_clear_all();
-	reset_sprite_list();
-	ride_init_all();
-	window_guest_list_init_vars_a();
-	staff_reset_modes();
-	map_init(150);
-	park_init();
+
+	game_init_all(150);
 	if (!gOpenRCT2Headless)
 		window_title_menu_open();
-	date_reset();
-	climate_reset(CLIMATE_COOL_AND_WET);
-	scenery_set_default_placement_configuration();
-	window_new_ride_init_vars();
-	window_guest_list_init_vars_b();
-	window_staff_list_init_vars();
 	load_palette();
 
-
 #ifdef __ENABLE_LIGHTFX__
-
 	lightfx_init();
-
 #endif
-
 
 	log_verbose("initialising game finished");
 	return true;
@@ -215,7 +194,7 @@ sint32 rct2_init_directories()
 
 	if (str_is_null_or_empty(gCustomRCT2DataPath)) {
 		// check install directory
-		if (!platform_original_game_data_exists(gConfigGeneral.rct2_path)) {
+		if (gConfigGeneral.rct2_path == NULL || !platform_original_game_data_exists(gConfigGeneral.rct2_path)) {
 			log_verbose("install directory does not exist or invalid directory selected, %s", gConfigGeneral.rct2_path);
 			if (!config_find_or_browse_install_directory()) {
 				utf8 path[MAX_PATH];
@@ -363,9 +342,7 @@ bool rct2_open_file(const char *path)
 		}
 	} else if (_stricmp(extension, "sc6") == 0) {
 		// TODO scenario install
-		rct_scenario_basic scenarioBasic;
-		safe_strcpy(scenarioBasic.path, path, sizeof(scenarioBasic.path));
-		if (scenario_load_and_play_from_path(scenarioBasic.path)) {
+		if (scenario_load_and_play_from_path(path)) {
 			return true;
 		}
 	} else if (_stricmp(extension, "td6") == 0 || _stricmp(extension, "td4") == 0) {

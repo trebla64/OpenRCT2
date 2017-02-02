@@ -16,6 +16,7 @@
 		008BF72C1CDAA5C30019A2AD /* track_design.c in Sources */ = {isa = PBXBuildFile; fileRef = 008BF7281CDAA5C30019A2AD /* track_design.c */; };
 		00EFEE721CF1D80B0035213B /* NetworkKey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00EFEE701CF1D80B0035213B /* NetworkKey.cpp */; };
 		652076321E22EFE7000D0C04 /* Imaging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 652076301E22EFE7000D0C04 /* Imaging.cpp */; };
+		652747EC1E41CE1B000F36FD /* SawyerEncoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 652747EA1E41CE1B000F36FD /* SawyerEncoding.cpp */; };
 		791166FB1D7486EF005912EA /* NetworkServerAdvertiser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 791166F91D7486EF005912EA /* NetworkServerAdvertiser.cpp */; };
 		85060FD31D8C17CC00DFA2B3 /* track_data_old.c in Sources */ = {isa = PBXBuildFile; fileRef = 8594C05F1D885CF600235E93 /* track_data_old.c */; };
 		8594C0601D885CF600235E93 /* track_data_old.c in Sources */ = {isa = PBXBuildFile; fileRef = 8594C05F1D885CF600235E93 /* track_data_old.c */; };
@@ -37,6 +38,7 @@
 		C606CCD51DB4DD6C00FE4015 /* VerticalTunnelCall.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C606CCD31DB4DD6C00FE4015 /* VerticalTunnelCall.cpp */; };
 		C606CD261DB5120C00FE4015 /* TestPaint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C606CD231DB5120900FE4015 /* TestPaint.cpp */; };
 		C612A8991D64825300B634CA /* vehicle_data.c in Sources */ = {isa = PBXBuildFile; fileRef = C612A8971D64825300B634CA /* vehicle_data.c */; };
+		C6136C551E21893500F3ED2B /* view_clipping.c in Sources */ = {isa = PBXBuildFile; fileRef = C6136C541E21893500F3ED2B /* view_clipping.c */; };
 		C61FB7241CF86356004CE991 /* NetworkUser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C61FB7221CF86356004CE991 /* NetworkUser.cpp */; };
 		C647C6911E1D0CA000C7FB21 /* AudioMixer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C647C68F1E1D0CA000C7FB21 /* AudioMixer.cpp */; };
 		C649B3D41DF04ED2008AC826 /* format_codes.c in Sources */ = {isa = PBXBuildFile; fileRef = C649B3D31DF04ED2008AC826 /* format_codes.c */; };
@@ -459,6 +461,7 @@
 		D49766891D03BABB002222CD /* rain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D49766871D03BABB002222CD /* rain.cpp */; };
 		D4A8B4B41DB41873007A2F29 /* libpng16.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D4A8B4B31DB41873007A2F29 /* libpng16.dylib */; };
 		D4A8B4B51DB4188D007A2F29 /* libpng16.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D4A8B4B31DB41873007A2F29 /* libpng16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		D4B21B6F1E343AF1004982C7 /* lightfx.c in Sources */ = {isa = PBXBuildFile; fileRef = D4B21B6D1E343AF1004982C7 /* lightfx.c */; };
 		D4CA88661D4E64C800060C11 /* version.c in Sources */ = {isa = PBXBuildFile; fileRef = D4CA88651D4E64C800060C11 /* version.c */; };
 		D4EC48E61C2637710024B507 /* g2.dat in Resources */ = {isa = PBXBuildFile; fileRef = D4EC48E31C2637710024B507 /* g2.dat */; };
 		D4EC48E71C2637710024B507 /* language in Resources */ = {isa = PBXBuildFile; fileRef = D4EC48E41C2637710024B507 /* language */; };
@@ -516,6 +519,8 @@
 		00EFEE711CF1D80B0035213B /* NetworkKey.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = NetworkKey.h; sourceTree = "<group>"; usesTabs = 0; };
 		652076301E22EFE7000D0C04 /* Imaging.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Imaging.cpp; sourceTree = "<group>"; };
 		652076311E22EFE7000D0C04 /* Imaging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Imaging.h; sourceTree = "<group>"; };
+		652747EA1E41CE1B000F36FD /* SawyerEncoding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SawyerEncoding.cpp; path = rct12/SawyerEncoding.cpp; sourceTree = "<group>"; };
+		652747EB1E41CE1B000F36FD /* SawyerEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SawyerEncoding.h; path = rct12/SawyerEncoding.h; sourceTree = "<group>"; };
 		791166F91D7486EF005912EA /* NetworkServerAdvertiser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkServerAdvertiser.cpp; sourceTree = "<group>"; };
 		791166FA1D7486EF005912EA /* NetworkServerAdvertiser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkServerAdvertiser.h; sourceTree = "<group>"; };
 		8594C05F1D885CF600235E93 /* track_data_old.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = track_data_old.c; sourceTree = "<group>"; };
@@ -549,6 +554,7 @@
 		C606CD241DB5120900FE4015 /* TestPaint.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TestPaint.hpp; sourceTree = "<group>"; };
 		C612A8971D64825300B634CA /* vehicle_data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vehicle_data.c; sourceTree = "<group>"; };
 		C612A8981D64825300B634CA /* vehicle_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vehicle_data.h; sourceTree = "<group>"; };
+		C6136C541E21893500F3ED2B /* view_clipping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = view_clipping.c; sourceTree = "<group>"; };
 		C61FB7221CF86356004CE991 /* NetworkUser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkUser.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		C61FB7231CF86356004CE991 /* NetworkUser.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = NetworkUser.h; sourceTree = "<group>"; usesTabs = 0; };
 		C647C68F1E1D0CA000C7FB21 /* AudioMixer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioMixer.cpp; sourceTree = "<group>"; };
@@ -1193,6 +1199,8 @@
 		D497668B1D03BAC8002222CD /* IDrawingEngine.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = IDrawingEngine.h; sourceTree = "<group>"; usesTabs = 0; };
 		D497D0781C20FD52002BF46A /* OpenRCT2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenRCT2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4A8B4B31DB41873007A2F29 /* libpng16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libpng16.dylib; sourceTree = "<group>"; };
+		D4B21B6D1E343AF1004982C7 /* lightfx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lightfx.c; sourceTree = "<group>"; };
+		D4B21B6E1E343AF1004982C7 /* lightfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lightfx.h; sourceTree = "<group>"; };
 		D4CA88651D4E64C800060C11 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = version.c; sourceTree = "<group>"; };
 		D4EC48E31C2637710024B507 /* g2.dat */ = {isa = PBXFileReference; lastKnownFileType = file; name = g2.dat; path = data/g2.dat; sourceTree = SOURCE_ROOT; };
 		D4EC48E41C2637710024B507 /* language */ = {isa = PBXFileReference; lastKnownFileType = folder; name = language; path = data/language; sourceTree = SOURCE_ROOT; };
@@ -1230,6 +1238,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		652747E91E41CDFE000F36FD /* rct12 */ = {
+			isa = PBXGroup;
+			children = (
+				652747EA1E41CE1B000F36FD /* SawyerEncoding.cpp */,
+				652747EB1E41CE1B000F36FD /* SawyerEncoding.h */,
+			);
+			name = rct12;
+			sourceTree = "<group>";
+		};
 		8546F74A1D7E1D220004004C /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -1508,6 +1525,7 @@
 				D442715B1CC81B3200D84D28 /* peep */,
 				D44271601CC81B3200D84D28 /* platform */,
 				C650B2141CCABBDD00B4D91C /* rct1 */,
+				652747E91E41CDFE000F36FD /* rct12 */,
 				C6B5A7CF1CDFE4CB00C9C006 /* rct2 */,
 				D442716E1CC81B3200D84D28 /* ride */,
 				C6E96E1C1E04070E0076A04F /* scenario */,
@@ -1675,6 +1693,8 @@
 				D497668A1D03BAC8002222CD /* IDrawingContext.h */,
 				D497668B1D03BAC8002222CD /* IDrawingEngine.h */,
 				D464FEBF1D31A68800CBABAC /* Image.cpp */,
+				D4B21B6D1E343AF1004982C7 /* lightfx.c */,
+				D4B21B6E1E343AF1004982C7 /* lightfx.h */,
 				D44271061CC81B3200D84D28 /* line.c */,
 				D49766841D03BAA5002222CD /* NewDrawing.cpp */,
 				D49766851D03BAA5002222CD /* NewDrawing.h */,
@@ -1950,6 +1970,7 @@
 				D44271D31CC81B3200D84D28 /* track_list.c */,
 				D44271D41CC81B3200D84D28 /* track_manage.c */,
 				D44271D51CC81B3200D84D28 /* track_place.c */,
+				C6136C541E21893500F3ED2B /* view_clipping.c */,
 				D44271D61CC81B3200D84D28 /* viewport.c */,
 				D44271D71CC81B3200D84D28 /* water.c */,
 			);
@@ -2714,6 +2735,7 @@
 				C61FB7241CF86356004CE991 /* NetworkUser.cpp in Sources */,
 				D44272191CC81B3200D84D28 /* colour.c in Sources */,
 				D442724C1CC81B3200D84D28 /* vehicle.c in Sources */,
+				C6136C551E21893500F3ED2B /* view_clipping.c in Sources */,
 				D464FEED1D31A6AA00CBABAC /* ObjectManager.cpp in Sources */,
 				D44272261CC81B3200D84D28 /* currency.c in Sources */,
 				C65A88931E1B1148000368D7 /* FileAudioSource.cpp in Sources */,
@@ -2757,6 +2779,7 @@
 				D44272891CC81B3200D84D28 /* themes.c in Sources */,
 				C686F9531CDBC3B7009F9BFC /* splash_boats.c in Sources */,
 				C686F9441CDBC3B7009F9BFC /* pirate_ship.c in Sources */,
+				652747EC1E41CE1B000F36FD /* SawyerEncoding.cpp in Sources */,
 				D44272791CC81B3200D84D28 /* publisher_credits.c in Sources */,
 				C686F91E1CDBC3B7009F9BFC /* reverse_freefall_coaster.c in Sources */,
 				D442723B1CC81B3200D84D28 /* crash.cpp in Sources */,
@@ -2893,6 +2916,7 @@
 				C65A88941E1B1148000368D7 /* MemoryAudioSource.cpp in Sources */,
 				D464FEE61D31A6AA00CBABAC /* EntranceObject.cpp in Sources */,
 				D43407DE1D0E14BE00C2B3D4 /* OpenGLShaderProgram.cpp in Sources */,
+				D4B21B6F1E343AF1004982C7 /* lightfx.c in Sources */,
 				D43407DC1D0E14BE00C2B3D4 /* OpenGLDrawingEngine.cpp in Sources */,
 				D44272761CC81B3200D84D28 /* options.c in Sources */,
 				C686F93D1CDBC3B7009F9BFC /* shop.c in Sources */,
@@ -3156,6 +3180,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					NO_RCT2,
+					__ENABLE_LIGHTFX__,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -3187,6 +3212,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					NO_RCT2,
+					__ENABLE_LIGHTFX__,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
