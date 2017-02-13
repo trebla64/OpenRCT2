@@ -308,10 +308,14 @@ void S6Exporter::Export()
     _s6.current_interest_rate = gBankLoanInterestRate;
     // pad_0135934B
     _s6.same_price_throughout_extended = gSamePriceThroughoutParkB;
-    memcpy(_s6.park_entrance_x, gParkEntranceX, sizeof(_s6.park_entrance_x));
-    memcpy(_s6.park_entrance_y, gParkEntranceY, sizeof(_s6.park_entrance_y));
-    memcpy(_s6.park_entrance_z, gParkEntranceZ, sizeof(_s6.park_entrance_z));
-    memcpy(_s6.park_entrance_direction, gParkEntranceDirection, sizeof(_s6.park_entrance_direction));
+    // Preserve compatibility with vanilla RCT2's save format.
+    for (uint8 i = 0; i < RCT12_MAX_PARK_ENTRANCES; i++)
+    {
+        _s6.park_entrance_x[i] = gParkEntrances[i].x;
+        _s6.park_entrance_y[i] = gParkEntrances[i].y;
+        _s6.park_entrance_z[i] = gParkEntrances[i].z;
+        _s6.park_entrance_direction[i] = gParkEntrances[i].direction;
+    }
     safe_strcpy(_s6.scenario_filename, _scenarioFileName, sizeof(_s6.scenario_filename));
     memcpy(_s6.saved_expansion_pack_names, gScenarioExpansionPacks, sizeof(_s6.saved_expansion_pack_names));
     memcpy(_s6.banners, gBanners, sizeof(_s6.banners));
@@ -396,61 +400,6 @@ uint32 S6Exporter::GetLoanHash(money32 initialCash, money32 bankLoan, uint32 max
     return value;
 }
 
-// Save game state without modifying any of the state for multiplayer
-sint32 scenario_save_network(SDL_RWops * rw, const std::vector<const ObjectRepositoryItem *> &objects)
-{
-    viewport_set_saved_view();
-
-    bool result = false;
-    auto s6exporter = new S6Exporter();
-    try
-    {
-        auto rwStream = FileStream(rw, FILE_MODE_WRITE);
-
-        s6exporter->ExportObjectsList = objects;
-        s6exporter->Export();
-        s6exporter->SaveGame(&rwStream);
-        result = true;
-    }
-    catch (const Exception &)
-    {
-    }
-    delete s6exporter;
-
-    if (!result)
-    {
-        return 0;
-    }
-
-    // Write other data not in normal save files
-    SDL_RWwrite(rw, gSpriteSpatialIndex, 0x10001 * sizeof(uint16), 1);
-    SDL_WriteLE32(rw, gGamePaused);
-    SDL_WriteLE32(rw, _guestGenerationProbability);
-    SDL_WriteLE32(rw, _suggestedGuestMaximum);
-    SDL_WriteU8(rw, gCheatsSandboxMode);
-    SDL_WriteU8(rw, gCheatsDisableClearanceChecks);
-    SDL_WriteU8(rw, gCheatsDisableSupportLimits);
-    SDL_WriteU8(rw, gCheatsDisableTrainLengthLimit);
-    SDL_WriteU8(rw, gCheatsEnableChainLiftOnAllTrack);
-    SDL_WriteU8(rw, gCheatsShowAllOperatingModes);
-    SDL_WriteU8(rw, gCheatsShowVehiclesFromOtherTrackTypes);
-    SDL_WriteU8(rw, gCheatsFastLiftHill);
-    SDL_WriteU8(rw, gCheatsDisableBrakesFailure);
-    SDL_WriteU8(rw, gCheatsDisableAllBreakdowns);
-    SDL_WriteU8(rw, gCheatsUnlockAllPrices);
-    SDL_WriteU8(rw, gCheatsBuildInPauseMode);
-    SDL_WriteU8(rw, gCheatsIgnoreRideIntensity);
-    SDL_WriteU8(rw, gCheatsDisableVandalism);
-    SDL_WriteU8(rw, gCheatsDisableLittering);
-    SDL_WriteU8(rw, gCheatsNeverendingMarketing);
-    SDL_WriteU8(rw, gCheatsFreezeClimate);
-    SDL_WriteU8(rw, gCheatsDisablePlantAging);
-    SDL_WriteU8(rw, gCheatsAllowArbitraryRideTypeChanges);
-
-    gfx_invalidate_screen();
-    return 1;
-}
-
 extern "C"
 {
     enum {
@@ -464,7 +413,7 @@ extern "C"
      *  rct2: 0x006754F5
      * @param flags bit 0: pack objects, 1: save as scenario
      */
-    sint32 scenario_save(SDL_RWops* rw, sint32 flags)
+    sint32 scenario_save(const utf8 * path, sint32 flags)
     {
         if (flags & S6_SAVE_FLAG_SCENARIO)
         {
@@ -489,8 +438,6 @@ extern "C"
         auto s6exporter = new S6Exporter();
         try
         {
-            auto rwStream = FileStream(rw, FILE_MODE_WRITE);
-
             if (flags & S6_SAVE_FLAG_EXPORT)
             {
                 IObjectManager * objManager = GetObjectManager();
@@ -500,11 +447,11 @@ extern "C"
             s6exporter->Export();
             if (flags & S6_SAVE_FLAG_SCENARIO)
             {
-                s6exporter->SaveScenario(&rwStream);
+                s6exporter->SaveScenario(path);
             }
             else
             {
-                s6exporter->SaveGame(&rwStream);
+                s6exporter->SaveGame(path);
             }
             result = true;
         }

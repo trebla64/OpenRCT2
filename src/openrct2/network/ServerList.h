@@ -14,36 +14,28 @@
  *****************************************************************************/
 #pragma endregion
 
-#ifdef OPENRCT2_BUILD_INFO_HEADER
-#include OPENRCT2_BUILD_INFO_HEADER
-#endif
+#pragma once
 
-#ifdef OPENRCT2_BUILD_NUMBER
-	const char *gBuildNumber = OPENRCT2_BUILD_NUMBER;
-#else
-	const char *gBuildNumber = "";
-#endif
+#include "../common.h"
 
-#ifdef OPENRCT2_BUILD_SERVER
-	const char *gBuildServer = OPENRCT2_BUILD_SERVER;
-#else
-	const char *gBuildServer = "";
-#endif
+typedef struct server_entry
+{
+    char *  address;
+    utf8 *  name;
+    bool    requiresPassword;
+    utf8 *  description;
+    char *  version;
+    bool    favourite;
+    uint8   players;
+    uint8   maxplayers;
+} server_entry;
 
-#ifdef OPENRCT2_BRANCH
-	const char *gGitBranch = OPENRCT2_BRANCH;
-#else
-	const char *gGitBranch = "";
+#ifdef __cplusplus
+extern "C"
+{
 #endif
-
-#ifdef OPENRCT2_COMMIT_SHA1
-	const char *gCommitSha1 = OPENRCT2_COMMIT_SHA1;
-#else
-	const char *gCommitSha1 = "";
-#endif
-
-#ifdef OPENRCT2_COMMIT_SHA1_SHORT
-	const char *gCommitSha1Short = OPENRCT2_COMMIT_SHA1_SHORT;
-#else
-	const char *gCommitSha1Short = "";
+    bool server_list_read(uint32 * outNumEntries, server_entry * * outEntries);
+    bool server_list_write(uint32 numEntries, server_entry * entries);
+#ifdef __cplusplus
+}
 #endif

@@ -30,10 +30,12 @@
 #include <shlobj.h>
 #include <SDL_syswm.h>
 #include <sys/stat.h>
-#include "../OpenRCT2.h"
-#include "../localisation/language.h"
-#include "../util/util.h"
+
 #include "../config.h"
+#include "../localisation/language.h"
+#include "../OpenRCT2.h"
+#include "../util/util.h"
+#include "../Version.h"
 #include "platform.h"
 
 // Native resource IDs
@@ -590,7 +592,7 @@ void platform_get_user_directory(utf8 *outPath, const utf8 *subDirectory, size_t
 	}
 }
 
-void platform_show_messagebox(utf8 *message)
+void platform_show_messagebox(const utf8 * message)
 {
 	MessageBoxA(windows_get_window_handle(), message, "OpenRCT2", MB_OK);
 }
