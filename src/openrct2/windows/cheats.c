@@ -495,11 +495,11 @@ static void window_cheats_money_mousedown(sint32 widgetIndex, rct_window *w, rct
 {
 	switch (widgetIndex) {
 	case WIDX_MONEY_SPINNER_INCREMENT:
-		_moneySpinnerValue = min(INT_MAX, MONEY_INCREMENT_DIV * (_moneySpinnerValue / MONEY_INCREMENT_DIV + 1));
+		_moneySpinnerValue = add_clamp_money32(MONEY_INCREMENT_DIV * (_moneySpinnerValue / MONEY_INCREMENT_DIV), MONEY_INCREMENT_DIV);
 		widget_invalidate_by_class(WC_CHEATS, WIDX_MONEY_SPINNER);
 		break;
 	case WIDX_MONEY_SPINNER_DECREMENT:
-		_moneySpinnerValue = max(INT_MIN, MONEY_INCREMENT_DIV * (_moneySpinnerValue / MONEY_INCREMENT_DIV - 1));
+		_moneySpinnerValue = add_clamp_money32(MONEY_INCREMENT_DIV * (_moneySpinnerValue / MONEY_INCREMENT_DIV), -MONEY_INCREMENT_DIV);
 		widget_invalidate_by_class(WC_CHEATS, WIDX_MONEY_SPINNER);
 		break;
 	case WIDX_ADD_MONEY:
@@ -538,6 +538,7 @@ static void window_cheats_misc_mousedown(int widgetIndex, rct_window *w, rct_wid
 			w->y + dropdownWidget->top,
 			dropdownWidget->bottom - dropdownWidget->top + 1,
 			w->colours[1],
+			0,
 			DROPDOWN_FLAG_STAY_OPEN,
 			6,
 			dropdownWidget->right - dropdownWidget->left - 3

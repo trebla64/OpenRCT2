@@ -765,7 +765,7 @@ sint32 ride_find_track_gap(rct_xy_element *input, rct_xy_element *output)
 {
 	rct_window *w;
 	rct_ride *ride;
-	track_circuit_iterator it, slowIt;
+	track_circuit_iterator it = { 0 }, slowIt;
 	sint32 rideIndex;
 
 	assert(map_element_get_type(input->element) == MAP_ELEMENT_TYPE_TRACK);
@@ -5194,7 +5194,7 @@ static sint32 ride_is_valid_for_test(sint32 rideIndex, sint32 goingToBeOpen, sin
 {
 	sint32 stationIndex;
 	rct_ride *ride;
-	rct_xy_element trackElement, problematicTrackElement;
+	rct_xy_element trackElement, problematicTrackElement = { 0 };
 
 	ride = get_ride(rideIndex);
 	if (ride->type == RIDE_TYPE_NULL)
@@ -5323,7 +5323,7 @@ static sint32 ride_is_valid_for_open(sint32 rideIndex, sint32 goingToBeOpen, sin
 {
 	sint32 stationIndex;
 	rct_ride *ride;
-	rct_xy_element trackElement, problematicTrackElement;
+	rct_xy_element trackElement, problematicTrackElement = { 0 };
 
 	ride = get_ride(rideIndex);
 
@@ -6097,7 +6097,7 @@ foundRideEntry:
 		ride->price_secondary = RideData4[ride->type].price_secondary;
 
 		if (rideEntry->shop_item == SHOP_ITEM_NONE) {
-			if (!(gParkFlags & PARK_FLAGS_PARK_FREE_ENTRY)) {
+			if (!(gParkFlags & PARK_FLAGS_PARK_FREE_ENTRY) && !gCheatsUnlockAllPrices) {
 				ride->price = 0;
 			}
 		} else {
@@ -6621,7 +6621,7 @@ void game_command_set_ride_price(sint32 *eax, sint32 *ebx, sint32 *ecx, sint32 *
 	*ebx = 0; // for cost check - changing ride price does not cost anything
 
 	gCommandExpenditureType = RCT_EXPENDITURE_TYPE_PARK_RIDE_TICKETS;
-	if (flags & 0x1) {
+	if (flags & GAME_COMMAND_FLAG_APPLY) {
 		uint32 shop_item;
 
 		if (ride->overall_view != (uint16)-1) {
