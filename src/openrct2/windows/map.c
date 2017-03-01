@@ -273,7 +273,7 @@ void window_map_reset()
 static void window_map_close(rct_window *w)
 {
 	free(_mapImageData);
-	if ((gInputFlags & INPUT_FLAG_TOOL_ACTIVE) &&
+	if ((input_test_flag(INPUT_FLAG_TOOL_ACTIVE)) &&
 		gCurrentToolWidget.window_classification == w->classification &&
 		gCurrentToolWidget.window_number == w->number) {
 		tool_cancel();
@@ -351,7 +351,7 @@ static void window_map_mouseup(rct_window *w, sint32 widgetIndex)
 			break;
 
 		gParkEntranceGhostExists = false;
-		gInputFlags |= INPUT_FLAG_6;
+		input_set_flag(INPUT_FLAG_6, true);
 
 		show_gridlines();
 		show_land_rights();
@@ -780,7 +780,7 @@ static void window_map_invalidate(rct_window *w)
 	if ((gScreenFlags & SCREEN_FLAGS_SCENARIO_EDITOR) || gCheatsSandboxMode) {
 		// scenario editor: build park entrance selected, show rotate button
 		if (
-			(gInputFlags & INPUT_FLAG_TOOL_ACTIVE) &&
+			(input_test_flag(INPUT_FLAG_TOOL_ACTIVE)) &&
 			gCurrentToolWidget.window_classification == WC_MAP &&
 			gCurrentToolWidget.widget_index == WIDX_BUILD_PARK_ENTRANCE
 		) {
@@ -792,7 +792,7 @@ static void window_map_invalidate(rct_window *w)
 
 		// If any tool is active
 		if (
-			(gInputFlags & INPUT_FLAG_TOOL_ACTIVE) &&
+			(input_test_flag(INPUT_FLAG_TOOL_ACTIVE)) &&
 			gCurrentToolWidget.window_classification == WC_MAP
 		) {
 			// if not in set land rights mode: show the default scenario editor buttons
@@ -1448,7 +1448,7 @@ static const uint16 ElementTypeMaskColour[] = {
 	0x00FF,			// MAP_ELEMENT_TYPE_TRACK
 	0xFF00,			// MAP_ELEMENT_TYPE_SCENERY
 	0x0000,			// MAP_ELEMENT_TYPE_ENTRANCE
-	0xFFFF,			// MAP_ELEMENT_TYPE_FENCE
+	0xFFFF,			// MAP_ELEMENT_TYPE_WALL
 	0x0000,			// MAP_ELEMENT_TYPE_SCENERY_MULTIPLE
 	0xFFFF,			// MAP_ELEMENT_TYPE_BANNER
 	0x0000,			// MAP_ELEMENT_TYPE_CORRUPT
@@ -1460,7 +1460,7 @@ static const uint16 ElementTypeAddColour[] = {
 	0xB700,			// MAP_ELEMENT_TYPE_TRACK
 	0x0063,			// MAP_ELEMENT_TYPE_SCENERY
 	0xBABA,			// MAP_ELEMENT_TYPE_ENTRANCE
-	0x0000,			// MAP_ELEMENT_TYPE_FENCE
+	0x0000,			// MAP_ELEMENT_TYPE_WALL
 	0x6363,			// MAP_ELEMENT_TYPE_SCENERY_MULTIPLE
 	0x0000,			// MAP_ELEMENT_TYPE_BANNER
 	0x4444,			// MAP_ELEMENT_TYPE_CORRUPT
