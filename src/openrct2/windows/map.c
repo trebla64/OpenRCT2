@@ -25,6 +25,7 @@
 #include "../localisation/localisation.h"
 #include "../rct2.h"
 #include "../sprites.h"
+#include "../world/entrance.h"
 #include "../world/footpath.h"
 #include "../world/scenery.h"
 #include "error.h"
@@ -170,6 +171,8 @@ static uint32 _currentLine;
 
 /** rct2: 0x00F1AD68 */
 static uint8 (*_mapImageData)[512][512];
+
+static sint32 _nextPeepSpawnIndex = 0;
 
 static void window_map_init_map();
 static void window_map_center_on_view_point();
@@ -364,13 +367,6 @@ static void window_map_mouseup(rct_window *w, sint32 widgetIndex)
 		if (tool_set(w, widgetIndex, 2))
 			break;
 
-		gLandToolSize = 0;
-		if (gPeepSpawns[0].x != PEEP_SPAWN_UNDEFINED &&
-			gPeepSpawns[1].x != PEEP_SPAWN_UNDEFINED
-		) {
-			gLandToolSize = 1;
-		}
-
 		show_gridlines();
 		show_land_rights();
 		show_construction_rights();
@@ -531,7 +527,7 @@ static void window_map_toolabort(rct_window *w, sint32 widgetIndex)
 		hide_construction_rights();
 		break;
 	case WIDX_BUILD_PARK_ENTRANCE:
-		park_remove_ghost_entrance();
+		park_entrance_remove_ghost();
 		window_invalidate(w);
 		hide_gridlines();
 		hide_land_rights();
@@ -1248,7 +1244,7 @@ static void window_map_place_park_entrance_tool_update(sint32 x, sint32 y)
 	gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE_CONSTRUCT;
 	sub_666EEF(x, y, &mapX, &mapY, &mapZ, &direction);
 	if (mapX == (sint16)-1) {
-		park_remove_ghost_entrance();
+		park_entrance_remove_ghost();
 		return;
 	}
 
@@ -1273,8 +1269,8 @@ static void window_map_place_park_entrance_tool_update(sint32 x, sint32 y)
 		return;
 	}
 
-	park_remove_ghost_entrance();
-	gParkEntranceGhostPrice = park_place_ghost_entrance(mapX, mapY, mapZ, direction);
+	park_entrance_remove_ghost();
+	gParkEntranceGhostPrice = park_entrance_place_ghost(mapX, mapY, mapZ, direction);
 }
 
 /**
@@ -1321,7 +1317,7 @@ static void window_map_set_peep_spawn_tool_update(sint32 x, sint32 y)
  */
 static void window_map_place_park_entrance_tool_down(sint32 x, sint32 y)
 {
-	park_remove_ghost_entrance();
+	park_entrance_remove_ghost();
 
 	sint16 mapX, mapY, mapZ;
 	sint32 direction;
@@ -1362,6 +1358,9 @@ static void window_map_set_peep_spawn_tool_down(sint32 x, sint32 y)
 		return;
 
 	surfaceMapElement = map_get_surface_element_at(mapX >> 5, mapY >> 5);
+	if (surfaceMapElement == NULL) {
+		return;
+	}
 	if (surfaceMapElement->properties.surface.ownership & 0xF0) {
 		return;
 	}
@@ -1370,16 +1369,22 @@ static void window_map_set_peep_spawn_tool_down(sint32 x, sint32 y)
 	mapY = mapY + 16 + (word_981D6C[direction].y * 15);
 	mapZ = mapElement->base_height / 2;
 
-	sint32 peepSpawnIndex = 0;
-	if (gLandToolSize != 1 && gPeepSpawns[0].x != PEEP_SPAWN_UNDEFINED)
-		peepSpawnIndex = 1;
-
+	sint32 peepSpawnIndex = -1;
+	for (sint32 i = 0; i < MAX_PEEP_SPAWNS; i++) {
+		if (gPeepSpawns[i].x == PEEP_SPAWN_UNDEFINED) {
+			peepSpawnIndex = i;
+			break;
+		}
+	}
+	if (peepSpawnIndex == -1) {
+		peepSpawnIndex = _nextPeepSpawnIndex;
+		_nextPeepSpawnIndex = (peepSpawnIndex + 1) % (MAX_PEEP_SPAWNS + 1);
+	}
 	gPeepSpawns[peepSpawnIndex].x = mapX;
 	gPeepSpawns[peepSpawnIndex].y = mapY;
 	gPeepSpawns[peepSpawnIndex].z = mapZ;
 	gPeepSpawns[peepSpawnIndex].direction = direction;
 	gfx_invalidate_screen();
-	gLandToolSize = peepSpawnIndex;
 }
 
 /**
@@ -1691,8 +1696,8 @@ static void map_window_set_pixels(rct_window *w)
 				colour = map_window_get_pixel_colour_ride(x, y);
 				break;
 			}
-			destination[0] = HIBYTE(colour);
-			destination[1] = LOBYTE(colour);
+			destination[0] = (colour >> 8) & 0xFF;
+			destination[1] = colour;
 		}
 		x += dx;
 		y += dy;

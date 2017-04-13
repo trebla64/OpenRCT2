@@ -414,6 +414,7 @@ rct_map_element *map_get_first_element_at(sint32 x, sint32 y);
 rct_map_element *map_get_nth_element_at(sint32 x, sint32 y, sint32 n);
 void map_set_tile_elements(sint32 x, sint32 y, rct_map_element *elements);
 sint32 map_element_is_last_for_tile(const rct_map_element *element);
+bool map_element_is_ghost(const rct_map_element *element);
 uint8 map_element_get_scenery_quadrant(const rct_map_element *element);
 sint32 map_element_get_type(const rct_map_element *element);
 sint32 map_element_get_direction(const rct_map_element *element);
@@ -435,6 +436,7 @@ void map_remove_provisional_elements();
 void map_restore_provisional_elements();
 void map_update_path_wide_flags();
 bool map_is_location_valid(sint32 x, sint32 y);
+bool map_can_build_at(sint32 x, sint32 y, sint32 z);
 bool map_is_location_owned(sint32 x, sint32 y, sint32 z);
 bool map_is_location_in_park(sint32 x, sint32 y);
 bool map_is_location_owned_or_has_rights(sint32 x, sint32 y);
@@ -551,5 +553,7 @@ uint8 wall_element_get_animation_frame(rct_map_element *fenceElement);
 void wall_element_set_animation_frame(rct_map_element * wallElement, uint8 frameNum);
 uint8 wall_element_get_secondary_colour(rct_map_element * wallElement);
 void wall_element_set_secondary_colour(rct_map_element * wallElement, uint8 secondaryColour);
+
+uint32 map_get_available_peep_spawn_index_list(uint32* peepSpawnIndexList);
 
 #endif

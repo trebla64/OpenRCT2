@@ -37,7 +37,7 @@
 #include "../util/util.h"
 #include "../Version.h"
 #include "../world/banner.h"
-#include "../world/climate.h"
+#include "../world/Climate.h"
 #include "../world/park.h"
 #include "../world/scenery.h"
 #include "console.h"
@@ -990,7 +990,7 @@ static sint32 cc_set(const utf8 **argv, sint32 argc)
 		else if (strcmp(argv[0], "cheat_sandbox_mode") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
 			if (gCheatsSandboxMode != (int_val[0] != 0)) {
 				if (game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_SANDBOXMODE, (int_val[0] != 0), GAME_COMMAND_CHEAT, 0, 0) != MONEY32_UNDEFINED) {
-					//Change it locally so it shows the accurate value in the 
+					//Change it locally so it shows the accurate value in the
 					//"console_execute_silent("get cheat_sandbox_mode")" line when in network client mode
 					gCheatsSandboxMode = (int_val[0] != 0);
 				}
@@ -1003,7 +1003,7 @@ static sint32 cc_set(const utf8 **argv, sint32 argc)
 		else if (strcmp(argv[0], "cheat_disable_clearance_checks") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
 			if (gCheatsDisableClearanceChecks != (int_val[0] != 0)) {
 				if (game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_DISABLECLEARANCECHECKS, (int_val[0] != 0), GAME_COMMAND_CHEAT, 0, 0) != MONEY32_UNDEFINED) {
-					//Change it locally so it shows the accurate value in the 
+					//Change it locally so it shows the accurate value in the
 					//"console_execute_silent("get cheat_disable_clearance_checks")" line when in network client mode
 					gCheatsDisableClearanceChecks = (int_val[0] != 0);
 				}
@@ -1016,7 +1016,7 @@ static sint32 cc_set(const utf8 **argv, sint32 argc)
 		else if (strcmp(argv[0], "cheat_disable_support_limits") == 0 && invalidArguments(&invalidArgs, int_valid[0])) {
 			if (gCheatsDisableSupportLimits != (int_val[0] != 0)) {
 				if (game_do_command(0, GAME_COMMAND_FLAG_APPLY, CHEAT_DISABLESUPPORTLIMITS, (int_val[0] != 0), GAME_COMMAND_CHEAT, 0, 0) != MONEY32_UNDEFINED) {
-					//Change it locally so it shows the accurate value in the 
+					//Change it locally so it shows the accurate value in the
 					//"console_execute_silent("get cheat_disable_support_limits")" line when in network client mode
 					gCheatsDisableSupportLimits = (int_val[0] != 0);
 				}
@@ -1139,7 +1139,7 @@ static sint32 cc_reset_user_strings(const utf8 **argv, sint32 argc)
 
 static sint32 cc_fix_banner_count(const utf8 **argv, sint32 argc)
 {
-	fix_banner_count();
+	banner_reset_broken_index();
 	return 0;
 }
 

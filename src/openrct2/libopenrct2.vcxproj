@@ -72,6 +72,7 @@
     <ClCompile Include="audio\FileAudioSource.cpp" />
     <ClCompile Include="audio\MemoryAudioSource.cpp" />
     <ClCompile Include="audio\NullAudioSource.cpp" />
+    <ClCompile Include="cmdline\UriHandler.cpp" />
     <ClCompile Include="config\Config.cpp" />
     <ClCompile Include="config\IniReader.cpp" />
     <ClCompile Include="config\IniWriter.cpp" />
@@ -334,8 +335,10 @@
     <ClCompile Include="windows\title_command_editor.c" />
     <ClCompile Include="windows\title_editor.c" />
     <ClCompile Include="windows\maze_construction.c" />
-    <ClCompile Include="world\balloon.c" />
-    <ClCompile Include="world\duck.c" />
+    <ClCompile Include="world\Balloon.cpp" />
+    <ClCompile Include="world\banner.cpp" />
+    <ClCompile Include="world\entrance.cpp" />
+    <ClCompile Include="world\Duck.cpp" />
     <ClCompile Include="world\money_effect.c" />
     <ClCompile Include="world\particle.c" />
     <ClCompile Include="util\sawyercoding.c" />
@@ -403,10 +406,9 @@
     <ClCompile Include="windows\view_clipping.c" />
     <ClCompile Include="windows\viewport.c" />
     <ClCompile Include="windows\water.c" />
-    <ClCompile Include="world\banner.c" />
-    <ClCompile Include="world\climate.c" />
+    <ClCompile Include="world\Climate.cpp" />
     <ClCompile Include="world\footpath.c" />
-    <ClCompile Include="world\fountain.c" />
+    <ClCompile Include="world\Fountain.cpp" />
     <ClCompile Include="world\map.c" />
     <ClCompile Include="world\mapgen.c" />
     <ClCompile Include="world\map_animation.c" />
@@ -595,10 +597,10 @@
     <ClInclude Include="windows\tile_inspector.h" />
     <ClInclude Include="windows\tooltip.h" />
     <ClInclude Include="world\banner.h" />
-    <ClInclude Include="world\climate.h" />
+    <ClInclude Include="world\Climate.h" />
     <ClInclude Include="world\entrance.h" />
     <ClInclude Include="world\footpath.h" />
-    <ClInclude Include="world\fountain.h" />
+    <ClInclude Include="world\Fountain.h" />
     <ClInclude Include="world\map.h" />
     <ClInclude Include="world\mapgen.h" />
     <ClInclude Include="world\map_animation.h" />

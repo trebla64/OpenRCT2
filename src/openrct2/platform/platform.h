@@ -224,6 +224,7 @@ void core_init();
 	HWND windows_get_window_handle();
 	void platform_setup_file_associations();
 	void platform_remove_file_associations();
+	bool platform_setup_uri_protocol();
 	// This function cannot be marked as 'static', even though it may seem to be,
 	// as it requires external linkage, which 'static' prevents
 	__declspec(dllexport) sint32 StartOpenRCT(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow);
@@ -233,5 +234,14 @@ void core_init();
 	void platform_posix_sub_user_data_path(char *buffer, size_t size, const char *homedir);
 	void platform_posix_sub_resolve_openrct_data_path(utf8 *out, size_t size);
 #endif
+
+#ifdef __MACOSX__
+	void macos_disallow_automatic_window_tabbing();
+#endif
+
+// On macOS the resizing behaviour effectively resizes the window in the same
+// way a normal drag would do, given constraints in the user desktop (e.g. the dock
+// positioning). So it follows that the finished window size should be saved.
+sint32 platform_get_non_window_flags();
 
 #endif

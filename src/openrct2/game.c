@@ -47,7 +47,8 @@
 #include "util/util.h"
 #include "windows/error.h"
 #include "windows/tooltip.h"
-#include "world/climate.h"
+#include "world/Climate.h"
+#include "world/entrance.h"
 #include "world/footpath.h"
 #include "world/map_animation.h"
 #include "world/park.h"
@@ -1156,7 +1157,7 @@ void game_init_all(sint32 mapSize)
 	map_init(mapSize);
 	park_init();
 	finance_init();
-	reset_park_entrances();
+	reset_park_entry();
 	banner_init();
 	ride_init_all();
 	reset_sprite_list();
@@ -1246,4 +1247,5 @@ GAME_COMMAND_POINTER* new_game_command_table[GAME_COMMAND_COUNT] = {
 	game_command_pickup_staff,
 	game_command_balloon_press,
 	game_command_modify_tile,
+	game_command_edit_scenario_options,
 };

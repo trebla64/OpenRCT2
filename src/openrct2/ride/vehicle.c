@@ -535,6 +535,13 @@ static const sint32 Unk9A39C4[] = {
 	1946281152,
 };
 
+static const rct_xy16 AvoidCollisionMoveOffset[] = {
+	{ -1,  0 },
+	{  0,  1 },
+	{  1,  0 },
+	{  0, -1 },
+};
+
 static bool vehicle_move_info_valid(sint32 cd, sint32 typeAndDirection, sint32 offset)
 {
 	if (cd >= countof(gTrackVehicleInfo)) {
@@ -685,7 +692,7 @@ static void vehicle_update_sound_params(rct_vehicle* vehicle)
 								gVehicleSoundParamsListEnd++;
 							}
 							rct_vehicle_sound_params* j = gVehicleSoundParamsListEnd - 1;
-							while (j >= i) {
+							while (j > i) {
 								j--;
 								*(j + 1) = *j;
 							}
@@ -6859,7 +6866,7 @@ static void vehicle_update_scenery_door(rct_vehicle *vehicle)
 		vehicle_play_scenery_door_open_sound(vehicle, mapElement);
 	} else {
 		mapElement->properties.wall.animation &= ~(WALL_ANIMATION_FLAG_DIRECTION_BACKWARD);
-        wall_element_set_animation_frame(mapElement, 12);
+        wall_element_set_animation_frame(mapElement, 6);
 		vehicle_play_scenery_door_close_sound(vehicle, mapElement);
 	}
 }
@@ -6942,7 +6949,7 @@ static void sub_6DEDE8(rct_vehicle *vehicle)
 		vehicle_play_scenery_door_open_sound(vehicle, mapElement);
 	} else {
 		mapElement->properties.wall.animation &= ~(WALL_ANIMATION_FLAG_DIRECTION_BACKWARD);
-		wall_element_set_animation_frame(mapElement, 12);
+		wall_element_set_animation_frame(mapElement, 6);
 		vehicle_play_scenery_door_close_sound(vehicle, mapElement);
 	}
 }
@@ -7017,7 +7024,7 @@ static void sub_6DB807(rct_vehicle *vehicle)
 	sprite_move(x, y, z, (rct_sprite*)vehicle);
 }
 
-extern const rct_xy16 duck_move_offset[4];
+extern const rct_xy16 DuckMoveOffset[4];
 
 /**
  * Collision Detection
@@ -7123,8 +7130,8 @@ static bool vehicle_update_motion_collision_detection(
 
 			uint32 offsetSpriteDirection = (vehicle->sprite_direction + 4) & 31;
 			uint32 offsetDirection = offsetSpriteDirection >> 3;
-			uint32 next_x_diff = abs(x + duck_move_offset[offsetDirection].x - collideVehicle->x);
-			uint32 next_y_diff = abs(y + duck_move_offset[offsetDirection].y - collideVehicle->y);
+			uint32 next_x_diff = abs(x + AvoidCollisionMoveOffset[offsetDirection].x - collideVehicle->x);
+			uint32 next_y_diff = abs(y + AvoidCollisionMoveOffset[offsetDirection].y - collideVehicle->y);
 
 			if (next_x_diff + next_y_diff < x_diff + y_diff){
 				mayCollide = true;

@@ -55,6 +55,8 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Niels NTG Poldervaart (Niels-NTG) - Misc.
 * (zaxcav) - Improvements to original pathfinding algorithm.
 * Hielke Morsink (Broxzier) - Tile inspector, misc.
+* Joël Troch (JoelTroch) - Keyboard shortcuts for ride construction.
+* Thomas Delebo (delebota) - Misc.
 
 ## Bug fixes
 * (halfbro)
@@ -73,6 +75,7 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Daniel Trujillo Viedma (gDanix)
 * Jonathan Haas (HaasJona)
 * Jake Breen (Haekb)
+* Marco Benzi Tobar (Lisergishnu)
 
 ## Toolchain
 * (Balletie) - macOS

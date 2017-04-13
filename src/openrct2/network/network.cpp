@@ -750,6 +750,7 @@ void Network::SetupDefaultGroups()
 	user->ToggleActionPermission(18); // Cheat
 	user->ToggleActionPermission(20); // Passwordless login
 	user->ToggleActionPermission(21); // Modify Tile
+	user->ToggleActionPermission(22); // Edit Scenario Options
 	user->Id = 2;
 	group_list.push_back(std::move(user));
 	SetDefaultGroup(1);
@@ -978,7 +979,7 @@ uint8 * Network::save_for_network(size_t &out_size, const std::vector<const Obje
 		return nullptr;
 	}
 	gUseRLE = RLEState;
-	
+
 	const void * data = ms.GetData();
 	sint32 size = ms.GetLength();
 
@@ -2291,7 +2292,7 @@ void network_chat_show_connected_message()
 // Display server greeting if one exists
 void network_chat_show_server_greeting()
 {
-	const char* greeting = gConfigNetwork.server_greeting;
+	const char* greeting = network_get_server_greeting();
 	if (!str_is_null_or_empty(greeting)) {
 		static char greeting_formatted[CHAT_INPUT_SIZE];
 		char* lineCh = greeting_formatted;
